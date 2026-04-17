@@ -1,0 +1,62 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "35TcBvlkY10cBx77nUg_l"
+uri = "file://artifacts/samphone/src/assets/hero.png"
+type = "image"
+title = "dramatic phone accessories product shot"
+
+[[generated]]
+id = "s7_8AMje1VLKvnh5owA8v"
+uri = "file://artifacts/samphone/src/assets/category-cases.png"
+type = "image"
+title = "premium smartphone cases"
+
+[[generated]]
+id = "UHNyYnYwqhT55Sza9IuFn"
+uri = "file://artifacts/samphone/src/assets/category-chargers.png"
+type = "image"
+title = "modern fast chargers"
+
+[[generated]]
+id = "yTWQIxHYHXQMdqAiWq7s7"
+uri = "file://artifacts/samphone/src/assets/category-screen.png"
+type = "image"
+title = "tempered glass screen protector"
+
+[[generated]]
+id = "c60fKKkGZXWBLFUCCJIot"
+uri = "file://artifacts/samphone/src/assets/category-audio.png"
+type = "image"
+title = "wireless bluetooth earbuds"
+
+[[generated]]
+id = "FOrNqdJgD1u6LSKnzPruF"
+uri = "file://artifacts/samphone/src/assets/category-parts.png"
+type = "image"
+title = "smartphone repair parts"
+
+[[generated]]
+id = "vwILToskhbPTDC4gk0bx9"
+uri = "file://artifacts/samphone/src/assets/category-tablets.png"
+type = "image"
+title = "tablet accessories"
+
+[[generated]]
+id = "OMe9WC2NLhPGkN5xpuUJc"
+uri = "file://artifacts/samphone/src/assets/product-case.png"
+type = "image"
+title = "iPhone clear magsafe case"
+
+[[generated]]
+id = "QPx1MYv6cMYg0BdzCiW2y"
+uri = "file://artifacts/samphone/src/assets/product-screen.png"
+type = "image"
+title = "Samsung screen protector"
+
+[[generated]]
+id = "rO9Eq_1ALiv2caTsOvAHq"
+uri = "file://artifacts/samphone/src/assets/product-charger.png"
+type = "image"
+title = "65W USB-C fast charger"

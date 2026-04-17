@@ -1,0 +1,103 @@
+Create a complete Product Requirements Document (PRD) for an eCommerce website for a business called "SAMPHONE", based in Lisbon, Portugal.
+
+Business Overview:
+- Name: SAMPHONE
+- Industry: Mobile accessories and device parts eCommerce store
+- Location: Rua da Palma N.221–223, 1100-391 Lisboa, Portugal
+- Phone: +351 937 119 295
+- Reputation: 4.9/5 rating with 600+ reviews
+- Core offering: Wide range of mobile accessories and spare parts for 700+ device models
+
+Products:
+- Phone accessories (cases, chargers, cables, screen protectors)
+- Audio devices (portable speakers, earphones)
+- Mobile spare parts (screens, batteries, charging ports, camera modules)
+- Tablet accessories and parts
+- Telecom-related gadgets
+
+Target Audience:
+- Consumers looking for affordable accessories
+- Mobile repair shops buying parts in bulk
+- Tech-savvy users
+- Tourists needing quick replacements
+
+PRD Requirements:
+
+1. Executive Summary  
+   - Overview of the eCommerce platform and its purpose
+
+2. Business Goals  
+   - Increase online sales
+   - Expand local and international reach
+   - Improve brand trust and repeat purchases
+
+3. User Personas  
+   - Retail customer (buying accessories)
+   - Technician/shop owner (buying parts in bulk)
+   - Urgent buyer (needs fast delivery)
+
+4. User Journeys  
+   - Product discovery → Add to cart → Checkout  
+   - Search by phone model → Find compatible parts  
+   - Bulk purchase flow  
+
+5. Website Structure (Sitemap):
+   - Home  
+   - Shop (categories + filters)  
+   - Product صفحات (detailed pages)  
+   - About Us  
+   - Contact  
+   - Cart & Checkout  
+   - Account (orders, tracking)  
+
+6. Feature Requirements:
+   - Advanced product filtering (by brand, model, type)
+   - Search by device model (e.g., iPhone 13, Samsung S21)
+   - Secure checkout (Stripe, MB Way, PayPal)
+   - Multi-language (Portuguese + English)
+   - Inventory management
+   - Bulk pricing/wholesale option
+   - Customer reviews and ratings
+   - WhatsApp support integration
+   - Delivery tracking system
+
+7. UI/UX Guidelines:
+   - Clean, modern eCommerce design
+   - Mobile-first approach
+   - Fast navigation and quick checkout
+   - Trust badges (secure payment, reviews)
+   - Highlight deals and popular products
+
+8. SEO Strategy:
+   - Optimize for keywords like:
+     "phone accessories Portugal"
+     "mobile parts Lisbon"
+     "iPhone screen replacement parts Portugal"
+   - Product-level SEO (titles, meta descriptions)
+   - Category optimization
+
+9. Technical Requirements:
+   - Platform: WordPress + WooCommerce (recommended)
+   - Payment integrations (Stripe, MB Way, PayPal)
+   - Speed optimization (CDN, caching)
+   - Security (SSL, anti-spam, firewall)
+
+10. Content Strategy:
+   - High-quality product descriptions
+   - Buying guides (e.g., choosing the right charger)
+   - Blog content for SEO
+
+11. KPIs:
+   - Conversion rate
+   - Average order value
+   - Cart abandonment rate
+   - Traffic growth
+   - Customer retention rate
+
+Tone:
+- Professional, modern, and trustworthy
+- Focus on affordability and product variety
+
+Output:
+- Structured PRD document with clear headings
+- Ready for developers, designers, and marketers

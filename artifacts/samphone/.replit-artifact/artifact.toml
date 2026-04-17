@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "SAMPHONE eCommerce"
+version = "1.0.0"
+id = "artifacts/samphone"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24093
+
+[services.development]
+run = "pnpm --filter @workspace/samphone run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/samphone", "run", "build" ]
+publicDir = "artifacts/samphone/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24093"
+BASE_PATH = "/"
