@@ -2,8 +2,11 @@ import { ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { allBrands } from "@/data/brands";
+import { useLang } from "@/contexts/LanguageContext";
 
 function HomeHeader() {
+  const { t } = useLang();
+
   const scrollToProducts = () => document.querySelector("#products")?.scrollIntoView({ behavior: "smooth" });
   const scrollToCategories = () => document.querySelector("#categories")?.scrollIntoView({ behavior: "smooth" });
 
@@ -11,24 +14,23 @@ function HomeHeader() {
     <div className="max-w-7xl relative mx-auto py-20 md:py-36 px-4 md:px-6 w-full left-0 top-0">
       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
         <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <span className="text-sm font-medium">Lisbon's #1 Tech Boutique</span>
+        <span className="text-sm font-medium">{t("hero_badge")}</span>
       </div>
       <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight text-foreground leading-[1.1] mb-6">
-        Your Phone. <br />
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Your Parts.</span> <br />
-        Delivered Fast.
+        {t("hero_line1")} <br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">{t("hero_line2")}</span> <br />
+        {t("hero_line3")}
       </h1>
       <p className="text-lg md:text-xl text-foreground/75 mb-8 max-w-2xl leading-relaxed">
-        Premium accessories and pro-grade repair parts for over{" "}
-        <span className="font-semibold text-foreground">700+ device models</span>. Fast delivery across Lisbon and Portugal.
+        {t("hero_sub")}
       </p>
       <div className="flex flex-col sm:flex-row gap-4 mb-10">
         <Button size="lg" className="h-14 px-8 text-base group bg-primary hover:bg-primary/90 text-primary-foreground" onClick={scrollToProducts}>
           <ShoppingBag className="w-5 h-5 mr-2 group-hover:-translate-y-1 transition-transform" />
-          Shop Now
+          {t("hero_shop")}
         </Button>
         <Button size="lg" variant="outline" className="h-14 px-8 text-base group hover:bg-muted border-border" onClick={scrollToCategories}>
-          Browse Categories
+          {t("hero_browse")}
           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
         </Button>
       </div>
@@ -44,12 +46,12 @@ function HomeHeader() {
           </div>
         </div>
         <div className="text-sm text-foreground/80">
-          <p className="font-semibold text-foreground">4.9/5 Rating</p>
-          <p>from 600+ happy customers</p>
+          <p className="font-semibold text-foreground">{t("hero_rating")}</p>
+          <p>{t("hero_rating_sub")}</p>
         </div>
       </div>
       <p className="mt-8 text-sm font-medium text-muted-foreground uppercase tracking-widest">
-        Scroll to explore brands
+        {t("hero_scroll")}
       </p>
     </div>
   );
