@@ -55,14 +55,14 @@ const cardsColumns = [
 const navLinks = [
   { label: "HOME", href: "/" },
   { label: "ACCESSORIES", href: "/accessories", dropdown: "accessories" },
-  { label: "SMARTPHONES", href: "/smartphones", dropdown: "smartphones" },
+  { label: "SMARTPHONES", href: "/smartphones" },
   { label: "CARDS", href: "/cards", dropdown: "cards" },
   { label: "NEW", href: "/new" },
   { label: "MULTI BRAND", href: "/multi-brand" },
   { label: "CONTACT US", href: "/contact" },
 ];
 
-type DropdownKey = "accessories" | "smartphones" | "cards" | null;
+type DropdownKey = "accessories" | "smartphones" | "cards" | "allCategories" | null;
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -86,6 +86,7 @@ export default function Navbar() {
     accessories: { columns: accessoriesColumns },
     smartphones: { columns: smartphonesColumns },
     cards: { columns: cardsColumns },
+    allCategories: { columns: smartphonesColumns },
   };
 
   return (
@@ -155,10 +156,45 @@ export default function Navbar() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-stretch">
             {/* All Categories */}
-            <div className="flex items-center gap-2 bg-accent px-5 py-3.5 text-accent-foreground font-semibold text-sm cursor-pointer shrink-0 hover:bg-accent/90 transition-colors">
-              <Menu className="w-4 h-4" />
-              <span>All Categories</span>
-              <ChevronDown className="w-3.5 h-3.5" />
+            <div
+              className="relative shrink-0"
+              onMouseEnter={() => handleMouseEnter("allCategories")}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div className="flex items-center gap-2 bg-accent px-5 py-3.5 text-accent-foreground font-semibold text-sm cursor-pointer hover:bg-accent/90 transition-colors h-full">
+                <Menu className="w-4 h-4" />
+                <span>All Categories</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
+              <AnimatePresence>
+                {openDropdown === "allCategories" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute top-full left-0 z-50 bg-background border border-border shadow-2xl rounded-b-xl min-w-[500px] p-6"
+                    onMouseEnter={() => { if (closeTimer.current) clearTimeout(closeTimer.current); }}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-4 pb-2 border-b border-border">Smartphones by Brand</h4>
+                    <div className="grid grid-cols-3 gap-6">
+                      {smartphonesColumns.map((col) => (
+                        <div key={col.title}>
+                          <h5 className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3 text-primary">{col.title}</h5>
+                          <ul className="space-y-2">
+                            {col.items.map((item) => (
+                              <li key={item}>
+                                <a href="#" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{item}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Nav links */}
