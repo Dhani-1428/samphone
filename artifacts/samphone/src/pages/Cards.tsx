@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { Star, ShoppingCart, Zap, HardDrive, CreditCard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Zap, HardDrive, CreditCard } from "lucide-react";
+import ProductCard from "@/components/ProductCard";
 import productCharger from "@/assets/product-charger.png";
 import productCase from "@/assets/product-case.png";
 import productScreen from "@/assets/product-screen.png";
@@ -13,12 +13,12 @@ const cardTypes = [
 ];
 
 const products = [
-  { id: 1, name: "Samsung MicroSD 128GB Class 10", brand: "Samsung", price: 14.99, oldPrice: 24.99, speed: "100MB/s", rating: 4.9, reviews: 312, img: productCharger, type: "MicroSD" },
-  { id: 2, name: "SanDisk Ultra 256GB MicroSD", brand: "SanDisk", price: 24.99, oldPrice: null, speed: "120MB/s", rating: 4.8, reviews: 201, img: productCase, type: "MicroSD" },
-  { id: 3, name: "Kingston Canvas Select 64GB", brand: "Kingston", price: 9.99, oldPrice: 14.99, speed: "80MB/s", rating: 4.7, reviews: 178, img: productScreen, type: "MicroSD" },
-  { id: 4, name: "Lexar 32GB SD Card UHS-I", brand: "Lexar", price: 11.99, oldPrice: null, speed: "95MB/s", rating: 4.6, reviews: 89, img: productCharger, type: "SD" },
-  { id: 5, name: "SIM Tray Adapter Set (Nano/Micro)", brand: "Generic", price: 3.99, oldPrice: 6.99, speed: "—", rating: 4.8, reviews: 423, img: productCase, type: "SIM Adapter" },
-  { id: 6, name: "Samsung PRO Plus 512GB MicroSD", brand: "Samsung", price: 49.99, oldPrice: 69.99, speed: "160MB/s", rating: 4.9, reviews: 145, img: productScreen, type: "MicroSD" },
+  { id: 1, name: "Samsung MicroSD 128GB Class 10", subtitle: "Samsung · 100MB/s", price: 14.99, oldPrice: 24.99, rating: 4.9, reviews: 312, img: productCharger, badge: "Sale" },
+  { id: 2, name: "SanDisk Ultra 256GB MicroSD", subtitle: "SanDisk · 120MB/s", price: 24.99, rating: 4.8, reviews: 201, img: productCase, badge: null },
+  { id: 3, name: "Kingston Canvas Select 64GB", subtitle: "Kingston · 80MB/s", price: 9.99, oldPrice: 14.99, rating: 4.7, reviews: 178, img: productScreen, badge: "Sale" },
+  { id: 4, name: "Lexar 32GB SD Card UHS-I", subtitle: "Lexar · 95MB/s", price: 11.99, rating: 4.6, reviews: 89, img: productCharger, badge: null },
+  { id: 5, name: "SIM Tray Adapter Set (Nano/Micro)", subtitle: "Generic · Universal", price: 3.99, oldPrice: 6.99, rating: 4.8, reviews: 423, img: productCase, badge: "Bestseller" },
+  { id: 6, name: "Samsung PRO Plus 512GB MicroSD", subtitle: "Samsung · 160MB/s", price: 49.99, oldPrice: 69.99, rating: 4.9, reviews: 145, img: productScreen, badge: "Sale" },
 ];
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
@@ -27,7 +27,6 @@ const itemVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 
 export default function Cards() {
   return (
     <div className="bg-background min-h-screen">
-      {/* Header */}
       <div className="bg-gradient-to-r from-indigo-700 to-blue-600 py-10 md:py-14">
         <div className="container mx-auto px-4 md:px-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -38,22 +37,10 @@ export default function Cards() {
         </div>
       </div>
 
-      {/* Card types */}
       <div className="container mx-auto px-4 md:px-6 py-10">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
-        >
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {cardTypes.map((ct, i) => (
-            <motion.div
-              key={ct.label}
-              variants={itemVariants}
-              whileHover={{ y: -4 }}
-              className="p-5 bg-card border border-border rounded-2xl cursor-pointer hover:border-primary/40 transition-colors"
-              data-testid={`card-type-${i}`}
-            >
+            <motion.div key={ct.label} variants={itemVariants} whileHover={{ y: -4 }} className="p-5 bg-card border border-border rounded-2xl cursor-pointer hover:border-primary/40 transition-colors">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${ct.color}`}>
                 <ct.icon className="w-5 h-5" />
               </div>
@@ -63,7 +50,6 @@ export default function Cards() {
           ))}
         </motion.div>
 
-        {/* Speed guide */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -77,44 +63,11 @@ export default function Cards() {
           </div>
         </motion.div>
 
-        {/* Products */}
         <h2 className="text-2xl font-display font-bold text-foreground mb-6">All Memory Cards</h2>
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5"
-        >
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
           {products.map((p) => (
-            <motion.div
-              key={p.id}
-              variants={itemVariants}
-              whileHover={{ y: -4 }}
-              className="group bg-card border border-border rounded-2xl overflow-hidden flex flex-col"
-              data-testid={`card-product-${p.id}`}
-            >
-              <div className="aspect-video overflow-hidden bg-muted relative">
-                <img src={p.img} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                <div className="absolute bottom-2 right-2 px-2 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-lg">
-                  {p.speed}
-                </div>
-              </div>
-              <div className="p-4 flex flex-col flex-1">
-                <span className="text-xs text-primary font-medium mb-1">{p.type}</span>
-                <h3 className="font-semibold text-foreground text-sm leading-snug mb-2 line-clamp-2">{p.name}</h3>
-                <p className="text-xs text-muted-foreground mb-2">{p.brand}</p>
-                <div className="flex items-center gap-1 mb-3">
-                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`w-3 h-3 ${i < Math.floor(p.rating) ? "fill-amber-400 text-amber-400" : "text-muted"}`} />)}
-                  <span className="text-xs text-muted-foreground">({p.reviews})</span>
-                </div>
-                <div className="flex items-center gap-2 mb-3 mt-auto">
-                  <span className="font-display font-bold text-lg text-foreground">€{p.price.toFixed(2)}</span>
-                  {p.oldPrice && <span className="text-sm text-muted-foreground line-through">€{p.oldPrice.toFixed(2)}</span>}
-                </div>
-                <Button size="sm" className="w-full gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs" data-testid={`button-cart-${p.id}`}>
-                  <ShoppingCart className="w-3 h-3" /> Add to Cart
-                </Button>
-              </div>
+            <motion.div key={p.id} variants={itemVariants}>
+              <ProductCard {...p} testPrefix="card" />
             </motion.div>
           ))}
         </motion.div>
