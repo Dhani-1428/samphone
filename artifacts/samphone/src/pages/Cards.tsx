@@ -1,0 +1,124 @@
+import { motion } from "framer-motion";
+import { Star, ShoppingCart, Zap, HardDrive, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import productCharger from "@/assets/product-charger.png";
+import productCase from "@/assets/product-case.png";
+import productScreen from "@/assets/product-screen.png";
+
+const cardTypes = [
+  { icon: HardDrive, label: "MicroSD Cards", desc: "For phones, tablets, drones & cameras", color: "bg-blue-500/10 text-blue-600" },
+  { icon: HardDrive, label: "SD Cards", desc: "Standard SD for cameras and devices", color: "bg-indigo-500/10 text-indigo-600" },
+  { icon: CreditCard, label: "SIM Adapters", desc: "Nano, Micro, and Standard SIM adapters", color: "bg-emerald-500/10 text-emerald-600" },
+  { icon: Zap, label: "High-Speed UHS", desc: "Ultra High Speed cards for professionals", color: "bg-amber-500/10 text-amber-600" },
+];
+
+const products = [
+  { id: 1, name: "Samsung MicroSD 128GB Class 10", brand: "Samsung", price: 14.99, oldPrice: 24.99, speed: "100MB/s", rating: 4.9, reviews: 312, img: productCharger, type: "MicroSD" },
+  { id: 2, name: "SanDisk Ultra 256GB MicroSD", brand: "SanDisk", price: 24.99, oldPrice: null, speed: "120MB/s", rating: 4.8, reviews: 201, img: productCase, type: "MicroSD" },
+  { id: 3, name: "Kingston Canvas Select 64GB", brand: "Kingston", price: 9.99, oldPrice: 14.99, speed: "80MB/s", rating: 4.7, reviews: 178, img: productScreen, type: "MicroSD" },
+  { id: 4, name: "Lexar 32GB SD Card UHS-I", brand: "Lexar", price: 11.99, oldPrice: null, speed: "95MB/s", rating: 4.6, reviews: 89, img: productCharger, type: "SD" },
+  { id: 5, name: "SIM Tray Adapter Set (Nano/Micro)", brand: "Generic", price: 3.99, oldPrice: 6.99, speed: "—", rating: 4.8, reviews: 423, img: productCase, type: "SIM Adapter" },
+  { id: 6, name: "Samsung PRO Plus 512GB MicroSD", brand: "Samsung", price: 49.99, oldPrice: 69.99, speed: "160MB/s", rating: 4.9, reviews: 145, img: productScreen, type: "MicroSD" },
+];
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
+const itemVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
+
+export default function Cards() {
+  return (
+    <div className="bg-background min-h-screen">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-indigo-700 to-blue-600 py-10 md:py-14">
+        <div className="container mx-auto px-4 md:px-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <p className="text-white/60 text-sm mb-2">Home / Cards</p>
+            <h1 className="text-3xl md:text-5xl font-display font-bold text-white">Memory & SIM Cards</h1>
+            <p className="text-white/80 mt-2 text-lg">Expand your storage. Keep your connections.</p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Card types */}
+      <div className="container mx-auto px-4 md:px-6 py-10">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
+        >
+          {cardTypes.map((ct, i) => (
+            <motion.div
+              key={ct.label}
+              variants={itemVariants}
+              whileHover={{ y: -4 }}
+              className="p-5 bg-card border border-border rounded-2xl cursor-pointer hover:border-primary/40 transition-colors"
+              data-testid={`card-type-${i}`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${ct.color}`}>
+                <ct.icon className="w-5 h-5" />
+              </div>
+              <h3 className="font-display font-bold text-foreground text-sm mb-1">{ct.label}</h3>
+              <p className="text-muted-foreground text-xs">{ct.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Speed guide */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="bg-primary/5 border border-primary/20 rounded-2xl p-5 mb-10 flex flex-col md:flex-row items-center gap-4"
+        >
+          <Zap className="w-8 h-8 text-primary shrink-0" />
+          <div>
+            <h3 className="font-display font-bold text-foreground mb-1">How to choose the right speed class?</h3>
+            <p className="text-muted-foreground text-sm">Class 10 / UHS-I for everyday use. UHS-II for 4K video and professional photography. Need help? Chat with us on WhatsApp.</p>
+          </div>
+        </motion.div>
+
+        {/* Products */}
+        <h2 className="text-2xl font-display font-bold text-foreground mb-6">All Memory Cards</h2>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5"
+        >
+          {products.map((p) => (
+            <motion.div
+              key={p.id}
+              variants={itemVariants}
+              whileHover={{ y: -4 }}
+              className="group bg-card border border-border rounded-2xl overflow-hidden flex flex-col"
+              data-testid={`card-product-${p.id}`}
+            >
+              <div className="aspect-video overflow-hidden bg-muted relative">
+                <img src={p.img} alt={p.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute bottom-2 right-2 px-2 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-lg">
+                  {p.speed}
+                </div>
+              </div>
+              <div className="p-4 flex flex-col flex-1">
+                <span className="text-xs text-primary font-medium mb-1">{p.type}</span>
+                <h3 className="font-semibold text-foreground text-sm leading-snug mb-2 line-clamp-2">{p.name}</h3>
+                <p className="text-xs text-muted-foreground mb-2">{p.brand}</p>
+                <div className="flex items-center gap-1 mb-3">
+                  {Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`w-3 h-3 ${i < Math.floor(p.rating) ? "fill-amber-400 text-amber-400" : "text-muted"}`} />)}
+                  <span className="text-xs text-muted-foreground">({p.reviews})</span>
+                </div>
+                <div className="flex items-center gap-2 mb-3 mt-auto">
+                  <span className="font-display font-bold text-lg text-foreground">€{p.price.toFixed(2)}</span>
+                  {p.oldPrice && <span className="text-sm text-muted-foreground line-through">€{p.oldPrice.toFixed(2)}</span>}
+                </div>
+                <Button size="sm" className="w-full gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs" data-testid={`button-cart-${p.id}`}>
+                  <ShoppingCart className="w-3 h-3" /> Add to Cart
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}

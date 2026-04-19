@@ -4,13 +4,40 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Accessories from "@/pages/Accessories";
+import Smartphones from "@/pages/Smartphones";
+import Cards from "@/pages/Cards";
+import NewArrivals from "@/pages/NewArrivals";
+import MultiBrand from "@/pages/MultiBrand";
+import Contact from "@/pages/Contact";
+import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/">
+        <Layout><Home /></Layout>
+      </Route>
+      <Route path="/accessories">
+        <Layout><Accessories /></Layout>
+      </Route>
+      <Route path="/smartphones">
+        <Layout><Smartphones /></Layout>
+      </Route>
+      <Route path="/cards">
+        <Layout><Cards /></Layout>
+      </Route>
+      <Route path="/new">
+        <Layout><NewArrivals /></Layout>
+      </Route>
+      <Route path="/multi-brand">
+        <Layout><MultiBrand /></Layout>
+      </Route>
+      <Route path="/contact">
+        <Layout><Contact /></Layout>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
