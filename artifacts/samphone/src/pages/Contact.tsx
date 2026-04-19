@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HeroParallax } from "@/components/ui/hero-parallax";
+import { allBrands } from "@/data/brands";
 import { SiWhatsapp, SiInstagram, SiFacebook } from "react-icons/si";
 
 const contactInfo = [
@@ -18,6 +20,16 @@ const faqs = [
   { q: "Do your parts come with a warranty?", a: "Yes, all parts come with a minimum 3-month warranty. Premium OEM parts have a 12-month warranty." },
 ];
 
+function ContactHeader() {
+  return (
+    <div className="max-w-7xl relative mx-auto py-20 md:py-32 px-4 md:px-6">
+      <p className="text-foreground/50 text-sm mb-3 uppercase tracking-widest">Home / Contact</p>
+      <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-4">Contact Us</h1>
+      <p className="text-foreground/60 text-xl max-w-xl">We're here to help. Scroll to explore all brands we carry.</p>
+    </div>
+  );
+}
+
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
@@ -29,28 +41,15 @@ export default function Contact() {
   };
 
   return (
-    <div className="bg-background min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-primary via-blue-600 to-indigo-700 py-12 md:py-20">
-        <div className="container mx-auto px-4 md:px-6 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1 className="text-3xl md:text-5xl font-display font-bold text-white mb-3">Contact Us</h1>
-            <p className="text-white/80 text-lg max-w-xl mx-auto">We're here to help. Reach out via phone, email, WhatsApp, or just fill out the form below.</p>
-          </motion.div>
-        </div>
-      </div>
+    <div className="bg-background">
+      <HeroParallax brands={allBrands} header={<ContactHeader />} compact />
 
       <div className="container mx-auto px-4 md:px-6 py-10">
         <div className="grid lg:grid-cols-2 gap-10 mb-14">
-          {/* Contact form */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">Send us a Message</h2>
             {submitted ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center py-16 text-center"
-              >
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
                 <CheckCircle className="w-16 h-16 text-emerald-500 mb-4" />
                 <h3 className="text-xl font-display font-bold text-foreground mb-2">Message Sent!</h3>
                 <p className="text-muted-foreground">We'll get back to you within 24 hours.</p>
@@ -60,78 +59,39 @@ export default function Contact() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1.5 block">Your Name</label>
-                    <input
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Ana Rodrigues"
-                      className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      required
-                      data-testid="input-name"
-                    />
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ana Rodrigues" className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" required />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1.5 block">Email Address</label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="ana@example.com"
-                      className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                      required
-                      data-testid="input-email"
-                    />
+                    <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ana@example.com" className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" required />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Subject</label>
-                  <select
-                    value={form.subject}
-                    onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    data-testid="select-subject"
-                  >
+                  <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                     <option value="">Select a subject...</option>
-                    <option>Order Inquiry</option>
-                    <option>Wholesale / Bulk Order</option>
-                    <option>Product Question</option>
-                    <option>Returns & Warranty</option>
-                    <option>Other</option>
+                    <option>Order Inquiry</option><option>Wholesale / Bulk Order</option><option>Product Question</option><option>Returns & Warranty</option><option>Other</option>
                   </select>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Message</label>
-                  <textarea
-                    value={form.message}
-                    onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="How can we help you?"
-                    rows={5}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                    required
-                    data-testid="textarea-message"
-                  />
+                  <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="How can we help you?" rows={5} className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" required />
                 </div>
-                <Button type="submit" size="lg" className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12" data-testid="button-submit-contact">
-                  <Send className="w-4 h-4" /> Send Message
-                </Button>
+                <Button type="submit" size="lg" className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12"><Send className="w-4 h-4" /> Send Message</Button>
               </form>
             )}
           </motion.div>
 
-          {/* Contact info + map */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">Get in Touch</h2>
             <div className="space-y-4 mb-6">
               {contactInfo.map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 bg-card border border-border rounded-xl">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0">
-                    <item.icon className="w-5 h-5" />
-                  </div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0"><item.icon className="w-5 h-5" /></div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-0.5">{item.label}</p>
                     {item.link ? (
-                      <a href={item.link} target={item.link.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:text-primary transition-colors" data-testid={`contact-${item.label.toLowerCase()}`}>
-                        {item.value}
-                      </a>
+                      <a href={item.link} target={item.link.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:text-primary transition-colors">{item.value}</a>
                     ) : (
                       <p className="text-sm font-medium text-foreground">{item.value}</p>
                     )}
@@ -139,61 +99,31 @@ export default function Contact() {
                 </div>
               ))}
             </div>
-
-            {/* WhatsApp CTA */}
-            <a
-              href="https://wa.me/351937119295"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl hover:bg-[#25D366]/15 transition-colors mb-6"
-              data-testid="link-whatsapp-contact"
-            >
+            <a href="https://wa.me/351937119295" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl hover:bg-[#25D366]/15 transition-colors mb-6">
               <SiWhatsapp className="w-8 h-8 text-[#25D366]" />
               <div>
                 <p className="font-semibold text-foreground text-sm">Chat on WhatsApp</p>
-                <p className="text-muted-foreground text-xs">Get instant help — typical reply in under 10 min</p>
+                <p className="text-muted-foreground text-xs">Typical reply in under 10 min</p>
               </div>
             </a>
-
-            {/* Social */}
             <div className="flex gap-3">
-              <a href="#" className="flex-1 flex items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:border-primary hover:text-primary transition-colors">
-                <SiInstagram className="w-4 h-4" /> Instagram
-              </a>
-              <a href="#" className="flex-1 flex items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:border-primary hover:text-primary transition-colors">
-                <SiFacebook className="w-4 h-4" /> Facebook
-              </a>
+              <a href="#" className="flex-1 flex items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:border-primary hover:text-primary transition-colors"><SiInstagram className="w-4 h-4" /> Instagram</a>
+              <a href="#" className="flex-1 flex items-center justify-center gap-2 p-3 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:border-primary hover:text-primary transition-colors"><SiFacebook className="w-4 h-4" /> Facebook</a>
             </div>
           </motion.div>
         </div>
 
-        {/* FAQ */}
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-display font-bold text-foreground mb-6 text-center">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
-                className="border border-border rounded-2xl overflow-hidden"
-                data-testid={`faq-${i}`}
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/50 transition-colors"
-                >
+              <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="border border-border rounded-2xl overflow-hidden">
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/50 transition-colors">
                   <span className="font-semibold text-foreground text-sm md:text-base">{faq.q}</span>
                   <MessageCircle className={`w-5 h-5 text-muted-foreground shrink-0 ml-4 transition-colors ${openFaq === i ? "text-primary" : ""}`} />
                 </button>
                 {openFaq === i && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="px-5 pb-5 text-muted-foreground text-sm leading-relaxed border-t border-border"
-                  >
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="px-5 pb-5 text-muted-foreground text-sm leading-relaxed border-t border-border">
                     <div className="pt-4">{faq.a}</div>
                   </motion.div>
                 )}

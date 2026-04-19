@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
+import { HeroParallax } from "@/components/ui/hero-parallax";
+import { allBrands } from "@/data/brands";
 import productCase from "@/assets/product-case.png";
 import productCharger from "@/assets/product-charger.png";
 import productScreen from "@/assets/product-screen.png";
@@ -36,20 +37,22 @@ const parts = [
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
+function SmartphonesHeader() {
+  return (
+    <div className="max-w-7xl relative mx-auto py-20 md:py-32 px-4 md:px-6">
+      <p className="text-foreground/50 text-sm mb-3 uppercase tracking-widest">Home / Smartphones</p>
+      <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-4">Smartphone Parts</h1>
+      <p className="text-foreground/60 text-xl max-w-xl">Genuine-quality replacement parts for 700+ device models. Scroll to explore brands.</p>
+    </div>
+  );
+}
+
 export default function Smartphones() {
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <div className="bg-background min-h-screen">
-      <div className="bg-foreground py-10 md:py-14">
-        <div className="container mx-auto px-4 md:px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <p className="text-background/60 text-sm mb-2">Home / Smartphones</p>
-            <h1 className="text-3xl md:text-5xl font-display font-bold text-background">Smartphone Parts</h1>
-            <p className="text-background/70 mt-2 text-lg">Genuine-quality replacement parts for 700+ device models</p>
-          </motion.div>
-        </div>
-      </div>
+    <div className="bg-background">
+      <HeroParallax brands={allBrands} header={<SmartphonesHeader />} compact />
 
       <div className="bg-muted/30 py-10">
         <div className="container mx-auto px-4 md:px-6">
@@ -62,14 +65,7 @@ export default function Smartphones() {
           </div>
           <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {brands.map((b) => (
-              <motion.button
-                key={b.name}
-                variants={itemVariants}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setSelected(selected === b.name ? null : b.name)}
-                className={`rounded-2xl overflow-hidden border-2 transition-all ${selected === b.name ? "border-primary shadow-lg shadow-primary/20" : "border-transparent"}`}
-              >
+              <motion.button key={b.name} variants={itemVariants} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={() => setSelected(selected === b.name ? null : b.name)} className={`rounded-2xl overflow-hidden border-2 transition-all ${selected === b.name ? "border-primary shadow-lg shadow-primary/20" : "border-transparent"}`}>
                 <div className={`relative aspect-square bg-gradient-to-br ${b.color} flex items-center justify-center overflow-hidden`}>
                   <img src={b.img} alt={b.name} className="w-full h-full object-cover opacity-30" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
@@ -89,9 +85,7 @@ export default function Smartphones() {
         </h2>
         <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {parts.map((p) => (
-            <motion.div key={p.id} variants={itemVariants}>
-              <ProductCard {...p} testPrefix="phone" />
-            </motion.div>
+            <motion.div key={p.id} variants={itemVariants}><ProductCard {...p} testPrefix="phone" /></motion.div>
           ))}
         </motion.div>
       </div>
