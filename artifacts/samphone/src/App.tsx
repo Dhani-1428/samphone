@@ -10,6 +10,7 @@ import Cards from "@/pages/Cards";
 import NewArrivals from "@/pages/NewArrivals";
 import MultiBrand from "@/pages/MultiBrand";
 import Contact from "@/pages/Contact";
+import CategoryPage from "@/pages/CategoryPage";
 import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,9 @@ function Router() {
       </Route>
       <Route path="/contact">
         <Layout><Contact /></Layout>
+      </Route>
+      <Route path="/category/:slug">
+        <Layout><CategoryPage /></Layout>
       </Route>
       <Route component={NotFound} />
     </Switch>

@@ -2,55 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { ShoppingCart, Search, ChevronDown, Menu, X, Heart, SlidersHorizontal, Phone, User, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const accessoriesColumns = [
-  {
-    title: "Screen Protection",
-    items: ["Full Glue Glass", "Privacy Glass", "Normal Glass", "Camera Lens 3-IN-1", "Camera Lens Complete", "Curved Full Glue Glass", "Smart Watch Glass"],
-  },
-  {
-    title: "Cases & Covers",
-    items: ["Silicon Soft Jelly", "Antishock Cover", "Flip Cover", "Ring Cover", "Magsafe Cover", "Design Cover", "Wallet Cases"],
-  },
-  {
-    title: "Chargers & Cables",
-    items: ["Adapters", "Lightning Chargers", "Type-C Chargers", "Micro-USB Chargers", "Wireless Charger", "Lightning Cables", "Type-C Cables", "Micro Cables", "HDMI Cables"],
-  },
-  {
-    title: "Audio & Wearables",
-    items: ["Wireless Headset", "Headphones", "Neck Earphone", "Speakers", "Microphone", "Audio Cable", "Earphones", "Smartwatches", "Smartwatch Accessories"],
-  },
-  {
-    title: "Hoco & Accessories",
-    items: ["Original Accessories", "Hoco Beauty Care", "Other Hoco Accessories", "Hoco Power Banks", "Hoco Car Accessories", "Batteries AA"],
-  },
-];
-
-const smartphonesColumns = [
-  {
-    title: "Apple & Samsung",
-    items: ["iPhone Parts", "Samsung Parts", "Xiaomi Parts", "Oppo Reno Parts", "Realme Parts", "Huawei Parts"],
-  },
-  {
-    title: "Other Brands",
-    items: ["One Plus Parts", "Motorola Parts", "Alcatel Parts", "TCL Parts", "ZTE Parts", "Vivo Parts"],
-  },
-  {
-    title: "More",
-    items: ["Tablets", "Nokia Parts", "Google Pixel Parts", "LG Parts", "Other Parts", "Repair Tools"],
-  },
-];
-
-const cardsColumns = [
-  {
-    title: "Memory Cards",
-    items: ["MicroSD Cards", "SD Cards", "Class 10 Cards", "High Speed UHS-I", "High Speed UHS-II", "Industrial Cards"],
-  },
-  {
-    title: "SIM Cards & Adapters",
-    items: ["SIM Card Trays", "Nano SIM", "Micro SIM", "SIM Adapters", "Dual SIM Adapters"],
-  },
-];
+import { accessoriesColumns, smartphonesColumns, cardsColumns } from "@/data/categories";
 
 const navLinks = [
   { label: "HOME", href: "/" },
@@ -62,7 +14,7 @@ const navLinks = [
   { label: "CONTACT US", href: "/contact" },
 ];
 
-type DropdownKey = "accessories" | "smartphones" | "cards" | "allCategories" | null;
+type DropdownKey = "accessories" | "cards" | "allCategories" | null;
 
 export default function Navbar() {
   const [location] = useLocation();
@@ -80,13 +32,13 @@ export default function Navbar() {
     closeTimer.current = setTimeout(() => setOpenDropdown(null), 150);
   };
 
+  const closeMenu = () => setOpenDropdown(null);
+
   useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
 
-  const dropdownData: Record<string, { columns: { title: string; items: string[] }[] }> = {
-    accessories: { columns: accessoriesColumns },
-    smartphones: { columns: smartphonesColumns },
-    cards: { columns: cardsColumns },
-    allCategories: { columns: smartphonesColumns },
+  const dropdownColumns: Record<string, typeof accessoriesColumns> = {
+    accessories: accessoriesColumns,
+    cards: cardsColumns,
   };
 
   return (
@@ -155,7 +107,7 @@ export default function Navbar() {
       <nav className="bg-primary hidden md:block">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-stretch">
-            {/* All Categories */}
+            {/* All Categories — opens smartphone brands */}
             <div
               className="relative shrink-0"
               onMouseEnter={() => handleMouseEnter("allCategories")}
@@ -177,15 +129,23 @@ export default function Navbar() {
                     onMouseEnter={() => { if (closeTimer.current) clearTimeout(closeTimer.current); }}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-4 pb-2 border-b border-border">Smartphones by Brand</h4>
+                    <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-4 pb-2 border-b border-border">
+                      Smartphones by Brand
+                    </h4>
                     <div className="grid grid-cols-3 gap-6">
                       {smartphonesColumns.map((col) => (
                         <div key={col.title}>
-                          <h5 className="font-semibold text-foreground text-xs uppercase tracking-wider mb-3 text-primary">{col.title}</h5>
+                          <h5 className="font-semibold text-primary text-xs uppercase tracking-wider mb-3">{col.title}</h5>
                           <ul className="space-y-2">
                             {col.items.map((item) => (
-                              <li key={item}>
-                                <a href="#" className="text-sm text-foreground/70 hover:text-primary transition-colors block">{item}</a>
+                              <li key={item.slug}>
+                                <Link
+                                  href={`/category/${item.slug}`}
+                                  onClick={closeMenu}
+                                  className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                                >
+                                  {item.label}
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -227,16 +187,24 @@ export default function Navbar() {
                         onMouseEnter={() => { if (closeTimer.current) clearTimeout(closeTimer.current); }}
                         onMouseLeave={handleMouseLeave}
                       >
-                        <div className={`grid gap-6 ${dropdownData[link.dropdown].columns.length >= 4 ? "grid-cols-4 lg:grid-cols-5" : "grid-cols-3"}`}>
-                          {dropdownData[link.dropdown].columns.map((col) => (
+                        <div
+                          className={`grid gap-6 ${dropdownColumns[link.dropdown].length >= 4 ? "grid-cols-4 lg:grid-cols-5" : "grid-cols-3"}`}
+                        >
+                          {dropdownColumns[link.dropdown].map((col) => (
                             <div key={col.title}>
-                              <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-3 pb-2 border-b border-border">{col.title}</h4>
+                              <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-3 pb-2 border-b border-border">
+                                {col.title}
+                              </h4>
                               <ul className="space-y-2">
                                 {col.items.map((item) => (
-                                  <li key={item}>
-                                    <a href="#" className="text-sm text-foreground/70 hover:text-primary transition-colors block">
-                                      {item}
-                                    </a>
+                                  <li key={item.slug}>
+                                    <Link
+                                      href={`/category/${item.slug}`}
+                                      onClick={closeMenu}
+                                      className="text-sm text-foreground/70 hover:text-primary transition-colors block"
+                                    >
+                                      {item.label}
+                                    </Link>
                                   </li>
                                 ))}
                               </ul>
