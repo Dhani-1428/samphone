@@ -60,6 +60,16 @@ export default defineConfig(async ({ mode }) => {
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      onwarn(warning, handler) {
+        if (
+          warning.message?.includes("Can't resolve original location of error")
+        ) {
+          return;
+        }
+        handler(warning);
+      },
+    },
   },
   server: {
     port,
