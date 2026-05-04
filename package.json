@@ -4,10 +4,10 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "node tooling/enforce-pnpm.cjs",
-    "dev": "pnpm --filter @workspace/samphone dev",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "dev": "npx -y pnpm@10.33.2 --filter @workspace/samphone dev",
+    "build": "npx -y pnpm@10.33.2 run typecheck && npx -y pnpm@10.33.2 -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck": "npx -y pnpm@10.33.2 run typecheck:libs && npx -y pnpm@10.33.2 -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
   "devDependencies": {
