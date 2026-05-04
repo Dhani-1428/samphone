@@ -1,7 +1,7 @@
 /**
- * Vercel often expects a directory literally named `public` at the configured
- * project root. Vite writes to `artifacts/samphone/dist/public`. After build,
- * mirror that output into every `public` location this monorepo might deploy from.
+ * Legacy helper: mirrors `artifacts/samphone/dist/public` into repo `public` paths
+ * when `VERCEL=1`. Deployments should use `vercel.json#outputDirectory` pointing
+ * at `artifacts/samphone/dist/public` (repo root) or `dist/public` (app root).
  */
 import fs from "fs";
 import path from "path";
