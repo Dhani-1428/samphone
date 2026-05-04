@@ -20,7 +20,7 @@ export default function ProductCartControls({
   size?: Size;
   /**
    * - compact: icon-only add; stepper shows qty between +/- .
-   * - icon-stepper: icon-only add; after add, only − / + (no qty text) — e.g. Woo cards by price.
+   * - icon-stepper: icon-only add; after add, − / qty / + — e.g. Woo cards by price.
    */
   variant?: "default" | "compact" | "icon-stepper";
 }) {
@@ -81,7 +81,7 @@ export default function ProductCartControls({
 
   if (qty > 0 && variant === "icon-stepper") {
     return (
-      <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
+      <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
         <Button
           type="button"
           variant="outline"
@@ -96,6 +96,9 @@ export default function ProductCartControls({
         >
           <Minus className="w-3.5 h-3.5" />
         </Button>
+        <span className="min-w-[2ch] px-1 text-center text-xs font-semibold tabular-nums text-foreground">
+          {qty}
+        </span>
         <Button
           type="button"
           variant="outline"
