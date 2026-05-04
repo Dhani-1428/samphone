@@ -1,7 +1,12 @@
 import { accessoriesColumns, cardsColumns, smartphonesColumns } from "@/data/categories";
 import type { WooProduct } from "@/lib/woocommerce";
 
+const TABLETS_SLUG = "tablets";
 const SMARTPHONE_CATEGORY_SLUGS = new Set(smartphonesColumns.flatMap((c) => c.items.map((i) => i.slug)));
+/** Phone repair categories only (excludes the tablets Woo category). */
+export const PHONE_CATEGORY_SLUGS = new Set(
+  [...SMARTPHONE_CATEGORY_SLUGS].filter((s) => s !== TABLETS_SLUG),
+);
 const ACCESSORY_CATEGORY_SLUGS = new Set(accessoriesColumns.flatMap((c) => c.items.map((i) => i.slug)));
 const CARD_CATEGORY_SLUGS = new Set(cardsColumns.flatMap((c) => c.items.map((i) => i.slug)));
 
@@ -13,6 +18,32 @@ function matchesSlugSet(p: WooProduct, slugs: Set<string>): boolean {
 
 export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
   return products.filter((p) => matchesSlugSet(p, SMARTPHONE_CATEGORY_SLUGS));
+}
+
+export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
+  return products.filter((p) => matchesSlugSet(p, PHONE_CATEGORY_SLUGS));
+}
+
+export function filterTabletParts(products: WooProduct[]): WooProduct[] {
+  return products.filter((p) => matchesSlugSet(p, new Set([TABLETS_SLUG])));
+}
+
+function filterSectionBrand(
+  products: WooProduct[],
+  section: "phones" | "tablets",
+  brandLabel: string | null,
+  limit = 24,
+): WooProduct[] {
+  const base = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+  if (!brandLabel) return base.slice(0, limit);
+  const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
+  if (!kw) return base.slice(0, limit);
+  const sub = base.filter(
+    (p) =>
+      p.name.toLowerCase().includes(kw) ||
+      (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
+  );
+  return (sub.length ? sub : base).slice(0, limit);
 }
 
 export function filterAccessoryCatalog(products: WooProduct[]): WooProduct[] {
@@ -56,16 +87,11 @@ export function pickHomeFeatured(products: WooProduct[], limit: number): WooProd
 }
 
 export function filterSmartphoneBrand(products: WooProduct[], brandLabel: string | null, limit = 24): WooProduct[] {
-  const base = filterSmartphoneParts(products);
-  if (!brandLabel) return base.slice(0, limit);
-  const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
-  if (!kw) return base.slice(0, limit);
-  const sub = base.filter(
-    (p) =>
-      p.name.toLowerCase().includes(kw) ||
-      (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
-  );
-  return (sub.length ? sub : base).slice(0, limit);
+  return filterSectionBrand(products, "phones", brandLabel, limit);
+}
+
+export function filterTabletBrand(products: WooProduct[], brandLabel: string | null, limit = 24): WooProduct[] {
+  return filterSectionBrand(products, "tablets", brandLabel, limit);
 }
 
 export function filterMultiBrandCatalog(products: WooProduct[], brand: string | null, limit = 24): WooProduct[] {

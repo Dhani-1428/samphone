@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Loader2 } from "lucide-react";
+import { Link } from "wouter";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
@@ -12,7 +13,8 @@ import productScreen from "@/assets/product-screen.png";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { filterSmartphoneBrand } from "@/lib/woo-product-filters";
+import { filterSmartphoneBrand, filterTabletBrand } from "@/lib/woo-product-filters";
+import { cn } from "@/lib/utils";
 
 const brands = [
   { name: "iPhone Parts", img: productScreen, count: "180+ parts", color: "from-gray-700 to-gray-900" },
@@ -29,16 +31,28 @@ const brands = [
   { name: "Repair Tools", img: productCharger, count: "30+ items", color: "from-slate-600 to-slate-800" },
 ];
 
+const tabletBrands = [
+  { name: "iPad", img: productScreen, count: "Apple", color: "from-gray-700 to-gray-900" },
+  { name: "Galaxy Tab", img: productCase, count: "Samsung", color: "from-blue-700 to-blue-900" },
+  { name: "Xiaomi Pad", img: productCharger, count: "Xiaomi", color: "from-orange-600 to-red-700" },
+  { name: "Huawei MatePad", img: productScreen, count: "Huawei", color: "from-red-700 to-rose-900" },
+  { name: "Lenovo Tab", img: productCase, count: "Lenovo", color: "from-indigo-700 to-indigo-900" },
+  { name: "Android tablet", img: productCharger, count: "More", color: "from-slate-600 to-slate-800" },
+];
+
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
-function SmartphonesHeader() {
+type DeviceSection = "phones" | "tablets";
+
+function SmartphonesHeader({ section }: { section: DeviceSection }) {
+  const { t } = useLang();
   return (
     <PageVideoHero
       videoSrc={smartphoneAppleVideo}
-      eyebrow="Home / Smartphones"
-      title="Smartphone Parts"
-      description="Genuine-quality replacement parts for 700+ device models."
+      eyebrow={t("smartphones_breadcrumb")}
+      title={section === "phones" ? t("smartphones_hero_phones_title") : t("smartphones_hero_tablets_title")}
+      description={t("smartphones_hero_sub")}
     />
   );
 }
@@ -47,47 +61,106 @@ export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
+  const [section, setSection] = useState<DeviceSection>("phones");
   const [selected, setSelected] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSelected(null);
+  }, [section]);
+
+  const brandTiles = section === "phones" ? brands : tabletBrands;
+
   const wooList = useMemo(
-    () => (woo ? filterSmartphoneBrand(products, selected, 24) : []),
-    [woo, products, selected],
+    () =>
+      woo
+        ? section === "phones"
+          ? filterSmartphoneBrand(products, selected, 24)
+          : filterTabletBrand(products, selected, 24)
+        : [],
+    [woo, products, selected, section],
   );
 
   return (
     <div className="bg-background">
       <section className="border-b border-border">
-        <SmartphonesHeader />
+        <SmartphonesHeader section={section} />
+        <div className="border-t border-border bg-muted/40">
+          <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 md:px-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSection("phones")}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  section === "phones"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted",
+                )}
+              >
+                {t("smartphones_tab_phones")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSection("tablets")}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  section === "tablets"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted",
+                )}
+              >
+                {t("smartphones_tab_tablets")}
+              </button>
+            </div>
+            <Link
+              href="/category/tablets"
+              className="text-sm font-medium text-primary hover:underline sm:ml-auto"
+            >
+              {t("smartphones_category_tablets_link")}
+            </Link>
+          </div>
+        </div>
       </section>
 
       <div className="bg-muted/30 py-10">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-display font-bold text-foreground">Select Your Brand</h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-foreground">
+              {section === "phones" ? t("smartphones_select_brand") : t("smartphones_select_tablet_brand")}
+            </h2>
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
-                placeholder="Search brand..."
-                className="pl-9 pr-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder={t("smartphones_search_brand")}
+                className="rounded-lg border border-border bg-background py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
           </div>
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
-            {brands.map((b) => (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6"
+          >
+            {brandTiles.map((b) => (
               <motion.button
-                key={b.name}
+                key={`${section}-${b.name}`}
                 type="button"
                 variants={itemVariants}
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setSelected(selected === b.name ? null : b.name)}
-                className={`rounded-2xl overflow-hidden border-2 transition-all ${selected === b.name ? "border-primary shadow-lg shadow-primary/20" : "border-transparent"}`}
+                className={`overflow-hidden rounded-2xl border-2 transition-all ${selected === b.name ? "border-primary shadow-lg shadow-primary/20" : "border-transparent"}`}
               >
-                <div className={`relative aspect-square bg-gradient-to-br ${b.color} flex items-center justify-center overflow-hidden`}>
-                  <img src={b.img} alt={b.name} className="w-full h-full object-cover opacity-30" />
+                <div
+                  className={`relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br ${b.color}`}
+                >
+                  <img src={b.img} alt={b.name} className="h-full w-full object-cover opacity-30" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-                    <span className="text-white font-display font-bold text-xs md:text-sm text-center leading-tight">{b.name}</span>
-                    <span className="text-white/70 text-xs mt-1">{b.count}</span>
+                    <span className="text-center font-display text-xs font-bold leading-tight text-white md:text-sm">
+                      {b.name}
+                    </span>
+                    <span className="mt-1 text-xs text-white/70">{b.count}</span>
                   </div>
                 </div>
               </motion.button>
@@ -96,9 +169,11 @@ export default function Smartphones() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 py-10">
-        <h2 className="text-2xl font-display font-bold text-foreground mb-6">
-          {selected ? `${selected} — Available Parts` : "Featured Parts"}
+      <div className="container mx-auto px-4 py-10 md:px-6">
+        <h2 className="mb-6 font-display text-2xl font-bold text-foreground">
+          {selected
+            ? t("smartphones_parts_heading_selected", { brand: selected })
+            : t("smartphones_parts_heading_default")}
         </h2>
 
         {woo && loading && wooList.length === 0 && (
@@ -108,14 +183,19 @@ export default function Smartphones() {
           </div>
         )}
 
-        {woo && !loading && error && <p className="text-sm text-destructive py-8">{error}</p>}
+        {woo && !loading && error && <p className="py-8 text-sm text-destructive">{error}</p>}
 
         {woo && !loading && !error && wooList.length === 0 && (
-          <p className="text-sm text-muted-foreground py-16">{t("woo_empty")}</p>
+          <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>
         )}
 
         {woo && wooList.length > 0 && (
-          <motion.ul variants={containerVariants} initial="hidden" animate="visible" className="grid list-none grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 p-0">
+          <motion.ul
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid list-none grid-cols-2 gap-4 p-0 md:grid-cols-3 md:gap-5 lg:grid-cols-4"
+          >
             {wooList.map((p) => (
               <motion.li key={p.id} variants={itemVariants}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
@@ -124,14 +204,23 @@ export default function Smartphones() {
           </motion.ul>
         )}
 
-        {!woo && (
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+        {!woo && section === "phones" && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4"
+          >
             {PHONE_PARTS.map((p) => (
               <motion.div key={p.cartKey} variants={itemVariants}>
                 <ProductCard {...p} testPrefix="phone" />
               </motion.div>
             ))}
           </motion.div>
+        )}
+
+        {!woo && section === "tablets" && (
+          <p className="py-16 text-sm text-muted-foreground">{t("smartphones_tablets_catalog_hint")}</p>
         )}
       </div>
     </div>
