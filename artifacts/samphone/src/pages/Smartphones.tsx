@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, X } from "lucide-react";
 import { Link } from "wouter";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
@@ -13,7 +13,13 @@ import productScreen from "@/assets/product-screen.png";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { filterSmartphoneBrand, filterTabletBrand } from "@/lib/woo-product-filters";
+import { searchProductsQuery, type WooProduct } from "@/lib/woocommerce";
+import {
+  filterCatalogForSmartphonesTab,
+  filterProductsByBrandKeyword,
+  filterSmartphoneBrand,
+  filterTabletBrand,
+} from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
 
 const brands = [
@@ -57,6 +63,8 @@ function SmartphonesHeader({ section }: { section: DeviceSection }) {
   );
 }
 
+const SEARCH_DEBOUNCE_MS = 400;
+
 export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
@@ -64,13 +72,64 @@ export default function Smartphones() {
   const [section, setSection] = useState<DeviceSection>("phones");
   const [selected, setSelected] = useState<string | null>(null);
 
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [apiRawHits, setApiRawHits] = useState<WooProduct[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   useEffect(() => {
     setSelected(null);
   }, [section]);
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const clearSearch = useCallback(() => {
+    setSearchInput("");
+    setDebouncedSearch("");
+    setApiRawHits(null);
+    setSearchError(null);
+    setSearchLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!woo || !debouncedSearch) {
+      setApiRawHits(null);
+      setSearchLoading(false);
+      setSearchError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setApiRawHits(null);
+    setSearchLoading(true);
+    setSearchError(null);
+
+    void searchProductsQuery(debouncedSearch)
+      .then((hits) => {
+        if (cancelled) return;
+        setApiRawHits(filterCatalogForSmartphonesTab(hits, section));
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setApiRawHits([]);
+        setSearchError(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
+        if (!cancelled) setSearchLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [woo, debouncedSearch, section]);
+
   const brandTiles = section === "phones" ? brands : tabletBrands;
 
-  const wooList = useMemo(
+  const catalogList = useMemo(
     () =>
       woo
         ? section === "phones"
@@ -79,6 +138,23 @@ export default function Smartphones() {
         : [],
     [woo, products, selected, section],
   );
+
+  const searchResultList = useMemo(() => {
+    if (!woo || !debouncedSearch || apiRawHits === null) return [];
+    return filterProductsByBrandKeyword(apiRawHits, selected);
+  }, [woo, debouncedSearch, apiRawHits, selected]);
+
+  const displayList = debouncedSearch ? searchResultList : catalogList;
+
+  const showCatalogSpinner = woo && loading && !debouncedSearch && catalogList.length === 0;
+  const showSearchSpinner = woo && Boolean(debouncedSearch) && searchLoading;
+  const showSyncBanner = woo && syncingMore && catalogList.length > 0 && !debouncedSearch;
+
+  const productsHeading = debouncedSearch
+    ? t("smartphones_search_results", { query: debouncedSearch })
+    : selected
+      ? t("smartphones_parts_heading_selected", { brand: selected })
+      : t("smartphones_parts_heading_default");
 
   return (
     <div className="bg-background">
@@ -124,16 +200,32 @@ export default function Smartphones() {
 
       <div className="bg-muted/30 py-10">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <h2 className="font-display text-xl font-bold text-foreground">
               {section === "phones" ? t("smartphones_select_brand") : t("smartphones_select_tablet_brand")}
             </h2>
-            <div className="relative hidden md:block">
+            <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={t("smartphones_search_brand")}
-                className="rounded-lg border border-border bg-background py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                autoComplete="off"
+                enterKeyHint="search"
+                aria-label={t("smartphones_search_brand")}
+                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={t("smartphones_search_clear")}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
             </div>
           </div>
           <motion.div
@@ -170,20 +262,29 @@ export default function Smartphones() {
       </div>
 
       <div className="container mx-auto px-4 py-10 md:px-6">
-        <h2 className="mb-6 font-display text-2xl font-bold text-foreground">
-          {selected
-            ? t("smartphones_parts_heading_selected", { brand: selected })
-            : t("smartphones_parts_heading_default")}
-        </h2>
+        <h2 className="mb-6 font-display text-2xl font-bold text-foreground">{productsHeading}</h2>
 
-        {woo && syncingMore && wooList.length > 0 && (
+        {showSyncBanner && (
           <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" aria-hidden />
             {t("woo_syncing_more")}
           </p>
         )}
 
-        {woo && loading && wooList.length === 0 && (
+        {searchError && (
+          <p className="mb-4 text-sm text-destructive" role="alert">
+            {searchError}
+          </p>
+        )}
+
+        {showSearchSpinner && (
+          <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+            <p className="text-sm font-medium">{t("smartphones_search_loading")}</p>
+          </div>
+        )}
+
+        {showCatalogSpinner && (
           <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
             <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
             <p className="text-sm font-medium">{t("woo_loading")}</p>
@@ -192,18 +293,22 @@ export default function Smartphones() {
 
         {woo && !loading && error && <p className="py-8 text-sm text-destructive">{error}</p>}
 
-        {woo && !loading && !error && wooList.length === 0 && (
-          <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>
-        )}
+        {woo &&
+          !showCatalogSpinner &&
+          !showSearchSpinner &&
+          !loading &&
+          !error &&
+          !searchError &&
+          displayList.length === 0 && <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>}
 
-        {woo && wooList.length > 0 && (
+        {woo && !showSearchSpinner && !showCatalogSpinner && displayList.length > 0 && (
           <motion.ul
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
           >
-            {wooList.map((p) => (
+            {displayList.map((p) => (
               <motion.li key={p.id} variants={itemVariants}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
               </motion.li>

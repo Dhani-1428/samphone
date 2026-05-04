@@ -113,28 +113,43 @@ export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   });
 }
 
+/** Keep only products that belong on the Smartphones page tab (phones vs tablets). */
+export function filterCatalogForSmartphonesTab(
+  products: WooProduct[],
+  section: "phones" | "tablets",
+): WooProduct[] {
+  return section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+}
+
+/** Narrow by brand tile keyword (same rules as the catalog brand chips). */
+export function filterProductsByBrandKeyword(
+  products: WooProduct[],
+  brandLabel: string | null,
+  limit?: number,
+): WooProduct[] {
+  let list = sortNewest(products);
+  if (brandLabel) {
+    const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
+    if (kw) {
+      const sub = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(kw) ||
+          (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
+      );
+      list = sub.length ? sub : list;
+    }
+  }
+  return limit != null && limit > 0 ? list.slice(0, limit) : list;
+}
+
 function filterSectionBrand(
   products: WooProduct[],
   section: "phones" | "tablets",
   brandLabel: string | null,
   limit?: number,
 ): WooProduct[] {
-  let base = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
-  base = sortNewest(base);
-  if (!brandLabel) {
-    return limit != null && limit > 0 ? base.slice(0, limit) : base;
-  }
-  const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
-  if (!kw) {
-    return limit != null && limit > 0 ? base.slice(0, limit) : base;
-  }
-  const sub = base.filter(
-    (p) =>
-      p.name.toLowerCase().includes(kw) ||
-      (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
-  );
-  const list = sub.length ? sub : base;
-  return limit != null && limit > 0 ? list.slice(0, limit) : list;
+  const base = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+  return filterProductsByBrandKeyword(base, brandLabel, limit);
 }
 
 export function filterAccessoryCatalog(products: WooProduct[]): WooProduct[] {

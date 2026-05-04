@@ -195,6 +195,28 @@ export async function fetchAllProducts(): Promise<WooProduct[]> {
   return raw.map(normalizeProductGallery);
 }
 
+/**
+ * WooCommerce GET /products?search=… — server-side search (title, content, SKU depending on store).
+ * Paginates until no more results. Returns deduped products.
+ */
+export async function searchProductsQuery(query: string): Promise<WooProduct[]> {
+  const term = query.trim();
+  if (!term || !getWooCommerceConfig()) return [];
+  const raw = await fetchAllPages<WooProduct>("products", {
+    ...STORE_PRODUCT_PARAMS,
+    search: term,
+    _fields: PRODUCT_LIST_FIELDS,
+  });
+  const seen = new Set<number>();
+  const out: WooProduct[] = [];
+  for (const p of raw.map(normalizeProductGallery)) {
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  return out;
+}
+
 /** GET /products/:id — single product (full gallery; same schema as list). */
 export async function fetchProductById(id: number): Promise<WooProduct | null> {
   if (!Number.isFinite(id) || id <= 0) return null;
