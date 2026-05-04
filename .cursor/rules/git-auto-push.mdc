@@ -1,0 +1,19 @@
+---
+description: After code or config changes, commit and push without waiting for a separate request.
+alwaysApply: true
+---
+
+# Git: commit and push when done
+
+When you finish a task that **changes project files** (code, config, assets meant for the repo):
+
+1. Run `git status`. If there is nothing to commit, stop (no empty commits).
+2. Stage only intentional changes (never stage `.env`, `.env.local`, secrets, or other gitignored files).
+3. Commit with a short, accurate message.
+4. Push with `git push` (or `git push -u origin <branch>` if no upstream yet).
+
+Do **not** ask the user each time whether to push—do it as part of wrapping up the task.
+
+Keep the final reply brief: a one-line note that changes were pushed (or that the tree was already clean / push failed with reason) is enough; avoid long git narration.
+
+If push fails (auth, network), report the error and what is left locally uncommitted or unpushed.
