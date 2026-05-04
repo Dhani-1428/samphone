@@ -35,6 +35,8 @@ function tokenRegexForFamily(familySlug: string): RegExp {
 
 function brandRegex(brandSlug: string): RegExp {
   if (brandSlug === "iphone") return /\biphone\b|\bapple\b|\bipad\b|\bwatch\b/i;
+  if (brandSlug === "samsung") return /\bsamsung\b|\bgalaxy\b/i;
+  if (brandSlug === "xiaomi") return /\bxiaomi\b|\bredmi\b|\bpoco\b/i;
   const token = brandSlug.replace(/-/g, "\\s*");
   return new RegExp(token, "i");
 }

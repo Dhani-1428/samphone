@@ -27,13 +27,23 @@ function slugifyModelLabel(label: string): string {
     .replace(/-{2,}/g, "-");
 }
 
-function makeFamilyChildren(family: string, labels: string[]) {
+/** Map Woo / nav category slug (e.g. iphone-parts) to :brand segment used by ModelCatalogPage. */
+function catalogBrandForModelRoutes(partsSlug: string): string {
+  const s = partsSlug.toLowerCase();
+  if (s === "iphone-parts") return "iphone";
+  if (s === "samsung-parts") return "samsung";
+  if (s === "xiaomi-parts") return "xiaomi";
+  return s.replace(/-parts$/i, "") || s;
+}
+
+function makeFamilyChildren(brandPartsSlug: string, family: string, labels: string[]) {
+  const brand = catalogBrandForModelRoutes(brandPartsSlug);
   return labels.map((label) => {
     const slug = slugifyModelLabel(label);
     return {
       label,
       slug,
-      href: `/model/iphone/${family}/${slug}`,
+      href: `/model/${brand}/${family}/${slug}`,
     };
   });
 }
@@ -584,17 +594,17 @@ export default function Navbar() {
               {
                 label: "iPhones",
                 slug: "iphones",
-                children: makeFamilyChildren("iphones", IPHONE_MODELS),
+                children: makeFamilyChildren(b.slug, "iphones", IPHONE_MODELS),
               },
               {
                 label: "iPad",
                 slug: "ipad",
-                children: makeFamilyChildren("ipad", IPAD_MODELS),
+                children: makeFamilyChildren(b.slug, "ipad", IPAD_MODELS),
               },
               {
                 label: "iWatch",
                 slug: "iwatch",
-                children: makeFamilyChildren("iwatch", IWATCH_MODELS),
+                children: makeFamilyChildren(b.slug, "iwatch", IWATCH_MODELS),
               },
             ]
           : base.toLowerCase() === "samsung"
@@ -602,32 +612,32 @@ export default function Navbar() {
                 {
                   label: "A series",
                   slug: "a-series",
-                  children: makeFamilyChildren("a-series", SAMSUNG_A_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "a-series", SAMSUNG_A_SERIES_MODELS),
                 },
                 {
                   label: "S series",
                   slug: "s-series",
-                  children: makeFamilyChildren("s-series", SAMSUNG_S_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "s-series", SAMSUNG_S_SERIES_MODELS),
                 },
                 {
                   label: "Z series",
                   slug: "z-series",
-                  children: makeFamilyChildren("z-series", SAMSUNG_Z_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "z-series", SAMSUNG_Z_SERIES_MODELS),
                 },
                 {
                   label: "M series",
                   slug: "m-series",
-                  children: makeFamilyChildren("m-series", SAMSUNG_M_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "m-series", SAMSUNG_M_SERIES_MODELS),
                 },
                 {
                   label: "J series",
                   slug: "j-series",
-                  children: makeFamilyChildren("j-series", SAMSUNG_J_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "j-series", SAMSUNG_J_SERIES_MODELS),
                 },
                 {
                   label: "Note series",
                   slug: "note-series",
-                  children: makeFamilyChildren("note-series", SAMSUNG_NOTE_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "note-series", SAMSUNG_NOTE_SERIES_MODELS),
                 },
               ]
           : base.toLowerCase() === "xiaomi"
@@ -635,17 +645,17 @@ export default function Navbar() {
                 {
                   label: "Redmi series",
                   slug: "redmi-series",
-                  children: makeFamilyChildren("redmi-series", XIAOMI_REDMI_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "redmi-series", XIAOMI_REDMI_SERIES_MODELS),
                 },
                 {
                   label: "Redmi Note series",
                   slug: "redmi-note-series",
-                  children: makeFamilyChildren("redmi-note-series", XIAOMI_REDMI_NOTE_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "redmi-note-series", XIAOMI_REDMI_NOTE_SERIES_MODELS),
                 },
                 {
                   label: "Mi series",
                   slug: "mi-series",
-                  children: makeFamilyChildren("mi-series", XIAOMI_MI_SERIES_MODELS),
+                  children: makeFamilyChildren(b.slug, "mi-series", XIAOMI_MI_SERIES_MODELS),
                 },
               ]
           : [
@@ -665,6 +675,9 @@ export default function Navbar() {
 
     // Keep brand list fixed (as requested), but pull live subcategories from API when available.
     return fallbackBrandGroups.map((fb) => {
+      const fallbackNested = fb.items.some((item) => (item.children?.length ?? 0) > 0);
+      if (fallbackNested) return fb;
+
       const bySlug = apiBySlug.get(fb.brand.slug);
       if (bySlug && bySlug.items.length > 0) {
         return { ...fb, items: bySlug.items };
@@ -844,7 +857,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute top-full left-0 z-50 max-h-[min(70vh,520px)] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl rounded-b-xl min-w-[min(920px,94vw)] p-6"
+                    className="absolute top-full left-0 z-50 max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl rounded-b-xl min-w-[min(560px,94vw)] max-w-[min(1100px,96vw)] p-6"
                     onMouseEnter={() => {
                       if (closeTimer.current) clearTimeout(closeTimer.current);
                       if (activeBrandIdx >= brandGroups.length) setActiveBrandIdx(0);
@@ -858,8 +871,8 @@ export default function Navbar() {
                           : "Brands and categories"
                         : `${t("nav_smartphones")} — ${lang === "pt" ? "Marcas e categorias" : "Brands and categories"}`}
                     </h4>
-                    <div className="grid grid-cols-12 gap-6">
-                      <div className="col-span-4 border-r border-border pr-3">
+                    <div className="flex gap-6 items-start min-w-0">
+                      <div className="shrink-0 w-[min(200px,26vw)] border-r border-border pr-3">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
                           {lang === "pt" ? "Marcas" : "Brands"}
                         </p>
@@ -883,24 +896,29 @@ export default function Navbar() {
                           ))}
                         </ul>
                       </div>
-                      <div className="col-span-8">
+                      <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
                           {activeBrand?.brand.label ?? (lang === "pt" ? "Categorias" : "Categories")}
                         </p>
                         {hasNestedFamilies ? (
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="border-r border-border pr-3">
+                          <div className="flex gap-5 items-start min-h-0">
+                            <div
+                              className="shrink-0 w-max min-w-[7.5rem] max-w-[14rem] border-r border-border pr-3"
+                              onMouseEnter={() => {
+                                if (closeTimer.current) clearTimeout(closeTimer.current);
+                              }}
+                            >
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
                                 {lang === "pt" ? "Tipo" : "Type"}
                               </p>
-                              <div className="flex flex-col gap-1.5">
+                              <div className="flex flex-col gap-1">
                                 {(activeBrand?.items ?? []).map((family, idx) => (
                                   <button
                                     key={`${activeBrand?.brand.slug}-${family.slug}`}
                                     type="button"
                                     onMouseEnter={() => setActiveFamilyIdx(idx)}
                                     onFocus={() => setActiveFamilyIdx(idx)}
-                                    className={`w-full text-left rounded-lg px-2.5 py-2 text-sm transition-colors ${
+                                    className={`max-w-full text-left rounded-lg px-2.5 py-2 text-sm transition-colors whitespace-normal break-words ${
                                       idx === activeFamilyIdx
                                         ? "bg-primary/10 text-primary"
                                         : "text-foreground/75 hover:bg-muted hover:text-foreground"
@@ -911,17 +929,25 @@ export default function Navbar() {
                                 ))}
                               </div>
                             </div>
-                            <div>
+                            <div
+                              className="flex-1 min-w-0 max-h-[min(58vh,480px)] overflow-y-auto overscroll-contain pl-0.5"
+                              onMouseEnter={() => {
+                                if (closeTimer.current) clearTimeout(closeTimer.current);
+                              }}
+                            >
                               <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
                                 {lang === "pt" ? "Modelos" : "Models"}
                               </p>
                               <div className="flex flex-col gap-1.5">
-                                {(activeFamily?.children ?? []).map((model) => (
+                                {(activeFamily?.children ?? []).map((model, midx) => (
                                   <Link
-                                    key={`${activeFamily?.slug}-${model.slug}`}
-                                    href={model.href ?? `/model/${activeBrand?.brand.slug}/${activeFamily?.slug}/${model.slug}`}
+                                    key={`${activeBrand?.brand.slug}-${activeFamily?.slug}-${midx}-${model.slug}`}
+                                    href={
+                                      model.href ??
+                                      `/model/${catalogBrandForModelRoutes(activeBrand?.brand.slug ?? "")}/${activeFamily?.slug}/${model.slug}`
+                                    }
                                     onClick={closeMenu}
-                                    className="text-sm text-foreground/75 hover:text-primary transition-colors block py-1"
+                                    className="text-sm text-foreground/75 hover:text-primary transition-colors block py-1 break-words"
                                   >
                                     {model.label}
                                   </Link>
