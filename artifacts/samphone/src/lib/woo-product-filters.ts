@@ -10,10 +10,87 @@ export const PHONE_CATEGORY_SLUGS = new Set(
 const ACCESSORY_CATEGORY_SLUGS = new Set(accessoriesColumns.flatMap((c) => c.items.map((i) => i.slug)));
 const CARD_CATEGORY_SLUGS = new Set(cardsColumns.flatMap((c) => c.items.map((i) => i.slug)));
 
+/** Common Woo slugs for retail phones (devices), merged with repair-part slugs from `PHONE_CATEGORY_SLUGS`. */
+const DEFAULT_RETAIL_PHONE_SLUGS = [
+  "smartphones",
+  "mobile-phones",
+  "cell-phones",
+  "celulares",
+  "telemoveis",
+  "telefone-movel",
+  "telefone-móvel",
+  "phones",
+  "mobiles",
+] as const;
+
+function parseCommaSlugs(raw: string | undefined): Set<string> {
+  if (!raw?.trim()) return new Set();
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+const EXTRA_PHONE_SLUGS = parseCommaSlugs(import.meta.env.VITE_WOO_EXTRA_PHONE_CATEGORY_SLUGS as string | undefined);
+const EXTRA_TABLET_SLUGS = parseCommaSlugs(import.meta.env.VITE_WOO_EXTRA_TABLET_CATEGORY_SLUGS as string | undefined);
+
+function buildAllPhoneSlugs(): Set<string> {
+  const s = new Set<string>(PHONE_CATEGORY_SLUGS);
+  for (const x of DEFAULT_RETAIL_PHONE_SLUGS) s.add(x);
+  for (const x of EXTRA_PHONE_SLUGS) s.add(x);
+  return s;
+}
+
+const ALL_PHONE_CATEGORY_SLUGS = buildAllPhoneSlugs();
+
 const MULTI_BRAND_NAMES = ["Hoco", "Baseus", "Anker", "Ugreen", "Joyroom", "WK Design", "WK"];
 
 function matchesSlugSet(p: WooProduct, slugs: Set<string>): boolean {
   return p.categories?.some((c) => slugs.has(c.slug)) ?? false;
+}
+
+function isAccessoryOrCardsOnlyProduct(p: WooProduct): boolean {
+  const cats = p.categories ?? [];
+  if (cats.length === 0) return false;
+  return cats.every(
+    (c) => ACCESSORY_CATEGORY_SLUGS.has(c.slug) || CARD_CATEGORY_SLUGS.has(c.slug),
+  );
+}
+
+function categorySlugLooksTablet(slug: string): boolean {
+  const s = slug.toLowerCase();
+  if (s === TABLETS_SLUG) return true;
+  for (const x of EXTRA_TABLET_SLUGS) {
+    if (s === x) return true;
+  }
+  if (/tablet|ipad|galaxy-tab|galaxytab|mate-?pad|surface-go|tab-/i.test(s)) return true;
+  return false;
+}
+
+function categoryNameLooksTablet(name: string): boolean {
+  return /\btablet\b|ipad\b|galaxy tab|matepad|mate pad|surfac/i.test(name);
+}
+
+/** True when the product should appear under the Tablets tab (retail devices, not spare parts). */
+export function isTabletLikeProduct(p: WooProduct): boolean {
+  if (p.categories?.some((c) => categorySlugLooksTablet(c.slug) || categoryNameLooksTablet(c.name))) return true;
+  if (/\btablet\b/i.test(p.name)) return true;
+  return false;
+}
+
+/** Retail-looking phone title when Woo categories are missing or use generic slugs. */
+function looksLikeRetailSmartphoneTitle(name: string): boolean {
+  const n = name.toLowerCase();
+  if (/\btablet\b/.test(n)) return false;
+  if (/\b(screen|lcd|oled display only|replacement glass|flex cable|battery for|housing|digitizer only)\b/i.test(n)) {
+    return false;
+  }
+  if (/\d+\s*gb\s*\/\s*\d+/i.test(n)) return true;
+  return /\b(iphone\s|galaxy\s+[asn]\d|galaxy\s+z\s|oppo\s+[ar]\d|xiaomi|redmi|poco|pixel\s?\d|realme|huawei\s+p?\d|oneplus|motorola|nokia)/i.test(
+    n,
+  );
 }
 
 export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
@@ -21,29 +98,43 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
 }
 
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
-  return products.filter((p) => matchesSlugSet(p, PHONE_CATEGORY_SLUGS));
+  return products.filter((p) => {
+    if (isAccessoryOrCardsOnlyProduct(p)) return false;
+    if (isTabletLikeProduct(p)) return false;
+    if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
+    return looksLikeRetailSmartphoneTitle(p.name);
+  });
 }
 
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
-  return products.filter((p) => matchesSlugSet(p, new Set([TABLETS_SLUG])));
+  return products.filter((p) => {
+    if (isAccessoryOrCardsOnlyProduct(p)) return false;
+    return isTabletLikeProduct(p);
+  });
 }
 
 function filterSectionBrand(
   products: WooProduct[],
   section: "phones" | "tablets",
   brandLabel: string | null,
-  limit = 24,
+  limit?: number,
 ): WooProduct[] {
-  const base = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
-  if (!brandLabel) return base.slice(0, limit);
+  let base = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+  base = sortNewest(base);
+  if (!brandLabel) {
+    return limit != null && limit > 0 ? base.slice(0, limit) : base;
+  }
   const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
-  if (!kw) return base.slice(0, limit);
+  if (!kw) {
+    return limit != null && limit > 0 ? base.slice(0, limit) : base;
+  }
   const sub = base.filter(
     (p) =>
       p.name.toLowerCase().includes(kw) ||
       (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
   );
-  return (sub.length ? sub : base).slice(0, limit);
+  const list = sub.length ? sub : base;
+  return limit != null && limit > 0 ? list.slice(0, limit) : list;
 }
 
 export function filterAccessoryCatalog(products: WooProduct[]): WooProduct[] {
@@ -86,11 +177,15 @@ export function pickHomeFeatured(products: WooProduct[], limit: number): WooProd
   return sortNewest(products).slice(0, limit);
 }
 
-export function filterSmartphoneBrand(products: WooProduct[], brandLabel: string | null, limit = 24): WooProduct[] {
+export function filterSmartphoneBrand(
+  products: WooProduct[],
+  brandLabel: string | null,
+  limit?: number,
+): WooProduct[] {
   return filterSectionBrand(products, "phones", brandLabel, limit);
 }
 
-export function filterTabletBrand(products: WooProduct[], brandLabel: string | null, limit = 24): WooProduct[] {
+export function filterTabletBrand(products: WooProduct[], brandLabel: string | null, limit?: number): WooProduct[] {
   return filterSectionBrand(products, "tablets", brandLabel, limit);
 }
 

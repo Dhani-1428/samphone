@@ -20,7 +20,7 @@ const brands = [
   { name: "iPhone", img: productScreen, count: "180+", color: "from-gray-700 to-gray-900" },
   { name: "Samsung", img: productCase, count: "220+", color: "from-blue-700 to-blue-900" },
   { name: "Xiaomi", img: productCharger, count: "140+", color: "from-orange-600 to-red-700" },
-  { name: "Oppo Reno", img: productScreen, count: "90+", color: "from-green-700 to-emerald-900" },
+  { name: "OPPO", img: productScreen, count: "90+", color: "from-green-700 to-emerald-900" },
   { name: "Realme", img: productCase, count: "80+", color: "from-yellow-600 to-orange-700" },
   { name: "Huawei", img: productCharger, count: "110+", color: "from-red-700 to-rose-900" },
   { name: "One Plus", img: productScreen, count: "70+", color: "from-red-600 to-red-900" },
@@ -31,6 +31,7 @@ const brands = [
 ];
 
 const tabletBrands = [
+  { name: "MODIO", img: productCharger, count: "Tablets", color: "from-violet-700 to-violet-900" },
   { name: "iPad", img: productScreen, count: "Apple", color: "from-gray-700 to-gray-900" },
   { name: "Galaxy Tab", img: productCase, count: "Samsung", color: "from-blue-700 to-blue-900" },
   { name: "Xiaomi Pad", img: productCharger, count: "Xiaomi", color: "from-orange-600 to-red-700" },
@@ -59,7 +60,7 @@ function SmartphonesHeader({ section }: { section: DeviceSection }) {
 export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
-  const { products, loading, error } = useProductCatalog();
+  const { products, loading, error, syncingMore } = useProductCatalog();
   const [section, setSection] = useState<DeviceSection>("phones");
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -73,8 +74,8 @@ export default function Smartphones() {
     () =>
       woo
         ? section === "phones"
-          ? filterSmartphoneBrand(products, selected, 24)
-          : filterTabletBrand(products, selected, 24)
+          ? filterSmartphoneBrand(products, selected)
+          : filterTabletBrand(products, selected)
         : [],
     [woo, products, selected, section],
   );
@@ -175,6 +176,13 @@ export default function Smartphones() {
             : t("smartphones_parts_heading_default")}
         </h2>
 
+        {woo && syncingMore && wooList.length > 0 && (
+          <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" aria-hidden />
+            {t("woo_syncing_more")}
+          </p>
+        )}
+
         {woo && loading && wooList.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
             <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
@@ -193,7 +201,7 @@ export default function Smartphones() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid list-none grid-cols-2 gap-4 p-0 md:grid-cols-3 md:gap-5 lg:grid-cols-4"
+            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
           >
             {wooList.map((p) => (
               <motion.li key={p.id} variants={itemVariants}>
