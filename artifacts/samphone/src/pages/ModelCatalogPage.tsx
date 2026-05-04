@@ -1,12 +1,30 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { useLang } from "@/contexts/LanguageContext";
+import { useLang, type TranslationKey } from "@/contexts/LanguageContext";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import type { WooProduct } from "@/lib/woocommerce";
+import {
+  ACCESSORY_BUCKET_IDS,
+  countProductsByAccessoryBucket,
+  productMatchesAccessoryBucket,
+  type AccessoryBucketId,
+} from "@/lib/model-accessory-buckets";
+
+const ACCESSORY_LABEL_KEYS: Record<Exclude<AccessoryBucketId, "all">, TranslationKey> = {
+  cases: "model_acc_cases",
+  chargers: "model_acc_chargers",
+  screen_glass: "model_acc_screen_glass",
+  camera_lens: "model_acc_camera_lens",
+  cables: "model_acc_cables",
+  audio: "model_acc_audio",
+  batteries: "model_acc_batteries",
+  screens_parts: "model_acc_screens_parts",
+  other: "model_acc_other",
+};
 
 function tokenRegexForModel(modelSlug: string): RegExp {
   if (modelSlug === "iphones") return /\biphone\b/i;
@@ -72,15 +90,28 @@ export default function ModelCatalogPage() {
   const configured = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [activeAccessory, setActiveAccessory] = useState<AccessoryBucketId>("all");
 
   const modelProducts = useMemo(
     () => products.filter((p) => matchesModelProduct(p, brand, family, model)),
     [products, brand, family, model],
   );
 
+  useEffect(() => {
+    setActiveCategory("all");
+    setActiveAccessory("all");
+  }, [brand, family, model]);
+
+  useEffect(() => {
+    setActiveCategory("all");
+  }, [activeAccessory]);
+
+  const accessoryCounts = useMemo(() => countProductsByAccessoryBucket(modelProducts), [modelProducts]);
+
   const categoryOptions = useMemo(() => {
     const map = new Map<string, { slug: string; label: string; count: number }>();
     for (const p of modelProducts) {
+      if (!productMatchesAccessoryBucket(p, activeAccessory)) continue;
       for (const c of p.categories ?? []) {
         const prev = map.get(c.slug);
         if (prev) {
@@ -91,12 +122,17 @@ export default function ModelCatalogPage() {
       }
     }
     return [...map.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-  }, [modelProducts]);
+  }, [modelProducts, activeAccessory]);
+
+  const afterAccessory = useMemo(
+    () => modelProducts.filter((p) => productMatchesAccessoryBucket(p, activeAccessory)),
+    [modelProducts, activeAccessory],
+  );
 
   const visibleProducts = useMemo(() => {
-    if (activeCategory === "all") return modelProducts;
-    return modelProducts.filter((p) => p.categories?.some((c) => c.slug === activeCategory));
-  }, [modelProducts, activeCategory]);
+    if (activeCategory === "all") return afterAccessory;
+    return afterAccessory.filter((p) => p.categories?.some((c) => c.slug === activeCategory));
+  }, [afterAccessory, activeCategory]);
 
   const brandName = parseModelName(brand);
   const familyName = parseModelName(family);
@@ -108,7 +144,7 @@ export default function ModelCatalogPage() {
         <PageVideoHero
           eyebrow={modelName ? `Home / ${brandName} / ${familyName} / ${modelName}` : `Home / ${brandName} / ${familyName}`}
           title={modelName ? `${brandName} ${modelName}` : `${brandName} ${familyName}`}
-          description="API catalog for selected model with category filters."
+          description={configured ? t("model_accessories_hint") : "API catalog for selected model with category filters."}
         />
       </section>
 
@@ -140,38 +176,93 @@ export default function ModelCatalogPage() {
         )}
 
         {configured && !loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)] gap-6">
-            <aside className="rounded-2xl border border-border bg-card p-4 h-fit">
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60 mb-3">
-                {lang === "pt" ? "Categorias" : "Categories"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveCategory("all")}
-                className={`w-full text-left rounded-lg px-3 py-2 text-sm mb-1 ${
-                  activeCategory === "all"
-                    ? "bg-primary/10 text-primary"
-                    : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                {lang === "pt" ? "Todos" : "All"} ({modelProducts.length})
-              </button>
-              <div className="space-y-1 max-h-[60vh] overflow-auto pr-1">
-                {categoryOptions.map((c) => (
-                  <button
-                    key={c.slug}
-                    type="button"
-                    onClick={() => setActiveCategory(c.slug)}
-                    className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-                      activeCategory === c.slug
-                        ? "bg-primary/10 text-primary"
-                        : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <span className="truncate">{c.label}</span>
-                    <span className="text-xs">{c.count}</span>
-                  </button>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] gap-6">
+            <aside className="rounded-2xl border border-border bg-card p-4 h-fit space-y-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60 mb-1">
+                  {t("model_accessories_title")}
+                </p>
+                <p className="text-[11px] text-muted-foreground mb-3">{t("model_accessories_hint")}</p>
+                <button
+                  type="button"
+                  onClick={() => setActiveAccessory("all")}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm mb-1 ${
+                    activeAccessory === "all"
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {t("model_filter_all")} ({accessoryCounts.all})
+                </button>
+                <div className="space-y-1 max-h-[32vh] md:max-h-[28vh] overflow-auto pr-1">
+                  {ACCESSORY_BUCKET_IDS.map((id) => {
+                    const n = accessoryCounts[id];
+                    if (n === 0) return null;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setActiveAccessory(id)}
+                        className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                          activeAccessory === id
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <span className="truncate text-left">{t(ACCESSORY_LABEL_KEYS[id])}</span>
+                        <span className="text-xs shrink-0 ml-1">{n}</span>
+                      </button>
+                    );
+                  })}
+                  {accessoryCounts.other > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveAccessory("other")}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                        activeAccessory === "other"
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <span className="truncate text-left">{t(ACCESSORY_LABEL_KEYS.other)}</span>
+                      <span className="text-xs shrink-0 ml-1">{accessoryCounts.other}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60 mb-3">
+                  {t("model_categories_title")}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory("all")}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm mb-1 ${
+                    activeCategory === "all"
+                      ? "bg-primary/10 text-primary"
+                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {t("model_filter_all")} ({afterAccessory.length})
+                </button>
+                <div className="space-y-1 max-h-[28vh] overflow-auto pr-1">
+                  {categoryOptions.map((c) => (
+                    <button
+                      key={c.slug}
+                      type="button"
+                      onClick={() => setActiveCategory(c.slug)}
+                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                        activeCategory === c.slug
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      <span className="truncate">{c.label}</span>
+                      <span className="text-xs shrink-0 ml-1">{c.count}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </aside>
 
