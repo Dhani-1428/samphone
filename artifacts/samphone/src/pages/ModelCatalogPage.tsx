@@ -270,7 +270,7 @@ export default function ModelCatalogPage() {
               {visibleProducts.length === 0 ? (
                 <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
               ) : (
-                <ul className="grid list-none grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 p-0">
+                <ul className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5 p-0">
                   {visibleProducts.map((p) => (
                     <li key={p.id}>
                       <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
