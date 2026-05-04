@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @workspace/samphone run typecheck && pnpm --filter @workspace/samphone run build && rm -rf public && mkdir -p public && cp -r artifacts/samphone/dist/public/. public/",
+  "buildCommand": "pnpm --filter @workspace/samphone run typecheck && pnpm --filter @workspace/samphone run build && node scripts/prepare-vercel-public.mjs",
   "outputDirectory": "public",
   "rewrites": [
     {
