@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ArrowLeft, Star, GitCompare, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
@@ -19,6 +20,11 @@ import PeopleAlsoBought from "@/components/PeopleAlsoBought";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { fetchProductById, getDisplayPrice, type WooProduct } from "@/lib/woocommerce";
+import { getWooProductDescriptionHtml } from "@/lib/woo-product-html";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
+import { getStockLevel } from "@/data/inventory";
+import { cn } from "@/lib/utils";
 
 function parseProductCartKey(pathname: string): string | null {
   const segs = pathname.split("/").filter(Boolean);
@@ -54,6 +60,7 @@ export default function ProductPage() {
   const { recordView } = useRecentlyViewed();
   const { toggle, has, keys: compareKeys } = useCompare();
   const { toggle: wishToggle, has: wishHas } = useWishlist();
+  const { products: wooCatalogProducts } = useProductCatalog();
 
   const cartKey = parseProductCartKey(normalizePathname(location));
   const product = cartKey ? resolveCatalogProduct(cartKey) : null;
@@ -113,26 +120,93 @@ export default function ProductPage() {
       .map((img) => img.src)
       .filter((src): src is string => Boolean(src));
     const displayPrice = getDisplayPrice(wooProduct);
+    const descHtml = getWooProductDescriptionHtml(wooProduct);
+    const primaryCat = wooProduct.categories?.[0];
+    const stock = cartKey ? getStockLevel(cartKey) : { count: 0, isLow: true };
+    const categoryIds = (wooProduct.categories ?? []).map((c) => c.id);
+
+    const specRows: { label: string; value: ReactNode }[] = [];
+    const attrs = (wooProduct.attributes ?? []).filter(
+      (a) => a.visible !== false && a.name && Array.isArray(a.options) && a.options.length > 0,
+    );
+    for (const a of attrs) {
+      specRows.push({ label: a.name, value: a.options.join(", ") });
+    }
+    if (wooProduct.sku?.trim()) {
+      specRows.push({ label: t("woo_sku"), value: wooProduct.sku.trim() });
+    }
+    if (wooProduct.categories?.length) {
+      specRows.push({
+        label: t("woo_categories_label"),
+        value: (
+          <>
+            {wooProduct.categories.map((c, i) => (
+              <span key={c.id}>
+                {i > 0 ? " · " : null}
+                <Link href={`/category/${c.slug}`} className="text-primary hover:underline">
+                  {c.name}
+                </Link>
+              </span>
+            ))}
+          </>
+        ),
+      });
+    }
+    if (specRows.length === 0 && primaryCat) {
+      specRows.push({ label: t("woo_product_type"), value: primaryCat.name });
+    }
+
     return (
-      <div className="bg-background min-h-screen">
-        <div className="container mx-auto px-4 md:px-6 py-8">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
+            className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary md:mb-8"
           >
-            <ArrowLeft className="w-4 h-4" /> {t("backToShopping")}
+            <ArrowLeft className="h-4 w-4" /> {t("backToShopping")}
           </Link>
-          <div className="grid md:grid-cols-2 gap-10 lg:gap-14">
-            <ProductImageGallery images={gallery} productName={wooProduct.name} />
-            <div className="flex flex-col">
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">{wooProduct.name}</h1>
-              {wooProduct.categories?.length > 0 && (
-                <p className="text-sm text-muted-foreground mb-4">
-                  {wooProduct.categories.map((c) => c.name).join(" • ")}
-                </p>
+
+          <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-12">
+            {/* Gallery */}
+            <div className="lg:col-span-5">
+              {gallery.length === 0 ? (
+                <div className="flex aspect-square items-center justify-center rounded-2xl border border-border bg-muted text-sm text-muted-foreground">
+                  —
+                </div>
+              ) : gallery.length === 2 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {gallery.map((src, i) => (
+                    <div
+                      key={src}
+                      className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted"
+                    >
+                      <img
+                        src={src}
+                        alt=""
+                        className="h-full w-full object-contain p-3"
+                        loading={i === 0 ? "eager" : "lazy"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ProductImageGallery images={gallery} productName={wooProduct.name} />
               )}
+            </div>
+
+            {/* Details + specs */}
+            <div className="flex flex-col lg:col-span-4">
+              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-foreground md:text-3xl lg:text-4xl">
+                {wooProduct.name}
+              </h1>
+              {primaryCat && (
+                <span className="mt-3 inline-flex w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  {primaryCat.name}
+                </span>
+              )}
+
               {cartKey && (
-                <div className="mb-6 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant={has(cartKey) ? "secondary" : "outline"}
@@ -158,36 +232,100 @@ export default function ProductPage() {
                     <Heart className={`h-4 w-4 ${wishHas(cartKey) ? "fill-red-500 text-red-500" : ""}`} />
                     {wishHas(cartKey) ? t("wishlist_remove") : t("wishlist_save")}
                   </Button>
-                  <Button type="button" variant="outline" size="sm" asChild>
-                    <Link href="/wishlist">{t("wishlist_page_title")}</Link>
-                  </Button>
                 </div>
               )}
-              {user ? (
-                <div className="flex flex-col gap-6">
-                  <div className="flex items-baseline gap-3">
-                    {displayPrice ? (
-                      <span className="font-display text-3xl font-bold text-foreground">
-                        €{Number(displayPrice).toFixed(2)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">Price not available</span>
-                    )}
-                  </div>
-                  {cartKey && (
-                    <div className="max-w-md">
-                      <ProductCartControls cartKey={cartKey} size="md" />
-                    </div>
+
+              <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-foreground/70">
+                {t("product_details_title")}
+              </h2>
+              {specRows.length > 0 && (
+                <div className="mt-3 overflow-hidden rounded-xl border border-border">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {specRows.map((row, idx) => (
+                        <tr key={`${idx}-${row.label}`} className="border-b border-border last:border-0">
+                          <th className="w-[40%] bg-muted/40 px-4 py-3 text-left font-semibold text-foreground">
+                            {row.label}
+                          </th>
+                          <td className="px-4 py-3 text-foreground/90">{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {primaryCat && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-semibold text-foreground">{t("product_compatibility")}</h3>
+                  <Link
+                    href={`/category/${primaryCat.slug}`}
+                    className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
+                  >
+                    {primaryCat.name}
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Purchase card */}
+            <div className="lg:col-span-3">
+              <div className="lg:sticky lg:top-24 space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+                {user ? (
+                  displayPrice ? (
+                    <p className="font-display text-3xl font-bold tabular-nums text-foreground md:text-4xl">
+                      €{Number(displayPrice).toFixed(2)}
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground">{t("woo_price_na")}</p>
+                  )
+                ) : (
+                  <GuestPriceGate variant="hero" />
+                )}
+
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
+                    stock.isLow
+                      ? "border border-amber-500/40 bg-amber-500/15 text-amber-900 dark:text-amber-100"
+                      : "bg-emerald-500 text-white shadow-sm",
                   )}
+                >
+                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-white")} />
+                  {stock.isLow ? t("stock_low", { count: stock.count }) : t("product_in_stock")}
                 </div>
-              ) : (
-                <GuestPriceGate variant="hero" />
-              )}
-              <div className="mt-6 max-w-md rounded-xl border border-border bg-card/80 p-4 shadow-sm">
-                <DeliveryEstimator />
+
+                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-4 text-sm text-foreground/90 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                  <DeliveryEstimator />
+                </div>
+
+                {cartKey && (
+                  <div className="pt-1">
+                    <ProductCartControls cartKey={cartKey} size="md" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
+
+          {descHtml && (
+            <section className="mt-12 border-t border-border pt-10 md:mt-16 md:pt-12" aria-labelledby="woo-desc-heading">
+              <h2 id="woo-desc-heading" className="font-display text-2xl font-bold text-foreground md:text-3xl">
+                {t("product_description_title")}
+              </h2>
+              <div
+                className="prose prose-neutral dark:prose-invert mt-6 max-w-none text-foreground/90 prose-headings:font-display prose-a:text-primary prose-img:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: descHtml }}
+              />
+            </section>
+          )}
+
+          <WooRelatedAccessoriesSlider
+            currentProductId={wooProduct.id}
+            categoryIds={categoryIds}
+            products={wooCatalogProducts}
+            priceUnavailableLabel={t("woo_price_na")}
+          />
         </div>
       </div>
     );

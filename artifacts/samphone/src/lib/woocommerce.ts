@@ -4,6 +4,15 @@ import { getWooCommerceConfig, type WooCommerceConfig } from "@/config/woocommer
  * Product shape as returned by WooCommerce REST (subset used in UI).
  * `images` is included by default on GET /wc/v3/products — required for gallery / 360-style viewers.
  */
+export interface WooProductAttribute {
+  id: number;
+  name: string;
+  position?: number;
+  visible?: boolean;
+  variation?: boolean;
+  options: string[];
+}
+
 export interface WooProduct {
   id: number;
   name: string;
@@ -14,6 +23,11 @@ export interface WooProduct {
   sale_price: string;
   categories: { id: number; name: string; slug: string }[];
   images: { id: number; src: string; name: string; alt: string }[];
+  /** Present on full single-product responses from WooCommerce. */
+  sku?: string;
+  description?: string;
+  short_description?: string;
+  attributes?: WooProductAttribute[];
   /** Present when requested via `_fields` (lighter list payloads). */
   date_created?: string;
 }
