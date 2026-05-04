@@ -2,6 +2,9 @@
 
 # compiled output
 dist
+
+# Vercel (repo root): build copies samphone output here for deployment
+/public
 tmp
 out-tsc
 *.tsbuildinfo
