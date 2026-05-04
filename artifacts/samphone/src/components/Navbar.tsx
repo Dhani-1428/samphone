@@ -10,6 +10,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 
 type DropdownKey = "accessories" | "cards" | "allCategories" | null;
@@ -557,6 +558,7 @@ export default function Navbar() {
   const { totalItems: cartCount, clearCart } = useCart();
   const { user, logout } = useAuth();
   const { keys: compareKeys } = useCompare();
+  const { keys: wishlistKeys } = useWishlist();
   const { categories: wooCategories } = useProductCatalog();
   const [activeBrandIdx, setActiveBrandIdx] = useState(0);
   const [activeFamilyIdx, setActiveFamilyIdx] = useState(0);
@@ -815,19 +817,34 @@ export default function Navbar() {
               </span>
               {t("compare")}
             </Link>
-            <button className="hidden md:flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-              <Heart className="w-4 h-4" /> {t("wishlist")}
-            </button>
-            <button className="relative flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
-              <div className="relative">
+            <Link
+              href="/wishlist"
+              className="relative hidden md:inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <span className="relative inline-flex">
+                <Heart className="w-4 h-4" />
+                {wishlistKeys.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-0.5 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">
+                    {wishlistKeys.length > 99 ? "99+" : wishlistKeys.length}
+                  </span>
+                )}
+              </span>
+              {t("wishlist")}
+            </Link>
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              <span className="relative inline-flex">
                 <ShoppingCart className="w-5 h-5" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 min-w-4 h-4 px-0.5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center">
                     {cartCount > 99 ? "99+" : cartCount}
                   </span>
                 )}
-              </div>
-            </button>
+              </span>
+              <span className="hidden sm:inline">{t("nav_cart")}</span>
+            </Link>
             <button className="md:hidden text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -1080,6 +1097,44 @@ export default function Navbar() {
                     </Link>
                   </>
                 )}
+              </div>
+              <div className="mb-2 flex flex-col gap-1 border-b border-border pb-3">
+                <Link
+                  href="/cart"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShoppingCart className="h-4 w-4" /> {t("nav_cart")}
+                  </span>
+                  {cartCount > 0 && (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{cartCount > 99 ? "99+" : cartCount}</span>
+                  )}
+                </Link>
+                <Link
+                  href="/wishlist"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" /> {t("wishlist")}
+                  </span>
+                  {wishlistKeys.length > 0 && (
+                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{wishlistKeys.length}</span>
+                  )}
+                </Link>
+                <Link
+                  href="/compare"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <GitCompare className="h-4 w-4" /> {t("compare")}
+                  </span>
+                  {compareKeys.length > 0 && (
+                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{compareKeys.length}</span>
+                  )}
+                </Link>
               </div>
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted transition-colors">

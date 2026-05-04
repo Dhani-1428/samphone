@@ -6,6 +6,7 @@ import { hrefForCartKey } from "@/data/catalog";
 import ProductCartControls from "@/components/ProductCartControls";
 import GuestPriceGate from "@/components/GuestPriceGate";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 
 const badgeColors: Record<string, string> = {
   Bestseller: "bg-amber-500 text-white",
@@ -47,7 +48,8 @@ export default function ProductCard({
   testPrefix = "product",
 }: ProductCardProps) {
   const { user } = useAuth();
-  const [wishlisted, setWishlisted] = useState(false);
+  const { has: wishHas, toggle: wishToggle } = useWishlist();
+  const wishlisted = wishHas(cartKey);
   const [hovering, setHovering] = useState(false);
   const productHref = hrefForCartKey(cartKey);
 
@@ -69,7 +71,7 @@ export default function ProductCard({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setWishlisted((v) => !v);
+            wishToggle(cartKey);
           }}
           className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           data-testid={`button-wishlist-${testPrefix}-${id}`}

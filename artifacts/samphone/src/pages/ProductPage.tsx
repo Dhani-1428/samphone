@@ -1,4 +1,4 @@
-import { ArrowLeft, Star, GitCompare } from "lucide-react";
+import { ArrowLeft, Star, GitCompare, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { resolveCatalogProduct } from "@/data/catalog";
@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useCompare } from "@/contexts/CompareContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
 import { hasCompareSpecs } from "@/data/device-specs";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
@@ -52,6 +53,7 @@ export default function ProductPage() {
   const { t } = useLang();
   const { recordView } = useRecentlyViewed();
   const { toggle, has, keys: compareKeys } = useCompare();
+  const { toggle: wishToggle, has: wishHas } = useWishlist();
 
   const cartKey = parseProductCartKey(normalizePathname(location));
   const product = cartKey ? resolveCatalogProduct(cartKey) : null;
@@ -129,14 +131,53 @@ export default function ProductPage() {
                   {wooProduct.categories.map((c) => c.name).join(" • ")}
                 </p>
               )}
+              {cartKey && (
+                <div className="mb-6 flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant={has(cartKey) ? "secondary" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => toggle(cartKey)}
+                  >
+                    <GitCompare className="h-4 w-4" />
+                    {has(cartKey) ? t("compare_remove") : t("compare_add")}
+                  </Button>
+                  {compareKeys.length >= 2 && (
+                    <Button type="button" size="sm" asChild>
+                      <Link href="/compare">{t("compare_view")}</Link>
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant={wishHas(cartKey) ? "secondary" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => wishToggle(cartKey)}
+                  >
+                    <Heart className={`h-4 w-4 ${wishHas(cartKey) ? "fill-red-500 text-red-500" : ""}`} />
+                    {wishHas(cartKey) ? t("wishlist_remove") : t("wishlist_save")}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <Link href="/wishlist">{t("wishlist_page_title")}</Link>
+                  </Button>
+                </div>
+              )}
               {user ? (
-                <div className="flex items-baseline gap-3 mb-8">
-                  {displayPrice ? (
-                    <span className="font-display font-bold text-3xl text-foreground">
-                      €{Number(displayPrice).toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Price not available</span>
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-baseline gap-3">
+                    {displayPrice ? (
+                      <span className="font-display text-3xl font-bold text-foreground">
+                        €{Number(displayPrice).toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Price not available</span>
+                    )}
+                  </div>
+                  {cartKey && (
+                    <div className="max-w-md">
+                      <ProductCartControls cartKey={cartKey} size="md" />
+                    </div>
                   )}
                 </div>
               ) : (
@@ -226,23 +267,40 @@ export default function ProductPage() {
               </span>
             </div>
 
-            {canCompare && (
-              <div className="flex flex-wrap gap-2 mb-6">
+            {(canCompare || cartKey) && (
+              <div className="mb-6 flex flex-wrap gap-2">
+                {canCompare && (
+                  <>
+                    <Button
+                      type="button"
+                      variant={has(cartKey) ? "secondary" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => toggle(cartKey)}
+                    >
+                      <GitCompare className="h-4 w-4" />
+                      {has(cartKey) ? t("compare_remove") : t("compare_add")}
+                    </Button>
+                    {compareKeys.length >= 2 && (
+                      <Button type="button" size="sm" asChild>
+                        <Link href="/compare">{t("compare_view")}</Link>
+                      </Button>
+                    )}
+                  </>
+                )}
                 <Button
                   type="button"
-                  variant={has(cartKey) ? "secondary" : "outline"}
+                  variant={wishHas(cartKey) ? "secondary" : "outline"}
                   size="sm"
                   className="gap-2"
-                  onClick={() => toggle(cartKey)}
+                  onClick={() => wishToggle(cartKey)}
                 >
-                  <GitCompare className="w-4 h-4" />
-                  {has(cartKey) ? t("compare_remove") : t("compare_add")}
+                  <Heart className={`h-4 w-4 ${wishHas(cartKey) ? "fill-red-500 text-red-500" : ""}`} />
+                  {wishHas(cartKey) ? t("wishlist_remove") : t("wishlist_save")}
                 </Button>
-                {compareKeys.length >= 2 && (
-                  <Button type="button" size="sm" asChild>
-                    <Link href="/compare">{t("compare_view")}</Link>
-                  </Button>
-                )}
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <Link href="/wishlist">{t("wishlist_page_title")}</Link>
+                </Button>
               </div>
             )}
 

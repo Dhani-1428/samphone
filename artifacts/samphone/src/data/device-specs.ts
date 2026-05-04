@@ -1,3 +1,6 @@
+import { resolveCatalogProduct } from "@/data/catalog";
+import { getDisplayPrice, type WooProduct } from "@/lib/woocommerce";
+
 /** Side-by-side compare: spec rows for eligible products (cart keys) */
 export type SpecKey =
   | "display"
@@ -153,5 +156,44 @@ export const DEVICE_SPECS: Partial<
 };
 
 export function hasCompareSpecs(cartKey: string): boolean {
-  return Boolean(DEVICE_SPECS[cartKey]);
+  if (cartKey.startsWith("woo:")) return true;
+  if (DEVICE_SPECS[cartKey]) return true;
+  return resolveCatalogProduct(cartKey) != null;
+}
+
+/** Spec cells for compare table (preset demo data, Woo, or generic catalog). */
+export function getCompareSpecsForProduct(
+  cartKey: string,
+  woo?: WooProduct | null,
+): Partial<Record<SpecKey, string>> {
+  const preset = DEVICE_SPECS[cartKey];
+  if (preset) return preset;
+  if (woo) {
+    const dp = getDisplayPrice(woo);
+    const priceStr = dp != null ? `€${Number(dp).toFixed(2)}` : "—";
+    return {
+      display: woo.categories?.length
+        ? woo.categories.map((c) => c.name).slice(0, 3).join(" · ")
+        : "—",
+      chip: woo.name,
+      battery: priceStr,
+      storage: woo.slug,
+      camera: `ID ${woo.id}`,
+      weight: "—",
+      os: "WooCommerce",
+    };
+  }
+  const c = resolveCatalogProduct(cartKey);
+  if (c) {
+    return {
+      display: c.subtitle ?? "—",
+      chip: c.name,
+      battery: `€${c.price.toFixed(2)}`,
+      storage: "—",
+      camera: `${c.rating.toFixed(1)}★ (${c.reviews})`,
+      weight: "—",
+      os: "—",
+    };
+  }
+  return {};
 }

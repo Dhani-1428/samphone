@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { BrowseBehaviorProvider } from "@/contexts/BrowseBehaviorContext";
 import { CompareProvider } from "@/contexts/CompareContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProductCatalogProvider } from "@/contexts/ProductCatalogContext";
 import NotFound from "@/pages/not-found";
@@ -24,6 +25,8 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Account from "@/pages/Account";
 import Compare from "@/pages/Compare";
+import CartPage from "@/pages/CartPage";
+import WishlistPage from "@/pages/WishlistPage";
 import TrackOrder from "@/pages/TrackOrder";
 import BookRepair from "@/pages/BookRepair";
 import TradeIn from "@/pages/TradeIn";
@@ -70,6 +73,12 @@ function Router() {
       <Route path="/compare">
         <Layout><Compare /></Layout>
       </Route>
+      <Route path="/cart">
+        <Layout><CartPage /></Layout>
+      </Route>
+      <Route path="/wishlist">
+        <Layout><WishlistPage /></Layout>
+      </Route>
       <Route path="/track">
         <Layout><TrackOrder /></Layout>
       </Route>
@@ -113,6 +122,7 @@ function App() {
           <RecentlyViewedProvider>
             <BrowseBehaviorProvider>
             <CompareProvider>
+              <WishlistProvider>
               <CartProvider>
                 <QueryClientProvider client={queryClient}>
                   <ProductCatalogProvider>
@@ -125,6 +135,7 @@ function App() {
                   </ProductCatalogProvider>
                 </QueryClientProvider>
               </CartProvider>
+              </WishlistProvider>
             </CompareProvider>
             </BrowseBehaviorProvider>
           </RecentlyViewedProvider>
