@@ -17,18 +17,17 @@ import { filterSmartphoneBrand, filterTabletBrand } from "@/lib/woo-product-filt
 import { cn } from "@/lib/utils";
 
 const brands = [
-  { name: "iPhone Parts", img: productScreen, count: "180+ parts", color: "from-gray-700 to-gray-900" },
-  { name: "Samsung Parts", img: productCase, count: "220+ parts", color: "from-blue-700 to-blue-900" },
-  { name: "Xiaomi Parts", img: productCharger, count: "140+ parts", color: "from-orange-600 to-red-700" },
-  { name: "Oppo Reno Parts", img: productScreen, count: "90+ parts", color: "from-green-700 to-emerald-900" },
-  { name: "Realme Parts", img: productCase, count: "80+ parts", color: "from-yellow-600 to-orange-700" },
-  { name: "Huawei Parts", img: productCharger, count: "110+ parts", color: "from-red-700 to-rose-900" },
-  { name: "One Plus Parts", img: productScreen, count: "70+ parts", color: "from-red-600 to-red-900" },
-  { name: "Motorola Parts", img: productCase, count: "60+ parts", color: "from-indigo-700 to-indigo-900" },
-  { name: "Alcatel Parts", img: productCharger, count: "40+ parts", color: "from-teal-700 to-teal-900" },
-  { name: "Google Pixel Parts", img: productScreen, count: "55+ parts", color: "from-blue-600 to-cyan-700" },
-  { name: "Nokia Parts", img: productCase, count: "45+ parts", color: "from-sky-700 to-sky-900" },
-  { name: "Repair Tools", img: productCharger, count: "30+ items", color: "from-slate-600 to-slate-800" },
+  { name: "iPhone", img: productScreen, count: "180+", color: "from-gray-700 to-gray-900" },
+  { name: "Samsung", img: productCase, count: "220+", color: "from-blue-700 to-blue-900" },
+  { name: "Xiaomi", img: productCharger, count: "140+", color: "from-orange-600 to-red-700" },
+  { name: "Oppo Reno", img: productScreen, count: "90+", color: "from-green-700 to-emerald-900" },
+  { name: "Realme", img: productCase, count: "80+", color: "from-yellow-600 to-orange-700" },
+  { name: "Huawei", img: productCharger, count: "110+", color: "from-red-700 to-rose-900" },
+  { name: "One Plus", img: productScreen, count: "70+", color: "from-red-600 to-red-900" },
+  { name: "Motorola", img: productCase, count: "60+", color: "from-indigo-700 to-indigo-900" },
+  { name: "Alcatel", img: productCharger, count: "40+", color: "from-teal-700 to-teal-900" },
+  { name: "Google Pixel", img: productScreen, count: "55+", color: "from-blue-600 to-cyan-700" },
+  { name: "Nokia", img: productCase, count: "45+", color: "from-sky-700 to-sky-900" },
 ];
 
 const tabletBrands = [
