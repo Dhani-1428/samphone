@@ -1,0 +1,99 @@
+import { resolveCatalogProduct } from "@/data/catalog";
+
+const STORAGE_KEY = "samphone-orders";
+
+export type OrderStatus = "processing" | "shipped" | "out_for_delivery" | "delivered";
+
+export interface OrderLine {
+  cartKey: string;
+  name: string;
+  qty: number;
+}
+
+export interface StoredOrder {
+  id: string;
+  createdAt: string;
+  status: OrderStatus;
+  lines: OrderLine[];
+  /** Progress 0–3 for UI steps */
+  stepIndex: number;
+}
+
+function readAll(): StoredOrder[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((o): o is StoredOrder => typeof o?.id === "string");
+  } catch {
+    return [];
+  }
+}
+
+function writeAll(orders: StoredOrder[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+export function listOrders(): StoredOrder[] {
+  return readAll().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function getOrderById(id: string): StoredOrder | null {
+  const normalized = id.trim().toUpperCase();
+  return readAll().find((o) => o.id.toUpperCase() === normalized) ?? null;
+}
+
+export function saveOrder(order: StoredOrder) {
+  const all = readAll().filter((o) => o.id !== order.id);
+  all.push(order);
+  writeAll(all);
+}
+
+function linesFromCart(items: Record<string, number>): OrderLine[] {
+  const lines: OrderLine[] = [];
+  for (const [cartKey, qty] of Object.entries(items)) {
+    if (qty <= 0) continue;
+    const p = resolveCatalogProduct(cartKey);
+    lines.push({
+      cartKey,
+      qty,
+      name: p?.name ?? cartKey,
+    });
+  }
+  return lines;
+}
+
+export function createOrderFromCart(items: Record<string, number>): StoredOrder | null {
+  const lines = linesFromCart(items);
+  if (lines.length === 0) return null;
+  const suffix = Date.now().toString(36).toUpperCase().slice(-5);
+  const order: StoredOrder = {
+    id: `SP-LIS-${suffix}`,
+    createdAt: new Date().toISOString(),
+    status: "processing",
+    lines,
+    stepIndex: 0,
+  };
+  saveOrder(order);
+  return order;
+}
+
+/** Demo order always resolvable for marketing / QA. */
+const DEMO_ID = "SP-DEMO-TRACK";
+
+export function ensureDemoOrder(): void {
+  const all = readAll();
+  if (all.some((o) => o.id === DEMO_ID)) return;
+  const demo: StoredOrder = {
+    id: DEMO_ID,
+    createdAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+    status: "out_for_delivery",
+    stepIndex: 2,
+    lines: [
+      { cartKey: "phones:1", name: "iPhone 15 Pro OLED Display", qty: 1 },
+      { cartKey: "acc:1", name: "Full Glue Tempered Glass iPhone 15", qty: 2 },
+    ],
+  };
+  writeAll([demo, ...all]);
+}

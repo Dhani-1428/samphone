@@ -4,6 +4,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
+import { BrowseBehaviorProvider } from "@/contexts/BrowseBehaviorContext";
+import { CompareProvider } from "@/contexts/CompareContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { ProductCatalogProvider } from "@/contexts/ProductCatalogContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Accessories from "@/pages/Accessories";
@@ -13,6 +19,17 @@ import NewArrivals from "@/pages/NewArrivals";
 import MultiBrand from "@/pages/MultiBrand";
 import Contact from "@/pages/Contact";
 import CategoryPage from "@/pages/CategoryPage";
+import ProductPage from "@/pages/ProductPage";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Account from "@/pages/Account";
+import Compare from "@/pages/Compare";
+import TrackOrder from "@/pages/TrackOrder";
+import BookRepair from "@/pages/BookRepair";
+import TradeIn from "@/pages/TradeIn";
+import DeviceDiagnostics from "@/pages/DeviceDiagnostics";
+import WooStore from "@/pages/WooStore";
+import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -41,8 +58,47 @@ function Router() {
       <Route path="/contact">
         <Layout><Contact /></Layout>
       </Route>
+      <Route path="/login">
+        <Layout><Login /></Layout>
+      </Route>
+      <Route path="/register">
+        <Layout><Register /></Layout>
+      </Route>
+      <Route path="/account">
+        <Layout><Account /></Layout>
+      </Route>
+      <Route path="/compare">
+        <Layout><Compare /></Layout>
+      </Route>
+      <Route path="/track">
+        <Layout><TrackOrder /></Layout>
+      </Route>
+      <Route path="/book-repair">
+        <Layout><BookRepair /></Layout>
+      </Route>
+      <Route path="/trade-in">
+        <Layout><TradeIn /></Layout>
+      </Route>
+      <Route path="/diagnostics">
+        <Layout><DeviceDiagnostics /></Layout>
+      </Route>
+      <Route path="/store">
+        <Layout><WooStore /></Layout>
+      </Route>
+      <Route path="/model/:brand/:family/:model">
+        <Layout><ModelCatalogPage /></Layout>
+      </Route>
+      <Route path="/model/:brand/:model">
+        <Layout><ModelCatalogPage /></Layout>
+      </Route>
       <Route path="/category/:slug">
         <Layout><CategoryPage /></Layout>
+      </Route>
+      <Route path="/product/cat/:slug/:id">
+        <Layout><ProductPage /></Layout>
+      </Route>
+      <Route path="/product/:scope/:id">
+        <Layout><ProductPage /></Layout>
       </Route>
       <Route component={NotFound} />
     </Switch>
@@ -53,14 +109,26 @@ function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
+        <AuthProvider>
+          <RecentlyViewedProvider>
+            <BrowseBehaviorProvider>
+            <CompareProvider>
+              <CartProvider>
+                <QueryClientProvider client={queryClient}>
+                  <ProductCatalogProvider>
+                    <TooltipProvider>
+                      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                        <Router />
+                      </WouterRouter>
+                      <Toaster />
+                    </TooltipProvider>
+                  </ProductCatalogProvider>
+                </QueryClientProvider>
+              </CartProvider>
+            </CompareProvider>
+            </BrowseBehaviorProvider>
+          </RecentlyViewedProvider>
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   );

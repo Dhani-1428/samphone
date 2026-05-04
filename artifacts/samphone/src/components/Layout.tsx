@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import SupportWidget from "@/components/SupportWidget";
+import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 import { FollowerPointerCard } from "@/components/ui/following-pointer";
 
 const SamphoneCursor = () => (
@@ -14,9 +16,11 @@ const SamphoneCursor = () => (
 export default function Layout({ children }: { children: ReactNode }) {
   return (
     <FollowerPointerCard title={<SamphoneCursor />} className="min-h-screen flex flex-col">
+      <BrowseRouteTracker />
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
+      <SupportWidget />
       <WhatsAppButton />
     </FollowerPointerCard>
   );

@@ -2,9 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HeroParallax } from "@/components/ui/hero-parallax";
-import { allBrands } from "@/data/brands";
 import { SiWhatsapp, SiInstagram, SiFacebook } from "react-icons/si";
+import PageVideoHero from "@/components/PageVideoHero";
 
 const contactInfo = [
   { icon: MapPin, label: "Address", value: "Rua da Palma N.221–223, 1100-391 Lisboa, Portugal", link: "https://maps.google.com/?q=Rua+da+Palma+221+Lisboa+Portugal" },
@@ -22,11 +21,11 @@ const faqs = [
 
 function ContactHeader() {
   return (
-    <div className="max-w-7xl relative mx-auto py-20 md:py-32 px-4 md:px-6">
-      <p className="text-foreground/50 text-sm mb-3 uppercase tracking-widest">Home / Contact</p>
-      <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground mb-4">Contact Us</h1>
-      <p className="text-foreground/60 text-xl max-w-xl">We're here to help. Scroll to explore all brands we carry.</p>
-    </div>
+    <PageVideoHero
+      eyebrow="Home / Contact"
+      title="Contact Us"
+      description="We're here to help with parts, accessories and support."
+    />
   );
 }
 
@@ -42,7 +41,9 @@ export default function Contact() {
 
   return (
     <div className="bg-background">
-      <HeroParallax brands={allBrands} header={<ContactHeader />} compact />
+      <section className="bg-background border-b border-border">
+        <ContactHeader />
+      </section>
 
       <div className="container mx-auto px-4 md:px-6 py-10">
         <div className="grid lg:grid-cols-2 gap-10 mb-14">

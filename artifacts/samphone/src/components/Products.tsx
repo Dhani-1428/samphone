@@ -1,21 +1,14 @@
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
-import productCase from "@/assets/product-case.png";
-import productCharger from "@/assets/product-charger.png";
-import productScreen from "@/assets/product-screen.png";
-
-const products = [
-  { id: 1, name: "iPhone 15 Pro Silicone Case", subtitle: "Apple", price: 14.99, oldPrice: 24.99, rating: 4.9, reviews: 312, img: productCase, badge: "Bestseller" },
-  { id: 2, name: "USB-C 65W Fast Charger", subtitle: "Universal", price: 19.99, oldPrice: null, rating: 4.8, reviews: 187, img: productCharger, badge: "New" },
-  { id: 3, name: "Samsung S24 OLED Screen", subtitle: "Samsung", price: 49.99, oldPrice: 79.99, rating: 4.7, reviews: 95, img: productScreen, badge: "Sale" },
-  { id: 4, name: "iPhone 14 Battery Pack", subtitle: "Apple", price: 29.99, oldPrice: 44.99, rating: 4.8, reviews: 203, img: productCase, badge: "Sale" },
-  { id: 5, name: "Xiaomi 13 Tempered Glass", subtitle: "Xiaomi", price: 7.99, oldPrice: null, rating: 4.9, reviews: 156, img: productCharger, badge: null },
-  { id: 6, name: "Bluetooth Earphones Pro", subtitle: "Generic", price: 24.99, oldPrice: 39.99, rating: 4.6, reviews: 88, img: productScreen, badge: "Hot" },
-  { id: 7, name: "Samsung Galaxy A54 Screen", subtitle: "Samsung", price: 39.99, oldPrice: null, rating: 4.7, reviews: 74, img: productCase, badge: null },
-  { id: 8, name: "1m Braided USB-C Cable", subtitle: "Universal", price: 5.99, oldPrice: 9.99, rating: 4.8, reviews: 421, img: productCharger, badge: "Bestseller" },
-];
+import WooProductCard from "@/components/wc/WooProductCard";
+import { useLang } from "@/contexts/LanguageContext";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import { hasWooCommerceConfig } from "@/config/woocommerce";
+import { HOME_PRODUCTS } from "@/data/catalog";
+import { pickHomeFeatured } from "@/lib/woo-product-filters";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -23,12 +16,17 @@ const containerVariants = {
 };
 const cardVariants = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" as const } },
 };
 
 export default function Products() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { t } = useLang();
+  const woo = hasWooCommerceConfig();
+  const { products, loading, error } = useProductCatalog();
+
+  const featured = useMemo(() => (woo ? pickHomeFeatured(products, 8) : []), [woo, products]);
 
   return (
     <section id="products" className="py-20 bg-muted/30">
@@ -41,28 +39,60 @@ export default function Products() {
           className="text-center mb-12"
         >
           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            Popular Products
+            {t("popularProducts")}
           </span>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
-            Top Picks This Week
+            {t("products_title")}
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Thousands of products. Competitive prices. Shipped fast from Lisbon.
+            {t("products_sub")}
           </p>
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
-        >
-          {products.map((product) => (
-            <motion.div key={product.id} variants={cardVariants}>
-              <ProductCard {...product} testPrefix="home" />
-            </motion.div>
-          ))}
-        </motion.div>
+        {woo && loading && featured.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+            <p className="text-sm font-medium">{t("woo_loading")}</p>
+          </div>
+        )}
+
+        {woo && !loading && error && (
+          <p className="text-center text-sm text-destructive py-8">{error}</p>
+        )}
+
+        {woo && !loading && !error && featured.length === 0 && (
+          <p className="text-center text-sm text-muted-foreground py-8">{t("woo_empty")}</p>
+        )}
+
+        {woo && featured.length > 0 && (
+          <motion.ul
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid list-none grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 p-0"
+          >
+            {featured.map((p) => (
+              <motion.li key={p.id} variants={cardVariants}>
+                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+              </motion.li>
+            ))}
+          </motion.ul>
+        )}
+
+        {!woo && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+          >
+            {HOME_PRODUCTS.map((product) => (
+              <motion.div key={product.id} variants={cardVariants}>
+                <ProductCard {...product} testPrefix="home" />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -70,8 +100,13 @@ export default function Products() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-center mt-10"
         >
-          <Button size="lg" variant="outline" className="px-10 border-border hover:bg-muted">
-            View All Products
+          <Button
+            size="lg"
+            variant="outline"
+            className="px-10 border-border hover:bg-muted"
+            onClick={() => (window.location.href = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/accessories`)}
+          >
+            {t("viewAll")}
           </Button>
         </motion.div>
       </div>

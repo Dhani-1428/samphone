@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Cpu, Truck, Shield, MessageCircle } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 const reasons = [
   {
@@ -32,15 +33,25 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, x: -30 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
 };
 
 export default function WhyChooseUs() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { lang } = useLang();
+  const localizedReasons =
+    lang === "pt"
+      ? [
+          { ...reasons[0], title: "700+ Modelos", desc: "Uma das maiores selecoes em Portugal. Da Apple a Xiaomi, temos pecas e acessorios para quase todos os dispositivos." },
+          { ...reasons[1], title: "Entrega Rapida em Lisboa", desc: "Encomende antes das 15h para entrega no mesmo dia em Lisboa. Enviamos para todo Portugal." },
+          { ...reasons[2], title: "Qualidade Garantida", desc: "Cada peca e testada antes do envio. Garantimos a qualidade de todos os produtos." },
+          { ...reasons[3], title: "Suporte Especializado", desc: "Os nossos tecnicos ajudam no WhatsApp a encontrar a peca ou acessorio certo para si." },
+        ]
+      : reasons;
 
   return (
-    <section id="why-us" className="py-20 bg-foreground text-background">
+    <section id="why-us" className="py-20 bg-background text-foreground">
       <div className="container mx-auto px-4 md:px-6">
         <motion.div
           ref={ref}
@@ -49,14 +60,17 @@ export default function WhyChooseUs() {
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <span className="inline-block px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium mb-4">
-            Why SAMPHONE
+          <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            {lang === "pt" ? "Porque SAMPHONE" : "Why SAMPHONE"}
           </span>
           <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
-            The Smart Choice for <br className="hidden md:block" />Mobile Accessories
+            {lang === "pt" ? "A Escolha Inteligente para" : "The Smart Choice for"} <br className="hidden md:block" />
+            {lang === "pt" ? "Acessorios Mobile" : "Mobile Accessories"}
           </h2>
-          <p className="text-background/70 text-lg max-w-xl mx-auto">
-            Over 600 customers have rated us 4.9/5. Here's why they keep coming back.
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            {lang === "pt"
+              ? "Mais de 600 clientes avaliaram-nos com 4.9/5. Veja porque voltam sempre."
+              : "Over 600 customers have rated us 4.9/5. Here's why they keep coming back."}
           </p>
         </motion.div>
 
@@ -66,18 +80,18 @@ export default function WhyChooseUs() {
           animate={isInView ? "visible" : "hidden"}
           className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
         >
-          {reasons.map((reason, i) => (
+          {localizedReasons.map((reason, i) => (
             <motion.div
               key={i}
               variants={itemVariants}
-              className="group p-6 rounded-2xl border border-background/10 hover:border-primary/40 bg-background/5 hover:bg-background/10 transition-colors"
+              className="group p-6 rounded-2xl border border-border hover:border-primary/40 bg-card hover:bg-muted/40 transition-colors"
               data-testid={`card-reason-${i}`}
             >
               <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                 <reason.icon className="w-6 h-6" />
               </div>
               <h3 className="font-display font-bold text-xl mb-3">{reason.title}</h3>
-              <p className="text-background/70 text-sm leading-relaxed">{reason.desc}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{reason.desc}</p>
             </motion.div>
           ))}
         </motion.div>

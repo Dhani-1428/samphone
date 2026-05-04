@@ -1,6 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 import categoryCases from "@/assets/category-cases.png";
 import categoryChargers from "@/assets/category-chargers.png";
 import categoryAudio from "@/assets/category-audio.png";
@@ -24,12 +25,32 @@ const containerVariants = {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
 };
 
 export default function Categories() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { lang } = useLang();
+  const copy =
+    lang === "pt"
+      ? {
+          badge: "Navegar por Categoria",
+          title: "Encontre o Que Precisa",
+          sub: "De películas a componentes de motherboard — tudo para cada dispositivo.",
+          shopNow: "Comprar agora",
+        }
+      : {
+          badge: "Browse by Category",
+          title: "Find What You Need",
+          sub: "From screen protectors to motherboard components — everything for every device.",
+          shopNow: "Shop now",
+        };
+
+  const goToCategory = (name: string) => {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    window.location.href = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/category/${slug}`;
+  };
 
   return (
     <section id="categories" className="py-20 bg-background">
@@ -42,13 +63,13 @@ export default function Categories() {
           className="text-center mb-12"
         >
           <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            Browse by Category
+            {copy.badge}
           </span>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
-            Find What You Need
+            {copy.title}
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            From screen protectors to motherboard components — everything for every device.
+            {copy.sub}
           </p>
         </motion.div>
 
@@ -63,6 +84,7 @@ export default function Categories() {
               key={cat.name}
               variants={cardVariants}
               whileHover={{ y: -6, scale: 1.02 }}
+              onClick={() => goToCategory(cat.name)}
               transition={{ duration: 0.25 }}
               className="group relative overflow-hidden rounded-2xl cursor-pointer bg-card border border-border"
               data-testid={`card-category-${i}`}
@@ -80,7 +102,7 @@ export default function Categories() {
                 <h3 className="font-display font-bold text-white text-base md:text-xl leading-tight">{cat.name}</h3>
                 <p className="text-white/70 text-xs md:text-sm mt-1 hidden md:block">{cat.subtitle}</p>
                 <div className="flex items-center gap-1 mt-2 text-primary text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  Shop now <ArrowRight className="w-3 h-3" />
+                  {copy.shopNow} <ArrowRight className="w-3 h-3" />
                 </div>
               </div>
             </motion.div>

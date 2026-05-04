@@ -2,6 +2,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Search, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLang } from "@/contexts/LanguageContext";
 
 const brands = ["Apple", "Samsung", "Xiaomi", "Huawei", "OnePlus", "Motorola", "Google", "Sony", "Nokia", "Oppo"];
 
@@ -24,6 +25,35 @@ export default function DeviceSearch() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [searched, setSearched] = useState(false);
+  const { lang } = useLang();
+  const copy =
+    lang === "pt"
+      ? {
+          badge: "Pesquisa de Compatibilidade",
+          title: "Encontre Pecas para o Seu Dispositivo",
+          sub: "Selecione a marca e o modelo para ver pecas e acessorios compativeis.",
+          selectBrand: "Selecionar Marca",
+          chooseBrand: "Escolha a marca...",
+          selectModel: "Selecionar Modelo",
+          chooseModel: "Escolha o modelo...",
+          find: "Encontrar Pecas Compativeis",
+          found: "Encontradas",
+          forYour: "compativeis para o seu",
+          contact: "Contacte-nos no WhatsApp para encomendas em quantidade.",
+        }
+      : {
+          badge: "Compatibility Search",
+          title: "Find Parts for Your Device",
+          sub: "Select your device brand and model to see all compatible parts and accessories.",
+          selectBrand: "Select Brand",
+          chooseBrand: "Choose brand...",
+          selectModel: "Select Model",
+          chooseModel: "Choose model...",
+          find: "Find Compatible Parts",
+          found: "Found",
+          forYour: "compatible parts for your",
+          contact: "Contact us on WhatsApp for bulk orders.",
+        };
 
   const handleSearch = () => {
     if (selectedBrand) setSearched(true);
@@ -41,13 +71,13 @@ export default function DeviceSearch() {
         >
           <div className="text-center mb-10">
             <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-              Compatibility Search
+              {copy.badge}
             </span>
             <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
-              Find Parts for Your Device
+              {copy.title}
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Select your device brand and model to see all compatible parts and accessories.
+              {copy.sub}
             </p>
           </div>
 
@@ -59,19 +89,19 @@ export default function DeviceSearch() {
           >
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
-                <label className="text-sm font-medium text-foreground mb-2 block">Select Brand</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">{copy.selectBrand}</label>
                 <select
                   value={selectedBrand}
                   onChange={(e) => { setSelectedBrand(e.target.value); setSelectedModel(""); setSearched(false); }}
                   className="w-full h-12 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
                   data-testid="select-brand"
                 >
-                  <option value="">Choose brand...</option>
+                  <option value="">{copy.chooseBrand}</option>
                   {brands.map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               <div className="flex-1">
-                <label className="text-sm font-medium text-foreground mb-2 block">Select Model</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">{copy.selectModel}</label>
                 <select
                   value={selectedModel}
                   onChange={(e) => { setSelectedModel(e.target.value); setSearched(false); }}
@@ -79,7 +109,7 @@ export default function DeviceSearch() {
                   className="w-full h-12 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer disabled:opacity-50"
                   data-testid="select-model"
                 >
-                  <option value="">Choose model...</option>
+                  <option value="">{copy.chooseModel}</option>
                   {selectedBrand && models[selectedBrand]?.map((m) => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
@@ -93,7 +123,7 @@ export default function DeviceSearch() {
               data-testid="button-find-parts"
             >
               <Search className="w-5 h-5" />
-              Find Compatible Parts
+              {copy.find}
             </Button>
 
             {searched && (
@@ -105,7 +135,7 @@ export default function DeviceSearch() {
               >
                 <Smartphone className="w-5 h-5 text-primary shrink-0" />
                 <p className="text-sm text-foreground">
-                  Found <span className="font-bold text-primary">47 compatible parts</span> for your {selectedBrand} {selectedModel || "device"}. Contact us on WhatsApp for bulk orders.
+                  {copy.found} <span className="font-bold text-primary">47</span> {copy.forYour} {selectedBrand} {selectedModel || (lang === "pt" ? "dispositivo" : "device")}. {copy.contact}
                 </p>
               </motion.div>
             )}

@@ -3,6 +3,11 @@ import { Button } from "@/components/ui/button";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { allBrands } from "@/data/brands";
 import { useLang } from "@/contexts/LanguageContext";
+import homeHeroVideo from "@/assets/home-hero-video.mp4";
+
+/** Match PageVideoHero: outer gutter + curved “device” frame */
+const HERO_GUTTER = "px-4 sm:px-6 md:px-10 lg:px-12 py-6 md:py-8 lg:py-10";
+const FRAME_ROUNDED = "rounded-[1.75rem] md:rounded-[2rem]";
 
 function HomeHeader() {
   const { t } = useLang();
@@ -59,8 +64,14 @@ function HomeHeader() {
 
 export default function Hero() {
   return (
-    <section id="home" className="bg-background">
-      <HeroParallax brands={allBrands} header={<HomeHeader />} />
+    <section id="home" className="bg-white dark:bg-background border-b border-border">
+      <div className={`mx-auto max-w-[1600px] ${HERO_GUTTER}`}>
+        <div
+          className={`overflow-hidden border border-border/80 bg-card shadow-xl ring-1 ring-black/[0.06] dark:ring-white/10 ${FRAME_ROUNDED}`}
+        >
+          <HeroParallax brands={allBrands} header={<HomeHeader />} backgroundVideoSrc={homeHeroVideo} />
+        </div>
+      </div>
     </section>
   );
 }

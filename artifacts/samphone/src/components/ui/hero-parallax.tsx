@@ -25,10 +25,13 @@ export const HeroParallax = ({
   brands,
   header,
   compact = false,
+  backgroundVideoSrc,
 }: {
   brands: BrandItem[];
   header: React.ReactNode;
   compact?: boolean;
+  /** Full-bleed looping video behind header + parallax rows */
+  backgroundVideoSrc?: string;
 }) => {
   const firstRow = brands.slice(0, 6);
   const secondRow = brands.slice(6, 13);
@@ -47,17 +50,34 @@ export const HeroParallax = ({
   const opacity = useSpring(useTransform(scrollYProgress, [0, 0.2], [0.2, 1]), spring);
   const rotateZ = useSpring(useTransform(scrollYProgress, [0, 0.2], [20, 0]), spring);
   const translateY = useSpring(
-    useTransform(scrollYProgress, [0, 0.2], [compact ? -380 : -680, compact ? 250 : 450]),
+    useTransform(scrollYProgress, [0, 0.2], [compact ? -180 : -300, compact ? 70 : 140]),
     spring
   );
 
   return (
     <div
       ref={ref}
-      className={`${compact ? "h-[200vh]" : "h-[290vh]"} overflow-hidden antialiased relative flex flex-col [perspective:1000px] [transform-style:preserve-3d]`}
+      className={`${compact ? "h-[140vh]" : "h-[200vh]"} overflow-hidden antialiased relative flex flex-col [perspective:1000px] [transform-style:preserve-3d]`}
     >
-      {header}
-      <motion.div style={{ rotateX, rotateZ, translateY, opacity }}>
+      {backgroundVideoSrc && (
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={backgroundVideoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/75 via-background/45 to-background/85 dark:from-background/80 dark:via-background/55 dark:to-background/90" />
+        </div>
+      )}
+      <div className="relative z-30">
+        {header}
+      </div>
+      <motion.div style={{ rotateX, rotateZ, translateY, opacity }} className="pb-8 pointer-events-none relative z-10">
         <motion.div className="flex flex-row-reverse space-x-reverse space-x-5 mb-5">
           {firstRow.map((brand) => (
             <BrandCard key={brand.name} brand={brand} translate={translateX} />
@@ -91,7 +111,7 @@ const BrandCard = ({
     <motion.div
       style={{ x: translate }}
       whileHover={{ y: -12, scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.12)" }}
-      className="group/brand h-36 w-48 md:h-40 md:w-56 relative shrink-0 rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-border bg-card flex flex-col items-center justify-center gap-3 p-5 transition-shadow"
+      className="group/brand h-36 w-48 md:h-40 md:w-56 relative shrink-0 overflow-hidden cursor-pointer rounded-2xl border border-border/80 bg-card/95 shadow-lg ring-1 ring-black/[0.05] backdrop-blur-sm dark:ring-white/10 md:rounded-[1.35rem] flex flex-col items-center justify-center gap-3 p-5 transition-shadow"
     >
       <div
         className="w-16 h-16 rounded-2xl flex items-center justify-center"
