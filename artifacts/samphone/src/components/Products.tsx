@@ -69,7 +69,7 @@ export default function Products() {
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid list-none grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 p-0"
+            className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 xl:gap-5 p-0"
           >
             {featured.map((p) => (
               <motion.li key={p.id} variants={cardVariants}>
@@ -84,7 +84,7 @@ export default function Products() {
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 xl:gap-5"
           >
             {HOME_PRODUCTS.map((product) => (
               <motion.div key={product.id} variants={cardVariants}>
