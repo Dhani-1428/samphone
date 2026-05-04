@@ -4,6 +4,7 @@ import { getDisplayPrice, getPrimaryImageUrl } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import GuestPriceGate from "@/components/GuestPriceGate";
+import ProductCartControls from "@/components/ProductCartControls";
 import { Link } from "wouter";
 
 const PLACEHOLDER =
@@ -25,6 +26,8 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
   const showPrice = user != null && displayPrice != null;
   const imageUrl = getPrimaryImageUrl(product);
   const productHref = `/product/woo/${product.id}`;
+  const cartKey = `woo:${product.id}`;
+  const showCartByPrice = showPrice || user == null;
 
   return (
     <article
@@ -52,16 +55,23 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
             {product.name}
           </h3>
         </Link>
-        <div className="mt-auto pt-1 text-sm tabular-nums text-foreground/90">
-          {showPrice ? (
-            <span className="font-medium">
-              {currencySymbol}
-              {displayPrice}
-            </span>
-          ) : user == null ? (
-            <GuestPriceGate variant="compact" />
-          ) : (
-            <span className="text-muted-foreground">{priceUnavailableLabel}</span>
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-2">
+          <div className="min-w-0 flex-1 text-sm tabular-nums text-foreground/90">
+            {showPrice ? (
+              <span className="font-medium">
+                {currencySymbol}
+                {displayPrice}
+              </span>
+            ) : user == null ? (
+              <GuestPriceGate variant="compact" />
+            ) : (
+              <span className="text-muted-foreground">{priceUnavailableLabel}</span>
+            )}
+          </div>
+          {showCartByPrice && (
+            <div className="shrink-0 self-end" onClick={(e) => e.stopPropagation()}>
+              <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
+            </div>
           )}
         </div>
       </div>

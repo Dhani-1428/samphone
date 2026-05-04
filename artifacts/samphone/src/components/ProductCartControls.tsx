@@ -18,8 +18,11 @@ export default function ProductCartControls({
   cartKey: string;
   buttonClassName?: string;
   size?: Size;
-  /** Compact: icon-only add button; small qty stepper (e.g. carousels) */
-  variant?: "default" | "compact";
+  /**
+   * - compact: icon-only add; stepper shows qty between +/- .
+   * - icon-stepper: icon-only add; after add, only − / + (no qty text) — e.g. Woo cards by price.
+   */
+  variant?: "default" | "compact" | "icon-stepper";
 }) {
   const { user } = useAuth();
   const [loc] = useLocation();
@@ -31,18 +34,19 @@ export default function ProductCartControls({
   const atMax = qty >= maxStock;
 
   if (!user) {
-    if (variant === "compact") {
+    if (variant === "compact" || variant === "icon-stepper") {
       return (
         <Link
           href={loginHref}
           className={cn(
-            "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border",
+            "inline-flex shrink-0 items-center justify-center rounded-lg border border-border",
+            variant === "icon-stepper" ? "h-9 w-9" : "h-10 w-10",
             "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
           )}
           aria-label={t("loginToSeePrice")}
           onClick={(e) => e.stopPropagation()}
         >
-          <Lock className="w-5 h-5" />
+          <Lock className={variant === "icon-stepper" ? "w-4 h-4" : "w-5 h-5"} />
         </Link>
       );
     }
@@ -63,9 +67,11 @@ export default function ProductCartControls({
   const iconBtn =
     variant === "compact"
       ? "h-8 w-8 shrink-0 p-0"
-      : size === "sm"
-        ? "h-8 w-8 shrink-0 p-0"
-        : "h-10 w-10 shrink-0 p-0";
+      : variant === "icon-stepper"
+        ? "h-9 w-9 shrink-0 p-0"
+        : size === "sm"
+          ? "h-8 w-8 shrink-0 p-0"
+          : "h-10 w-10 shrink-0 p-0";
   const textSize =
     variant === "compact"
       ? "text-xs min-w-[1.5ch] text-center font-semibold tabular-nums"
@@ -73,14 +79,52 @@ export default function ProductCartControls({
         ? "text-sm"
         : "text-base min-w-[2ch] text-center font-semibold tabular-nums";
 
+  if (qty > 0 && variant === "icon-stepper") {
+    return (
+      <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className={cn(iconBtn, buttonClassName)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            decrement(cartKey);
+          }}
+          aria-label="Decrease quantity"
+        >
+          <Minus className="w-3.5 h-3.5" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className={cn(iconBtn, buttonClassName)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!atMax) increment(cartKey, maxStock);
+          }}
+          aria-label="Increase quantity"
+          disabled={atMax}
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    );
+  }
+
   if (qty === 0) {
-    if (variant === "compact") {
+    if (variant === "compact" || variant === "icon-stepper") {
       return (
         <Button
           type="button"
           size="icon"
           className={cn(
-            "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
+            variant === "icon-stepper"
+              ? "h-9 w-9 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
             buttonClassName,
           )}
           onClick={(e) => {
@@ -91,7 +135,7 @@ export default function ProductCartControls({
           aria-label={t("addToCart")}
           data-testid={`add-cart-${cartKey}`}
         >
-          <ShoppingCart className="w-5 h-5" />
+          <ShoppingCart className={variant === "icon-stepper" ? "w-[18px] h-[18px]" : "w-5 h-5"} />
         </Button>
       );
     }
@@ -116,9 +160,9 @@ export default function ProductCartControls({
     <div
       className={cn(
         "flex items-center justify-center",
-        variant === "compact" && "w-auto shrink-0 gap-0.5",
-        variant !== "compact" && "w-full",
-        variant !== "compact" && (size === "sm" ? "gap-1" : "gap-2"),
+        (variant === "compact" || variant === "icon-stepper") && "w-auto shrink-0 gap-0.5",
+        variant !== "compact" && variant !== "icon-stepper" && "w-full",
+        variant !== "compact" && variant !== "icon-stepper" && (size === "sm" ? "gap-1" : "gap-2"),
       )}
       onClick={(e) => e.stopPropagation()}
     >
