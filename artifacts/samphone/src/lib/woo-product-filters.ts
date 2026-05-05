@@ -59,6 +59,10 @@ function isAccessoryOrCardsOnlyProduct(p: WooProduct): boolean {
   );
 }
 
+function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
+  return products.filter((p) => !isAccessoryOrCardsOnlyProduct(p));
+}
+
 function categorySlugLooksTablet(slug: string): boolean {
   const s = slug.toLowerCase();
   if (s === TABLETS_SLUG) return true;
@@ -98,19 +102,27 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
 }
 
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
-  return products.filter((p) => {
+  const out = products.filter((p) => {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
     if (isTabletLikeProduct(p)) return false;
     if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
     return looksLikeRetailSmartphoneTitle(p.name);
   });
+  if (out.length > 0) return out;
+  // Fallback for stores with generic/unclean categories.
+  return baseDeviceProducts(products).filter((p) => !isTabletLikeProduct(p));
 }
 
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
-  return products.filter((p) => {
+  const out = products.filter((p) => {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
     return isTabletLikeProduct(p);
   });
+  if (out.length > 0) return out;
+  // Fallback for stores where tablets are in generic categories.
+  return baseDeviceProducts(products).filter((p) =>
+    /\b(tablet|tab|ipad|matepad|xiaomi pad|lenovo tab|galaxy tab|modio)\b/i.test(p.name),
+  );
 }
 
 /** Keep only products that belong on the Smartphones page tab (phones vs tablets). */
@@ -118,7 +130,10 @@ export function filterCatalogForSmartphonesTab(
   products: WooProduct[],
   section: "phones" | "tablets",
 ): WooProduct[] {
-  return section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+  const out = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
+  if (out.length > 0) return out;
+  // Last-resort fallback: still show API device products instead of an empty page.
+  return sortNewest(baseDeviceProducts(products));
 }
 
 /** Narrow by brand tile keyword (same rules as the catalog brand chips). */
