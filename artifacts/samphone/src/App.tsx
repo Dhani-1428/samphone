@@ -46,6 +46,15 @@ function Router() {
       <Route path="/accessories">
         <Layout><Accessories /></Layout>
       </Route>
+      <Route path="/smartphone">
+        <Layout><Smartphones /></Layout>
+      </Route>
+      <Route path="/phones">
+        <Layout><Smartphones /></Layout>
+      </Route>
+      <Route path="/tablets">
+        <Layout><Smartphones /></Layout>
+      </Route>
       <Route path="/smartphones">
         <Layout><Smartphones /></Layout>
       </Route>
