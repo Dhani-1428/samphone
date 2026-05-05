@@ -25,7 +25,7 @@ export default function RecommendedSection() {
           <h2 className="font-display text-3xl font-bold text-foreground mb-2">{t("recommended_title")}</h2>
           <p className="text-muted-foreground">{t("recommended_sub")}</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
           {woo
             ? wooSlice.map((p) => (
                 <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
