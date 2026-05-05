@@ -39,7 +39,20 @@ interface ProductCatalogValue {
   searchProducts: (q: string, limit?: number) => WooProduct[];
 }
 
-const ProductCatalogContext = createContext<ProductCatalogValue | null>(null);
+const DEFAULT_PRODUCT_CATALOG_VALUE: ProductCatalogValue = {
+  products: [],
+  categories: [],
+  loading: false,
+  error: null,
+  categoriesError: null,
+  syncingMore: false,
+  refreshNow: async () => {},
+  lastUpdated: null,
+  hasCache: false,
+  searchProducts: () => [],
+};
+
+const ProductCatalogContext = createContext<ProductCatalogValue>(DEFAULT_PRODUCT_CATALOG_VALUE);
 
 function normalizeQuery(q: string): string[] {
   return q
@@ -271,7 +284,5 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
 }
 
 export function useProductCatalog() {
-  const ctx = useContext(ProductCatalogContext);
-  if (!ctx) throw new Error("useProductCatalog must be used within ProductCatalogProvider");
-  return ctx;
+  return useContext(ProductCatalogContext);
 }
