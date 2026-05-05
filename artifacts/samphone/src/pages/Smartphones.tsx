@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Loader2, X } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
@@ -64,12 +64,19 @@ function SmartphonesHeader({ section }: { section: DeviceSection }) {
 }
 
 const SEARCH_DEBOUNCE_MS = 400;
+function sectionFromPath(path: string): DeviceSection {
+  const p = path.toLowerCase();
+  if (p.startsWith("/tablets")) return "tablets";
+  return "phones";
+}
 
 export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
   const { products, loading, error, syncingMore } = useProductCatalog();
-  const [section, setSection] = useState<DeviceSection>("phones");
+  const [location] = useLocation();
+  const routeSection = sectionFromPath(location);
+  const [section, setSection] = useState<DeviceSection>(routeSection);
   const [selected, setSelected] = useState<string | null>(null);
 
   const [searchInput, setSearchInput] = useState("");
@@ -81,6 +88,10 @@ export default function Smartphones() {
   useEffect(() => {
     setSelected(null);
   }, [section]);
+
+  useEffect(() => {
+    setSection(routeSection);
+  }, [routeSection]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);

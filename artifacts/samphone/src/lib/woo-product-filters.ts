@@ -63,6 +63,10 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
   return products.filter((p) => !isAccessoryOrCardsOnlyProduct(p));
 }
 
+function isLikelySparePart(name: string): boolean {
+  return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for)\b/i.test(name);
+}
+
 function categorySlugLooksTablet(slug: string): boolean {
   const s = slug.toLowerCase();
   if (s === TABLETS_SLUG) return true;
@@ -104,7 +108,9 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
+    if (isLikelySparePart(p.name)) return false;
     if (isTabletLikeProduct(p)) return false;
+    if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
     if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
     return looksLikeRetailSmartphoneTitle(p.name);
   });
@@ -116,6 +122,7 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
+    if (isLikelySparePart(p.name)) return false;
     return isTabletLikeProduct(p);
   });
   if (out.length > 0) return out;
