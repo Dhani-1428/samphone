@@ -79,6 +79,17 @@ function looksLikePhoneRetailName(name: string): boolean {
   return /\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel)\b/i.test(name);
 }
 
+function isRetailDeviceCandidate(p: WooProduct): boolean {
+  const name = p.name ?? "";
+  if (isAccessoryOrCardsOnlyProduct(p)) return false;
+  if (isLikelySparePart(name)) return false;
+  if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
+  if (hasStorageRamPattern(name) && (looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name))) return true;
+  if (looksLikeTabletRetailName(name)) return true;
+  if (looksLikePhoneRetailName(name) && /\b(a\d{1,2}|s\d{1,2}|m\d{1,2}|note\s?\d{1,2}|mi\s?\d|p\d{1,2}|x\d{1,2}|fold|flip|pro|max|ultra)\b/i.test(name)) return true;
+  return false;
+}
+
 function categorySlugLooksTablet(slug: string): boolean {
   const s = slug.toLowerCase();
   if (s === TABLETS_SLUG) return true;
@@ -120,25 +131,24 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     const name = p.name ?? "";
-    if (isAccessoryOrCardsOnlyProduct(p)) return false;
-    if (isLikelySparePart(name)) return false;
+    if (!isRetailDeviceCandidate(p)) return false;
     if (isTabletLikeProduct(p) || looksLikeTabletRetailName(name)) return false;
-    if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
     // Accept clearly retail-like phone rows from API.
     if (hasStorageRamPattern(name) && looksLikePhoneRetailName(name)) return true;
     if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
     return looksLikeRetailSmartphoneTitle(name);
   });
   if (out.length > 0) return out;
-  // Fallback for stores with generic/unclean categories.
-  return baseDeviceProducts(products).filter((p) => !isTabletLikeProduct(p));
+  // Fallback for stores with generic categories: still keep strict retail-device candidates only.
+  return sortNewest(
+    products.filter((p) => isRetailDeviceCandidate(p) && !isTabletLikeProduct(p) && !looksLikeTabletRetailName(p.name ?? "")),
+  );
 }
 
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     const name = p.name ?? "";
-    if (isAccessoryOrCardsOnlyProduct(p)) return false;
-    if (isLikelySparePart(name)) return false;
+    if (!isRetailDeviceCandidate(p)) return false;
     // Accept tablet-like names/categories and common retail rows with RAM/storage notation.
     if (looksLikeTabletRetailName(name)) return true;
     if (isTabletLikeProduct(p) && hasStorageRamPattern(name)) return true;
@@ -158,8 +168,8 @@ export function filterCatalogForSmartphonesTab(
 ): WooProduct[] {
   const out = section === "tablets" ? filterTabletParts(products) : filterPhoneParts(products);
   if (out.length > 0) return out;
-  // Last-resort fallback: still show API device products instead of an empty page.
-  return sortNewest(baseDeviceProducts(products));
+  // Do not fall back to broad lists; keep the smartphones page free of parts/accessories.
+  return [];
 }
 
 /** Narrow by brand tile keyword (same rules as the catalog brand chips). */
