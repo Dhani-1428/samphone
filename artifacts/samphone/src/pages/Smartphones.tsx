@@ -5,6 +5,9 @@ import { Link, useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import smartphoneAppleVideo from "@/assets/smartphone-apple.mp4";
+import productCase from "@/assets/product-case.png";
+import productCharger from "@/assets/product-charger.png";
+import productScreen from "@/assets/product-screen.png";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -17,24 +20,42 @@ import {
 } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
 
+const brands = [
+  { name: "iPhone", img: productScreen, count: "180+", color: "from-gray-700 to-gray-900" },
+  { name: "Samsung", img: productCase, count: "220+", color: "from-blue-700 to-blue-900" },
+  { name: "Xiaomi", img: productCharger, count: "140+", color: "from-orange-600 to-red-700" },
+  { name: "OPPO", img: productScreen, count: "90+", color: "from-green-700 to-emerald-900" },
+  { name: "Realme", img: productCase, count: "80+", color: "from-yellow-600 to-orange-700" },
+  { name: "Huawei", img: productCharger, count: "110+", color: "from-red-700 to-rose-900" },
+  { name: "One Plus", img: productScreen, count: "70+", color: "from-red-600 to-red-900" },
+  { name: "Motorola", img: productCase, count: "60+", color: "from-indigo-700 to-indigo-900" },
+  { name: "Alcatel", img: productCharger, count: "40+", color: "from-teal-700 to-teal-900" },
+  { name: "Google Pixel", img: productScreen, count: "55+", color: "from-blue-600 to-cyan-700" },
+  { name: "Nokia", img: productCase, count: "45+", color: "from-sky-700 to-sky-900" },
+];
+
+const tabletBrands = [
+  { name: "MODIO", img: productCharger, count: "Tablets", color: "from-violet-700 to-violet-900" },
+  { name: "iPad", img: productScreen, count: "Apple", color: "from-gray-700 to-gray-900" },
+  { name: "Galaxy Tab", img: productCase, count: "Samsung", color: "from-blue-700 to-blue-900" },
+  { name: "Xiaomi Pad", img: productCharger, count: "Xiaomi", color: "from-orange-600 to-red-700" },
+  { name: "Huawei MatePad", img: productScreen, count: "Huawei", color: "from-red-700 to-rose-900" },
+  { name: "Lenovo Tab", img: productCase, count: "Lenovo", color: "from-indigo-700 to-indigo-900" },
+  { name: "Android tablet", img: productCharger, count: "More", color: "from-slate-600 to-slate-800" },
+];
+
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
-type DeviceSection = "all" | "phones" | "tablets";
+type DeviceSection = "phones" | "tablets";
 
 function SmartphonesHeader({ section }: { section: DeviceSection }) {
   const { t } = useLang();
-  const title =
-    section === "tablets"
-      ? t("smartphones_hero_tablets_title")
-      : section === "all"
-        ? t("smartphones_hero_all_title")
-        : t("smartphones_hero_phones_title");
   return (
     <PageVideoHero
       videoSrc={smartphoneAppleVideo}
       eyebrow={t("smartphones_breadcrumb")}
-      title={title}
+      title={section === "phones" ? t("smartphones_hero_phones_title") : t("smartphones_hero_tablets_title")}
       description={t("smartphones_hero_sub")}
     />
   );
@@ -44,21 +65,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 function sectionFromPath(path: string): DeviceSection {
   const p = path.toLowerCase();
   if (p.startsWith("/tablets")) return "tablets";
-  if (p.startsWith("/phones") || p.startsWith("/phone")) return "phones";
-  return "all";
-}
-
-function mergeUniqueProducts(...groups: WooProduct[][]): WooProduct[] {
-  const seen = new Set<number>();
-  const merged: WooProduct[] = [];
-  for (const group of groups) {
-    for (const p of group) {
-      if (seen.has(p.id)) continue;
-      seen.add(p.id);
-      merged.push(p);
-    }
-  }
-  return merged;
+  return "phones";
 }
 
 export default function Smartphones() {
@@ -113,12 +120,6 @@ export default function Smartphones() {
     void searchProductsQuery(debouncedSearch)
       .then((hits) => {
         if (cancelled) return;
-        if (section === "all") {
-          const phones = filterCatalogForSmartphonesTab(hits, "phones");
-          const tablets = filterCatalogForSmartphonesTab(hits, "tablets");
-          setApiRawHits(mergeUniqueProducts(phones, tablets));
-          return;
-        }
         setApiRawHits(filterCatalogForSmartphonesTab(hits, section));
       })
       .catch((e) => {
@@ -135,15 +136,15 @@ export default function Smartphones() {
     };
   }, [woo, debouncedSearch, section]);
 
+  const brandTiles = section === "phones" ? brands : tabletBrands;
+
   const catalogList = useMemo(
-    () => {
-      if (!woo) return [];
-      if (section === "phones") return filterSmartphoneBrand(products, selected);
-      if (section === "tablets") return filterTabletBrand(products, selected);
-      const phones = filterSmartphoneBrand(products, selected);
-      const tablets = filterTabletBrand(products, selected);
-      return mergeUniqueProducts(phones, tablets);
-    },
+    () =>
+      woo
+        ? section === "phones"
+          ? filterSmartphoneBrand(products, selected)
+          : filterTabletBrand(products, selected)
+        : [],
     [woo, products, selected, section],
   );
 
@@ -171,18 +172,6 @@ export default function Smartphones() {
         <div className="border-t border-border bg-muted/40">
           <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 md:px-6">
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSection("all")}
-                className={cn(
-                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-                  section === "all"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted",
-                )}
-              >
-                {t("smartphones_tab_all")}
-              </button>
               <button
                 type="button"
                 onClick={() => setSection("phones")}
