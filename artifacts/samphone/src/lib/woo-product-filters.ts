@@ -71,6 +71,12 @@ function isSimTrayProduct(name: string): boolean {
   return /\bsim\s*tray\b/i.test(name);
 }
 
+function isLikelyAccessory(name: string): boolean {
+  return /\b(back cover|cover|case|wallet case|flip cover|magsafe|charger|charging cable|cable|adapter|earphone|headphone|speaker|glass|screen protector|camera lens|battery)\b/i.test(
+    name,
+  );
+}
+
 function hasStorageRamPattern(name: string): boolean {
   return /\b\d{1,3}\s*gb\s*\/\s*\d{1,4}\s*gb\b/i.test(name);
 }
@@ -88,6 +94,7 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   if (isAccessoryOrCardsOnlyProduct(p)) return false;
   if (isLikelySparePart(name)) return false;
   if (isSimTrayProduct(name)) return false;
+  if (isLikelyAccessory(name)) return false;
   if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
   if (hasStorageRamPattern(name) && (looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name))) return true;
   if (looksLikeTabletRetailName(name)) return true;
