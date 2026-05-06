@@ -98,10 +98,10 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   if (isSimTrayProduct(name)) return false;
   if (isLikelyAccessory(name)) return false;
   if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
-  // Device-only policy for Smartphones page:
-  // show retail listings with explicit RAM/storage specs (e.g. 4GB/128GB).
-  if (!hasStorageRamPattern(name)) return false;
-  return looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name);
+  // Accept all retail-like phone/tablet names from API, even when RAM/storage is missing.
+  if (looksLikeTabletRetailName(name) || looksLikePhoneRetailName(name)) return true;
+  // Keep explicit RAM/storage rows as a fallback signal for generic brand naming.
+  return hasStorageRamPattern(name);
 }
 
 function categorySlugLooksTablet(slug: string): boolean {
