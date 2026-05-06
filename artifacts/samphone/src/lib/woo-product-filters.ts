@@ -91,17 +91,36 @@ function looksLikePhoneRetailName(name: string): boolean {
   return /\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel)\b/i.test(name);
 }
 
+function hasPhoneModelHint(name: string): boolean {
+  return /\b(a\d{1,2}|s\d{1,2}|m\d{1,2}|note\s?\d{1,2}|mi\s?\d|p\d{1,2}|x\d{1,2}|fold|flip|pro|max|ultra|t\d{1,2}|a5x?)\b/i.test(
+    name,
+  );
+}
+
+function isOriginalDeviceName(name: string): boolean {
+  const n = name ?? "";
+  if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
+  if (looksLikeTabletRetailName(n)) return true;
+  if (looksLikePhoneRetailName(n) && (hasStorageRamPattern(n) || hasPhoneModelHint(n))) return true;
+  return false;
+}
+
 function isRetailDeviceCandidate(p: WooProduct): boolean {
   const name = p.name ?? "";
   if (isAccessoryOrCardsOnlyProduct(p)) return false;
   if (isLikelySparePart(name)) return false;
   if (isSimTrayProduct(name)) return false;
   if (isLikelyAccessory(name)) return false;
-  if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
-  // Accept all retail-like phone/tablet names from API, even when RAM/storage is missing.
-  if (looksLikeTabletRetailName(name) || looksLikePhoneRetailName(name)) return true;
-  // Keep explicit RAM/storage rows as a fallback signal for generic brand naming.
-  return hasStorageRamPattern(name);
+  if (
+    p.categories?.some((c) =>
+      /\b(parts?|spare|replacement|repair|screen|display|camera|charger|cable|cover|case|battery)\b/i.test(
+        `${c.slug} ${c.name}`,
+      ),
+    )
+  ) {
+    return false;
+  }
+  return isOriginalDeviceName(name);
 }
 
 function categorySlugLooksTablet(slug: string): boolean {
