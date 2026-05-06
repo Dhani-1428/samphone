@@ -64,7 +64,9 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for|ringer|buzzer|charging port|connector|ic|mic|speaker|back glass)\b/i.test(name);
+  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|housing|battery for|ringer|buzzer|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex)\b/i.test(
+    name,
+  );
 }
 
 function isSimTrayProduct(name: string): boolean {
