@@ -106,9 +106,12 @@ function hasPhoneModelHint(name: string): boolean {
 function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
-  // Strict retail-device gate: require RAM/storage notation (e.g. 4GB/128GB).
-  if (!hasStorageRamPattern(n)) return false;
+  // Tablets often come with shorter titles in Woo (without full RAM/storage pair).
   if (looksLikeTabletRetailName(n)) return true;
+  // Phones should still look like retail devices.
+  if (!hasStorageRamPattern(n)) {
+    return looksLikePhoneRetailName(n) && hasPhoneModelHint(n);
+  }
   if (looksLikePhoneRetailName(n)) return true;
   return hasPhoneModelHint(n);
 }
