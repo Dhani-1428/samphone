@@ -64,7 +64,7 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for|ringer|buzzer|charging port|connector|ic|mic|speaker|back glass)\b/i.test(name);
+  return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for|ringer|buzzer|charging port|connector|ic|mic|speaker|back glass|sim tray|dock|vibrator|earpiece|loudspeaker|motherboard|board|frame|bezel)\b/i.test(name);
 }
 
 function hasStorageRamPattern(name: string): boolean {
@@ -83,7 +83,15 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   const name = p.name ?? "";
   if (isAccessoryOrCardsOnlyProduct(p)) return false;
   if (isLikelySparePart(name)) return false;
-  if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
+  if (
+    p.categories?.some(
+      (c) =>
+        /\b(parts?|spare|replacement|repair-tools?)\b/i.test(c.slug) ||
+        /\b(parts?|spare|replacement|repair tools?)\b/i.test(c.name),
+    )
+  ) {
+    return false;
+  }
   if (hasStorageRamPattern(name) && (looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name))) return true;
   if (looksLikeTabletRetailName(name)) return true;
   if (looksLikePhoneRetailName(name) && /\b(a\d{1,2}|s\d{1,2}|m\d{1,2}|note\s?\d{1,2}|mi\s?\d|p\d{1,2}|x\d{1,2}|fold|flip|pro|max|ultra)\b/i.test(name)) return true;
