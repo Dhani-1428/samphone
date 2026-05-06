@@ -67,6 +67,18 @@ function isLikelySparePart(name: string): boolean {
   return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for|ringer|buzzer|charging port|connector|ic|mic|speaker|back glass)\b/i.test(name);
 }
 
+function hasStorageRamPattern(name: string): boolean {
+  return /\b\d{1,3}\s*gb\s*\/\s*\d{1,4}\s*gb\b/i.test(name);
+}
+
+function looksLikeTabletRetailName(name: string): boolean {
+  return /\b(tablet|ipad|galaxy tab|matepad|lenovo tab|xiaomi pad|modio)\b/i.test(name);
+}
+
+function looksLikePhoneRetailName(name: string): boolean {
+  return /\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel)\b/i.test(name);
+}
+
 function categorySlugLooksTablet(slug: string): boolean {
   const s = slug.toLowerCase();
   if (s === TABLETS_SLUG) return true;
@@ -107,13 +119,15 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
 
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
+    const name = p.name ?? "";
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
-    if (isLikelySparePart(p.name)) return false;
-    if (isTabletLikeProduct(p)) return false;
+    if (isLikelySparePart(name)) return false;
+    if (isTabletLikeProduct(p) || looksLikeTabletRetailName(name)) return false;
     if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
+    // Accept clearly retail-like phone rows from API.
+    if (hasStorageRamPattern(name) && looksLikePhoneRetailName(name)) return true;
     if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
-    // Keep broad to avoid missing real catalog phones with inconsistent slugs.
-    return true;
+    return looksLikeRetailSmartphoneTitle(name);
   });
   if (out.length > 0) return out;
   // Fallback for stores with generic/unclean categories.
@@ -122,8 +136,12 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
 
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
+    const name = p.name ?? "";
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
-    if (isLikelySparePart(p.name)) return false;
+    if (isLikelySparePart(name)) return false;
+    // Accept tablet-like names/categories and common retail rows with RAM/storage notation.
+    if (looksLikeTabletRetailName(name)) return true;
+    if (isTabletLikeProduct(p) && hasStorageRamPattern(name)) return true;
     return isTabletLikeProduct(p);
   });
   if (out.length > 0) return out;
