@@ -2,11 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Loader2, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import smartphoneAppleVideo from "@/assets/smartphone-apple.mp4";
-import { PHONE_PARTS } from "@/data/catalog";
 import productCase from "@/assets/product-case.png";
 import productCharger from "@/assets/product-charger.png";
 import productScreen from "@/assets/product-screen.png";
@@ -327,22 +325,7 @@ export default function Smartphones() {
           </motion.ul>
         )}
 
-        {!woo && section === "phones" && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4"
-          >
-            {PHONE_PARTS.map((p) => (
-              <motion.div key={p.cartKey} variants={itemVariants}>
-                <ProductCard {...p} testPrefix="phone" />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {!woo && section === "tablets" && (
+        {!woo && (
           <p className="py-16 text-sm text-muted-foreground">{t("smartphones_tablets_catalog_hint")}</p>
         )}
       </div>
