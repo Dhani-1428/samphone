@@ -101,8 +101,9 @@ function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
   if (looksLikeTabletRetailName(n)) return true;
-  if (looksLikePhoneRetailName(n) && (hasStorageRamPattern(n) || hasPhoneModelHint(n))) return true;
-  return false;
+  if (looksLikePhoneRetailName(n)) return true;
+  if (hasStorageRamPattern(n)) return true;
+  return hasPhoneModelHint(n);
 }
 
 function isRetailDeviceCandidate(p: WooProduct): boolean {
