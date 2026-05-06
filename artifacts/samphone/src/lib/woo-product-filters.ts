@@ -64,7 +64,7 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrator|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex|action button)\b/i.test(
+  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrat(?:or|er)|sim\s*(tray|reader)|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex|action button|taptic)\b/i.test(
     name,
   );
 }
@@ -100,12 +100,11 @@ function hasPhoneModelHint(name: string): boolean {
 function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
-  // Tablets: accept branded tablet rows, with or without RAM/storage in title.
+  // Strict retail-device gate: require RAM/storage notation (e.g. 4GB/128GB).
+  if (!hasStorageRamPattern(n)) return false;
   if (looksLikeTabletRetailName(n)) return true;
-  // Phones: accept branded/model rows; part/accessory names are already excluded above.
   if (looksLikePhoneRetailName(n)) return true;
-  // Generic fallback for retail rows that carry explicit RAM/storage + model hint.
-  return hasStorageRamPattern(n) && hasPhoneModelHint(n);
+  return hasPhoneModelHint(n);
 }
 
 function isRetailDeviceCandidate(p: WooProduct): boolean {
