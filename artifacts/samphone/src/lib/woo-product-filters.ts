@@ -80,7 +80,11 @@ function isLikelyAccessory(name: string): boolean {
 }
 
 function hasStorageRamPattern(name: string): boolean {
-  return /\b\d{1,3}\s*gb\s*\/\s*\d{1,4}\s*gb\b/i.test(name);
+  return (
+    /\b\d{1,3}\s*gb\s*\/\s*\d{1,4}\s*gb\b/i.test(name) ||
+    /\b\d{1,3}\s*gb\s+\d{1,4}\s*gb\s*ram\b/i.test(name) ||
+    /\b\d{1,3}\s*gb\s+\d{1,4}\s*gb\b/i.test(name)
+  );
 }
 
 function looksLikeTabletRetailName(name: string): boolean {
@@ -88,7 +92,9 @@ function looksLikeTabletRetailName(name: string): boolean {
 }
 
 function looksLikePhoneRetailName(name: string): boolean {
-  return /\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel)\b/i.test(name);
+  return /\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel|tcl|zte|volfen|mobile phone)\b/i.test(
+    name,
+  );
 }
 
 function hasPhoneModelHint(name: string): boolean {
