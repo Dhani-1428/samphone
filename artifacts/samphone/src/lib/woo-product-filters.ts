@@ -67,17 +67,6 @@ function isLikelySparePart(name: string): boolean {
   return /\b(parts?|spare|replacement|screen|lcd|oled|digitizer|flex|camera lens|housing|battery for|ringer|buzzer|charging port|connector|ic|mic|speaker|back glass)\b/i.test(name);
 }
 
-function isLikelyDeviceModelName(name: string): boolean {
-  const n = name.toLowerCase();
-  if (isLikelySparePart(n)) return false;
-  if (/\b(tablet|tab|ipad|matepad|xiaomi pad|lenovo tab|galaxy tab|modio)\b/i.test(n)) return true;
-  if (/\b(iphone|samsung|galaxy|oppo|xiaomi|redmi|poco|pixel|realme|huawei|oneplus|motorola|nokia|alcatel|lenovo)\b/i.test(n)) {
-    if (/\d+\s*gb\s*\/\s*\d+/i.test(n)) return true;
-    if (/\b(a\d{1,2}|s\d{1,2}|m\d{1,2}|note\s?\d{1,2}|mi\s?\d|p\d{1,2}|x\d{1,2}|fold|flip|pro|max|ultra)\b/i.test(n)) return true;
-  }
-  return false;
-}
-
 function categorySlugLooksTablet(slug: string): boolean {
   const s = slug.toLowerCase();
   if (s === TABLETS_SLUG) return true;
@@ -121,10 +110,10 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
     if (isLikelySparePart(p.name)) return false;
     if (isTabletLikeProduct(p)) return false;
-    if (!isLikelyDeviceModelName(p.name) && !matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return false;
     if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
     if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
-    return looksLikeRetailSmartphoneTitle(p.name);
+    // Keep broad to avoid missing real catalog phones with inconsistent slugs.
+    return true;
   });
   if (out.length > 0) return out;
   // Fallback for stores with generic/unclean categories.
@@ -135,7 +124,7 @@ export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     if (isAccessoryOrCardsOnlyProduct(p)) return false;
     if (isLikelySparePart(p.name)) return false;
-    return isTabletLikeProduct(p) && isLikelyDeviceModelName(p.name);
+    return isTabletLikeProduct(p);
   });
   if (out.length > 0) return out;
   // Fallback for stores where tablets are in generic categories.
