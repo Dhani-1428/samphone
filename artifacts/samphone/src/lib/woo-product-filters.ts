@@ -64,7 +64,7 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|touch\s*\+\s*incell|incell|flex|volume\s*flex|volumeflex|power\s*flex|power\s*\+\s*volume\s*flex|power\s*\+\s*volumeflex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrat(?:or|er)|sim\s*(tray|reader)|sim\s*dream|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|microphone sensor|earpiece|loudspeaker|back glass|motherboard|mainboard|logic board|board|pcb|fingerprint sensor|action button|taptic)\b/i.test(
+  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|touch\s*\+\s*incell|incell|flex|volume\s*flex|volumeflex|power\s*flex|power\s*\+\s*volume\s*flex|power\s*\+\s*volumeflex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrat(?:or|er)|sim\s*(tray|reader)|sim\s*dream|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|microphone sensor|earpiece|loudspeaker|back glass|motherboard|mainboard|logic board|board|pcb|fingerprint sensor|home button|action button|taptic)\b/i.test(
     name,
   );
 }
@@ -74,7 +74,7 @@ function isSimTrayProduct(name: string): boolean {
 }
 
 function isLikelyAccessory(name: string): boolean {
-  return /\b(back cover|cover|case|wallet case|flip cover|magsafe|charger|charging cable|cable|adapter|earphone|headphone|earbuds?|headset|handsfree|tempered glass|protector|screen protector|camera protector|film|power bank|holder|mount|car charger|usb-c|type-c|lightning cable|speaker|glass|battery)\b/i.test(
+  return /\b(back cover|cover|case|wallet case|flip cover|silicon soft jelly|jelly|magsafe|charger|charging cable|cable|adapter|earphone|headphone|earbuds?|headset|handsfree|tempered glass|protector|screen protector|camera protector|film|power bank|holder|mount|car charger|usb-c|type-c|lightning cable|speaker|glass|battery)\b/i.test(
     name,
   );
 }
