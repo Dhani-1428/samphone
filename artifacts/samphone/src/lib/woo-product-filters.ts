@@ -100,10 +100,12 @@ function hasPhoneModelHint(name: string): boolean {
 function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
-  if (looksLikeTabletRetailName(n)) return true;
-  if (looksLikePhoneRetailName(n)) return true;
-  if (hasStorageRamPattern(n)) return true;
-  return hasPhoneModelHint(n);
+  // Tablets: allow tablet-branded rows, strongly preferring retail RAM/storage titles.
+  if (looksLikeTabletRetailName(n)) return hasStorageRamPattern(n) || /\b(modio|galaxy tab|tablet a9|matepad|ipad)\b/i.test(n);
+  // Phones: require RAM/storage so component titles like "Pixel ... ringer" are excluded.
+  if (looksLikePhoneRetailName(n)) return hasStorageRamPattern(n);
+  // Generic fallback for retail rows that still carry explicit RAM/storage.
+  return hasStorageRamPattern(n) && hasPhoneModelHint(n);
 }
 
 function isRetailDeviceCandidate(p: WooProduct): boolean {
