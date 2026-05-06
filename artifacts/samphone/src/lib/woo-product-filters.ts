@@ -100,11 +100,11 @@ function hasPhoneModelHint(name: string): boolean {
 function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
-  // Tablets: allow tablet-branded rows, strongly preferring retail RAM/storage titles.
-  if (looksLikeTabletRetailName(n)) return hasStorageRamPattern(n) || /\b(modio|galaxy tab|tablet a9|matepad|ipad)\b/i.test(n);
-  // Phones: require RAM/storage so component titles like "Pixel ... ringer" are excluded.
-  if (looksLikePhoneRetailName(n)) return hasStorageRamPattern(n);
-  // Generic fallback for retail rows that still carry explicit RAM/storage.
+  // Tablets: accept branded tablet rows, with or without RAM/storage in title.
+  if (looksLikeTabletRetailName(n)) return true;
+  // Phones: accept branded/model rows; parts are already excluded by keyword checks above.
+  if (looksLikePhoneRetailName(n)) return true;
+  // Generic fallback for retail rows that carry explicit RAM/storage + model hint.
   return hasStorageRamPattern(n) && hasPhoneModelHint(n);
 }
 
