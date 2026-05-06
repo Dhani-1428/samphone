@@ -64,7 +64,7 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|housing|battery for|ringer|buzzer|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex)\b/i.test(
+  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrator|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex|action button)\b/i.test(
     name,
   );
 }
@@ -98,10 +98,10 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   if (isSimTrayProduct(name)) return false;
   if (isLikelyAccessory(name)) return false;
   if (p.categories?.some((c) => /\bparts?\b/i.test(c.slug) || /\bparts?\b/i.test(c.name))) return false;
-  if (hasStorageRamPattern(name) && (looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name))) return true;
-  if (looksLikeTabletRetailName(name)) return true;
-  if (looksLikePhoneRetailName(name) && /\b(a\d{1,2}|s\d{1,2}|m\d{1,2}|note\s?\d{1,2}|mi\s?\d|p\d{1,2}|x\d{1,2}|fold|flip|pro|max|ultra)\b/i.test(name)) return true;
-  return false;
+  // Device-only policy for Smartphones page:
+  // show retail listings with explicit RAM/storage specs (e.g. 4GB/128GB).
+  if (!hasStorageRamPattern(name)) return false;
+  return looksLikePhoneRetailName(name) || looksLikeTabletRetailName(name);
 }
 
 function categorySlugLooksTablet(slug: string): boolean {
