@@ -234,36 +234,7 @@ export default function Smartphones() {
               ) : null}
             </div>
           </div>
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6"
-          >
-            {brandTiles.map((b) => (
-              <motion.button
-                key={`${section}-${b.name}`}
-                type="button"
-                variants={itemVariants}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setSelected(selected === b.name ? null : b.name)}
-                className={`overflow-hidden rounded-2xl border-2 transition-all ${selected === b.name ? "border-primary shadow-lg shadow-primary/20" : "border-transparent"}`}
-              >
-                <div
-                  className={`relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br ${b.color}`}
-                >
-                  <img src={b.img} alt={b.name} className="h-full w-full object-cover opacity-30" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-                    <span className="text-center font-display text-xs font-bold leading-tight text-white md:text-sm">
-                      {b.name}
-                    </span>
-                    <span className="mt-1 text-xs text-white/70">{b.count}</span>
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-          </motion.div>
+          {/* Brand cards removed as requested. */}
         </div>
       </div>
 
