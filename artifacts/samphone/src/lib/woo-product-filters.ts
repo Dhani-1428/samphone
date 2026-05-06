@@ -79,6 +79,12 @@ function isLikelyAccessory(name: string): boolean {
   );
 }
 
+function isTabletSparePartName(name: string): boolean {
+  const n = name ?? "";
+  // Tablet digitizer/button spare parts often include model families + TOUCH/HOME BUTTON.
+  return /\b(ipad|galaxy tab|samsung galaxy tab|lenovo tab|tb-x\d+|t\d{3}\/t\d{3}|a\d{4}\/a\d{4})\b/i.test(n) && /\b(touch|home button)\b/i.test(n);
+}
+
 function hasStorageRamPattern(name: string): boolean {
   return (
     /\b\d{1,3}\s*gb\s*\/\s*\d{1,4}\s*gb\b/i.test(name) ||
@@ -105,7 +111,7 @@ function hasPhoneModelHint(name: string): boolean {
 
 function isOriginalDeviceName(name: string): boolean {
   const n = name ?? "";
-  if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n)) return false;
+  if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n) || isTabletSparePartName(n)) return false;
   // Tablets often come with shorter titles in Woo (without full RAM/storage pair).
   if (looksLikeTabletRetailName(n)) return true;
   // Phones should still look like retail devices.
@@ -122,6 +128,7 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   if (isLikelySparePart(name)) return false;
   if (isSimTrayProduct(name)) return false;
   if (isLikelyAccessory(name)) return false;
+  if (isTabletSparePartName(name)) return false;
   if (
     p.categories?.some((c) =>
       /\b(parts?|spare|replacement|repair|screen|display|camera|charger|cable|cover|case|battery|accessor|protector|glass)\b/i.test(
