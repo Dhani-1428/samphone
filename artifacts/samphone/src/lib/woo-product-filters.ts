@@ -114,9 +114,10 @@ function isOriginalDeviceName(name: string): boolean {
   if (isLikelySparePart(n) || isSimTrayProduct(n) || isLikelyAccessory(n) || isTabletSparePartName(n)) return false;
   // Tablets often come with shorter titles in Woo (without full RAM/storage pair).
   if (looksLikeTabletRetailName(n)) return true;
-  // Phones should still look like retail devices.
+  // Phones: allow retail-brand names even if RAM/storage is not in the title.
   if (!hasStorageRamPattern(n)) {
-    return looksLikePhoneRetailName(n) && hasPhoneModelHint(n);
+    if (looksLikePhoneRetailName(n)) return true;
+    return hasPhoneModelHint(n);
   }
   if (looksLikePhoneRetailName(n)) return true;
   return hasPhoneModelHint(n);
