@@ -64,7 +64,7 @@ function baseDeviceProducts(products: WooProduct[]): WooProduct[] {
 }
 
 function isLikelySparePart(name: string): boolean {
-  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrat(?:or|er)|sim\s*(tray|reader)|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|speaker|back glass|motherboard|board|pcb|fingerprint sensor|volume flex|power flex|action button|taptic)\b/i.test(
+  return /\b(parts?|spare|replacement|screen|display|lcd|oled|digitizer|touch\s*panel|flex|camera lens|camera module|rear camera|front camera|back camera|housing|battery for|ringer|buzzer|vibrat(?:or|er)|sim\s*(tray|reader)|charging port|charging board|charging flex|sub board|daughter board|connector|ic|mic|earpiece|loudspeaker|back glass|motherboard|mainboard|logic board|board|pcb|fingerprint sensor|volume flex|power flex|action button|taptic)\b/i.test(
     name,
   );
 }
@@ -74,7 +74,7 @@ function isSimTrayProduct(name: string): boolean {
 }
 
 function isLikelyAccessory(name: string): boolean {
-  return /\b(back cover|cover|case|wallet case|flip cover|magsafe|charger|charging cable|cable|adapter|earphone|headphone|speaker|glass|screen protector|camera lens|battery)\b/i.test(
+  return /\b(back cover|cover|case|wallet case|flip cover|magsafe|charger|charging cable|cable|adapter|earphone|headphone|earbuds?|headset|handsfree|tempered glass|protector|screen protector|camera protector|film|power bank|holder|mount|car charger|usb-c|type-c|lightning cable|speaker|glass|battery)\b/i.test(
     name,
   );
 }
@@ -124,7 +124,7 @@ function isRetailDeviceCandidate(p: WooProduct): boolean {
   if (isLikelyAccessory(name)) return false;
   if (
     p.categories?.some((c) =>
-      /\b(parts?|spare|replacement|repair|screen|display|camera|charger|cable|cover|case|battery)\b/i.test(
+      /\b(parts?|spare|replacement|repair|screen|display|camera|charger|cable|cover|case|battery|accessor|protector|glass)\b/i.test(
         `${c.slug} ${c.name}`,
       ),
     )
@@ -162,7 +162,8 @@ function looksLikeRetailSmartphoneTitle(name: string): boolean {
   if (/\b(screen|lcd|oled display only|replacement glass|flex cable|battery for|housing|digitizer only)\b/i.test(n)) {
     return false;
   }
-  if (/\d+\s*gb\s*\/\s*\d+/i.test(n)) return true;
+  if (/\bsmartphone\b|\bmobile phone\b/i.test(n) && (hasStorageRamPattern(n) || hasPhoneModelHint(n))) return true;
+  if (/\d+\s*gb\s*\/\s*\d+/i.test(n) && looksLikePhoneRetailName(n)) return true;
   return /\b(iphone\s|galaxy\s+[asn]\d|galaxy\s+z\s|oppo\s+[ar]\d|xiaomi|redmi|poco|pixel\s?\d|realme|huawei\s+p?\d|oneplus|motorola|nokia)/i.test(
     n,
   );
@@ -179,7 +180,13 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
     if (isTabletLikeProduct(p) || looksLikeTabletRetailName(name)) return false;
     // Accept clearly retail-like phone rows from API.
     if (hasStorageRamPattern(name) && looksLikePhoneRetailName(name)) return true;
-    if (matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS)) return true;
+    if (
+      matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS) &&
+      looksLikePhoneRetailName(name) &&
+      (hasStorageRamPattern(name) || hasPhoneModelHint(name))
+    ) {
+      return true;
+    }
     return looksLikeRetailSmartphoneTitle(name);
   });
   if (out.length > 0) return out;
