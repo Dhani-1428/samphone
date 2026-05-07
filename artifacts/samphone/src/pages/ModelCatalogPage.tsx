@@ -126,10 +126,12 @@ export default function ModelCatalogPage() {
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [activeAccessory, setActiveAccessory] = useState<AccessoryBucketId>("all");
 
-  const modelProducts = useMemo(
-    () => products.filter((p) => matchesModelProduct(p, brand, family, model)),
-    [products, brand, family, model],
-  );
+  const modelProducts = useMemo(() => {
+    const strict = products.filter((p) => matchesModelProduct(p, brand, family, model));
+    if (strict.length > 0 || !model) return strict;
+    // Fallback for inconsistent Woo model naming: keep brand+family scope when model token is too strict.
+    return products.filter((p) => matchesModelProduct(p, brand, family));
+  }, [products, brand, family, model]);
 
   useEffect(() => {
     setActiveCategory("all");
