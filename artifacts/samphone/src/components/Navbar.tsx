@@ -874,7 +874,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute top-full left-0 z-50 max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl rounded-b-xl min-w-[min(560px,94vw)] max-w-[min(1100px,96vw)] p-6"
+                    className="hide-dropdown-scrollbar absolute top-full left-0 z-50 max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl rounded-b-xl min-w-[min(560px,94vw)] max-w-[min(1100px,96vw)] p-6"
                     onMouseEnter={() => {
                       if (closeTimer.current) clearTimeout(closeTimer.current);
                       if (activeBrandIdx >= brandGroups.length) setActiveBrandIdx(0);
@@ -947,7 +947,7 @@ export default function Navbar() {
                               </div>
                             </div>
                             <div
-                              className="flex-1 min-w-0 max-h-[min(58vh,480px)] overflow-y-auto overscroll-contain pl-0.5"
+                              className="hide-dropdown-scrollbar flex-1 min-w-0 max-h-[min(58vh,480px)] overflow-y-auto overscroll-contain pl-0.5"
                               onMouseEnter={() => {
                                 if (closeTimer.current) clearTimeout(closeTimer.current);
                               }}
