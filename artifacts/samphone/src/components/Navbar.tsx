@@ -1308,6 +1308,63 @@ const ZTE_SERIES_MODELS = [
   "ZTE A35",
 ];
 
+const VIVO_SERIES_MODELS = [
+  "Vivo Y11",
+  "Vivo Y12",
+  "Vivo Y15",
+  "Vivo Y17",
+  "Vivo Y3",
+  "Vivo U3X",
+  "Vivo Y15S",
+  "Vivo Y16 (V2204-V2214)",
+  "Vivo Y19",
+  "Vivo Y20",
+  "Vivo Y20S",
+  "VivoY20I",
+  "Vivo Y11S",
+  "Vivo Y12S",
+  "Vivo Y15A",
+  "Vivo Y01",
+  "Vivo Y21",
+  "Vivo V20 (V2024-V2025)",
+  "Vivo Y21S (V2110-V2111)",
+  "Vivo Y22",
+  "Vivo Y22S",
+  "Vivo Y28 (2024)",
+  "Vivo Y30",
+  "Vivo Y30i",
+  "Vivo Y33S",
+  "Vivo Y55S",
+  "Vivo Y74S",
+  "Vivo Y35",
+  "Vivo Y76 5G",
+  "Vivo Y76S 5G",
+  "Vivo Y36",
+  "Vivo Y52",
+  "Vivo Y72 5G",
+  "Vivo Y52S",
+  "Vivo Y53S",
+  "Vivo V20 SE (V2022-V2023)",
+  "Vivo Y51",
+  "Vivo Y55 5G",
+  "Vivo Y70S (V2002A)",
+  "Vivo Y50",
+  "Vivo Y51S",
+  "Vivo Y71",
+  "Vivo Y03 2024",
+  "Vivo Y18",
+  "Vivo Y18E",
+  "Vivo Y28S",
+  "Vivo T3 LITE 5G",
+  "Vivo V29 5G (2024)",
+  "Vivo V29 LITE 5G (2024)",
+  "Vivo V23 5G (V2130)",
+  "Vivo V21 5g (v2050)",
+  "Vivo S9E 5G",
+  "Vivo Y70",
+  "Vivo V19",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1529,6 +1586,14 @@ export default function Navbar() {
                   label: "ZTE series",
                   slug: "zte-series",
                   children: makeFamilyChildren(b.slug, "zte-series", ZTE_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "vivo"
+            ? [
+                {
+                  label: "Vivo series",
+                  slug: "vivo-series",
+                  children: makeFamilyChildren(b.slug, "vivo-series", VIVO_SERIES_MODELS),
                 },
               ]
           : [

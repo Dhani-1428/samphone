@@ -62,6 +62,7 @@ function tokenRegexForFamily(familySlug: string): RegExp {
   if (familySlug === "alcatel-series") return /\balcatel\b|alcatel-series|pixi|idol|one\s*touch|ot[-\s]?|pop/i;
   if (familySlug === "tcl-series") return /\btcl\b|tcl-series|nxtpaper|t\d{3,4}[a-z]?|n30/i;
   if (familySlug === "zte-series") return /\bzte\b|zte-series|blade|axon|v\d{2}|a\d{2}|l210/i;
+  if (familySlug === "vivo-series") return /\bvivo\b|vivo-series|\by\d{1,2}\b|\bv\d{1,2}\b|\bt\d\b|\bs\d{1,2}\b/i;
   if (familySlug === "series") return /\brealme\s*\d|\b\d{1,2}\s*(pro|plus|5g|4g)\b/i;
   if (familySlug === "narzo-series") return /\bnarzo\b|narzo-series/i;
   if (familySlug === "c-series") return /\bc\d{1,2}\b|c-series|realme\s*c/i;
