@@ -13,7 +13,8 @@ export default function RecommendedSection() {
   const woo = hasWooCommerceConfig();
   const { products } = useProductCatalog();
 
-  const wooSlice = useMemo(() => (woo && products.length > 0 ? pickHomeFeatured(products, 8) : []), [woo, products]);
+  // Use a later window so Recommended differs from New Arrivals and Products.
+  const wooSlice = useMemo(() => (woo && products.length > 0 ? pickHomeFeatured(products, 8, 22) : []), [woo, products]);
   const mockSlice = recommendedProducts.slice(0, 8);
   if (woo && wooSlice.length === 0) return null;
   if (!woo && mockSlice.length === 0) return null;

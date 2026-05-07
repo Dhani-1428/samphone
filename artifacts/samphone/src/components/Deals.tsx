@@ -10,7 +10,7 @@ import ProductCartControls from "@/components/ProductCartControls";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { filterOnSale } from "@/lib/woo-product-filters";
+import { filterOnSale, sortNewest } from "@/lib/woo-product-filters";
 
 function useCountdown(endTime: Date) {
   const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
@@ -42,7 +42,13 @@ export default function Deals() {
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
 
-  const deals = useMemo(() => filterOnSale(products).slice(0, 6), [products]);
+  const deals = useMemo(() => {
+    const reservedIds = new Set(sortNewest(products).slice(0, 30).map((p) => p.id));
+    const uniqueDeals = filterOnSale(products).filter((p) => !reservedIds.has(p.id));
+    if (uniqueDeals.length > 0) return uniqueDeals.slice(0, 6);
+    // Fallback if sale catalog is small.
+    return filterOnSale(products).slice(0, 6);
+  }, [products]);
 
   const copy =
     lang === "pt"

@@ -298,8 +298,15 @@ export function sortNewest(products: WooProduct[]): WooProduct[] {
   });
 }
 
-export function pickHomeFeatured(products: WooProduct[], limit: number): WooProduct[] {
-  return sortNewest(products).slice(0, limit);
+export function pickHomeFeatured(
+  products: WooProduct[],
+  limit: number,
+  offset = 0,
+  excludeIds?: Set<number>,
+): WooProduct[] {
+  const sorted = sortNewest(products);
+  const filtered = excludeIds ? sorted.filter((p) => !excludeIds.has(p.id)) : sorted;
+  return filtered.slice(offset, offset + limit);
 }
 
 export function filterSmartphoneBrand(

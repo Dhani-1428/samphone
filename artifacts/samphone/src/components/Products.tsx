@@ -26,7 +26,8 @@ export default function Products() {
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
 
-  const featured = useMemo(() => (woo ? pickHomeFeatured(products, 8) : []), [woo, products]);
+  // Use a different catalog window than Home New Arrivals to avoid repeated cards.
+  const featured = useMemo(() => (woo ? pickHomeFeatured(products, 8, 14) : []), [woo, products]);
 
   return (
     <section id="products" className="py-20 bg-muted/30">
