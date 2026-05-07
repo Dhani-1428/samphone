@@ -214,7 +214,7 @@ export default function CategoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid list-none grid-cols-1 gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5"
           >
             {wooList.map((p) => (
               <motion.li key={p.id} variants={cardVariants}>
@@ -243,7 +243,7 @@ export default function CategoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
           >
             {mockProducts.map((p) => (
               <motion.div key={p.id} variants={cardVariants}>
