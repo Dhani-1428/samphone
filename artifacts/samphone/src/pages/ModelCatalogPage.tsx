@@ -60,6 +60,7 @@ function tokenRegexForFamily(familySlug: string): RegExp {
   if (familySlug === "oneplus-nord-series") return /\bnord\b|oneplus-nord-series|one\s*plus\s*nord/i;
   if (familySlug === "motorola-series") return /\bmotorola\b|\bmoto\b|\bedge\b|\bg\d{1,3}\b|\be\d{1,2}\b|motorola-series/i;
   if (familySlug === "alcatel-series") return /\balcatel\b|alcatel-series|pixi|idol|one\s*touch|ot[-\s]?|pop/i;
+  if (familySlug === "tcl-series") return /\btcl\b|tcl-series|nxtpaper|t\d{3,4}[a-z]?|n30/i;
   if (familySlug === "series") return /\brealme\s*\d|\b\d{1,2}\s*(pro|plus|5g|4g)\b/i;
   if (familySlug === "narzo-series") return /\bnarzo\b|narzo-series/i;
   if (familySlug === "c-series") return /\bc\d{1,2}\b|c-series|realme\s*c/i;

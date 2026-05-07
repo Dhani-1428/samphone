@@ -1209,6 +1209,52 @@ const ALCATEL_SERIES_MODELS = [
   "Alcatel Hero",
 ];
 
+const TCL_SERIES_MODELS = [
+  "TCL 60 5G",
+  "TCL 50 5G",
+  "TCL 50 SE",
+  "TCL 50 XL",
+  "TCL 40 NXTPAPER T612B",
+  "TCL 40 NXTPAPER (5G)",
+  "TCL 50 NXTPAPER (4G/5G)",
+  "TCL 50 SE (4G)",
+  "TCL 50 Pro NXTPAPER",
+  "TCL 40R 5G (T771K)",
+  "TCL 40 SE",
+  "TCL 30 SE 6165",
+  "TCL 30E",
+  "TCL 305",
+  "TCL 306",
+  "TCL 30 (T776H T676H 4G/5G)",
+  "TCL N30 PLUS",
+  "TCL 20 SE 2021 (T671H)",
+  "TCL 20L",
+  "TCL 20 LITE",
+  "TCL 20S",
+  "TCL 20 LITE PLUS (T773 / T774H / T774B",
+  "TCL 20Y",
+  "TCL 20E 6125F",
+  "TCL 507",
+  "TCL 20 XE",
+  "TCL 30 XE 5G",
+  "TCL 20R 5G",
+  "TCL 20 5G (T781)",
+  "TCL 10 SE (T766H / T766J / T766U)",
+  "TCL 10L",
+  "TCL 10 LITE (T770)",
+  "TCL 10 PLUS",
+  "TCL 10 5G",
+  "TCL 505",
+  "TCL 405",
+  "TCL 406",
+  "TCL 408 (T506D)",
+  "TCL 403",
+  "TCL 305i",
+  "TCL 205",
+  "TCL 509K",
+  "TCL 605",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1414,6 +1460,14 @@ export default function Navbar() {
                   label: "Alcatel series",
                   slug: "alcatel-series",
                   children: makeFamilyChildren(b.slug, "alcatel-series", ALCATEL_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "tcl"
+            ? [
+                {
+                  label: "TCL series",
+                  slug: "tcl-series",
+                  children: makeFamilyChildren(b.slug, "tcl-series", TCL_SERIES_MODELS),
                 },
               ]
           : [
