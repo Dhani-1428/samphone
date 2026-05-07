@@ -723,6 +723,93 @@ const OPPO_FIND_X_SERIES_MODELS = [
   "Oppo Find X (CPH1871)",
 ];
 
+const REALME_C_SERIES_MODELS = [
+  "Realme C61",
+  "Realme C63",
+  "Realme C65",
+  "Realme C67 5G",
+  "Realme C53",
+  "Realme C51",
+  "Realme C55",
+  "Realme C33",
+  "Realme C30s",
+  "Realme C31S",
+  "Realme C30",
+  "Realme C31",
+  "Realme C35",
+  "Realme C25",
+  "Realme C15",
+  "Realme C25Y",
+  "Realme C25s",
+  "Realme C3i",
+  "Realme C21-Y",
+  "Realme C20",
+  "Realme C12",
+  "Realme C11 2021",
+  "Realme C17",
+  "Realme C21",
+  "Realme C11",
+  "Realme C3",
+  "Realme C3 (3 cameras)",
+  "Realme C2",
+];
+
+const REALME_NUMBER_SERIES_MODELS = [
+  "Realme 12 4G",
+  "Realme 12x",
+  "Realme 12 Plus",
+  "Realme 12 5G",
+  "Realme 12 Pro Plus",
+  "Realme 12 Pro",
+  "Realme 11 5G",
+  "Realme 11 4G",
+  "Realme 11 Pro Plus",
+  "Realme 11 Pro",
+  "Realme 10 Pro",
+  "Realme 10 Pro Plus",
+  "Realme 10 5G",
+  "Realme 10 4G",
+  "Realme 9i 5G",
+  "Realme 9 Pro",
+  "Realme 9 5G",
+  "Realme 9",
+  "Realme 9 Pro Plus",
+  "Realme 9i",
+  "Realme 8i",
+  "Realme 8 4G",
+  "Realme 8s 5G",
+  "Realme 8 5G",
+  "Realme 8 Pro",
+  "Realme 7i Global",
+  "Realme 7 5G",
+  "Realme 7i Asia",
+  "Realme 7 Global",
+  "Realme 7 Pro",
+  "Realme 7 Asia",
+  "Realme 6S",
+  "Realme 6 Pro",
+  "Realme 6",
+  "Realme 6i",
+  "Realme 5 Pro",
+  "Realme 5",
+  "Realme 5i",
+  "Realme 3 Pro",
+];
+
+const REALME_NARZO_SERIES_MODELS = [
+  "Realme Narzo 50i Prime",
+  "Realme Narzo 50i",
+  "Realme Narzo 50A",
+  "Realme Narzo 50A Prime",
+  "Realme Narzo 50",
+  "Realme Narzo 50 5G",
+  "Realme Narzo 30 Pro 5G",
+  "Realme Narzo 20A",
+  "Realme Narzo 20",
+  "Realme Narzo 30A",
+  "Realme Narzo 30 5G",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -853,6 +940,24 @@ export default function Navbar() {
                   label: "Find X series",
                   slug: "find-x-series",
                   children: makeFamilyChildren(b.slug, "find-x-series", OPPO_FIND_X_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "realme"
+            ? [
+                {
+                  label: "C series",
+                  slug: "c-series",
+                  children: makeFamilyChildren(b.slug, "c-series", REALME_C_SERIES_MODELS),
+                },
+                {
+                  label: "Series",
+                  slug: "series",
+                  children: makeFamilyChildren(b.slug, "series", REALME_NUMBER_SERIES_MODELS),
+                },
+                {
+                  label: "Narzo series",
+                  slug: "narzo-series",
+                  children: makeFamilyChildren(b.slug, "narzo-series", REALME_NARZO_SERIES_MODELS),
                 },
               ]
           : [
