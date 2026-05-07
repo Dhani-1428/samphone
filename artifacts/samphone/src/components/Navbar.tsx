@@ -1541,6 +1541,43 @@ const TABLET_HUAWEI_MODELS = [
   "Huawei Honor Tab 7 (AGM3-W09HN) 10.1\" (2021)",
 ];
 
+const NOKIA_SERIES_MODELS = [
+  "Nokia X20",
+  "Nokia X10",
+  "Nokia C20",
+  "Nokia C10",
+  "Nokia G60",
+  "Nokia G50",
+  "Nokia G21",
+  "Nokia G11",
+  "Nokia G10",
+  "Nokia 8.3",
+  "Nokia 8.1 Plus",
+  "Nokia 8.1",
+  "Nokia 7.2",
+  "Nokia 7.1 Plus",
+  "Nokia 7.1",
+  "Nokia 7",
+  "Nokia 6.2",
+  "Nokia 6.1 Plus",
+  "Nokia 6.1",
+  "Nokia 6",
+  "Nokia 5.4",
+  "Nokia 5.3",
+  "Nokia 5.1 Plus",
+  "Nokia 5.1",
+  "Nokia 5",
+  "Nokia 4.2",
+  "Nokia 3.4",
+  "Nokia 3.2",
+  "Nokia 3.1 Plus",
+  "Nokia 3.1",
+  "Nokia 3",
+  "Nokia 2.4",
+  "Nokia 2.3",
+  "Nokia 2.1",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1803,6 +1840,14 @@ export default function Navbar() {
                   label: "Huawei",
                   slug: "huawei-tablets",
                   children: makeFamilyChildren(b.slug, "huawei-tablets", TABLET_HUAWEI_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "nokia"
+            ? [
+                {
+                  label: "Nokia series",
+                  slug: "nokia-series",
+                  children: makeFamilyChildren(b.slug, "nokia-series", NOKIA_SERIES_MODELS),
                 },
               ]
           : [
