@@ -1255,6 +1255,59 @@ const TCL_SERIES_MODELS = [
   "TCL 605",
 ];
 
+const ZTE_SERIES_MODELS = [
+  "ZTE A5 2020",
+  "ZTE A7 2019",
+  "ZTE A7 2020 BLACK",
+  "ZTE A31 BLACK",
+  "ZTE A31 PLUS BLACK",
+  "ZTE A33S",
+  "ZTE A34",
+  "ZTE BLADE A54",
+  "ZTE A51",
+  "ZTE A71 BLACK",
+  "ZTE BLADE V50 DESIGN 4G",
+  "ZTE AXON 60 LITE",
+  "ZTE AXON 60",
+  "ZTE A7S",
+  "ZTE A55",
+  "ZTE A56",
+  "ZTE A52",
+  "ZTE A72 5G BLACK",
+  "ZTE A52 LITE BLACK",
+  "ZTE A53",
+  "ZTE A53 PLUS BLACK",
+  "ZTE A53 PRO BLACK",
+  "ZTE A72S",
+  "ZTE A73 4G",
+  "ZTE V50 SMART",
+  "ZTE A73 5G",
+  "ZTE L210",
+  "ZTE BLADE V60 DESIGN",
+  "ZTE BLADE V70 DESIGN",
+  "ZTE A75 5G",
+  "ZTE A75",
+  "ZTE A76",
+  "ZTE A75 4G",
+  "ZTE A36",
+  "ZTE V30 VITA BLACK",
+  "ZTE BLADE V40",
+  "ZTE V30 BLACK",
+  "ZTE BLADE V40 DESIGN",
+  "ZTE V41 VITA",
+  "ZTE V40 VITA",
+  "ZTE V40 SMART",
+  "ZTE V41 SMART",
+  "ZTE A72 4G",
+  "ZTE BLADE V50 DESIGN 5G",
+  "ZTE V50 VITA",
+  "ZTE V60 DESIGN",
+  "ZTE V70 MAX",
+  "ZTE V70",
+  "ZTE V50",
+  "ZTE A35",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1468,6 +1521,14 @@ export default function Navbar() {
                   label: "TCL series",
                   slug: "tcl-series",
                   children: makeFamilyChildren(b.slug, "tcl-series", TCL_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "zte"
+            ? [
+                {
+                  label: "ZTE series",
+                  slug: "zte-series",
+                  children: makeFamilyChildren(b.slug, "zte-series", ZTE_SERIES_MODELS),
                 },
               ]
           : [
