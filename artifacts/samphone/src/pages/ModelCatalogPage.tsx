@@ -48,6 +48,9 @@ function tokenRegexForFamily(familySlug: string): RegExp {
   if (familySlug === "poco-series") return /\bpoco\b|poco-series/i;
   if (familySlug === "redmi-note-series") return /\bredmi\s*note\b|redmi-note-series/i;
   if (familySlug === "mi-series") return /\bmi\b|\bxiaomi\s+\d|mi-series|xiaomi\s+mi/i;
+  if (familySlug === "reno-series") return /\breno\b|reno-series/i;
+  if (familySlug === "find-x-series") return /\bfind\s*x\b|find-x-series/i;
+  if (familySlug === "f-series") return /\bf\d{1,2}\b|f-series|oppo\s*f/i;
   return tokenRegexForModel(familySlug);
 }
 
@@ -55,6 +58,7 @@ function brandRegex(brandSlug: string): RegExp {
   if (brandSlug === "iphone") return /\biphone\b|\bapple\b|\bipad\b|\bwatch\b/i;
   if (brandSlug === "samsung") return /\bsamsung\b|\bgalaxy\b/i;
   if (brandSlug === "xiaomi") return /\bxiaomi\b|\bredmi\b|\bpoco\b/i;
+  if (brandSlug === "oppo" || brandSlug.startsWith("oppo-")) return /\boppo\b/i;
   const token = brandSlug.replace(/-/g, "\\s*");
   return new RegExp(token, "i");
 }
