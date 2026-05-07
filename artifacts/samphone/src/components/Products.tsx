@@ -8,7 +8,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { HOME_PRODUCTS } from "@/data/catalog";
-import { pickHomeFeatured } from "@/lib/woo-product-filters";
+import { pickHomeFeatured, sortNewest } from "@/lib/woo-product-filters";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -26,8 +26,12 @@ export default function Products() {
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
 
-  // Use a different catalog window than Home New Arrivals to avoid repeated cards.
-  const featured = useMemo(() => (woo ? pickHomeFeatured(products, 8, 14) : []), [woo, products]);
+  // Prefer products outside New Arrivals window; still fill if catalog is small.
+  const featured = useMemo(() => {
+    if (!woo) return [];
+    const excludeNewArrivals = new Set(sortNewest(products).slice(0, 14).map((p) => p.id));
+    return pickHomeFeatured(products, 8, 0, excludeNewArrivals);
+  }, [woo, products]);
 
   return (
     <section id="products" className="py-20 bg-muted/30">

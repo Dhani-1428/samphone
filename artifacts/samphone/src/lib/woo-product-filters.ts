@@ -306,7 +306,27 @@ export function pickHomeFeatured(
 ): WooProduct[] {
   const sorted = sortNewest(products);
   const filtered = excludeIds ? sorted.filter((p) => !excludeIds.has(p.id)) : sorted;
-  return filtered.slice(offset, offset + limit);
+  const out: WooProduct[] = [];
+  const seen = new Set<number>();
+
+  const takeFrom = (rows: WooProduct[]) => {
+    for (const p of rows) {
+      if (out.length >= limit) break;
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      out.push(p);
+    }
+  };
+
+  // Prefer a distinct window in the filtered pool.
+  takeFrom(filtered.slice(offset, offset + limit));
+  // Then fill from start of the filtered pool.
+  if (out.length < limit) takeFrom(filtered);
+  // Final fallback: fill from full catalog to avoid empty home sections.
+  if (out.length < limit) takeFrom(sorted.slice(offset, offset + limit));
+  if (out.length < limit) takeFrom(sorted);
+
+  return out;
 }
 
 export function filterSmartphoneBrand(

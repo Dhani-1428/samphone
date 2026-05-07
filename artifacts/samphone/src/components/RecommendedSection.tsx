@@ -5,7 +5,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
-import { pickHomeFeatured } from "@/lib/woo-product-filters";
+import { pickHomeFeatured, sortNewest } from "@/lib/woo-product-filters";
 
 export default function RecommendedSection() {
   const { t } = useLang();
@@ -13,8 +13,13 @@ export default function RecommendedSection() {
   const woo = hasWooCommerceConfig();
   const { products } = useProductCatalog();
 
-  // Use a later window so Recommended differs from New Arrivals and Products.
-  const wooSlice = useMemo(() => (woo && products.length > 0 ? pickHomeFeatured(products, 8, 22) : []), [woo, products]);
+  // Prefer products outside New Arrivals + Products windows; still fill if catalog is small.
+  const wooSlice = useMemo(() => {
+    if (!(woo && products.length > 0)) return [];
+    const sorted = sortNewest(products);
+    const excludeIds = new Set(sorted.slice(0, 22).map((p) => p.id));
+    return pickHomeFeatured(products, 8, 0, excludeIds);
+  }, [woo, products]);
   const mockSlice = recommendedProducts.slice(0, 8);
   if (woo && wooSlice.length === 0) return null;
   if (!woo && mockSlice.length === 0) return null;
