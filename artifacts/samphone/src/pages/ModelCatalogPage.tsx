@@ -56,6 +56,8 @@ function tokenRegexForFamily(familySlug: string): RegExp {
   if (familySlug === "honor-series") return /\bhonor\b|honor-series|magic|view|x\d/i;
   if (familySlug === "mate-series") return /\bmate\b|mate-series/i;
   if (familySlug === "nova-series") return /\bnova\b|nova-series/i;
+  if (familySlug === "oneplus-series") return /\boneplus\b|oneplus-series|one\s*plus/i;
+  if (familySlug === "oneplus-nord-series") return /\bnord\b|oneplus-nord-series|one\s*plus\s*nord/i;
   if (familySlug === "series") return /\brealme\s*\d|\b\d{1,2}\s*(pro|plus|5g|4g)\b/i;
   if (familySlug === "narzo-series") return /\bnarzo\b|narzo-series/i;
   if (familySlug === "c-series") return /\bc\d{1,2}\b|c-series|realme\s*c/i;
@@ -69,6 +71,7 @@ function brandRegex(brandSlug: string): RegExp {
   if (brandSlug === "oppo" || brandSlug.startsWith("oppo-")) return /\boppo\b/i;
   if (brandSlug === "huawei" || brandSlug.startsWith("huawei-")) return /\bhuawei\b|\bhonor\b/i;
   if (brandSlug === "realme" || brandSlug.startsWith("realme-")) return /\brealme\b|\bnarzo\b/i;
+  if (brandSlug === "one-plus" || brandSlug.startsWith("one-plus")) return /\boneplus\b|one\s*plus|\bnord\b/i;
   const token = brandSlug.replace(/-/g, "\\s*");
   return new RegExp(token, "i");
 }

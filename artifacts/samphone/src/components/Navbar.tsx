@@ -1014,6 +1014,62 @@ const HUAWEI_NOVA_SERIES_MODELS = [
   "Huawei Nova",
 ];
 
+const ONEPLUS_SERIES_MODELS = [
+  "OnePlus 13R",
+  "OnePlus 13",
+  "OnePlus 12R",
+  "OnePlus 12",
+  "OnePlus 11R",
+  "OnePlus Open",
+  "OnePlus 11",
+  "OnePlus 10T 5G",
+  "OnePlus 10 Pro",
+  "OnePlus 9RT 5G",
+  "OnePlus 9R",
+  "OnePlus 9 Pro",
+  "OnePlus 9",
+  "Oneplus 8T",
+  "Oneplus 8T Pro",
+  "Oneplus 8 Pro",
+  "Oneplus 8",
+  "OnePlus 7T Pro",
+  "OnePlus 7T Pro 5G McLaren",
+  "OnePlus 7T",
+  "OnePlus 7 Pro 5G",
+  "OnePlus 7",
+  "OnePlus 7 Pro",
+  "Oneplus 6T Mclaren",
+  "OnePlus 6T",
+  "OnePlus 6",
+  "OnePlus 5T",
+  "OnePlus 5",
+  "OnePlus 3T",
+  "OnePlus 3",
+  "OnePlus X",
+  "OnePlus 2",
+  "OnePlus One",
+];
+
+const ONEPLUS_NORD_SERIES_MODELS = [
+  "OnePlus 11",
+  "OnePlus Nord CE4 Lite",
+  "OnePlus Nord 4",
+  "OnePlus Nord 3 5G",
+  "OnePlus Nord N30",
+  "OnePlus Nord CE 3 Lite 5G",
+  "OnePlus Nord N20 SE",
+  "OnePlus Nord N300",
+  "OnePlus Nord N20 5G",
+  "OnePlus Nord CE 2 Lite 5G",
+  "OnePlus Nord 2T 5G",
+  "OnePlus Nord CE 2 5G",
+  "OnePlus Nord N200 5G",
+  "OnePlus Nord CE 5G",
+  "OnePlus Nord N10 5G",
+  "OnePlus Nord N100",
+  "OnePlus Nord",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1190,6 +1246,19 @@ export default function Navbar() {
                   label: "Nova series",
                   slug: "nova-series",
                   children: makeFamilyChildren(b.slug, "nova-series", HUAWEI_NOVA_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "one plus"
+            ? [
+                {
+                  label: "OnePlus series",
+                  slug: "oneplus-series",
+                  children: makeFamilyChildren(b.slug, "oneplus-series", ONEPLUS_SERIES_MODELS),
+                },
+                {
+                  label: "OnePlus Nord series",
+                  slug: "oneplus-nord-series",
+                  children: makeFamilyChildren(b.slug, "oneplus-nord-series", ONEPLUS_NORD_SERIES_MODELS),
                 },
               ]
           : [
