@@ -1578,6 +1578,31 @@ const NOKIA_SERIES_MODELS = [
   "Nokia 2.1",
 ];
 
+const GOOGLE_PIXEL_SERIES_MODELS = [
+  "Google Pixel 10A",
+  "Google Pixel 10 Pro Fold 5G",
+  "Google Pixel 10 Pro XL 5G",
+  "Google Pixel 10 Pro 5G",
+  "Google Pixel 10 4G",
+  "Google Pixel 9 Pro Fold",
+  "Google Pixel 9 Pro XL",
+  "Google Pixel 9 Pro",
+  "Google Pixel 9",
+  "Google Pixel 9A 5G",
+  "Google Pixel 8 Pro",
+  "Google Pixel 8A 5G",
+  "Google Pixel 8",
+  "Google Pixel 7 Pro",
+  "Google Pixel 7A 5G",
+  "Google Pixel 7 5G",
+  "Google Pixel 6A 5G",
+  "Google Pixel 6 5G",
+  "Google Pixel 6 Pro",
+  "Google Pixel 5A 5G",
+  "Google Pixel 5",
+  "Google Pixel 4A 5G",
+];
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -1848,6 +1873,14 @@ export default function Navbar() {
                   label: "Nokia series",
                   slug: "nokia-series",
                   children: makeFamilyChildren(b.slug, "nokia-series", NOKIA_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "google pixel"
+            ? [
+                {
+                  label: "Google Pixel series",
+                  slug: "google-pixel-series",
+                  children: makeFamilyChildren(b.slug, "google-pixel-series", GOOGLE_PIXEL_SERIES_MODELS),
                 },
               ]
           : [

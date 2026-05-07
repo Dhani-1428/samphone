@@ -70,6 +70,7 @@ function tokenRegexForFamily(familySlug: string): RegExp {
   if (familySlug === "xiaomi-redmi-tablets") return /\bxiaomi\s*pad\b|\bredmi\s*pad\b/i;
   if (familySlug === "huawei-tablets") return /\bhuawei\b.*\bpad\b|\bmate\s*pad\b|\bmedia\s*pad\b|\bhonor\s*pad\b|\bhonor\s*tab\b/i;
   if (familySlug === "nokia-series") return /\bnokia\b|nokia-series|\bx\d{1,2}\b|\bc\d{1,2}\b|\bg\d{1,2}\b/i;
+  if (familySlug === "google-pixel-series") return /\bgoogle\s*pixel\b|google-pixel-series|\bpixel\b/i;
   if (familySlug === "series") return /\brealme\s*\d|\b\d{1,2}\s*(pro|plus|5g|4g)\b/i;
   if (familySlug === "narzo-series") return /\bnarzo\b|narzo-series/i;
   if (familySlug === "c-series") return /\bc\d{1,2}\b|c-series|realme\s*c/i;
@@ -89,6 +90,7 @@ function brandRegex(brandSlug: string): RegExp {
     return /\btablet\b|\btab\b|\bipad\b|\bgalaxy\s*tab\b|\bmate\s*pad\b|\bmedia\s*pad\b|\bxiaomi\s*pad\b|\bredmi\s*pad\b|\blenovo\s*tab\b|\bhonor\s*pad\b|\bhonor\s*tab\b/i;
   }
   if (brandSlug === "nokia" || brandSlug.startsWith("nokia-")) return /\bnokia\b/i;
+  if (brandSlug === "google-pixel" || brandSlug.startsWith("google-pixel")) return /\bgoogle\s*pixel\b|\bpixel\b/i;
   const token = brandSlug.replace(/-/g, "\\s*");
   return new RegExp(token, "i");
 }
