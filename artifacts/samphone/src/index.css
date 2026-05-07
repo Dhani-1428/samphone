@@ -132,3 +132,14 @@
     font-family: var(--font-display);
   }
 }
+
+/* Keep dropdowns scrollable but visually hide native scrollbars. */
+.hide-dropdown-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-dropdown-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
