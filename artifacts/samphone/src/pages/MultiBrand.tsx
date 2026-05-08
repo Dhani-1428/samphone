@@ -106,7 +106,13 @@ export default function MultiBrand() {
         )}
 
         {woo && visibleWoo.length > 0 && (
-          <motion.ul ref={ref} variants={containerVariants} initial="hidden" animate={isInView ? "visible" : "hidden"} className="grid list-none grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 p-0">
+          <motion.ul
+            ref={ref}
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 p-0"
+          >
             {visibleWoo.map((p) => (
               <motion.li key={p.id} variants={itemVariants}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
@@ -116,7 +122,13 @@ export default function MultiBrand() {
         )}
 
         {!woo && (
-          <motion.div ref={ref} variants={containerVariants} initial="hidden" animate={isInView ? "visible" : "hidden"} className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
+          <motion.div
+            ref={ref}
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
+          >
             {visibleMock.map((p) => (
               <motion.div key={p.cartKey} variants={itemVariants}>
                 <ProductCard {...p} testPrefix="multi" />
