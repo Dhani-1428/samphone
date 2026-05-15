@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getDisplayPrice, getPrimaryImageUrl } from "@/lib/woocommerce";
+import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -28,7 +28,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
   const displayPrice = getDisplayPrice(product);
   const showPrice = user != null && displayPrice != null;
   const imageUrl = getPrimaryImageUrl(product);
-  const productHref = `/product/woo/${product.id}`;
+  const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
   const showCartByPrice = showPrice || user == null;

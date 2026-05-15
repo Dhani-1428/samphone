@@ -8,7 +8,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { getDisplayPrice, getPrimaryImageUrl } from "@/lib/woocommerce";
+import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 
 const SEARCH_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -21,6 +21,15 @@ type Props = {
   /** When false, render full-width bar (desktop). When true, compact (mobile menu). */
   compact?: boolean;
 };
+
+function resolveHitHref(hit: SearchHit): string {
+  if (hit.cartKey.startsWith("woo:")) {
+    const id = Number(hit.cartKey.slice(4));
+    if (Number.isFinite(id) && id > 0) return wooProductHref(id);
+  }
+  if (!hit.href.startsWith("http")) return hit.href;
+  return "/";
+}
 
 function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void }) {
   const { user } = useAuth();
@@ -65,26 +74,14 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
 
   const productLinkClass =
     "flex min-w-0 flex-1 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const productHref = resolveHitHref(hit);
 
   return (
     <li className="flex items-center gap-2 border-b border-border/40 px-2.5 py-2 last:border-0 hover:bg-muted/80">
-      {hit.href.startsWith("http") ? (
-        <a
-          href={hit.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={productLinkClass}
-          onClick={onSelect}
-        >
-          {thumb}
-          {details}
-        </a>
-      ) : (
-        <Link href={hit.href} className={productLinkClass} onClick={onSelect}>
-          {thumb}
-          {details}
-        </Link>
-      )}
+      <Link href={productHref} className={productLinkClass} onClick={onSelect}>
+        {thumb}
+        {details}
+      </Link>
       <div className="flex w-[4.5rem] shrink-0 justify-end">{price}</div>
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
         <ProductCartControls cartKey={hit.cartKey} variant="icon-stepper" />
@@ -115,7 +112,7 @@ export default function SmartSearch({ className, compact }: Props) {
             cartKey: `woo:${p.id}`,
             name: p.name,
             subtitle: p.categories?.[0]?.name,
-            href: `/product/woo/${p.id}`,
+            href: wooProductHref(p.id),
             imageSrc: getPrimaryImageUrl(p) ?? SEARCH_PLACEHOLDER,
             priceText: displayPrice ? `${currencySymbol}${displayPrice}` : null,
           };

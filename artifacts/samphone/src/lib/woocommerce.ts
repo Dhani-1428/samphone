@@ -311,3 +311,8 @@ export function getPrimaryImageUrl(product: WooProduct): string | null {
   if (typeof src === "string" && src.length > 0) return src;
   return null;
 }
+
+/** In-app product detail route — never use Woo `permalink` (opens the legacy WordPress store). */
+export function wooProductHref(productId: number): string {
+  return `/product/woo/${productId}`;
+}
