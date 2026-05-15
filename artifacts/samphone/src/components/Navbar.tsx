@@ -1954,10 +1954,11 @@ export default function Navbar() {
               <>
                 <Link
                   href="/account"
-                  className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors max-w-[140px]"
+                  className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors max-w-[200px]"
+                  title={user.email}
                 >
                   <User className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{user.name}</span>
+                  <span className="truncate">{user.email}</span>
                 </Link>
                 <button
                   type="button"
@@ -2296,8 +2297,11 @@ export default function Navbar() {
               <div className="flex flex-col gap-1 mb-3 border-b border-border pb-3">
                 {user ? (
                   <>
-                    <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted">
-                      <User className="w-4 h-4" /> {t("auth_my_account")}
+                    <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="flex flex-col gap-0.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted">
+                      <span className="flex items-center gap-2">
+                        <User className="w-4 h-4 shrink-0" /> {t("auth_my_account")}
+                      </span>
+                      <span className="text-xs font-normal text-muted-foreground truncate pl-6">{user.email}</span>
                     </Link>
                     <button
                       type="button"

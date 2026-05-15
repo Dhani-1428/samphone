@@ -1,22 +1,70 @@
-import { useState, useEffect } from "react";
-import { Link } from "wouter";
-import { LayoutDashboard, LogOut, Package } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { createOrderFromCart, listOrders, ensureDemoOrder, type StoredOrder } from "@/lib/orders";
+import AccountSidebar from "@/components/account/AccountSidebar";
+import AccountDashboard from "@/components/account/AccountDashboard";
+import AccountSectionPanels from "@/components/account/AccountSectionPanels";
+import { parseAccountSection, type AccountSectionId } from "@/components/account/account-sections";
+import {
+  loadAccountData,
+  saveAccountData,
+  type AccountData,
+} from "@/lib/account-store";
+import { createOrderFromCart, ensureDemoOrder, listOrders, type StoredOrder } from "@/lib/orders";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Account() {
   const { t } = useLang();
   const { user, logout } = useAuth();
-  const { clearCart, items } = useCart();
+  const { items, clearCart } = useCart();
+  const search = useSearch();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  const section = useMemo(
+    () => parseAccountSection(new URLSearchParams(search).get("section")),
+    [search],
+  );
+
+  const [accountData, setAccountData] = useState<AccountData | null>(null);
   const [orders, setOrders] = useState<StoredOrder[]>([]);
 
   useEffect(() => {
+    if (!user) return;
     ensureDemoOrder();
+    setAccountData(loadAccountData(user.email));
     setOrders(listOrders());
-  }, []);
+  }, [user]);
+
+  const navigateSection = useCallback(
+    (id: AccountSectionId) => {
+      setLocation(id === "dashboard" ? "/account" : `/account?section=${id}`);
+    },
+    [setLocation],
+  );
+
+  const persist = useCallback(
+    (next: AccountData) => {
+      if (!user) return;
+      setAccountData(next);
+      saveAccountData(user.email, next);
+    },
+    [user],
+  );
+
+  const handleSave = () => {
+    if (accountData) persist(accountData);
+    toast({ title: t("account_save_changes") });
+  };
+
+  const handleLogout = () => {
+    clearCart();
+    logout();
+    setLocation("/");
+  };
 
   const refreshOrders = () => setOrders(listOrders());
 
@@ -25,13 +73,11 @@ export default function Account() {
     if (o) {
       clearCart();
       refreshOrders();
+      toast({ title: t("account_order_created"), description: o.id });
     }
   };
 
-  const handleLogout = () => {
-    clearCart();
-    logout();
-  };
+  const cartItemCount = Object.values(items).filter((q) => q > 0).length;
 
   if (!user) {
     return (
@@ -44,10 +90,18 @@ export default function Account() {
     );
   }
 
+  if (!accountData) {
+    return (
+      <div className="bg-muted/30 min-h-[75vh] py-10">
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl animate-pulse h-64 rounded-xl bg-muted" />
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-muted/30 min-h-[75vh] py-10">
-      <div className="container mx-auto px-4 md:px-6 max-w-5xl">
-        <nav className="text-sm text-muted-foreground mb-6">
+    <div className="bg-muted/30 min-h-[75vh] py-8 md:py-10">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <nav className="text-sm text-muted-foreground mb-4">
           <Link href="/" className="hover:text-primary">
             {t("breadcrumb_home")}
           </Link>
@@ -55,70 +109,38 @@ export default function Account() {
           <span className="text-foreground font-medium">{t("account_title")}</span>
         </nav>
 
-        <div className="grid md:grid-cols-[240px_1fr] gap-8">
-          <aside className="rounded-xl border border-border bg-card p-4 h-fit shadow-sm">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
-              <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-display font-bold text-lg">
-                {user.name.slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-foreground truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </div>
-            </div>
-            <ul className="space-y-1">
-              <li>
-                <span className="flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
-                  <LayoutDashboard className="w-4 h-4" />
-                  {t("account_dashboard")}
-                </span>
-              </li>
-            </ul>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 mt-6 text-muted-foreground"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4" />
-              {t("auth_logout")}
-            </Button>
-          </aside>
+        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">
+          {t("account_title")}
+        </h1>
 
-          <main className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-sm">
-            <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-              {t("account_dashboard")}
-            </h1>
-            <p className="text-muted-foreground mb-6">{t("account_welcome")}</p>
-            <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4 text-sm text-foreground/90 mb-8">
-              {t("account_profile_hint")}
-            </div>
+        <div className="grid lg:grid-cols-[minmax(240px,280px)_1fr] gap-6 lg:gap-8 items-start">
+          <AccountSidebar
+            user={user}
+            section={section}
+            onNavigate={navigateSection}
+            onLogout={handleLogout}
+          />
 
-            <h2 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-              <Package className="w-5 h-5 text-primary" />
-              {t("account_orders")}
-            </h2>
-            <div className="space-y-3 mb-6">
-              {orders.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("account_no_orders")}</p>
-              ) : (
-                orders.map((o) => (
-                  <div
-                    key={o.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
-                  >
-                    <span className="font-mono font-semibold">{o.id}</span>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/track?q=${encodeURIComponent(o.id)}`}>{t("account_track_link")}</Link>
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
-            <Button type="button" variant="secondary" className="mb-2" onClick={placeFromCart} disabled={Object.keys(items).length === 0}>
-              {t("account_create_order")}
-            </Button>
-            <p className="text-xs text-muted-foreground">{t("account_order_created")} SP-LIS-…</p>
-          </main>
+          <div className="min-w-0">
+            {section === "dashboard" ? (
+              <AccountDashboard
+                data={accountData}
+                orders={orders}
+                onAddressChange={(address) => persist({ ...accountData, address })}
+                onSaveAddress={handleSave}
+              />
+            ) : (
+              <AccountSectionPanels
+                section={section}
+                data={accountData}
+                orders={orders}
+                cartItemCount={cartItemCount}
+                onDataChange={persist}
+                onSave={handleSave}
+                onPlaceOrder={placeFromCart}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
