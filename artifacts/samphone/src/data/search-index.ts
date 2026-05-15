@@ -17,6 +17,11 @@ export interface SearchHit {
   name: string;
   subtitle?: string;
   href: string;
+  imageSrc: string;
+  /** Mock catalog numeric price (shown when logged in). */
+  priceNumber?: number;
+  /** Woo display price with currency symbol (shown when logged in). */
+  priceText?: string | null;
 }
 
 let cached: SearchHit[] | null = null;
@@ -27,6 +32,8 @@ function fromProduct(p: CatalogProduct): SearchHit {
     name: p.name,
     subtitle: p.subtitle,
     href: hrefForCartKey(p.cartKey),
+    imageSrc: p.img,
+    priceNumber: p.price,
   };
 }
 
