@@ -34,6 +34,7 @@ import DeviceDiagnostics from "@/pages/DeviceDiagnostics";
 import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import Layout from "@/components/Layout";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ function App() {
                   <ProductCatalogProvider>
                     <TooltipProvider>
                       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                        <ScrollToTop />
                         <Router />
                       </WouterRouter>
                       <Toaster />
