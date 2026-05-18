@@ -4,6 +4,7 @@ import type { WooProduct } from "@/lib/woocommerce";
 import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import GuestPriceGate from "@/components/GuestPriceGate";
 import ProductCartControls from "@/components/ProductCartControls";
@@ -25,8 +26,9 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
   const { user } = useAuth();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
   const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
-  const displayPrice = getDisplayPrice(product);
-  const showPrice = user != null && displayPrice != null;
+  const catalogPrice = getDisplayPrice(product);
+  const { displayFormatted, hasCustomPrice } = useCustomerProductPrice(product);
+  const showPrice = user != null && (catalogPrice != null || hasCustomPrice);
   const imageUrl = getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
@@ -80,8 +82,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
           <div className="min-w-0 flex-1 text-sm tabular-nums text-foreground/90">
             {showPrice ? (
               <span className="font-medium">
-                {currencySymbol}
-                {displayPrice}
+                {hasCustomPrice ? displayFormatted : `${currencySymbol}${catalogPrice}`}
               </span>
             ) : user == null ? (
               <GuestPriceGate variant="compact" />

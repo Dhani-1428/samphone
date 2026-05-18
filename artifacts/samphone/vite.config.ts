@@ -79,16 +79,22 @@ export default defineConfig(async ({ mode }) => {
       strict: true,
       deny: ["**/.*"],
     },
-    proxy: useWooProxy
-      ? {
-          "/woo-api": {
-            target: wooProxyTarget,
-            changeOrigin: true,
-            secure: true,
-            rewrite: (p) => p.replace(/^\/woo-api/, ""),
-          },
-        }
-      : undefined,
+    proxy: {
+      "/api": {
+        target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
+      ...(useWooProxy
+        ? {
+            "/woo-api": {
+              target: wooProxyTarget,
+              changeOrigin: true,
+              secure: true,
+              rewrite: (p: string) => p.replace(/^\/woo-api/, ""),
+            },
+          }
+        : {}),
+    },
   },
   preview: {
     port,

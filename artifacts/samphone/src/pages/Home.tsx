@@ -7,6 +7,7 @@ import DeviceSearch from "@/components/DeviceSearch";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import Reviews from "@/components/Reviews";
 import Deals from "@/components/Deals";
+import AccessoriesBanner from "@/components/AccessoriesBanner";
 import About from "@/components/About";
 import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import RecommendedSection from "@/components/RecommendedSection";
@@ -19,6 +20,7 @@ export default function Home() {
       <TrustBadges />
       <Categories />
       <Deals />
+      <AccessoriesBanner />
       <DeviceSearch />
       <Products />
       <RecommendedSection />

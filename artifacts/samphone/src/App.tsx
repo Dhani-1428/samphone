@@ -11,6 +11,7 @@ import { CompareProvider } from "@/contexts/CompareContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProductCatalogProvider } from "@/contexts/ProductCatalogContext";
+import { CustomerPricingProvider } from "@/contexts/CustomerPricingContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Accessories from "@/pages/Accessories";
@@ -33,6 +34,7 @@ import TradeIn from "@/pages/TradeIn";
 import DeviceDiagnostics from "@/pages/DeviceDiagnostics";
 import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
+import AdminPricing from "@/pages/admin/AdminPricing";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 
@@ -119,6 +121,9 @@ function Router() {
       <Route path="/product/:scope/:id">
         <Layout><ProductPage /></Layout>
       </Route>
+      <Route path="/admin/pricing">
+        <AdminPricing />
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -136,6 +141,7 @@ function App() {
               <CartProvider>
                 <QueryClientProvider client={queryClient}>
                   <ProductCatalogProvider>
+                    <CustomerPricingProvider>
                     <TooltipProvider>
                       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
                         <ScrollToTop />
@@ -143,6 +149,7 @@ function App() {
                       </WouterRouter>
                       <Toaster />
                     </TooltipProvider>
+                    </CustomerPricingProvider>
                   </ProductCatalogProvider>
                 </QueryClientProvider>
               </CartProvider>
