@@ -4,7 +4,7 @@ import TrustBadges from "@/components/TrustBadges";
 import Categories from "@/components/Categories";
 import Products from "@/components/Products";
 import DeviceSearch from "@/components/DeviceSearch";
-import WhyChooseUs from "@/components/WhyChooseUs";
+import HomeBanner from "@/components/HomeBanner";
 import Reviews from "@/components/Reviews";
 import Deals from "@/components/Deals";
 import AccessoriesBanner from "@/components/AccessoriesBanner";
@@ -25,7 +25,7 @@ export default function Home() {
       <Products />
       <RecommendedSection />
       <RecentlyViewedSection />
-      <WhyChooseUs />
+      <HomeBanner />
       <Reviews />
       <About />
     </>
