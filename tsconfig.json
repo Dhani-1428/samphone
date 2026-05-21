@@ -14,6 +14,12 @@
     },
     {
       "path": "./lib/pricing"
+    },
+    {
+      "path": "./lib/admin-shared"
+    },
+    {
+      "path": "./lib/admin-db"
     }
   ]
 }

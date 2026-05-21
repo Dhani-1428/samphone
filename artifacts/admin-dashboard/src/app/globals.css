@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Design tokens — expanded Step 8 */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
