@@ -1,12 +1,20 @@
 # @workspace/admin-db
 
-PostgreSQL schema via **Prisma ORM** (UUIDs, soft deletes, indexes, FKs).
+PostgreSQL schema via **SQL migrations** (Step 2) and **Prisma** (Step 3).
+
+## Apply schema
+
+```powershell
+$env:DATABASE_URL = "postgresql://user:pass@localhost:5432/samphone_admin"
+.\sql\migrate.ps1
+```
+
+## Structure
 
 | Path | Purpose |
 |------|---------|
-| `prisma/schema.prisma` | Models (Step 3) |
-| `prisma/migrations/` | SQL migrations |
-| `sql/` | Raw SQL reference (Step 2) |
-| `src/index.ts` | Prisma client singleton |
+| `sql/*.sql` | Ordered migrations (see `sql/README.md`) |
+| `prisma/schema.prisma` | Prisma models — **Step 3** |
+| `src/index.ts` | Prisma client singleton — **Step 3** |
 
-**Step 1:** scaffold only.
+Full table reference: `docs/ADMIN_DATABASE_SCHEMA.md`.

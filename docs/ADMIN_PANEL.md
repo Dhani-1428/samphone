@@ -6,8 +6,8 @@ Portugal-based ecommerce admin (EUR, IVA/VAT, GDPR, PT/EN) for smartphones, acce
 
 | Step | Deliverable | Status |
 |------|-------------|--------|
-| **1** | Project folder structure | ✅ This document + scaffold |
-| 2 | PostgreSQL database schema (SQL) | Pending confirmation |
+| **1** | Project folder structure | ✅ Complete |
+| **2** | PostgreSQL database schema (SQL) | ✅ `lib/admin-db/sql/` |
 | 3 | Prisma models | Pending confirmation |
 | 4 | Express backend setup | Pending confirmation |
 | 5 | JWT authentication system | Pending confirmation |
@@ -119,4 +119,4 @@ See `.env.example` in each package (`admin-api`, `admin-dashboard`, `admin-db`).
 
 ---
 
-**Next step:** Reply **confirm Step 1** to proceed to **Step 2 — PostgreSQL database schema**.
+**Next step:** Reply **confirm Step 2** to proceed to **Step 3 — Prisma models**.
