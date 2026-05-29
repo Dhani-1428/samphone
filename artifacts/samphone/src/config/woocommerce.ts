@@ -1,40 +1,30 @@
 /**
- * WooCommerce REST credentials — environment variables only (`VITE_*` is bundled at build time).
- * For production, prefer a server-side proxy instead of exposing keys in the client.
+ * Public storefront WooCommerce settings (safe for the browser).
+ * REST credentials live only on the API server — see WOOCOMMERCE_* in artifacts/api-server/.env
  */
 
-export interface WooCommerceConfig {
-  storeUrl: string;
-  consumerKey: string;
-  consumerSecret: string;
-}
-
 const PLACEHOLDER_URL_RE = /your-old-site\.com|example\.com/i;
+
+/** Base path for the server-side WooCommerce proxy (no secrets in URLs). */
+export const WOO_API_BASE =
+  (import.meta.env.VITE_WOO_API_BASE ?? "/api/woocommerce").replace(/\/$/, "");
+
+export function getWooStoreDisplayUrl(): string | null {
+  const url = import.meta.env.VITE_WOOCOMMERCE_STORE_URL?.replace(/\/$/, "").trim() ?? "";
+  if (!url || isPlaceholderUrl(url)) return null;
+  return url;
+}
 
 function isPlaceholderUrl(url: string): boolean {
   return PLACEHOLDER_URL_RE.test(url);
 }
 
-function readFromEnv(): WooCommerceConfig | null {
-  const storeUrl = import.meta.env.VITE_WOOCOMMERCE_STORE_URL?.replace(/\/$/, "").trim() ?? "";
-  const consumerKey = (import.meta.env.VITE_WOOCOMMERCE_CONSUMER_KEY ?? "").trim();
-  const consumerSecret = (import.meta.env.VITE_WOOCOMMERCE_CONSUMER_SECRET ?? "").trim();
-
-  if (!storeUrl || !consumerKey || !consumerSecret) {
-    return null;
-  }
-
-  if (isPlaceholderUrl(storeUrl)) {
-    return null;
-  }
-
-  return { storeUrl, consumerKey, consumerSecret };
+/** True when the app is wired to use the secure proxy (default). */
+export function usesWooProxy(): boolean {
+  return import.meta.env.VITE_WOO_USE_CLIENT_CREDENTIALS !== "true";
 }
 
-export function getWooCommerceConfig(): WooCommerceConfig | null {
-  return readFromEnv();
-}
-
+/** @deprecated Client credentials are disabled for security. Use usesWooProxy(). */
 export function hasWooCommerceConfig(): boolean {
-  return getWooCommerceConfig() != null;
+  return usesWooProxy();
 }

@@ -1,6 +1,13 @@
 DirectoryIndex index.html
 Options -Indexes
 
+# Production: proxy /api to your Node API server (uncomment and set URL).
+# Keeps WooCommerce keys off the browser — see docs/SECURITY.md
+# <IfModule mod_proxy.c>
+#   ProxyPass /api https://api.your-domain.pt/api
+#   ProxyPassReverse /api https://api.your-domain.pt/api
+# </IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /

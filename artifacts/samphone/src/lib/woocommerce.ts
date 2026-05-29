@@ -1,4 +1,4 @@
-import { getWooCommerceConfig, type WooCommerceConfig } from "@/config/woocommerce";
+import { WOO_API_BASE, getWooStoreDisplayUrl, usesWooProxy } from "@/config/woocommerce";
 
 /**
  * Product shape as returned by WooCommerce REST (subset used in UI).
@@ -78,60 +78,67 @@ export class WooCommerceFetchError extends Error {
   }
 }
 
-function isLikelyPlaceholderUrl(url: string): boolean {
-  return /your-old-site\.com/i.test(url) || /example\.com/i.test(url);
-}
+let wooProxyAvailable: boolean | null = null;
 
-function getApiBasePath(cfg: WooCommerceConfig): string {
-  const envTarget =
-    (import.meta.env.VITE_WOO_PROXY_TARGET || import.meta.env.VITE_WOOCOMMERCE_STORE_URL)?.trim();
-  if (import.meta.env.DEV && import.meta.env.VITE_USE_WOO_PROXY === "true" && envTarget) {
-    return "/woo-api";
+async function checkWooProxy(): Promise<boolean> {
+  if (wooProxyAvailable !== null) return wooProxyAvailable;
+  if (!usesWooProxy()) {
+    wooProxyAvailable = false;
+    return false;
   }
-  return cfg.storeUrl.replace(/\/$/, "");
+  try {
+    const res = await fetch(`${WOO_API_BASE}/status`, { method: "GET" });
+    if (!res.ok) {
+      wooProxyAvailable = false;
+      return false;
+    }
+    const data = (await res.json()) as { configured?: boolean };
+    wooProxyAvailable = Boolean(data.configured);
+    return wooProxyAvailable;
+  } catch {
+    wooProxyAvailable = false;
+    return false;
+  }
 }
 
-function getConfigOrThrow(): WooCommerceConfig {
-  const cfg = getWooCommerceConfig();
-  if (!cfg) {
+function getApiBasePath(): string {
+  if (!usesWooProxy()) {
     throw new WooCommerceFetchError(
-      "WooCommerce is not configured. Set VITE_WOOCOMMERCE_STORE_URL, VITE_WOOCOMMERCE_CONSUMER_KEY, and VITE_WOOCOMMERCE_CONSUMER_SECRET in your environment.",
+      "Direct WooCommerce credentials in the browser are disabled. Run the API server with WOOCOMMERCE_* set, or remove VITE_WOO_USE_CLIENT_CREDENTIALS.",
     );
   }
-  const basePath = getApiBasePath(cfg);
-  if (!basePath) throw new WooCommerceFetchError("Missing API base URL.");
-  if (isLikelyPlaceholderUrl(basePath)) {
-    throw new WooCommerceFetchError(
-      `Store URL is still a placeholder (${basePath}). Use your real WordPress domain.`,
-    );
-  }
-  return cfg;
-}
-
-function authParams(cfg: WooCommerceConfig): URLSearchParams {
-  return new URLSearchParams({
-    consumer_key: cfg.consumerKey,
-    consumer_secret: cfg.consumerSecret,
-  });
+  return WOO_API_BASE;
 }
 
 async function wooFetchJson<T>(
   pathAfterWc: string,
   extra: Record<string, string | number | undefined> = {},
 ): Promise<T> {
-  const cfg = getConfigOrThrow();
-  const basePath = getApiBasePath(cfg);
-  const qs = authParams(cfg);
+  const ok = await checkWooProxy();
+  if (!ok) {
+    const store = getWooStoreDisplayUrl();
+    throw new WooCommerceFetchError(
+      store
+        ? `Catalog API unavailable. Start the API server (port 8080) with WOOCOMMERCE_* credentials — store: ${store}`
+        : "Catalog API unavailable. Configure WOOCOMMERCE_* on the API server (see artifacts/api-server/.env.example).",
+    );
+  }
+
+  const basePath = getApiBasePath();
+  const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(extra)) {
     if (v !== undefined) qs.set(k, String(v));
   }
-  const url = `${basePath}/wp-json/wc/v3/${pathAfterWc.replace(/^\//, "")}?${qs.toString()}`;
+  const query = qs.toString();
+  const path = pathAfterWc.replace(/^\//, "");
+  const url = query ? `${basePath}/${path}?${query}` : `${basePath}/${path}`;
+
   let res: Response;
   try {
     res = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
   } catch {
     throw new WooCommerceFetchError(
-      `Network request failed. Check URL, HTTPS/CORS, and API keys. Attempted: ${url.split("?")[0]}`,
+      `Network request failed. Ensure the API server is running and /api is proxied. Attempted: ${url.split("?")[0]}`,
     );
   }
   if (!res.ok) {
@@ -201,7 +208,7 @@ export async function fetchAllProducts(): Promise<WooProduct[]> {
  */
 export async function searchProductsQuery(query: string): Promise<WooProduct[]> {
   const term = query.trim();
-  if (!term || !getWooCommerceConfig()) return [];
+  if (!term) return [];
   const raw = await fetchAllPages<WooProduct>("products", {
     ...STORE_PRODUCT_PARAMS,
     search: term,

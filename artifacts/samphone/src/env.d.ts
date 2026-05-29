@@ -1,15 +1,17 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_WOOCOMMERCE_STORE_URL: string;
-  readonly VITE_WOOCOMMERCE_CONSUMER_KEY: string;
-  readonly VITE_WOOCOMMERCE_CONSUMER_SECRET: string;
-  /** Dev only: fetch via Vite proxy to avoid CORS (see vite.config.ts). */
-  readonly VITE_USE_WOO_PROXY?: string;
-  /** Optional override for proxy target (defaults to VITE_WOOCOMMERCE_STORE_URL). */
-  readonly VITE_WOO_PROXY_TARGET?: string;
-  /** Prepended to numeric price from WooCommerce (e.g. € or $). */
+  /** Public store URL (display / links only). */
+  readonly VITE_WOOCOMMERCE_STORE_URL?: string;
+  /** Server-side WooCommerce proxy path (no secrets). */
+  readonly VITE_WOO_API_BASE?: string;
+  /** Prepended to numeric price from WooCommerce (e.g. €). */
   readonly VITE_WOOCOMMERCE_CURRENCY_SYMBOL?: string;
+  readonly VITE_PRICING_API_URL?: string;
+  readonly VITE_WOO_EXTRA_PHONE_CATEGORY_SLUGS?: string;
+  readonly VITE_WOO_EXTRA_TABLET_CATEGORY_SLUGS?: string;
+  /** Must stay false in production — enables insecure client-side Woo keys. */
+  readonly VITE_WOO_USE_CLIENT_CREDENTIALS?: string;
 }
 
 interface ImportMeta {

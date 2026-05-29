@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { adminAuthHeaders, getAdminToken, setAdminToken } from "@/lib/admin-session";
 
 const API_BASE = (import.meta.env.VITE_PRICING_API_URL ?? "/api").replace(/\/$/, "");
 
@@ -33,19 +34,10 @@ type CategoryRule = {
 };
 type VatRule = { id: string; code: string; name: string; rate: number };
 
-function adminHeaders(): HeadersInit {
-  const token = import.meta.env.VITE_PRICING_ADMIN_TOKEN ?? "";
-  return {
-    "Content-Type": "application/json",
-    Authorization: token ? `Bearer ${token}` : "",
-    "X-Admin-Token": token,
-  };
-}
-
 export default function AdminPricing() {
-  const [authed, setAuthed] = useState(Boolean(import.meta.env.VITE_PRICING_ADMIN_TOKEN));
+  const [authed, setAuthed] = useState(Boolean(getAdminToken()));
   const [tokenInput, setTokenInput] = useState("");
-  const [adminToken, setAdminToken] = useState(import.meta.env.VITE_PRICING_ADMIN_TOKEN ?? "");
+  const [adminToken, setAdminTokenState] = useState(getAdminToken());
 
   const [tab, setTab] = useState<"product" | "category" | "customers" | "vat" | "history">("product");
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -66,7 +58,7 @@ export default function AdminPricing() {
     async <T,>(path: string, init?: RequestInit): Promise<T> => {
       const res = await fetch(`${API_BASE}${path}`, {
         ...init,
-        headers: { ...adminHeaders(), ...init?.headers, Authorization: `Bearer ${adminToken}` },
+        headers: { ...adminAuthHeaders(), ...init?.headers, Authorization: `Bearer ${adminToken}` },
       });
       if (!res.ok) {
         const body = await res.text();
@@ -161,6 +153,7 @@ export default function AdminPricing() {
             className="w-full"
             onClick={() => {
               setAdminToken(tokenInput);
+              setAdminTokenState(tokenInput.trim());
               setAuthed(true);
             }}
           >

@@ -277,7 +277,7 @@ const translations = {
     woo_price_na: "Price not available",
     woo_env_title: "WooCommerce not configured",
     woo_env_body:
-      "Set VITE_WOOCOMMERCE_STORE_URL, VITE_WOOCOMMERCE_CONSUMER_KEY, and VITE_WOOCOMMERCE_CONSUMER_SECRET in your environment (see .env.example). Restart the dev server after changing .env files.",
+      "Start the API server with WOOCOMMERCE_* credentials (see docs/SECURITY.md). The storefront loads the catalog via /api/woocommerce — keys must not be in VITE_ env vars.",
     model_accessories_title: "Accessories",
     model_accessories_hint: "Filter by part type for this model.",
     model_filter_all: "All",
@@ -567,7 +567,7 @@ const translations = {
     woo_price_na: "Preço indisponível",
     woo_env_title: "WooCommerce não configurado",
     woo_env_body:
-      "Defina VITE_WOOCOMMERCE_STORE_URL, VITE_WOOCOMMERCE_CONSUMER_KEY e VITE_WOOCOMMERCE_CONSUMER_SECRET no ambiente (veja .env.example). Reinicie o servidor de desenvolvimento após alterar ficheiros .env.",
+      "Inicie o servidor API com credenciais WOOCOMMERCE_* (veja docs/SECURITY.md). O catálogo usa /api/woocommerce — as chaves não devem estar em variáveis VITE_.",
     model_accessories_title: "Acessórios",
     model_accessories_hint: "Filtre por tipo de peça para este modelo.",
     model_filter_all: "Todos",

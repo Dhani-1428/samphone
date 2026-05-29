@@ -30,15 +30,21 @@ PORT=8080
 DATABASE_URL=postgresql://...   # optional in dev — memory store used if unset
 PRICING_ADMIN_TOKEN=your-secret-admin-token
 PRICING_ADMIN_EMAIL=admin@samphone.pt
+WOOCOMMERCE_STORE_URL=https://www.samphone.pt
+WOOCOMMERCE_CONSUMER_KEY=ck_...
+WOOCOMMERCE_CONSUMER_SECRET=cs_...
+CORS_ORIGINS=https://www.samphone.pt,http://localhost:5173
 ```
 
 ### Storefront (`artifacts/samphone`)
 
 ```env
 VITE_PRICING_API_URL=/api
-VITE_PRICING_API_PROXY=http://127.0.0.1:8080
-VITE_PRICING_ADMIN_TOKEN=your-secret-admin-token
+# Dev only — Vite proxy target:
+# VITE_PRICING_API_PROXY=http://127.0.0.1:8080
 ```
+
+Do **not** set `VITE_PRICING_ADMIN_TOKEN` (exposes admin access in the browser bundle). Use `/admin/pricing` login → session token. See `docs/SECURITY.md`.
 
 ## REST API
 

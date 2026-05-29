@@ -20,14 +20,11 @@ export default defineConfig(async ({ mode }) => {
     ...loadEnv(mode, workspaceRoot, ""),
     ...loadEnv(mode, appRoot, ""),
   };
-  const wooProxyTarget = env.VITE_WOO_PROXY_TARGET || env.VITE_WOOCOMMERCE_STORE_URL;
-  const useWooProxy = env.VITE_USE_WOO_PROXY === "true" && Boolean(wooProxyTarget);
 
   return {
   /**
-   * Env for `import.meta.env` loads from this app folder (`artifacts/samphone/.env*`),
-   * so `VITE_*` keys in `artifacts/samphone/.env.local` are picked up.
-   * Monorepo root env is still merged below for the Woo proxy target in dev.
+   * Only non-secret `VITE_*` vars are loaded here.
+   * WooCommerce keys must live in artifacts/api-server/.env (server-side).
    */
   envDir: appRoot,
   base: basePath,
@@ -84,22 +81,18 @@ export default defineConfig(async ({ mode }) => {
         target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
         changeOrigin: true,
       },
-      ...(useWooProxy
-        ? {
-            "/woo-api": {
-              target: wooProxyTarget,
-              changeOrigin: true,
-              secure: true,
-              rewrite: (p: string) => p.replace(/^\/woo-api/, ""),
-            },
-          }
-        : {}),
     },
   },
   preview: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
+    },
   },
 };
 });
