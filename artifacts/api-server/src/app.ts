@@ -3,17 +3,19 @@ import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import router from "./routes";
+import { validateServerEnv } from "./lib/env-validation";
 import { logger } from "./lib/logger";
+import { getApiHelmetOptions } from "./lib/security-headers";
 
 const app: Express = express();
 
+validateServerEnv();
+
 const corsOrigins = process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()).filter(Boolean);
 
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-  }),
-);
+app.set("trust proxy", 1);
+
+app.use(helmet(getApiHelmetOptions()));
 app.use(
   cors({
     origin: corsOrigins?.length ? corsOrigins : true,
@@ -39,8 +41,8 @@ app.use(
     },
   }),
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
 app.use("/api", router);
 

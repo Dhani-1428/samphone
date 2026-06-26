@@ -14,6 +14,7 @@ if (Number.isNaN(port) || port <= 0) {
 const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig(async ({ mode }) => {
+  const isProd = mode === "production";
   const workspaceRoot = path.resolve(import.meta.dirname, "../..");
   const appRoot = path.resolve(import.meta.dirname);
   const env = {
@@ -57,7 +58,18 @@ export default defineConfig(async ({ mode }) => {
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    sourcemap: !isProd,
+    minify: isProd ? "esbuild" : false,
+    cssMinify: isProd,
     rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/react-dom")) return "react-dom";
+          if (id.includes("node_modules/react/")) return "react";
+          if (id.includes("node_modules/framer-motion")) return "motion";
+          if (id.includes("node_modules/@radix-ui")) return "radix";
+        },
+      },
       onwarn(warning, handler) {
         if (
           warning.message?.includes("Can't resolve original location of error")
@@ -67,6 +79,10 @@ export default defineConfig(async ({ mode }) => {
         handler(warning);
       },
     },
+  },
+  esbuild: {
+    drop: isProd ? ["console", "debugger"] : [],
+    legalComments: isProd ? "none" : "inline",
   },
   server: {
     port,

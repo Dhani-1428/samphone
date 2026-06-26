@@ -1,6 +1,16 @@
 DirectoryIndex index.html
 Options -Indexes
 
+# --- Security headers (static storefront) — see docs/SECURITY.md ---
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # Adjust connect-src / img-src for your API host and WooCommerce CDN in production.
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://samphone.pt https://www.samphone.pt; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+</IfModule>
+
 # Production: proxy /api to your Node API server (uncomment and set URL).
 # Keeps WooCommerce keys off the browser — see docs/SECURITY.md
 # <IfModule mod_proxy.c>
