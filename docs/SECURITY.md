@@ -244,7 +244,7 @@ Vite proxies `/api` → `http://127.0.0.1:8080`.
 
 ## Production deployment
 
-1. Deploy **API server** (Node) on a private host or `api.` subdomain
+1. Deploy **API server** (Node) on a private host or `api.` subdomain — **or use Vercel serverless** (see `docs/VERCEL.md`)
 2. Set all secrets in the host's environment (not in the git repo)
 3. Proxy `/api` from the web server to the API (see commented rules in `.htaccess`)
 4. Build storefront **after** removing any old `VITE_WOOCOMMERCE_CONSUMER_*` from env
