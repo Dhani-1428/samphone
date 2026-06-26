@@ -24,7 +24,7 @@ router.use(
   rateLimit({ windowMs: 60_000, max: 180 }),
 );
 
-router.get("*", async (req: Request, res: Response) => {
+router.get("{*path}", async (req: Request, res: Response) => {
   const cfg = getWooServerConfig();
   if (!cfg) {
     res.status(503).json({
