@@ -16,6 +16,25 @@ The storefront on Vercel is a **static SPA** plus **serverless API routes** in `
 
 ## Required environment variables
 
+### Option A — Import one file (recommended)
+
+1. Generate `vercel.env` from your local credentials:
+
+```bash
+node scripts/merge-vercel-env.mjs
+```
+
+This merges `artifacts/api-server/.env` + `artifacts/samphone/.env` into **`vercel.env`** at the repo root (gitignored).
+
+2. In **Vercel → Project → Settings → Environment Variables**, click **Import .env**
+3. Select `vercel.env`
+4. Enable **Production**, **Preview**, and **Development**
+5. **Redeploy** the project
+
+Template (no secrets): copy `vercel.env.example` → `vercel.env` and fill in values manually.
+
+### Option B — Add variables one by one
+
 In **Vercel → Project → Settings → Environment Variables**, add (Production + Preview):
 
 | Variable | Example | Notes |
