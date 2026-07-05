@@ -81,22 +81,21 @@ export class WooCommerceFetchError extends Error {
 let wooProxyAvailable: boolean | null = null;
 
 async function checkWooProxy(): Promise<boolean> {
-  if (wooProxyAvailable !== null) return wooProxyAvailable;
+  if (wooProxyAvailable === true) return true;
   if (!usesWooProxy()) {
     wooProxyAvailable = false;
     return false;
   }
   try {
-    const res = await fetch(`${WOO_API_BASE}/status`, { method: "GET" });
+    const res = await fetch(`${WOO_API_BASE}/status`, { method: "GET", cache: "no-store" });
     if (!res.ok) {
-      wooProxyAvailable = false;
       return false;
     }
     const data = (await res.json()) as { configured?: boolean };
-    wooProxyAvailable = Boolean(data.configured);
-    return wooProxyAvailable;
+    const ok = Boolean(data.configured);
+    if (ok) wooProxyAvailable = true;
+    return ok;
   } catch {
-    wooProxyAvailable = false;
     return false;
   }
 }

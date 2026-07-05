@@ -6,13 +6,15 @@ The storefront on Vercel is a **static SPA** plus **serverless API routes** in `
 
 | Setting | Value |
 |---------|--------|
-| **Root Directory** | `.` (repository root — **not** `artifacts/samphone`) |
+| **Root Directory** | `.` (repository root — **recommended**) |
 | **Framework Preset** | Other |
-| **Build Command** | `pnpm --filter @workspace/samphone run build` |
-| **Output Directory** | `artifacts/samphone/dist/public` |
-| **Install Command** | `pnpm install` |
+| **Build Command** | *(leave empty — uses `vercel.json`)* |
+| **Output Directory** | *(leave empty — uses `vercel.json` → `public`)* |
+| **Install Command** | *(leave empty — uses `vercel.json`)* |
 
-`vercel.json` at the repo root sets these automatically.
+> **Important:** If you previously set Output Directory to `artifacts/samphone/dist/public` in the Vercel dashboard, **clear it** or set it to `public`. The old value causes: `No entrypoint found in output directory`.
+
+If Root Directory is `artifacts/samphone` instead, use that folder's `vercel.json` (same `public` output after build).
 
 ## Required environment variables
 
