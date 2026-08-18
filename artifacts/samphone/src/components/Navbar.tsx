@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, ChevronDown, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, ChevronRight, Phone } from "lucide-react";
+import { ShoppingBag, ChevronDown, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, ChevronRight, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { accessoriesColumns, smartphonesColumns, cardsColumns } from "@/data/categories";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -45,7 +45,7 @@ function HeaderAction({
     </>
   );
   const className =
-    "flex min-w-[3.6rem] flex-col items-center gap-1 text-white/95 transition-opacity hover:opacity-75";
+    "flex min-w-[3.6rem] flex-col items-center gap-1 text-white/70 transition-opacity hover:text-white";
   if (href) {
     return (
       <Link href={href} className={className} data-testid={testId} onClick={onClick}>
@@ -1998,42 +1998,74 @@ export default function Navbar() {
     cards: cardsColumns,
   };
 
+  const findBrandIdx = (names: string[]) => {
+    const keys = names.map((n) => n.toLowerCase());
+    return brandGroups.findIndex((g) => {
+      const label = displayBrandLabel(g.brand.label).toLowerCase();
+      const slug = g.brand.slug.toLowerCase();
+      return keys.some((k) => label.includes(k) || slug.includes(k));
+    });
+  };
+
+  const openBrandMenu = (idx: number) => {
+    if (idx < 0) idx = 0;
+    setActiveBrandIdx(idx);
+    setOpenDropdown("brands");
+    setMenuOpen(true);
+  };
+
+  const primaryBrandIdx = {
+    apple: findBrandIdx(["apple", "iphone"]),
+    samsung: findBrandIdx(["samsung"]),
+    xiaomi: findBrandIdx(["xiaomi"]),
+    honor: findBrandIdx(["honor"]),
+    motorola: findBrandIdx(["motorola"]),
+  };
+  const othersBrandIdx = brandGroups.findIndex((g) => {
+    const label = displayBrandLabel(g.brand.label).toLowerCase();
+    return !["apple", "iphone", "samsung", "xiaomi", "honor", "motorola"].some((k) => label.includes(k));
+  });
+
+  const catLinkClass =
+    "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-[#1a2b4a] transition-colors hover:text-[#2F6BFF]";
+  const brandLinkClass = (idx: number) =>
+    `shrink-0 whitespace-nowrap text-[13px] font-medium transition-colors hover:text-[#2F6BFF] ${
+      menuOpen && openDropdown === "brands" && activeBrandIdx === idx ? "text-[#2F6BFF]" : "text-[#1a2b4a]"
+    }`;
+
   return (
     <header className="sticky top-0 z-50 w-full">
       <div className="bg-[#0B1736] text-white">
-        <div className={`${navShell} flex items-center justify-between gap-4 py-3`}>
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <button
-              type="button"
-              onClick={() => setLang(lang === "en" ? "pt" : "en")}
-              className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-[#2F6BFF] text-[10px] font-bold sm:flex"
-              aria-label={lang === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
-              data-testid="lang-toggle"
-            >
-              {lang.toUpperCase()}
-            </button>
-            <button
-              type="button"
-              className="flex h-9 w-9 shrink-0 items-center justify-center text-white"
-              aria-expanded={menuOpen}
-              aria-label={t("header_menu")}
-              data-testid="button-nav-menu"
-              onClick={() => {
-                setMenuOpen((open) => {
-                  if (!open) setOpenDropdown("brands");
-                  return !open;
-                });
-              }}
-            >
-              {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
-            </button>
-            <Link href="/" className="flex items-center gap-0.5 shrink-0" onClick={closeMenu}>
-              <span className="font-display text-[1.65rem] font-bold leading-none tracking-wide sm:text-[1.85rem]">sam</span>
-              <span className="font-display text-[1.65rem] font-bold leading-none tracking-wide text-white/90 sm:text-[1.85rem]">phone</span>
-            </Link>
+        <div className={`${navShell} flex items-center gap-3 py-3.5 sm:gap-4`}>
+          <button
+            type="button"
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-white lg:hidden"
+            aria-expanded={menuOpen}
+            aria-label={t("header_menu")}
+            data-testid="button-nav-menu"
+            onClick={() => {
+              setMenuOpen((open) => {
+                if (!open) setOpenDropdown("brands");
+                return !open;
+              });
+            }}
+          >
+            {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
+          </button>
+
+          <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
+            <span className="font-display text-[1.45rem] font-bold uppercase leading-none tracking-[0.08em] sm:text-[1.7rem]">
+              SAMPHONE
+            </span>
+          </Link>
+
+          <div className="hidden min-w-0 flex-1 md:block">
+            <div className="mx-auto w-full max-w-[760px]">
+              <SmartSearch variant="header" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="ml-auto flex items-center gap-2 sm:gap-4">
             {user ? (
               <HeaderAction
                 href="/account"
@@ -2058,15 +2090,67 @@ export default function Navbar() {
               href="/cart"
               icon={<ShoppingBag className="h-5 w-5" strokeWidth={1.6} />}
               label={t("nav_cart")}
-              badge={<CountBadge count={cartCount} />}
+              badge={<CountBadge count={cartCount} tone="danger" />}
             />
           </div>
         </div>
 
-        <div className={`${navShell} pb-4`}>
+        <div className={`${navShell} pb-3 md:hidden`}>
           <SmartSearch variant="header" />
         </div>
       </div>
+
+      <nav className="hidden border-b border-black/[0.08] bg-white lg:block">
+        <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center gap-5 overflow-x-auto`}>
+          <Wrench className="h-4 w-4 shrink-0 text-[#2F6BFF]" aria-hidden />
+          <button type="button" className={brandLinkClass(primaryBrandIdx.apple)} onClick={() => openBrandMenu(primaryBrandIdx.apple)}>
+            Apple
+          </button>
+          <button type="button" className={brandLinkClass(primaryBrandIdx.samsung)} onClick={() => openBrandMenu(primaryBrandIdx.samsung)}>
+            Samsung
+          </button>
+          <button type="button" className={brandLinkClass(primaryBrandIdx.xiaomi)} onClick={() => openBrandMenu(primaryBrandIdx.xiaomi)}>
+            Xiaomi
+          </button>
+          <button type="button" className={brandLinkClass(primaryBrandIdx.honor)} onClick={() => openBrandMenu(primaryBrandIdx.honor)}>
+            Honor
+          </button>
+          <button type="button" className={brandLinkClass(primaryBrandIdx.motorola)} onClick={() => openBrandMenu(primaryBrandIdx.motorola)}>
+            Motorola
+          </button>
+          <button type="button" className={brandLinkClass(othersBrandIdx)} onClick={() => openBrandMenu(othersBrandIdx)}>
+            {t("nav_bar_others")}
+          </button>
+
+          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
+            <Plug className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
+            {t("nav_bar_accessories")}
+          </Link>
+          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
+            <Shield className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
+            {t("nav_bar_protection")}
+          </Link>
+          <Link href="/multi-brand" className={catLinkClass} onClick={closeMenu}>
+            <Monitor className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
+            {t("nav_bar_computing")}
+          </Link>
+          <Link href="/store" className={catLinkClass} onClick={closeMenu}>
+            <Store className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
+            {t("nav_bar_store")}
+          </Link>
+
+          <span className="mx-1 h-5 w-px shrink-0 bg-black/10" aria-hidden />
+
+          <Link href="/smartphones" className={catLinkClass} onClick={closeMenu}>
+            <Smartphone className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
+            {t("nav_bar_devices")}
+          </Link>
+          <Link href="/tablets" className={catLinkClass} onClick={closeMenu}>
+            <Laptop className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
+            {t("nav_bar_laptops")}
+          </Link>
+        </div>
+      </nav>
 
       <AnimatePresence>
         {menuOpen && (

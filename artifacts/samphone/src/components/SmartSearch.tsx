@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { Lock, Search, ScanLine } from "lucide-react";
+import { Lock, Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { searchCatalog, type SearchHit } from "@/data/search-index";
@@ -139,7 +139,7 @@ export default function SmartSearch({ className, compact, variant = "default" }:
           className={cn(
             "flex items-center overflow-hidden transition-colors",
             variant === "header"
-              ? "w-full rounded-md bg-white ring-2 ring-[#2F6BFF]"
+              ? "w-full rounded-md bg-white"
               : "rounded-lg border border-border bg-muted/40 focus-within:border-primary",
             compact && variant !== "header" ? "w-full" : !compact && variant !== "header" ? "flex-1" : null,
             className,
@@ -158,7 +158,7 @@ export default function SmartSearch({ className, compact, variant = "default" }:
             className={cn(
               "min-w-0 flex-1 bg-transparent focus:outline-none",
               variant === "header"
-                ? "px-4 py-3 text-[15px] text-neutral-800 placeholder:text-neutral-400"
+                ? "px-4 py-2.5 text-[15px] text-neutral-800 placeholder:text-neutral-400"
                 : "px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
             )}
             data-testid="input-search"
@@ -171,14 +171,14 @@ export default function SmartSearch({ className, compact, variant = "default" }:
             className={cn(
               "shrink-0 transition-colors",
               variant === "header"
-                ? "px-3 py-3 text-neutral-400 hover:text-[#2F6BFF]"
+                ? "px-3 py-2.5 text-[#2F6BFF] hover:text-[#2458d6]"
                 : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
             )}
             data-testid="button-search"
             onClick={() => inputRef.current?.focus()}
             aria-label={t("searchPlaceholder")}
           >
-            {variant === "header" ? <ScanLine className="h-5 w-5 text-[#2F6BFF]" /> : <Search className="h-4 w-4" />}
+            {variant === "header" ? <Search className="h-5 w-5" /> : <Search className="h-4 w-4" />}
           </button>
         </div>
       </PopoverAnchor>
