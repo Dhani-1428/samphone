@@ -28,7 +28,7 @@ export default function WishlistPage() {
   }, [keys, wooById]);
 
   return (
-    <div className="bg-muted/30 min-h-screen py-10">
+    <div className="min-h-screen py-10">
       <div className="container mx-auto max-w-5xl px-4 md:px-6">
         <Link
           href="/"

@@ -177,16 +177,14 @@ export default function ModelCatalogPage() {
   const modelName = model ? parseModelName(model) : null;
 
   return (
-    <div className="bg-background min-h-screen">
-      <section className="bg-background border-b border-border">
-        <PageVideoHero
-          eyebrow={modelName ? `Home / ${brandName} / ${familyName} / ${modelName}` : `Home / ${brandName} / ${familyName}`}
-          title={modelName ? `${brandName} ${modelName}` : `${brandName} ${familyName}`}
-          description={configured ? t("model_accessories_hint") : "API catalog for selected model with category filters."}
-        />
-      </section>
+    <div className="min-h-screen">
+      <PageVideoHero
+        eyebrow={modelName ? `Home / ${brandName} / ${familyName} / ${modelName}` : `Home / ${brandName} / ${familyName}`}
+        title={modelName ? `${brandName} ${modelName}` : `${brandName} ${familyName}`}
+        description={configured ? t("model_accessories_hint") : "API catalog for selected model with category filters."}
+      />
 
-      <div className="container mx-auto px-4 md:px-6 py-8">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-7"

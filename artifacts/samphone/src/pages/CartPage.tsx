@@ -47,7 +47,7 @@ export default function CartPage() {
   }, [lines, user]);
 
   return (
-    <div className="bg-muted/30 min-h-screen py-10">
+    <div className="min-h-screen py-10">
       <div className="container mx-auto max-w-4xl px-4 md:px-6">
         <Link
           href="/"

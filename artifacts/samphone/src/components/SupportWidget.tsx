@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Headphones, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { answerFaq } from "@/lib/faq-bot";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,11 @@ export default function SupportWidget() {
       <SheetTrigger asChild>
         <button
           type="button"
-          className="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg md:bottom-8 md:left-8"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#2F6BFF] text-white shadow-lg md:bottom-8 md:right-8"
           aria-label={t("support_open")}
           data-testid="button-support-widget"
         >
-          <Headphones className="h-6 w-6" />
+          <MessageCircle className="h-6 w-6" />
         </button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">

@@ -1,6 +1,6 @@
-import { Link } from "wouter";
 import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
+import PageVideoHero from "@/components/PageVideoHero";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
@@ -13,24 +13,14 @@ export default function WooStore() {
   const showBlockingLoader = loading && !hasCache;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border/80 bg-muted/20">
-        <div className="container mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
-          <nav className="mb-6 text-sm text-muted-foreground">
-            <Link href="/" className="hover:text-foreground">
-              {t("breadcrumb_home")}
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-foreground">{t("woo_store_title")}</span>
-          </nav>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            {t("woo_store_title")}
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">{t("woo_store_sub")}</p>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      <PageVideoHero
+        eyebrow={`${t("breadcrumb_home")} / ${t("woo_store_title")}`}
+        title={t("woo_store_title")}
+        description={t("woo_store_sub")}
+      />
 
-      <div className="container mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-12">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
         {!configured && (
           <div className="mx-auto mb-8 max-w-2xl rounded-2xl border border-border bg-card p-5 shadow-sm">
             <h2 className="text-base font-semibold text-foreground">{t("woo_env_title")}</h2>
@@ -89,7 +79,7 @@ export default function WooStore() {
         )}
 
         {!showBlockingLoader && !error && products.length > 0 && (
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5">
             {products.map((p) => (
               <li key={p.id}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />

@@ -40,18 +40,16 @@ export default function Contact() {
   };
 
   return (
-    <div className="bg-background">
-      <section className="bg-background border-b border-border">
-        <ContactHeader />
-      </section>
+    <div>
+      <ContactHeader />
 
-      <div className="container mx-auto px-4 md:px-6 py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-10 sm:px-8 md:px-10 lg:px-14">
         <div className="grid lg:grid-cols-2 gap-10 mb-14">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">Send us a Message</h2>
             {submitted ? (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
-                <CheckCircle className="w-16 h-16 text-emerald-500 mb-4" />
+                <CheckCircle className="w-16 h-16 text-[#2F6BFF] mb-4" />
                 <h3 className="text-xl font-display font-bold text-foreground mb-2">Message Sent!</h3>
                 <p className="text-muted-foreground">We'll get back to you within 24 hours.</p>
               </motion.div>
@@ -87,7 +85,7 @@ export default function Contact() {
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">Get in Touch</h2>
             <div className="space-y-4 mb-6">
               {contactInfo.map((item, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 bg-card border border-border rounded-xl">
+                <div key={i} className="flex items-start gap-4 p-4 bg-white ring-1 ring-black/[0.04] rounded-xl">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0"><item.icon className="w-5 h-5" /></div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-0.5">{item.label}</p>
@@ -100,7 +98,7 @@ export default function Contact() {
                 </div>
               ))}
             </div>
-            <a href="https://wa.me/351937119295" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-[#25D366]/10 border border-[#25D366]/30 rounded-xl hover:bg-[#25D366]/15 transition-colors mb-6">
+            <a href="https://wa.me/351937119295" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-white ring-1 ring-black/[0.04] rounded-xl hover:shadow-sm transition-colors mb-6">
               <SiWhatsapp className="w-8 h-8 text-[#25D366]" />
               <div>
                 <p className="font-semibold text-foreground text-sm">Chat on WhatsApp</p>

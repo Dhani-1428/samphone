@@ -1,14 +1,7 @@
 import Hero from "@/components/Hero";
 import HomeNewArrivals from "@/components/HomeNewArrivals";
-import TrustBadges from "@/components/TrustBadges";
-import Categories from "@/components/Categories";
 import Products from "@/components/Products";
-import DeviceSearch from "@/components/DeviceSearch";
-import Reviews from "@/components/Reviews";
 import Deals from "@/components/Deals";
-import AccessoriesBanner from "@/components/AccessoriesBanner";
-import About from "@/components/About";
-import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import RecommendedSection from "@/components/RecommendedSection";
 import HomeCutoff from "@/components/HomeCutoff";
 
@@ -17,17 +10,10 @@ export default function Home() {
     <>
       <Hero />
       <HomeNewArrivals />
-      <Products />
       <RecommendedSection />
-      <RecentlyViewedSection />
-      <Categories />
-      <HomeCutoff />
-      <TrustBadges />
+      <Products />
       <Deals />
-      <AccessoriesBanner />
-      <DeviceSearch />
-      <Reviews />
-      <About />
+      <HomeCutoff />
     </>
   );
 }

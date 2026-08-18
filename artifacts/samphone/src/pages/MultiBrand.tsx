@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Award, TrendingUp, Star, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
@@ -10,14 +10,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { filterMultiBrandCatalog } from "@/lib/woo-product-filters";
 
-const brandCards = [
-  { name: "Hoco", logo: "H", color: "from-amber-500 to-orange-600", items: 120 },
-  { name: "Baseus", logo: "B", color: "from-blue-500 to-indigo-600", items: 95 },
-  { name: "Anker", logo: "A", color: "from-green-500 to-emerald-600", items: 78 },
-  { name: "Ugreen", logo: "U", color: "from-slate-500 to-slate-700", items: 64 },
-  { name: "Joyroom", logo: "J", color: "from-purple-500 to-violet-600", items: 55 },
-  { name: "WK Design", logo: "W", color: "from-rose-500 to-pink-600", items: 48 },
-];
+const brandCards = ["Hoco", "Baseus", "Anker", "Ugreen", "Joyroom", "WK Design"];
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.09 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
@@ -47,47 +40,31 @@ export default function MultiBrand() {
   const visibleMock = MULTI_BRAND_FEATURED.filter((p) => !selectedBrand || p.brand === selectedBrand);
 
   return (
-    <div className="bg-background">
-      <section className="bg-background border-b border-border">
-        <MultiBrandHeader />
-      </section>
+    <div>
+      <MultiBrandHeader />
 
-      <div className="container mx-auto px-4 md:px-6 py-10">
-        <div className="grid grid-cols-3 gap-4 mb-10">
-          {[{ icon: Award, value: "20+", label: "Premium Brands" }, { icon: TrendingUp, value: "500+", label: "Brand Products" }, { icon: Star, value: "4.8/5", label: "Average Rating" }].map((s, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-card border border-border rounded-2xl p-4 text-center"
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
+          <button
+            type="button"
+            onClick={() => setSelectedBrand(null)}
+            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#2F6BFF] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+          >
+            All
+          </button>
+          {brandCards.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
+              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#2F6BFF] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
             >
-              <s.icon className="w-6 h-6 text-primary mx-auto mb-2" />
-              <p className="font-display font-bold text-2xl text-foreground">{s.value}</p>
-              <p className="text-muted-foreground text-xs">{s.label}</p>
-            </motion.div>
+              {b}
+            </button>
           ))}
         </div>
 
-        <h2 className="text-xl font-display font-bold text-foreground mb-5">Shop by Brand</h2>
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-          {brandCards.map((b) => (
-            <motion.button
-              key={b.name}
-              type="button"
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => setSelectedBrand(selectedBrand === b.name ? null : b.name)}
-              className={`rounded-2xl p-4 border-2 transition-all text-left ${selectedBrand === b.name ? "border-primary shadow-lg" : "border-border hover:border-primary/50"}`}
-            >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${b.color} flex items-center justify-center text-white font-display font-bold text-xl mb-3`}>{b.logo}</div>
-              <p className="font-display font-bold text-foreground text-sm">{b.name}</p>
-              <p className="text-muted-foreground text-xs mt-0.5">{b.items} items</p>
-            </motion.button>
-          ))}
-        </motion.div>
-
-        <h2 className="text-xl font-display font-bold text-foreground mb-5">
+        <h2 className="mb-5 font-display text-xl font-bold text-navy">
           {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
         </h2>
 

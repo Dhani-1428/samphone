@@ -1,7 +1,6 @@
 import { type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import WhatsAppButton from "@/components/WhatsAppButton";
 import SupportWidget from "@/components/SupportWidget";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 
@@ -13,7 +12,6 @@ export default function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <Footer />
       <SupportWidget />
-      <WhatsAppButton />
     </div>
   );
 }

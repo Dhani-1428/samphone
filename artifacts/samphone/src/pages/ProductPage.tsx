@@ -42,7 +42,7 @@ function parseProductCartKey(pathname: string): string | null {
 
 const badgeColors: Record<string, string> = {
   Bestseller: "bg-amber-500 text-white",
-  New: "bg-emerald-500 text-white",
+  New: "bg-[#2F6BFF] text-white",
   Sale: "bg-red-500 text-white",
   Hot: "bg-orange-500 text-white",
 };
@@ -157,7 +157,7 @@ export default function ProductPage() {
     }
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
           <Link
             href="/"
@@ -287,15 +287,15 @@ export default function ProductPage() {
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
                     stock.isLow
-                      ? "border border-amber-500/40 bg-amber-500/15 text-amber-900 dark:text-amber-100"
-                      : "bg-emerald-500 text-white shadow-sm",
+                      ? "border border-amber-500/40 bg-amber-50 text-amber-800"
+                      : "bg-[#E8F0FF] text-[#2F6BFF]",
                   )}
                 >
-                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-white")} />
+                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-[#2F6BFF]")} />
                   {stock.isLow ? t("stock_low", { count: stock.count }) : t("product_in_stock")}
                 </div>
 
-                <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-4 text-sm text-foreground/90 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+                <div className="rounded-xl bg-[#F4F6F8] p-4 text-sm text-navy">
                   <DeliveryEstimator />
                 </div>
 
@@ -349,7 +349,7 @@ export default function ProductPage() {
   const badgeChipClass = badge ? badgeColors[badge] ?? "bg-gray-500 text-white" : "";
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen">
       <div className="container mx-auto px-4 md:px-6 py-8">
         <Link
           href="/"

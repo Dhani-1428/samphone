@@ -18,6 +18,7 @@ import {
 } from "@/lib/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
+import PageVideoHero from "@/components/PageVideoHero";
 
 const imgPool = [productCase, productCharger, productScreen];
 
@@ -156,32 +157,20 @@ export default function CategoryPage() {
   const showNotFound = !configured && !staticMeta && !wooLoading;
 
   return (
-    <div className="bg-background min-h-screen">
-      <div className="bg-primary py-10 md:py-14">
-        <div className="container mx-auto px-4 md:px-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="flex items-center gap-2 mb-3">
-              <Link href="/" className="text-primary-foreground/60 text-sm hover:text-primary-foreground transition-colors">
-                Home
-              </Link>
-              <span className="text-primary-foreground/40">/</span>
-              <span className="text-primary-foreground/60 text-sm">{parent}</span>
-              <span className="text-primary-foreground/40">/</span>
-              <span className="text-primary-foreground text-sm font-medium">{label}</span>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-display font-bold text-primary-foreground">{label}</h1>
-            {(showWooGrid || useMock) && (
-              <p className="text-primary-foreground/75 mt-2 text-base">
-                {showWooGrid
-                  ? `${wooList.length} products`
-                  : `${mockProducts.length} products available`}
-              </p>
-            )}
-          </motion.div>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      <PageVideoHero
+        eyebrow={`Home / ${parent}`}
+        title={label}
+        description={
+          showWooGrid
+            ? `${wooList.length} products`
+            : useMock
+              ? `${mockProducts.length} products available`
+              : ""
+        }
+      />
 
-      <div className="container mx-auto px-4 md:px-6 py-8">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-7"

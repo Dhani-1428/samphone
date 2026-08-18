@@ -53,38 +53,36 @@ export default function Accessories() {
       : ACCESSORIES_PRODUCTS.filter((p) => p.subtitle === activeCategory);
 
   return (
-    <div className="bg-background">
-      <section className="bg-background border-b border-border">
-        <AccessoriesHeader />
-      </section>
+    <div>
+      <AccessoriesHeader />
 
-      <div className="container mx-auto px-4 md:px-6 py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${activeCategory === cat ? "bg-primary text-primary-foreground border-primary" : "bg-background text-foreground border-border hover:border-primary hover:text-primary"}`}
+              className={`border-b-2 pb-2 text-sm transition-colors ${activeCategory === cat ? "border-[#2F6BFF] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
             >
               {cat}
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+        <div className="mb-6 flex items-center justify-between pb-4">
           <p className="text-sm text-muted-foreground">
             {woo ? `${filteredWoo.length} products` : `${filteredMock.length} products found`}
           </p>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2 border-border">
+            <Button variant="outline" size="sm" className="gap-2 border-border bg-white">
               <SlidersHorizontal className="w-4 h-4" /> Filters
             </Button>
-            <div className="flex items-center gap-2 border border-border rounded-lg px-3 py-1.5 text-sm">
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-1.5 text-sm">
               <span className="text-muted-foreground">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent text-foreground font-medium focus:outline-none cursor-pointer"
+                className="cursor-pointer bg-transparent font-medium text-foreground focus:outline-none"
               >
                 <option>Popular</option>
                 <option>Price: Low to High</option>

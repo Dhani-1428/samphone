@@ -39,7 +39,7 @@ export default function Products() {
 
   return (
     <div id="products">
-      <HomeProductRail title={t("featured_section_title")} subtitle={t("featured_section_sub")} seeAllHref="/accessories">
+      <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
         {cards}
       </HomeProductRail>
     </div>

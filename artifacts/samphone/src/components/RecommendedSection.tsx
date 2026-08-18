@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import HomeProductRail from "@/components/HomeProductRail";
 import { useLang } from "@/contexts/LanguageContext";
 import { useBrowseBehavior } from "@/contexts/BrowseBehaviorContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -11,33 +12,42 @@ export default function RecommendedSection() {
   const { t } = useLang();
   const { recommendedProducts } = useBrowseBehavior();
   const woo = hasWooCommerceConfig();
-  const { products } = useProductCatalog();
+  const { products, loading } = useProductCatalog();
 
-  // Prefer products outside New Arrivals + Products windows; still fill if catalog is small.
   const wooSlice = useMemo(() => {
     if (!(woo && products.length > 0)) return [];
     const sorted = sortNewest(products);
     const excludeIds = new Set(sorted.slice(0, 22).map((p) => p.id));
-    return pickHomeFeatured(products, 8, 0, excludeIds);
+    return pickHomeFeatured(products, 14, 0, excludeIds);
   }, [woo, products]);
-  const mockSlice = recommendedProducts.slice(0, 8);
-  if (woo && wooSlice.length === 0) return null;
+  const mockSlice = recommendedProducts.slice(0, 14);
+
+  const cards =
+    woo && wooSlice.length > 0
+      ? wooSlice.map((p) => (
+          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+        ))
+      : woo && loading
+        ? [
+            <div
+              key="loading"
+              className="flex h-64 items-center justify-center rounded-xl bg-white text-sm text-muted-foreground"
+            >
+              {t("woo_loading")}
+            </div>,
+          ]
+        : mockSlice.map((p) => <ProductCard key={p.cartKey} {...p} testPrefix="rec" />);
+
+  if (woo && !loading && wooSlice.length === 0) return null;
   if (!woo && mockSlice.length === 0) return null;
 
   return (
-    <section className="py-8 md:py-10">
-      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 className="font-display text-2xl font-bold text-navy md:text-[2rem]">{t("recommended_title")}</h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-          {woo
-            ? wooSlice.map((p) => (
-                <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
-              ))
-            : mockSlice.map((p) => <ProductCard key={p.cartKey} {...p} testPrefix="rec" />)}
-        </div>
-      </div>
-    </section>
+    <HomeProductRail
+      title={t("favorite_section_title")}
+      subtitle={t("favorite_section_sub")}
+      seeAllHref="/wishlist"
+    >
+      {cards}
+    </HomeProductRail>
   );
 }

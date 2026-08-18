@@ -4,10 +4,6 @@ import { Search, Loader2, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
-import smartphoneAppleVideo from "@/assets/smartphone-apple.mp4";
-import productCase from "@/assets/product-case.png";
-import productCharger from "@/assets/product-charger.png";
-import productScreen from "@/assets/product-screen.png";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -20,30 +16,6 @@ import {
 } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
 
-const brands = [
-  { name: "iPhone", img: productScreen, count: "180+", color: "from-gray-700 to-gray-900" },
-  { name: "Samsung", img: productCase, count: "220+", color: "from-blue-700 to-blue-900" },
-  { name: "Xiaomi", img: productCharger, count: "140+", color: "from-orange-600 to-red-700" },
-  { name: "OPPO", img: productScreen, count: "90+", color: "from-green-700 to-emerald-900" },
-  { name: "Realme", img: productCase, count: "80+", color: "from-yellow-600 to-orange-700" },
-  { name: "Huawei", img: productCharger, count: "110+", color: "from-red-700 to-rose-900" },
-  { name: "One Plus", img: productScreen, count: "70+", color: "from-red-600 to-red-900" },
-  { name: "Motorola", img: productCase, count: "60+", color: "from-indigo-700 to-indigo-900" },
-  { name: "Alcatel", img: productCharger, count: "40+", color: "from-teal-700 to-teal-900" },
-  { name: "Google Pixel", img: productScreen, count: "55+", color: "from-blue-600 to-cyan-700" },
-  { name: "Nokia", img: productCase, count: "45+", color: "from-sky-700 to-sky-900" },
-];
-
-const tabletBrands = [
-  { name: "MODIO", img: productCharger, count: "Tablets", color: "from-violet-700 to-violet-900" },
-  { name: "iPad", img: productScreen, count: "Apple", color: "from-gray-700 to-gray-900" },
-  { name: "Galaxy Tab", img: productCase, count: "Samsung", color: "from-blue-700 to-blue-900" },
-  { name: "Xiaomi Pad", img: productCharger, count: "Xiaomi", color: "from-orange-600 to-red-700" },
-  { name: "Huawei MatePad", img: productScreen, count: "Huawei", color: "from-red-700 to-rose-900" },
-  { name: "Lenovo Tab", img: productCase, count: "Lenovo", color: "from-indigo-700 to-indigo-900" },
-  { name: "Android tablet", img: productCharger, count: "More", color: "from-slate-600 to-slate-800" },
-];
-
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
@@ -53,7 +25,6 @@ function SmartphonesHeader({ section }: { section: DeviceSection }) {
   const { t } = useLang();
   return (
     <PageVideoHero
-      videoSrc={smartphoneAppleVideo}
       eyebrow={t("smartphones_breadcrumb")}
       title={section === "phones" ? t("smartphones_hero_phones_title") : t("smartphones_hero_tablets_title")}
       description={t("smartphones_hero_sub")}
@@ -136,8 +107,6 @@ export default function Smartphones() {
     };
   }, [woo, debouncedSearch, section]);
 
-  const brandTiles = section === "phones" ? brands : tabletBrands;
-
   const catalogList = useMemo(
     () =>
       woo
@@ -166,20 +135,20 @@ export default function Smartphones() {
       : t("smartphones_parts_heading_default");
 
   return (
-    <div className="bg-background">
-      <section className="border-b border-border">
+    <div>
+      <section>
         <SmartphonesHeader section={section} />
-        <div className="border-t border-border bg-muted/40">
-          <div className="container mx-auto flex flex-col gap-3 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2 md:px-6">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="border-t border-black/[0.06]">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-5 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:px-8 md:px-10 lg:px-14">
+            <div className="flex flex-wrap items-center gap-5">
               <button
                 type="button"
                 onClick={() => setSection("phones")}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "phones"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted",
+                    ? "border-[#2F6BFF] text-navy"
+                    : "border-transparent text-muted-foreground hover:text-navy",
                 )}
               >
                 {t("smartphones_tab_phones")}
@@ -188,10 +157,10 @@ export default function Smartphones() {
                 type="button"
                 onClick={() => setSection("tablets")}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
+                  "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "tablets"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted",
+                    ? "border-[#2F6BFF] text-navy"
+                    : "border-transparent text-muted-foreground hover:text-navy",
                 )}
               >
                 {t("smartphones_tab_tablets")}
@@ -199,7 +168,7 @@ export default function Smartphones() {
             </div>
             <Link
               href="/category/tablets"
-              className="text-sm font-medium text-primary hover:underline sm:ml-auto"
+              className="text-sm font-medium text-[#2F6BFF] hover:underline sm:ml-auto"
             >
               {t("smartphones_category_tablets_link")}
             </Link>
@@ -207,8 +176,8 @@ export default function Smartphones() {
         </div>
       </section>
 
-      <div className="bg-muted/30 py-10">
-        <div className="container mx-auto px-4 md:px-6">
+      <div className="py-8">
+        <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -220,7 +189,7 @@ export default function Smartphones() {
                 autoComplete="off"
                 enterKeyHint="search"
                 aria-label={t("smartphones_search_brand")}
-                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F6BFF]/30"
               />
               {searchInput ? (
                 <button
@@ -238,8 +207,8 @@ export default function Smartphones() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-10 md:px-6">
-        <h2 className="mb-6 font-display text-2xl font-bold text-foreground">{productsHeading}</h2>
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        <h2 className="mb-6 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
 
         {showSyncBanner && (
           <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
