@@ -13,6 +13,7 @@ const distPublic = path.join(repoRoot, "artifacts", "samphone", "dist", "public"
 const targets = [
   path.join(repoRoot, "public"),
   path.join(repoRoot, "artifacts", "samphone", "public"),
+  path.join(repoRoot, "artifacts", "api-server", "public"),
 ];
 
 if (!fs.existsSync(distPublic)) {

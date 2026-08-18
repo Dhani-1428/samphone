@@ -16,6 +16,8 @@ The storefront on Vercel is a **static SPA** plus **serverless API routes** in `
 
 If Root Directory is `artifacts/samphone` instead, use that folder's `vercel.json` (same `public` output after build).
 
+If Root Directory is `artifacts/api-server` (current production project), that folder now has wrappers at `scripts/prepare-vercel-public.mjs` so the dashboard build command still works. Output is copied to `artifacts/api-server/public`.
+
 ## Required environment variables
 
 ### Option A — Import one file (recommended)
