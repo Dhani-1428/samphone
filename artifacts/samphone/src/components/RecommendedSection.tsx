@@ -25,11 +25,10 @@ export default function RecommendedSection() {
   if (!woo && mockSlice.length === 0) return null;
 
   return (
-    <section className="py-16 bg-muted/30 border-y border-border">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-10 max-w-2xl mx-auto">
-          <h2 className="font-display text-3xl font-bold text-foreground mb-2">{t("recommended_title")}</h2>
-          <p className="text-muted-foreground">{t("recommended_sub")}</p>
+    <section className="py-8 md:py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <h2 className="font-display text-2xl font-bold text-navy md:text-[2rem]">{t("recommended_title")}</h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
           {woo

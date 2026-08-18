@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Heart } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
 import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { useWishlist } from "@/contexts/WishlistContext";
-import GuestPriceGate from "@/components/GuestPriceGate";
+import { useLang } from "@/contexts/LanguageContext";
 import ProductCartControls from "@/components/ProductCartControls";
-import { Link } from "wouter";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -21,10 +21,22 @@ interface WooProductCardProps {
   priceUnavailableLabel: string;
 }
 
+function isRecent(product: WooProduct) {
+  if (!product.date_created) return false;
+  const created = new Date(product.date_created).getTime();
+  return Number.isFinite(created) && Date.now() - created < 1000 * 60 * 60 * 24 * 45;
+}
+
+function isServicePack(product: WooProduct) {
+  return /\b(battery|screen|lcd|oled|digitizer|flex|housing|camera|speaker|charging)\b/i.test(product.name);
+}
+
 export default function WooProductCard({ product, priceUnavailableLabel }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
   const { user } = useAuth();
+  const { t } = useLang();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
+  const [loc] = useLocation();
   const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
   const catalogPrice = getDisplayPrice(product);
   const { displayFormatted, hasCustomPrice } = useCustomerProductPrice(product);
@@ -33,10 +45,18 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
   const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
-  const showCartByPrice = showPrice || user == null;
+  const loginHref = `/login?next=${encodeURIComponent(loc)}`;
+  const recent = isRecent(product);
+  const service = isServicePack(product);
 
-  const imageBlock = (
-    <>
+  const priceLabel = hasCustomPrice
+    ? displayFormatted
+    : catalogPrice != null
+      ? `${Number(catalogPrice).toFixed(2).replace(".", ",")}${currencySymbol}`
+      : null;
+
+  return (
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/[0.04] transition-shadow hover:shadow-md">
       <button
         type="button"
         onClick={(e) => {
@@ -44,58 +64,60 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
           e.stopPropagation();
           wishToggle(cartKey);
         }}
-        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-background/85 shadow-sm backdrop-blur transition-opacity hover:bg-background"
+        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
         aria-pressed={wishlisted}
         aria-label="Wishlist"
       >
-        <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-foreground")} />
+        <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "")} />
       </button>
-      <Link href={productHref} className="relative z-10 block h-full w-full">
-        <img
-          src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-          alt={product.images?.[0]?.alt || product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          loading="lazy"
-          onError={() => setImgOk(false)}
-        />
-      </Link>
-    </>
-  );
 
-  return (
-    <article
-      className={cn(
-        "group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card",
-        "shadow-sm transition-[box-shadow,transform] duration-200",
-        "hover:shadow-md hover:-translate-y-0.5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      )}
-    >
-      <div className="relative aspect-square w-full overflow-hidden bg-muted">{imageBlock}</div>
-      <div className="flex flex-1 flex-col gap-1 p-4">
-        <Link href={productHref} className="block">
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug tracking-tight text-foreground">
-            {product.name}
-          </h3>
-        </Link>
-        <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-2">
-          <div className="min-w-0 flex-1 text-sm tabular-nums text-foreground/90">
-            {showPrice ? (
-              <span className="font-medium">
-                {hasCustomPrice ? displayFormatted : `${currencySymbol}${catalogPrice}`}
-              </span>
-            ) : user == null ? (
-              <GuestPriceGate variant="compact" />
-            ) : (
-              <span className="text-muted-foreground">{priceUnavailableLabel}</span>
-            )}
-          </div>
-          {showCartByPrice && (
-            <div className="shrink-0 self-end" onClick={(e) => e.stopPropagation()}>
-              <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
-            </div>
+      <div className="relative px-3 pt-3">
+        <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
+          {recent && (
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+              {t("badge_new")}
+            </span>
+          )}
+          {service && (
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+              {t("badge_service")}
+            </span>
           )}
         </div>
+        <Link href={productHref} className="block aspect-square">
+          <img
+            src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
+            alt={product.images?.[0]?.alt || product.name}
+            className="h-full w-full object-contain"
+            loading="lazy"
+            onError={() => setImgOk(false)}
+          />
+        </Link>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
+        {user ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-lg font-bold tabular-nums leading-none text-navy">
+              {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
+            </span>
+            {showPrice && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
+              </div>
+            )}
+          </div>
+        ) : (
+          <Link
+            href={loginHref}
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2F6BFF] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#1f5aee]"
+          >
+            {t("login_for_price")}
+          </Link>
+        )}
+        <Link href={productHref} className="mt-auto block">
+          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-navy">{product.name}</h3>
+        </Link>
       </div>
     </article>
   );

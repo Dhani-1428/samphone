@@ -30,20 +30,20 @@ export default function TrustBadges() {
   };
 
   return (
-    <div className="w-full bg-card border-y border-border py-8">
-      <div className="container mx-auto px-4">
+    <div className="w-full py-8">
+      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <motion.div
           ref={ref}
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-4 divide-x-0 md:divide-x divide-border"
+          className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 md:gap-4"
         >
           {badges.map((badge, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
-              className="flex flex-col items-center justify-center text-center px-4"
+              className="flex flex-col items-center justify-center rounded-xl bg-white px-4 py-5 text-center shadow-sm ring-1 ring-black/[0.04]"
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 text-primary">
                 <badge.icon className="w-6 h-6" />

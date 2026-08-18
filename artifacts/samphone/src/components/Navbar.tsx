@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, ChevronDown, Menu, X, Heart, GitCompare, Phone, User, LogIn, Sun, Moon, ChevronRight } from "lucide-react";
+import { ShoppingBag, ChevronDown, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, ChevronRight, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { accessoriesColumns, smartphonesColumns, cardsColumns } from "@/data/categories";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -13,7 +13,65 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 
-type DropdownKey = "accessories" | "cards" | "allCategories" | null;
+type DropdownKey = "accessories" | "cards" | "brands" | null;
+
+function displayBrandLabel(label: string): string {
+  if (label.toLowerCase() === "iphone") return "Apple";
+  return label;
+}
+
+function HeaderAction({
+  href,
+  onClick,
+  icon,
+  label,
+  badge,
+  testId,
+}: {
+  href?: string;
+  onClick?: () => void;
+  icon: ReactNode;
+  label: string;
+  badge?: ReactNode;
+  testId?: string;
+}) {
+  const inner = (
+    <>
+      <span className="relative inline-flex h-6 w-6 items-center justify-center">
+        {icon}
+        {badge}
+      </span>
+      <span className="max-w-[4.85rem] text-center text-[11px] font-medium leading-tight">{label}</span>
+    </>
+  );
+  const className =
+    "flex min-w-[3.6rem] flex-col items-center gap-1 text-white/95 transition-opacity hover:opacity-75";
+  if (href) {
+    return (
+      <Link href={href} className={className} data-testid={testId} onClick={onClick}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" className={className} data-testid={testId} onClick={onClick}>
+      {inner}
+    </button>
+  );
+}
+
+function CountBadge({ count, tone = "primary" }: { count: number; tone?: "primary" | "danger" }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      className={`absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] font-bold ${
+        tone === "danger" ? "bg-red-500 text-white" : "bg-[#2F6BFF] text-white"
+      }`}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 /** Shared horizontal inset so top bar, logo row, and blue nav align and do not hug the viewport edges */
 const navShell =
@@ -1605,8 +1663,8 @@ const GOOGLE_PIXEL_SERIES_MODELS = [
 
 export default function Navbar() {
   const [location] = useLocation();
-  const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
+  const [menuOpen, setMenuOpen] = useState(false);
   const { totalItems: cartCount, clearCart } = useCart();
   const { user, logout } = useAuth();
   const { keys: compareKeys } = useCompare();
@@ -1614,27 +1672,27 @@ export default function Navbar() {
   const { categories: wooCategories } = useProductCatalog();
   const [activeBrandIdx, setActiveBrandIdx] = useState(0);
   const [activeFamilyIdx, setActiveFamilyIdx] = useState(0);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLang();
 
   const handleMouseEnter = (key: string) => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
     setOpenDropdown(key as DropdownKey);
   };
 
-  const handleMouseLeave = () => {
-    closeTimer.current = setTimeout(() => setOpenDropdown(null), 150);
+  const closeMenu = () => {
+    setOpenDropdown("brands");
+    setMenuOpen(false);
   };
-
-  const closeMenu = () => setOpenDropdown(null);
 
   const handleLogout = () => {
     clearCart();
     logout();
   };
 
-  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
+  useEffect(() => {
+    setMenuOpen(false);
+    setOpenDropdown("brands");
+  }, [location]);
 
   const fallbackBrandGroups = useMemo<NavBrandGroup[]>(() => {
     const brands = smartphonesColumns.flatMap((col) => col.items);
@@ -1941,436 +1999,347 @@ export default function Navbar() {
   };
 
   return (
-    <header className="w-full z-50 sticky top-0 shadow-md">
-      {/* Top bar */}
-      <div className="bg-background border-b border-border">
-        <div className={`${navShell} py-1.5 flex items-center justify-between`}>
-          <p className="text-xs text-muted-foreground hidden sm:block">{t("welcome")}</p>
-          <div className="flex items-center gap-3 ml-auto">
-            <a href="tel:+351937119295" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-              <Phone className="w-3 h-3" /> {t("phone")}
-            </a>
+    <header className="sticky top-0 z-50 w-full">
+      <div className="bg-[#0B1736] text-white">
+        <div className={`${navShell} flex items-center justify-between gap-4 py-3`}>
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={() => setLang(lang === "en" ? "pt" : "en")}
+              className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-[#2F6BFF] text-[10px] font-bold sm:flex"
+              aria-label={lang === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
+              data-testid="lang-toggle"
+            >
+              {lang.toUpperCase()}
+            </button>
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center text-white"
+              aria-expanded={menuOpen}
+              aria-label={t("header_menu")}
+              data-testid="button-nav-menu"
+              onClick={() => {
+                setMenuOpen((open) => {
+                  if (!open) setOpenDropdown("brands");
+                  return !open;
+                });
+              }}
+            >
+              {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
+            </button>
+            <Link href="/" className="flex items-center gap-0.5 shrink-0" onClick={closeMenu}>
+              <span className="font-display text-[1.65rem] font-bold leading-none tracking-wide sm:text-[1.85rem]">sam</span>
+              <span className="font-display text-[1.65rem] font-bold leading-none tracking-wide text-white/90 sm:text-[1.85rem]">phone</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
             {user ? (
-              <>
-                <Link
-                  href="/account"
-                  className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors max-w-[200px]"
-                  title={user.email}
-                >
-                  <User className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{user.email}</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  {t("auth_logout")}
-                </button>
-              </>
+              <HeaderAction
+                href="/account"
+                icon={<User className="h-5 w-5" strokeWidth={1.6} />}
+                label={t("auth_my_account")}
+              />
             ) : (
               <>
-                <Link
+                <HeaderAction
                   href="/register"
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <User className="w-3 h-3" /> {t("registration")}
-                </Link>
-                <Link
+                  icon={<UserPlus className="h-5 w-5" strokeWidth={1.6} />}
+                  label={t("header_create_account")}
+                />
+                <HeaderAction
                   href="/login"
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <LogIn className="w-3 h-3" /> {t("login")}
-                </Link>
+                  icon={<LogIn className="h-5 w-5" strokeWidth={1.6} />}
+                  label={t("header_sign_in")}
+                />
               </>
             )}
-            {/* Language toggle */}
-            <div className="flex items-center rounded-full border border-border overflow-hidden text-xs font-semibold">
-              <button
-                onClick={() => setLang("en")}
-                className={`px-2 py-0.5 transition-colors ${lang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                data-testid="lang-en"
-              >
-                EN
-              </button>
-              <button
-                onClick={() => setLang("pt")}
-                className={`px-2 py-0.5 transition-colors ${lang === "pt" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                data-testid="lang-pt"
-              >
-                PT
-              </button>
-            </div>
-            {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-6 h-6 flex items-center justify-center rounded-full border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors"
-              data-testid="button-theme-toggle"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Logo + search + cart row */}
-      <div className="bg-background border-b border-border">
-        <div className={`${navShell} py-3 flex items-center gap-4 md:gap-8`}>
-          <Link href="/" className="flex items-center gap-1 shrink-0">
-            <span className="font-display font-bold text-2xl md:text-3xl text-primary leading-none">sam</span>
-            <span className="font-display font-bold text-2xl md:text-3xl text-foreground leading-none">phone</span>
-          </Link>
-
-          <div className="flex-1 hidden md:block min-w-0">
-            <SmartSearch />
-          </div>
-
-          <div className="flex items-center gap-3 ml-auto md:ml-0">
-            <Link
-              href="/compare"
-              className="hidden md:inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <span className="relative inline-flex">
-                <GitCompare className="w-4 h-4" />
-                {compareKeys.length > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-0.5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center">
-                    {compareKeys.length}
-                  </span>
-                )}
-              </span>
-              {t("compare")}
-            </Link>
-            <Link
-              href="/wishlist"
-              className="relative hidden md:inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <span className="relative inline-flex">
-                <Heart className="w-4 h-4" />
-                {wishlistKeys.length > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-0.5 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center">
-                    {wishlistKeys.length > 99 ? "99+" : wishlistKeys.length}
-                  </span>
-                )}
-              </span>
-              {t("wishlist")}
-            </Link>
-            <Link
+            <HeaderAction
               href="/cart"
-              className="relative inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-            >
-              <span className="relative inline-flex">
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 min-w-4 h-4 px-0.5 bg-primary text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center">
-                    {cartCount > 99 ? "99+" : cartCount}
-                  </span>
-                )}
-              </span>
-              <span className="hidden sm:inline">{t("nav_cart")}</span>
-            </Link>
-            <button className="md:hidden text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              icon={<ShoppingBag className="h-5 w-5" strokeWidth={1.6} />}
+              label={t("nav_cart")}
+              badge={<CountBadge count={cartCount} />}
+            />
           </div>
+        </div>
+
+        <div className={`${navShell} pb-4`}>
+          <SmartSearch variant="header" />
         </div>
       </div>
 
-      {/* Main nav bar - blue */}
-      <nav className="bg-primary hidden md:block">
-        <div className={navShell}>
-          <div className="flex items-stretch gap-1 lg:gap-2">
-            {/* All Categories */}
-            <div
-              className="relative shrink-0"
-              onMouseEnter={() => handleMouseEnter("allCategories")}
-              onMouseLeave={handleMouseLeave}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45"
+              onClick={closeMenu}
+            />
+            <motion.nav
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.18 }}
+              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-hidden border-b border-border bg-background shadow-2xl"
             >
-              <div className="flex items-center gap-2 bg-accent px-5 py-3.5 text-accent-foreground font-semibold text-sm cursor-pointer hover:bg-accent/90 transition-colors h-full">
-                <Menu className="w-4 h-4" />
-                <span>{t("allCategories")}</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </div>
-              <AnimatePresence>
-                {openDropdown === "allCategories" && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.18 }}
-                    className="hide-dropdown-scrollbar absolute top-full left-0 z-50 max-h-[min(70vh,560px)] overflow-y-auto overscroll-contain bg-background border border-border shadow-2xl rounded-b-xl min-w-[min(560px,94vw)] max-w-[min(1100px,96vw)] p-6"
-                    onMouseEnter={() => {
-                      if (closeTimer.current) clearTimeout(closeTimer.current);
-                      if (activeBrandIdx >= brandGroups.length) setActiveBrandIdx(0);
-                    }}
-                    onMouseLeave={handleMouseLeave}
+              <div className="hide-dropdown-scrollbar overflow-x-auto border-b border-border">
+                <div className={`${navShell} flex min-w-max items-stretch gap-1 py-1`}>
+                  <button
+                    type="button"
+                    onMouseEnter={() => handleMouseEnter("brands")}
+                    onClick={() => setOpenDropdown("brands")}
+                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                      openDropdown === "brands" || openDropdown === null
+                        ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
+                        : "text-foreground/80 hover:text-foreground"
+                    }`}
                   >
-                    <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-4 pb-2 border-b border-border">
-                      {wooCategories.length > 0
-                        ? lang === "pt"
-                          ? "Marcas e categorias"
-                          : "Brands and categories"
-                        : `${t("nav_smartphones")} — ${lang === "pt" ? "Marcas e categorias" : "Brands and categories"}`}
-                    </h4>
-                    <div className="flex gap-6 items-start min-w-0">
-                      <div className="shrink-0 w-[min(200px,26vw)] border-r border-border pr-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
-                          {lang === "pt" ? "Marcas" : "Brands"}
-                        </p>
-                        <ul className="space-y-1.5">
-                          {brandGroups.map((group, idx) => (
-                            <li key={group.brand.slug}>
-                              <button
-                                type="button"
-                                onMouseEnter={() => setActiveBrandIdx(idx)}
-                                onFocus={() => setActiveBrandIdx(idx)}
-                                className={`w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                                  idx === activeBrandIdx
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                                }`}
+                    {t("allCategories")}
+                  </button>
+                  {brandGroups.slice(0, 6).map((group, idx) => (
+                    <button
+                      key={group.brand.slug}
+                      type="button"
+                      onMouseEnter={() => {
+                        handleMouseEnter("brands");
+                        setActiveBrandIdx(idx);
+                      }}
+                      onFocus={() => {
+                        setOpenDropdown("brands");
+                        setActiveBrandIdx(idx);
+                      }}
+                      onClick={() => {
+                        setOpenDropdown("brands");
+                        setActiveBrandIdx(idx);
+                      }}
+                      className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                        openDropdown === "brands" && idx === activeBrandIdx
+                          ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
+                          : "text-foreground/80 hover:text-foreground"
+                      }`}
+                    >
+                      {displayBrandLabel(group.brand.label)}
+                    </button>
+                  ))}
+                  {navLinks.filter((l) => l.href !== "/").map((link) => (
+                    <div
+                      key={link.href}
+                      className="relative"
+                      onMouseEnter={() => (link.dropdown ? handleMouseEnter(link.dropdown) : undefined)}
+                    >
+                      <Link
+                        href={link.href}
+                        onClick={closeMenu}
+                        className={`flex items-center gap-1 whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                          openDropdown === link.dropdown
+                            ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
+                            : location === link.href
+                              ? "text-[#2F6BFF]"
+                              : "text-foreground/80 hover:text-foreground"
+                        }`}
+                      >
+                        {link.label}
+                        {link.dropdown && <ChevronDown className="h-3 w-3" />}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`${navShell} hide-dropdown-scrollbar max-h-[min(62vh,560px)] overflow-y-auto py-5`}>
+                {(openDropdown === "brands" || openDropdown === null) && (
+                  <div className="flex gap-6 items-start min-w-0">
+                    <div className="w-[min(200px,32vw)] shrink-0 border-r border-border pr-3">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                        {lang === "pt" ? "Marcas" : "Brands"}
+                      </p>
+                      <ul className="space-y-1">
+                        {brandGroups.map((group, idx) => (
+                          <li key={group.brand.slug}>
+                            <button
+                              type="button"
+                              onMouseEnter={() => setActiveBrandIdx(idx)}
+                              onFocus={() => setActiveBrandIdx(idx)}
+                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                                idx === activeBrandIdx
+                                  ? "bg-[#2F6BFF]/10 text-[#2F6BFF]"
+                                  : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                              }`}
+                            >
+                              <span className="truncate">{displayBrandLabel(group.brand.label)}</span>
+                              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                        {displayBrandLabel(activeBrand?.brand.label ?? (lang === "pt" ? "Categorias" : "Categories"))}
+                      </p>
+                      {hasNestedFamilies ? (
+                        <div className="flex min-h-0 items-start gap-5">
+                          <div className="w-max min-w-[7.5rem] max-w-[14rem] shrink-0 border-r border-border pr-3">
+                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                              {lang === "pt" ? "Tipo" : "Type"}
+                            </p>
+                            <div className="flex flex-col gap-1">
+                              {(activeBrand?.items ?? []).map((family, idx) => (
+                                <button
+                                  key={`${activeBrand?.brand.slug}-${family.slug}`}
+                                  type="button"
+                                  onMouseEnter={() => setActiveFamilyIdx(idx)}
+                                  onFocus={() => setActiveFamilyIdx(idx)}
+                                  className={`max-w-full whitespace-normal break-words rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                                    idx === activeFamilyIdx
+                                      ? "bg-[#2F6BFF]/10 text-[#2F6BFF]"
+                                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
+                                  }`}
+                                >
+                                  {family.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="hide-dropdown-scrollbar min-w-0 flex-1 overflow-y-auto overscroll-contain pl-0.5 max-h-[min(52vh,440px)]">
+                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
+                              {lang === "pt" ? "Modelos" : "Models"}
+                            </p>
+                            <div className="flex flex-col gap-1.5">
+                              {(activeFamily?.children ?? []).map((model, midx) => (
+                                <Link
+                                  key={`${activeBrand?.brand.slug}-${activeFamily?.slug}-${midx}-${model.slug}`}
+                                  href={
+                                    model.href ??
+                                    `/model/${catalogBrandForModelRoutes(activeBrand?.brand.slug ?? "")}/${activeFamily?.slug}/${model.slug}`
+                                  }
+                                  onClick={closeMenu}
+                                  className="block py-1 text-sm text-foreground/75 transition-colors hover:text-[#2F6BFF] break-words"
+                                >
+                                  {model.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-x-5 gap-y-1.5 lg:grid-cols-3">
+                          {(activeBrand?.items ?? []).map((item) => (
+                            <Link
+                              key={`${activeBrand?.brand.slug}-${item.slug}`}
+                              href={item.href ?? `/category/${item.slug}`}
+                              onClick={closeMenu}
+                              className="block py-1 text-sm text-foreground/75 transition-colors hover:text-[#2F6BFF]"
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {openDropdown && dropdownColumns[openDropdown] && (
+                  <div className={`grid gap-6 ${dropdownColumns[openDropdown].length >= 4 ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-5" : "grid-cols-2 sm:grid-cols-3"}`}>
+                    {dropdownColumns[openDropdown].map((col) => (
+                      <div key={col.title}>
+                        <h4 className="mb-3 border-b border-border pb-2 font-display text-xs font-bold uppercase tracking-wider text-foreground">
+                          {col.title}
+                        </h4>
+                        <ul className="space-y-2">
+                          {col.items.map((item) => (
+                            <li key={item.slug}>
+                              <Link
+                                href={`/category/${item.slug}`}
+                                onClick={closeMenu}
+                                className="block text-sm text-foreground/70 transition-colors hover:text-[#2F6BFF]"
                               >
-                                <span className="truncate">{group.brand.label}</span>
-                                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                              </button>
+                                {item.label}
+                              </Link>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
-                          {activeBrand?.brand.label ?? (lang === "pt" ? "Categorias" : "Categories")}
-                        </p>
-                        {hasNestedFamilies ? (
-                          <div className="flex gap-5 items-start min-h-0">
-                            <div
-                              className="shrink-0 w-max min-w-[7.5rem] max-w-[14rem] border-r border-border pr-3"
-                              onMouseEnter={() => {
-                                if (closeTimer.current) clearTimeout(closeTimer.current);
-                              }}
-                            >
-                              <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
-                                {lang === "pt" ? "Tipo" : "Type"}
-                              </p>
-                              <div className="flex flex-col gap-1">
-                                {(activeBrand?.items ?? []).map((family, idx) => (
-                                  <button
-                                    key={`${activeBrand?.brand.slug}-${family.slug}`}
-                                    type="button"
-                                    onMouseEnter={() => setActiveFamilyIdx(idx)}
-                                    onFocus={() => setActiveFamilyIdx(idx)}
-                                    className={`max-w-full text-left rounded-lg px-2.5 py-2 text-sm transition-colors whitespace-normal break-words ${
-                                      idx === activeFamilyIdx
-                                        ? "bg-primary/10 text-primary"
-                                        : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                                    }`}
-                                  >
-                                    {family.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                            <div
-                              className="hide-dropdown-scrollbar flex-1 min-w-0 max-h-[min(58vh,480px)] overflow-y-auto overscroll-contain pl-0.5"
-                              onMouseEnter={() => {
-                                if (closeTimer.current) clearTimeout(closeTimer.current);
-                              }}
-                            >
-                              <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground/60 mb-2">
-                                {lang === "pt" ? "Modelos" : "Models"}
-                              </p>
-                              <div className="flex flex-col gap-1.5">
-                                {(activeFamily?.children ?? []).map((model, midx) => (
-                                  <Link
-                                    key={`${activeBrand?.brand.slug}-${activeFamily?.slug}-${midx}-${model.slug}`}
-                                    href={
-                                      model.href ??
-                                      `/model/${catalogBrandForModelRoutes(activeBrand?.brand.slug ?? "")}/${activeFamily?.slug}/${model.slug}`
-                                    }
-                                    onClick={closeMenu}
-                                    className="text-sm text-foreground/75 hover:text-primary transition-colors block py-1 break-words"
-                                  >
-                                    {model.label}
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-1.5">
-                            {(activeBrand?.items ?? []).map((item) => (
-                              <Link
-                                key={`${activeBrand?.brand.slug}-${item.slug}`}
-                                href={item.href ?? `/category/${item.slug}`}
-                                onClick={closeMenu}
-                                className="text-sm text-foreground/75 hover:text-primary transition-colors block py-1"
-                              >
-                                {item.label}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
+                    ))}
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
 
-            {/* Nav links */}
-            <div className="flex items-stretch flex-1 min-w-0 justify-start">
-              {navLinks.map((link) => (
-                <div
-                  key={link.href}
-                  className="relative"
-                  onMouseEnter={() => link.dropdown ? handleMouseEnter(link.dropdown) : undefined}
-                  onMouseLeave={link.dropdown ? handleMouseLeave : undefined}
-                >
+                <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-4">
                   <Link
-                    href={link.href}
-                    className={`flex items-center gap-1 px-3 lg:px-4 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors text-primary-foreground hover:bg-primary-foreground/10 ${location === link.href ? "bg-primary-foreground/15" : ""}`}
+                    href="/wishlist"
+                    onClick={closeMenu}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
                   >
-                    {link.label}
-                    {link.dropdown && <ChevronDown className="w-3 h-3 ml-0.5" />}
+                    <span className="relative">
+                      <Heart className="h-4 w-4" />
+                      <CountBadge count={wishlistKeys.length} tone="danger" />
+                    </span>
+                    {t("wishlist")}
                   </Link>
-
-                  <AnimatePresence>
-                    {link.dropdown && openDropdown === link.dropdown && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.18 }}
-                        className="absolute top-full left-0 z-50 bg-background border border-border shadow-2xl rounded-b-xl min-w-[600px] p-6"
-                        onMouseEnter={() => { if (closeTimer.current) clearTimeout(closeTimer.current); }}
-                        onMouseLeave={handleMouseLeave}
-                      >
-                        <div className={`grid gap-6 ${dropdownColumns[link.dropdown].length >= 4 ? "grid-cols-4 lg:grid-cols-5" : "grid-cols-3"}`}>
-                          {dropdownColumns[link.dropdown].map((col) => (
-                            <div key={col.title}>
-                              <h4 className="font-display font-bold text-foreground text-xs uppercase tracking-wider mb-3 pb-2 border-b border-border">{col.title}</h4>
-                              <ul className="space-y-2">
-                                {col.items.map((item) => (
-                                  <li key={item.slug}>
-                                    <Link href={`/category/${item.slug}`} onClick={closeMenu} className="text-sm text-foreground/70 hover:text-primary transition-colors block">
-                                      {item.label}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background border-b border-border overflow-hidden"
-          >
-            <div className="px-5 sm:px-8 py-4 flex flex-col gap-1 max-w-[1600px] mx-auto">
-              <div className="mb-3">
-                <SmartSearch compact />
-              </div>
-              <div className="flex items-center gap-3 mb-2 px-1">
-                <div className="flex items-center rounded-full border border-border overflow-hidden text-xs font-semibold">
-                  <button onClick={() => setLang("en")} className={`px-2 py-0.5 ${lang === "en" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>EN</button>
-                  <button onClick={() => setLang("pt")} className={`px-2 py-0.5 ${lang === "pt" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>PT</button>
-                </div>
-                <button onClick={toggleTheme} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
-                  {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  {theme === "dark" ? "Light" : "Dark"}
-                </button>
-              </div>
-              <div className="flex flex-col gap-1 mb-3 border-b border-border pb-3">
-                {user ? (
-                  <>
-                    <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="flex flex-col gap-0.5 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted">
-                      <span className="flex items-center gap-2">
-                        <User className="w-4 h-4 shrink-0" /> {t("auth_my_account")}
-                      </span>
-                      <span className="text-xs font-normal text-muted-foreground truncate pl-6">{user.email}</span>
-                    </Link>
+                  <Link
+                    href="/compare"
+                    onClick={closeMenu}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
+                  >
+                    <span className="relative">
+                      <GitCompare className="h-4 w-4" />
+                      <CountBadge count={compareKeys.length} />
+                    </span>
+                    {t("compare")}
+                  </Link>
+                  <a
+                    href="tel:+351937119295"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
+                  >
+                    <Phone className="h-4 w-4" /> {t("phone")}
+                  </a>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
+                    data-testid="button-theme-toggle"
+                  >
+                    {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    {theme === "dark" ? "Light" : "Dark"}
+                  </button>
+                  <div className="inline-flex overflow-hidden rounded-full border border-border text-xs font-semibold sm:hidden">
+                    <button
+                      type="button"
+                      onClick={() => setLang("en")}
+                      className={`px-2 py-0.5 ${lang === "en" ? "bg-[#2F6BFF] text-white" : "text-muted-foreground"}`}
+                    >
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLang("pt")}
+                      className={`px-2 py-0.5 ${lang === "pt" ? "bg-[#2F6BFF] text-white" : "text-muted-foreground"}`}
+                    >
+                      PT
+                    </button>
+                  </div>
+                  {user ? (
                     <button
                       type="button"
                       onClick={() => {
                         handleLogout();
-                        setMobileMenuOpen(false);
+                        closeMenu();
                       }}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted text-left"
+                      className="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
                     >
                       {t("auth_logout")}
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted">
-                      <User className="w-4 h-4" /> {t("registration")}
-                    </Link>
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted">
-                      <LogIn className="w-4 h-4" /> {t("login")}
-                    </Link>
-                  </>
-                )}
+                  ) : null}
+                </div>
               </div>
-              <div className="mb-2 flex flex-col gap-1 border-b border-border pb-3">
-                <Link
-                  href="/cart"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShoppingCart className="h-4 w-4" /> {t("nav_cart")}
-                  </span>
-                  {cartCount > 0 && (
-                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{cartCount > 99 ? "99+" : cartCount}</span>
-                  )}
-                </Link>
-                <Link
-                  href="/wishlist"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
-                >
-                  <span className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" /> {t("wishlist")}
-                  </span>
-                  {wishlistKeys.length > 0 && (
-                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{wishlistKeys.length}</span>
-                  )}
-                </Link>
-                <Link
-                  href="/compare"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
-                >
-                  <span className="flex items-center gap-2">
-                    <GitCompare className="h-4 w-4" /> {t("compare")}
-                  </span>
-                  {compareKeys.length > 0 && (
-                    <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">{compareKeys.length}</span>
-                  )}
-                </Link>
-              </div>
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted transition-colors">
-                  {link.label}
-                  {link.dropdown && <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                </Link>
-              ))}
-            </div>
-          </motion.div>
+            </motion.nav>
+          </>
         )}
       </AnimatePresence>
     </header>

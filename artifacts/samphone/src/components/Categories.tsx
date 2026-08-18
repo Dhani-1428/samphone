@@ -53,22 +53,19 @@ export default function Categories() {
   };
 
   return (
-    <section id="categories" className="py-20 bg-background">
-      <div className="container mx-auto px-4 md:px-6">
+    <section id="categories" className="py-8 md:py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           ref={ref}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="mb-6 text-left"
         >
-          <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            {copy.badge}
-          </span>
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-navy md:text-[2rem] mb-2">
             {copy.title}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+          <p className="text-muted-foreground text-sm max-w-xl">
             {copy.sub}
           </p>
         </motion.div>

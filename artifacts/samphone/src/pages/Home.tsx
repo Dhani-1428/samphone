@@ -4,28 +4,28 @@ import TrustBadges from "@/components/TrustBadges";
 import Categories from "@/components/Categories";
 import Products from "@/components/Products";
 import DeviceSearch from "@/components/DeviceSearch";
-import HomeBanner from "@/components/HomeBanner";
 import Reviews from "@/components/Reviews";
 import Deals from "@/components/Deals";
 import AccessoriesBanner from "@/components/AccessoriesBanner";
 import About from "@/components/About";
 import RecentlyViewedSection from "@/components/RecentlyViewedSection";
 import RecommendedSection from "@/components/RecommendedSection";
+import HomeCutoff from "@/components/HomeCutoff";
 
 export default function Home() {
   return (
     <>
       <Hero />
       <HomeNewArrivals />
-      <TrustBadges />
-      <Categories />
-      <Deals />
-      <AccessoriesBanner />
-      <DeviceSearch />
       <Products />
       <RecommendedSection />
       <RecentlyViewedSection />
-      <HomeBanner />
+      <Categories />
+      <HomeCutoff />
+      <TrustBadges />
+      <Deals />
+      <AccessoriesBanner />
+      <DeviceSearch />
       <Reviews />
       <About />
     </>

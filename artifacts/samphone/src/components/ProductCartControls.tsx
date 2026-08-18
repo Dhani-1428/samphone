@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Lock, Minus, Plus, ShoppingCart } from "lucide-react";
+import { Lock, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -126,7 +126,7 @@ export default function ProductCartControls({
           size="icon"
           className={cn(
             variant === "icon-stepper"
-              ? "h-9 w-9 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              ? "h-9 w-9 shrink-0 rounded-md bg-[#2F6BFF] hover:bg-[#1f5aee] text-white shadow-none"
               : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
             buttonClassName,
           )}
@@ -138,7 +138,7 @@ export default function ProductCartControls({
           aria-label={t("addToCart")}
           data-testid={`add-cart-${cartKey}`}
         >
-          <ShoppingCart className={variant === "icon-stepper" ? "w-[18px] h-[18px]" : "w-5 h-5"} />
+          <ShoppingBag className={variant === "icon-stepper" ? "w-[18px] h-[18px]" : "w-5 h-5"} />
         </Button>
       );
     }

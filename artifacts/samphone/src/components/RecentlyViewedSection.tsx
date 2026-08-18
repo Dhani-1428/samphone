@@ -10,10 +10,10 @@ export default function RecentlyViewedSection() {
   if (products.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16 bg-background border-b border-border/70">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between gap-4 mb-8">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+    <section className="py-8 md:py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className="font-display text-2xl font-bold text-navy md:text-[2rem]">
             {t("recently_viewed_title")}
           </h2>
           <Link

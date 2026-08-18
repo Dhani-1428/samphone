@@ -1,24 +1,14 @@
-import { Star, Heart } from "lucide-react";
-import { Link } from "wouter";
-import { useState } from "react";
-import { Lens } from "@/components/ui/lens";
+import { Heart } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import ProductCartControls from "@/components/ProductCartControls";
-import GuestPriceGate from "@/components/GuestPriceGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
-
-const badgeColors: Record<string, string> = {
-  Bestseller: "bg-amber-500 text-white",
-  New: "bg-emerald-500 text-white",
-  Sale: "bg-red-500 text-white",
-  Hot: "bg-orange-500 text-white",
-};
+import { useLang } from "@/contexts/LanguageContext";
 
 export interface ProductCardProps {
   id: number;
   cartKey: string;
-  /** Used for brand filters on listing pages; not rendered on the card */
   brand?: string;
   name: string;
   subtitle?: string;
@@ -35,92 +25,67 @@ export interface ProductCardProps {
 export default function ProductCard({
   id,
   cartKey,
-  brand: _brand,
   name,
-  subtitle,
   price,
-  oldPrice,
-  rating,
-  reviews,
   img,
   badge,
-  buttonColor = "bg-primary hover:bg-primary/90 text-primary-foreground",
   testPrefix = "product",
 }: ProductCardProps) {
   const { user } = useAuth();
+  const { t } = useLang();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
+  const [loc] = useLocation();
   const wishlisted = wishHas(cartKey);
-  const [hovering, setHovering] = useState(false);
   const productHref = hrefForCartKey(cartKey);
+  const loginHref = `/login?next=${encodeURIComponent(loc)}`;
 
   return (
-    <div
-      className="group bg-card border border-border rounded-2xl overflow-hidden flex flex-col"
+    <article
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/[0.04]"
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted">
-        {badge && (
-          <span
-            className={`absolute top-2 left-2 z-20 text-xs font-bold px-2 py-0.5 rounded-full ${badgeColors[badge] ?? "bg-gray-500 text-white"}`}
-          >
-            {badge}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            wishToggle(cartKey);
-          }}
-          className="absolute top-2 right-2 z-30 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          data-testid={`button-wishlist-${testPrefix}-${id}`}
-        >
-          <Heart
-            className={`w-3.5 h-3.5 ${wishlisted ? "fill-red-500 text-red-500" : "text-foreground"}`}
-          />
-        </button>
-        <Link href={productHref} className="block relative z-10 h-full w-full">
-          <Lens hovering={hovering} setHovering={setHovering} zoomFactor={1.6} lensSize={145}>
-            <img
-              src={img}
-              alt={name}
-              className={`w-full h-full object-cover transition-transform duration-300 ${hovering ? "scale-105" : "scale-100"}`}
-            />
-          </Lens>
-        </Link>
-      </div>
-
-      <div className="p-3 flex flex-col flex-1">
-        <Link href={productHref} className="text-left hover:opacity-90 transition-opacity">
-          {subtitle && <p className="text-xs text-muted-foreground mb-1">{subtitle}</p>}
-          <h3 className="font-semibold text-foreground text-sm leading-snug mb-2 line-clamp-2">{name}</h3>
-        </Link>
-        <div className="flex items-center gap-1 mb-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={i}
-              className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-muted"}`}
-            />
-          ))}
-          <span className="text-xs text-muted-foreground">({reviews})</span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          wishToggle(cartKey);
+        }}
+        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+        data-testid={`button-wishlist-${testPrefix}-${id}`}
+      >
+        <Heart className={`h-4 w-4 ${wishlisted ? "fill-red-500 text-red-500" : "text-navy"}`} />
+      </button>
+      <div className="px-3 pt-3">
+        <div className="mb-2 min-h-[1.25rem]">
+          {badge ? (
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+              {badge === "New" ? t("badge_new") : badge}
+            </span>
+          ) : null}
         </div>
-        {user ? (
-          <>
-            <div className="flex items-center gap-2 mb-3 mt-auto">
-              <span className="font-display font-bold text-foreground">€{price.toFixed(2)}</span>
-              {oldPrice != null && oldPrice !== undefined && (
-                <span className="text-xs text-muted-foreground line-through">€{oldPrice.toFixed(2)}</span>
-              )}
-            </div>
-            <ProductCartControls cartKey={cartKey} buttonClassName={buttonColor} size="sm" />
-          </>
-        ) : (
-          <div className="mt-auto">
-            <GuestPriceGate variant="card" />
-          </div>
-        )}
+        <Link href={productHref} className="block aspect-square">
+          <img src={img} alt={name} className="h-full w-full object-contain" />
+        </Link>
       </div>
-    </div>
+      <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
+        {user ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-lg font-bold tabular-nums text-navy">€{price.toFixed(2).replace(".", ",")}</span>
+            <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
+          </div>
+        ) : (
+          <Link
+            href={loginHref}
+            className="flex h-10 items-center justify-center rounded-md bg-[#2F6BFF] text-sm font-semibold text-white hover:bg-[#1f5aee]"
+          >
+            {t("login_for_price")}
+          </Link>
+        )}
+        <Link href={productHref} className="mt-auto block">
+          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-navy">{name}</h3>
+        </Link>
+      </div>
+    </article>
   );
 }
