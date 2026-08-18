@@ -1228,72 +1228,106 @@ const ONEPLUS_NORD_SERIES_MODELS = [
   "OnePlus Nord",
 ];
 
-const MOTOROLA_SERIES_MODELS = [
-  "Motorola G 5G",
-  "Motorola G 5G PLUS",
-  "Motorola G PLAY 2021 XT2093",
-  "Motorola G5S",
-  "Motorola G5S PLUS",
-  "Motorola G6 PLAY",
-  "Motorola G6 PLUS",
-  "Motorola G7 POWER",
-  "Motorola G7 PLAY XT1952",
-  "Motorola G7 XT1962 / G7 PLUS XT1965",
-  "Motorola G8",
-  "Motorola G8 PLUS XT2019",
-  "Motorola G8 POWER XT2041",
-  "Motorola G8 PLAY XT2015-2 / ONE MARCO",
-  "Motorola G9 POWER XT2091-3",
-  "Motorola G9 PLUS",
-  "Motorola G04 / G24 / G24 Power",
-  "Motorola G10 XT2127-2 / G30",
-  "Motorola G13",
-  "Motorola G14 / G54",
-  "Motorola G20 XT2128-1 / XT2128-2",
-  "Motorola E32 / E32S",
-  "Motorola E30 (XT2158-6 XT2159-2)",
-  "Motorola ONE / P30 PLAY / XT1941",
-  "Motorola ONE FUSION",
-  "Motorola ONE FUSION PLUS",
-  "Motorola MOTO ONE ACTION",
-  "Motorola EDGE 20 / EDGE 20 PRO",
-  "Motorola EDGE 30 FUSION",
-  "Motorola EDGE 20 LITE",
-  "Motorola ONE HYPER XT2027-1",
-  "Motorola EDGE 50",
-  "Motorola EDGE 50 NEO",
-  "Motorola EDGE 50 PRO",
-  "Motorola EDGE 50 FUSION",
-  "Motorola EDGE 50 ULTRA",
-  "Motorola G53 5G",
-  "Motorola G51 5G / G60 / G60S XT2133-2",
-  "Motorola G50 4G XT2137-1 / XT2137-2",
-  "Motorola G34 5G XT2363-2",
-  "Motorola G31 / G41 / G71 5G",
-  "Motorola MOTO G23",
-  "Motorola MOTO E22 / E22i (XT2239)",
-  "Motorola E20 (XT-2155 / XT2155-3)",
-  "Motorola E15",
-  "Motorola E14 (2024)",
-  "Motorola E13 4G (2023)",
-  "Motorola E7 PLUS / G9 PLAY",
-  "Motorola E7 POWER",
-  "Motorola E7 / E7 2020",
-  "Motorola E6 PLUS",
-  "Motorola E5",
-  "Motorola G200 5G",
-  "Motorola G100",
-  "Motorola G85 5G",
-  "Motorola G84 5G",
-  "Motorola G73 5G",
-  "Motorola G62 5G",
-  "Motorola G52 XT2221",
-  "Motorola G50 5G XT2149-1",
-  "Motorola G42",
-  "Motorola G32",
-  "Motorola G30 XT2129-1 / XT2129-2",
-  "Motorola G22 / E32S / E32",
+const MOTOROLA_RAZR_MODELS = [
+  "Razr 70 Ultra",
+  "Razr 70 Plus",
+  "Razr 70",
+  "Razr 60 Ultra",
+  "Razr 60",
+  "Razr 50 Ultra",
+  "Razr 50",
+  "Razr 40 Ultra",
+  "Razr 40",
 ];
+
+const MOTOROLA_EDGE_MODELS = [
+  "Edge 70 Fusion",
+  "Edge 70 Pro",
+  "Edge 70",
+  "Edge 60 Fusion",
+  "Edge 60 Neo",
+  "Edge 60",
+  "Edge 50 Ultra",
+  "Edge 50 Fusion",
+  "Edge 50 Pro",
+  "Edge 50",
+  "Edge 50 Neo",
+  "Edge 40",
+  "Edge 40 Neo",
+  "Edge 30 Ultra",
+  "Edge 30 Fusion",
+  "Edge 30",
+  "Edge 30 Neo",
+  "Edge 20 Lite",
+  "Edge 2020",
+];
+
+const MOTOROLA_G_MODELS = [
+  "G87 5G",
+  "G86 Power 5G",
+  "G86 5G",
+  "G85 5G",
+  "G84 5G",
+  "G82 5G",
+  "G77 5G",
+  "G73 5G",
+  "G72",
+  "G67 5G",
+  "G62 5G",
+  "G57 Power",
+  "G56 5G",
+  "G55 5G",
+  "G54 5G",
+  "G53 5G",
+  "G52",
+  "G50 (XT2137)",
+  "G42",
+  "G41",
+  "G37 Power",
+  "G37",
+  "G35 5G",
+  "G34 5G",
+  "G32",
+  "G31",
+  "G30",
+  "G24",
+  "G23",
+  "G22",
+  "G17 Power",
+  "G17",
+  "G15",
+  "G14",
+  "G13",
+  "G10",
+  "G06 Power",
+  "G06",
+  "G05",
+  "G04s",
+  "G04",
+  "G 5G Plus",
+  "G9 Play",
+  "G9 Power",
+  "G9 Plus",
+  "G8 Power (XT2041-3)",
+  "G8 Power Lite (XT2055)",
+  "G8 Plus (XT2019)",
+];
+
+const MOTOROLA_E_MODELS = [
+  "E40",
+  "E32s",
+  "E32",
+  "E22i",
+  "E22",
+  "E20",
+  "E15",
+  "E13",
+  "E7i Power",
+  "E7",
+  "E6 Plus",
+];
+
+const MOTOROLA_THINKPHONE_MODELS = ["ThinkPhone 25"];
 
 const ALCATEL_SERIES_MODELS = [
   "Alcatel 1B 2022 5031",
@@ -1776,13 +1810,16 @@ function BrandMegaPanel({
   return (
     <div className={`${navShell} py-6`}>
       {families.length > 0 ? (
-        <div className="columns-1 gap-x-10 sm:columns-2 lg:columns-3 xl:columns-5">
+        <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 xl:grid-cols-5">
           {families.map((family) => (
-            <div key={`${brand.brand.slug}-${family.slug}`} className="mb-8 break-inside-avoid">
+            <div
+              key={`${brand.brand.slug}-${family.slug}`}
+              className="border-b border-r border-black/[0.06] px-4 py-4"
+            >
               <div className="mb-3 inline-flex rounded-full bg-[#EEF1F4] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
                 {family.label}
               </div>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {(family.children ?? []).map((model, midx) => (
                   <li key={`${family.slug}-${midx}-${model.slug}`}>
                     <Link
@@ -2102,9 +2139,29 @@ export default function Navbar() {
           : base.toLowerCase() === "motorola"
             ? [
                 {
-                  label: "Motorola series",
-                  slug: "motorola-series",
-                  children: makeFamilyChildren(b.slug, "motorola-series", MOTOROLA_SERIES_MODELS),
+                  label: "Razr",
+                  slug: "razr",
+                  children: makeFamilyChildren(b.slug, "razr", MOTOROLA_RAZR_MODELS),
+                },
+                {
+                  label: "Edge",
+                  slug: "edge",
+                  children: makeFamilyChildren(b.slug, "edge", MOTOROLA_EDGE_MODELS),
+                },
+                {
+                  label: "Moto G",
+                  slug: "moto-g",
+                  children: makeFamilyChildren(b.slug, "moto-g", MOTOROLA_G_MODELS),
+                },
+                {
+                  label: "Moto E",
+                  slug: "moto-e",
+                  children: makeFamilyChildren(b.slug, "moto-e", MOTOROLA_E_MODELS),
+                },
+                {
+                  label: "ThinkPhone",
+                  slug: "thinkphone",
+                  children: makeFamilyChildren(b.slug, "thinkphone", MOTOROLA_THINKPHONE_MODELS),
                 },
               ]
           : base.toLowerCase() === "alcatel"
