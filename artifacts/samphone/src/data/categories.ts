@@ -81,6 +81,7 @@ export const smartphonesColumns: CategoryColumn[] = [
       { label: "iPhone Parts", slug: "iphone-parts" },
       { label: "Samsung Parts", slug: "samsung-parts" },
       { label: "Xiaomi Parts", slug: "xiaomi-parts" },
+      { label: "Honor Parts", slug: "honor-parts" },
       { label: "Oppo Reno Parts", slug: "oppo-reno-parts" },
       { label: "Realme Parts", slug: "realme-parts" },
       { label: "Huawei Parts", slug: "huawei-parts" },

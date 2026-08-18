@@ -109,7 +109,7 @@ function catalogBrandForModelRoutes(partsSlug: string): string {
   const s = partsSlug.toLowerCase();
   if (s === "iphone-parts") return "iphone";
   if (s === "samsung-parts") return "samsung";
-  if (s === "xiaomi-parts") return "xiaomi";
+  if (s === "honor-parts") return "honor";
   return s.replace(/-parts$/i, "") || s;
 }
 
@@ -1038,6 +1038,85 @@ const HUAWEI_HONOR_SERIES_MODELS = [
   "Huawei Honor 400 Smart",
 ];
 
+const HONOR_MAGIC_MODELS = [
+  "Honor Magic",
+  "Honor Magic8 Pro",
+  "Honor Magic8 Lite",
+  "Honor Magic7 Pro",
+  "Honor Magic7 Lite",
+  "Honor Magic6 Pro",
+  "Honor Magic6 Lite",
+  "Honor Magic5 Pro",
+  "Honor Magic5 Lite",
+  "Honor Magic4 Pro",
+  "Honor Magic4 Lite 5G",
+  "Honor Magic4 Lite 4G",
+  "Honor Magic V5",
+  "Honor Magic V3",
+];
+
+const HONOR_N_MODELS = [
+  "Honor 600 Smart",
+  "Honor 600 Lite",
+  "Honor 600 Pro",
+  "Honor 600",
+  "Honor 400 Smart 5G",
+  "Honor 400 Smart 4G",
+  "Honor 400 Pro",
+  "Honor 400 Lite",
+  "Honor 400",
+  "Honor 200 Pro",
+  "Honor 200",
+  "Honor 200 Smart",
+  "Honor 200 Lite",
+  "Honor 90",
+  "Honor 90 Smart",
+  "Honor 90 Lite",
+  "Honor 70",
+  "Honor 70 Lite",
+  "Honor 50",
+  "Honor 50 Lite",
+  "Honor 20 Pro",
+  "Honor 20",
+  "Honor 20 Lite",
+  "Honor 10",
+  "Honor 10 Lite",
+  "Honor 9X Pro",
+  "Honor 9X Lite",
+  "Honor 9X",
+  "Honor 9A",
+  "Honor 9",
+  "Honor 9 Lite",
+  "Honor 8X",
+  "Honor 8S",
+  "Honor 8A",
+  "Honor 8",
+  "Honor 8 Lite",
+  "Honor 7X",
+  "Honor 7S",
+  "Honor 6X",
+];
+
+const HONOR_X_MODELS = [
+  "Honor X",
+  "Honor X8b",
+  "Honor X8a",
+  "Honor X8 5G",
+  "Honor X8",
+  "Honor X7b",
+  "Honor X7a",
+  "Honor X7",
+  "Honor X6b",
+  "Honor X6a",
+  "Honor X6",
+];
+
+const HONOR_AUTRES_MODELS = [
+  "Honor View 20",
+  "Honor View 10",
+  "Honor Play",
+];
+
 const HUAWEI_MATE_SERIES_MODELS = [
   "Huawei Mate 30",
   "Huawei Mate 30 Lite",
@@ -1902,6 +1981,29 @@ export default function Navbar() {
                   label: "Narzo series",
                   slug: "narzo-series",
                   children: makeFamilyChildren(b.slug, "narzo-series", REALME_NARZO_SERIES_MODELS),
+                },
+              ]
+          : base.toLowerCase() === "honor"
+            ? [
+                {
+                  label: "Honor Magic",
+                  slug: "magic",
+                  children: makeFamilyChildren(b.slug, "magic", HONOR_MAGIC_MODELS),
+                },
+                {
+                  label: "Honor N",
+                  slug: "n-series",
+                  children: makeFamilyChildren(b.slug, "n-series", HONOR_N_MODELS),
+                },
+                {
+                  label: "Honor X",
+                  slug: "x-series",
+                  children: makeFamilyChildren(b.slug, "x-series", HONOR_X_MODELS),
+                },
+                {
+                  label: "Autres",
+                  slug: "autres",
+                  children: makeFamilyChildren(b.slug, "autres", HONOR_AUTRES_MODELS),
                 },
               ]
           : base.toLowerCase() === "huawei"
