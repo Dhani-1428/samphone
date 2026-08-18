@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, ChevronDown, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, ChevronRight, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { accessoriesColumns, smartphonesColumns, cardsColumns } from "@/data/categories";
+import { smartphonesColumns } from "@/data/categories";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildWooBrandGroups, type NavBrandGroup } from "@/lib/woo-category-nav";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -84,6 +84,24 @@ function slugifyModelLabel(label: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
+}
+
+function isNewNavModel(label: string) {
+  return /\b(iPhone 17|2025|2026|Series 11|Series 10)\b/i.test(label);
+}
+
+function partitionIpadModels(models: string[]) {
+  const pro: string[] = [];
+  const mini: string[] = [];
+  const air: string[] = [];
+  const rest: string[] = [];
+  for (const m of models) {
+    if (/\bmini\b/i.test(m)) mini.push(m);
+    else if (/\bair\b/i.test(m)) air.push(m);
+    else if (/\bpro\b/i.test(m)) pro.push(m);
+    else rest.push(m);
+  }
+  return { pro, mini, air, rest };
 }
 
 /** Map Woo / nav category slug (e.g. iphone-parts) to :brand segment used by ModelCatalogPage. */
@@ -192,6 +210,8 @@ const IPAD_MODELS = [
   "iPad 2",
   "iPad 1",
 ];
+
+const IPAD_BY_FAMILY = partitionIpadModels(IPAD_MODELS);
 
 const IWATCH_MODELS = [
   "Apple Watch Series 9 45mm",
@@ -1661,6 +1681,69 @@ const GOOGLE_PIXEL_SERIES_MODELS = [
   "Google Pixel 4A 5G",
 ];
 
+function BrandMegaPanel({
+  brand,
+  onClose,
+}: {
+  brand: NavBrandGroup | null;
+  onClose: () => void;
+}) {
+  if (!brand) return null;
+  const families = brand.items.filter((item) => (item.children?.length ?? 0) > 0);
+  const looseItems = brand.items.filter((item) => !(item.children?.length ?? 0));
+  const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
+
+  return (
+    <div className={`${navShell} py-6`}>
+      {families.length > 0 ? (
+        <div className="columns-1 gap-x-10 sm:columns-2 lg:columns-3 xl:columns-5">
+          {families.map((family) => (
+            <div key={`${brand.brand.slug}-${family.slug}`} className="mb-8 break-inside-avoid">
+              <div className="mb-3 inline-flex rounded-full bg-[#EEF1F4] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
+                {family.label}
+              </div>
+              <ul className="space-y-2.5">
+                {(family.children ?? []).map((model, midx) => (
+                  <li key={`${family.slug}-${midx}-${model.slug}`}>
+                    <Link
+                      href={
+                        model.href ??
+                        `/model/${brandRoute}/${family.slug}/${model.slug}`
+                      }
+                      onClick={onClose}
+                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                    >
+                      <span>{model.label}</span>
+                      {isNewNavModel(model.label) ? (
+                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                          NEW
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
+          {looseItems.map((item) => (
+            <Link
+              key={item.slug}
+              href={item.href ?? `/category/${item.slug}`}
+              onClick={onClose}
+              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
@@ -1671,13 +1754,8 @@ export default function Navbar() {
   const { keys: wishlistKeys } = useWishlist();
   const { categories: wooCategories } = useProductCatalog();
   const [activeBrandIdx, setActiveBrandIdx] = useState(0);
-  const [activeFamilyIdx, setActiveFamilyIdx] = useState(0);
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLang();
-
-  const handleMouseEnter = (key: string) => {
-    setOpenDropdown(key as DropdownKey);
-  };
 
   const closeMenu = () => {
     setOpenDropdown("brands");
@@ -1704,19 +1782,34 @@ export default function Navbar() {
         items: isIphone
           ? [
               {
-                label: "iPhones",
+                label: "iPhone",
                 slug: "iphones",
                 children: makeFamilyChildren(b.slug, "iphones", IPHONE_MODELS),
               },
               {
-                label: "iPad",
-                slug: "ipad",
-                children: makeFamilyChildren(b.slug, "ipad", IPAD_MODELS),
-              },
-              {
-                label: "iWatch",
+                label: "Apple Watch",
                 slug: "iwatch",
                 children: makeFamilyChildren(b.slug, "iwatch", IWATCH_MODELS),
+              },
+              {
+                label: "iPad Pro",
+                slug: "ipad-pro",
+                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.pro),
+              },
+              {
+                label: "iPad mini",
+                slug: "ipad-mini",
+                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.mini),
+              },
+              {
+                label: "iPad",
+                slug: "ipad",
+                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.rest),
+              },
+              {
+                label: "iPad Air",
+                slug: "ipad-air",
+                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.air),
               },
             ]
           : base.toLowerCase() === "samsung"
@@ -1974,29 +2067,6 @@ export default function Navbar() {
   }, [wooCategories, fallbackBrandGroups]);
 
   const activeBrand = brandGroups[activeBrandIdx] ?? brandGroups[0] ?? null;
-  const hasNestedFamilies = (activeBrand?.items ?? []).some((item) => (item.children?.length ?? 0) > 0);
-  const activeFamily = hasNestedFamilies
-    ? activeBrand?.items[activeFamilyIdx] ?? activeBrand?.items[0]
-    : null;
-
-  useEffect(() => {
-    setActiveFamilyIdx(0);
-  }, [activeBrandIdx]);
-
-  const navLinks = [
-    { label: t("nav_home"), href: "/" },
-    { label: t("nav_accessories"), href: "/accessories", dropdown: "accessories" },
-    { label: t("nav_smartphones"), href: "/smartphones" },
-    { label: t("nav_cards"), href: "/cards", dropdown: "cards" },
-    { label: t("nav_new"), href: "/new" },
-    { label: t("nav_multibrand"), href: "/multi-brand" },
-    { label: t("nav_contact"), href: "/contact" },
-  ];
-
-  const dropdownColumns: Record<string, typeof accessoriesColumns> = {
-    accessories: accessoriesColumns,
-    cards: cardsColumns,
-  };
 
   const findBrandIdx = (names: string[]) => {
     const keys = names.map((n) => n.toLowerCase());
@@ -2007,8 +2077,12 @@ export default function Navbar() {
     });
   };
 
-  const openBrandMenu = (idx: number) => {
+  const openBrandMenu = (idx: number, opts?: { force?: boolean }) => {
     if (idx < 0) idx = 0;
+    if (!opts?.force && menuOpen && activeBrandIdx === idx && openDropdown === "brands") {
+      closeMenu();
+      return;
+    }
     setActiveBrandIdx(idx);
     setOpenDropdown("brands");
     setMenuOpen(true);
@@ -2029,8 +2103,10 @@ export default function Navbar() {
   const catLinkClass =
     "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-[#1a2b4a] transition-colors hover:text-[#2F6BFF]";
   const brandLinkClass = (idx: number) =>
-    `shrink-0 whitespace-nowrap text-[13px] font-medium transition-colors hover:text-[#2F6BFF] ${
-      menuOpen && openDropdown === "brands" && activeBrandIdx === idx ? "text-[#2F6BFF]" : "text-[#1a2b4a]"
+    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
+      menuOpen && openDropdown === "brands" && activeBrandIdx === idx
+        ? "border-[#2F6BFF] text-[#2F6BFF]"
+        : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
     }`;
 
   return (
@@ -2102,55 +2178,83 @@ export default function Navbar() {
 
       <nav className="hidden border-b border-black/[0.08] bg-white lg:block">
         <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center gap-5 overflow-x-auto`}>
-          <Wrench className="h-4 w-4 shrink-0 text-[#2F6BFF]" aria-hidden />
-          <button type="button" className={brandLinkClass(primaryBrandIdx.apple)} onClick={() => openBrandMenu(primaryBrandIdx.apple)}>
-            Apple
-          </button>
-          <button type="button" className={brandLinkClass(primaryBrandIdx.samsung)} onClick={() => openBrandMenu(primaryBrandIdx.samsung)}>
-            Samsung
-          </button>
-          <button type="button" className={brandLinkClass(primaryBrandIdx.xiaomi)} onClick={() => openBrandMenu(primaryBrandIdx.xiaomi)}>
-            Xiaomi
-          </button>
-          <button type="button" className={brandLinkClass(primaryBrandIdx.honor)} onClick={() => openBrandMenu(primaryBrandIdx.honor)}>
-            Honor
-          </button>
-          <button type="button" className={brandLinkClass(primaryBrandIdx.motorola)} onClick={() => openBrandMenu(primaryBrandIdx.motorola)}>
-            Motorola
-          </button>
-          <button type="button" className={brandLinkClass(othersBrandIdx)} onClick={() => openBrandMenu(othersBrandIdx)}>
-            {t("nav_bar_others")}
-          </button>
+          {(
+            [
+              { label: "Apple", idx: primaryBrandIdx.apple },
+              { label: "Samsung", idx: primaryBrandIdx.samsung },
+              { label: "Xiaomi", idx: primaryBrandIdx.xiaomi },
+              { label: "Honor", idx: primaryBrandIdx.honor },
+              { label: "Motorola", idx: primaryBrandIdx.motorola },
+              { label: t("nav_bar_others"), idx: othersBrandIdx },
+            ] as const
+          ).map((item) => {
+            const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={brandLinkClass(item.idx)}
+                onMouseEnter={() => openBrandMenu(item.idx, { force: true })}
+                onClick={() => openBrandMenu(item.idx, { force: true })}
+              >
+                {active ? <Wrench className="h-4 w-4" aria-hidden /> : null}
+                {item.label}
+              </button>
+            );
+          })}
 
-          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/accessories" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Plug className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
             {t("nav_bar_accessories")}
           </Link>
-          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/accessories" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Shield className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
             {t("nav_bar_protection")}
           </Link>
-          <Link href="/multi-brand" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/multi-brand" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Monitor className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
             {t("nav_bar_computing")}
           </Link>
-          <Link href="/store" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/store" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Store className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
             {t("nav_bar_store")}
           </Link>
 
           <span className="mx-1 h-5 w-px shrink-0 bg-black/10" aria-hidden />
 
-          <Link href="/smartphones" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/smartphones" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Smartphone className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
             {t("nav_bar_devices")}
           </Link>
-          <Link href="/tablets" className={catLinkClass} onClick={closeMenu}>
+          <Link href="/tablets" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Laptop className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
             {t("nav_bar_laptops")}
           </Link>
         </div>
       </nav>
+
+      {menuOpen ? (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="absolute left-0 right-0 top-full z-40 hidden h-screen bg-transparent lg:block"
+          onClick={closeMenu}
+        />
+      ) : null}
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.16 }}
+            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(78vh,640px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] lg:block"
+          >
+            <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {menuOpen && (
@@ -2161,7 +2265,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45"
+              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45 lg:hidden"
               onClick={closeMenu}
             />
             <motion.nav
@@ -2169,192 +2273,32 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18 }}
-              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-hidden border-b border-border bg-background shadow-2xl"
+              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-y-auto border-b border-border bg-white shadow-2xl lg:hidden"
             >
               <div className="hide-dropdown-scrollbar overflow-x-auto border-b border-border">
-                <div className={`${navShell} flex min-w-max items-stretch gap-1 py-1`}>
-                  <button
-                    type="button"
-                    onMouseEnter={() => handleMouseEnter("brands")}
-                    onClick={() => setOpenDropdown("brands")}
-                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
-                      openDropdown === "brands" || openDropdown === null
-                        ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
-                        : "text-foreground/80 hover:text-foreground"
-                    }`}
-                  >
-                    {t("allCategories")}
-                  </button>
-                  {brandGroups.slice(0, 6).map((group, idx) => (
+                <div className={`${navShell} flex min-w-max items-center gap-1 py-1`}>
+                  {brandGroups.map((group, idx) => (
                     <button
                       key={group.brand.slug}
                       type="button"
-                      onMouseEnter={() => {
-                        handleMouseEnter("brands");
-                        setActiveBrandIdx(idx);
-                      }}
-                      onFocus={() => {
-                        setOpenDropdown("brands");
-                        setActiveBrandIdx(idx);
-                      }}
                       onClick={() => {
                         setOpenDropdown("brands");
                         setActiveBrandIdx(idx);
                       }}
                       className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
                         openDropdown === "brands" && idx === activeBrandIdx
-                          ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
+                          ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
                           : "text-foreground/80 hover:text-foreground"
                       }`}
                     >
                       {displayBrandLabel(group.brand.label)}
                     </button>
                   ))}
-                  {navLinks.filter((l) => l.href !== "/").map((link) => (
-                    <div
-                      key={link.href}
-                      className="relative"
-                      onMouseEnter={() => (link.dropdown ? handleMouseEnter(link.dropdown) : undefined)}
-                    >
-                      <Link
-                        href={link.href}
-                        onClick={closeMenu}
-                        className={`flex items-center gap-1 whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
-                          openDropdown === link.dropdown
-                            ? "text-[#2F6BFF] border-b-2 border-[#2F6BFF]"
-                            : location === link.href
-                              ? "text-[#2F6BFF]"
-                              : "text-foreground/80 hover:text-foreground"
-                        }`}
-                      >
-                        {link.label}
-                        {link.dropdown && <ChevronDown className="h-3 w-3" />}
-                      </Link>
-                    </div>
-                  ))}
                 </div>
               </div>
-
-              <div className={`${navShell} hide-dropdown-scrollbar max-h-[min(62vh,560px)] overflow-y-auto py-5`}>
-                {(openDropdown === "brands" || openDropdown === null) && (
-                  <div className="flex gap-6 items-start min-w-0">
-                    <div className="w-[min(200px,32vw)] shrink-0 border-r border-border pr-3">
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                        {lang === "pt" ? "Marcas" : "Brands"}
-                      </p>
-                      <ul className="space-y-1">
-                        {brandGroups.map((group, idx) => (
-                          <li key={group.brand.slug}>
-                            <button
-                              type="button"
-                              onMouseEnter={() => setActiveBrandIdx(idx)}
-                              onFocus={() => setActiveBrandIdx(idx)}
-                              className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                                idx === activeBrandIdx
-                                  ? "bg-[#2F6BFF]/10 text-[#2F6BFF]"
-                                  : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                              }`}
-                            >
-                              <span className="truncate">{displayBrandLabel(group.brand.label)}</span>
-                              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                        {displayBrandLabel(activeBrand?.brand.label ?? (lang === "pt" ? "Categorias" : "Categories"))}
-                      </p>
-                      {hasNestedFamilies ? (
-                        <div className="flex min-h-0 items-start gap-5">
-                          <div className="w-max min-w-[7.5rem] max-w-[14rem] shrink-0 border-r border-border pr-3">
-                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                              {lang === "pt" ? "Tipo" : "Type"}
-                            </p>
-                            <div className="flex flex-col gap-1">
-                              {(activeBrand?.items ?? []).map((family, idx) => (
-                                <button
-                                  key={`${activeBrand?.brand.slug}-${family.slug}`}
-                                  type="button"
-                                  onMouseEnter={() => setActiveFamilyIdx(idx)}
-                                  onFocus={() => setActiveFamilyIdx(idx)}
-                                  className={`max-w-full whitespace-normal break-words rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                                    idx === activeFamilyIdx
-                                      ? "bg-[#2F6BFF]/10 text-[#2F6BFF]"
-                                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                                  }`}
-                                >
-                                  {family.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="hide-dropdown-scrollbar min-w-0 flex-1 overflow-y-auto overscroll-contain pl-0.5 max-h-[min(52vh,440px)]">
-                            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-foreground/60">
-                              {lang === "pt" ? "Modelos" : "Models"}
-                            </p>
-                            <div className="flex flex-col gap-1.5">
-                              {(activeFamily?.children ?? []).map((model, midx) => (
-                                <Link
-                                  key={`${activeBrand?.brand.slug}-${activeFamily?.slug}-${midx}-${model.slug}`}
-                                  href={
-                                    model.href ??
-                                    `/model/${catalogBrandForModelRoutes(activeBrand?.brand.slug ?? "")}/${activeFamily?.slug}/${model.slug}`
-                                  }
-                                  onClick={closeMenu}
-                                  className="block py-1 text-sm text-foreground/75 transition-colors hover:text-[#2F6BFF] break-words"
-                                >
-                                  {model.label}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-x-5 gap-y-1.5 lg:grid-cols-3">
-                          {(activeBrand?.items ?? []).map((item) => (
-                            <Link
-                              key={`${activeBrand?.brand.slug}-${item.slug}`}
-                              href={item.href ?? `/category/${item.slug}`}
-                              onClick={closeMenu}
-                              className="block py-1 text-sm text-foreground/75 transition-colors hover:text-[#2F6BFF]"
-                            >
-                              {item.label}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {openDropdown && dropdownColumns[openDropdown] && (
-                  <div className={`grid gap-6 ${dropdownColumns[openDropdown].length >= 4 ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-5" : "grid-cols-2 sm:grid-cols-3"}`}>
-                    {dropdownColumns[openDropdown].map((col) => (
-                      <div key={col.title}>
-                        <h4 className="mb-3 border-b border-border pb-2 font-display text-xs font-bold uppercase tracking-wider text-foreground">
-                          {col.title}
-                        </h4>
-                        <ul className="space-y-2">
-                          {col.items.map((item) => (
-                            <li key={item.slug}>
-                              <Link
-                                href={`/category/${item.slug}`}
-                                onClick={closeMenu}
-                                className="block text-sm text-foreground/70 transition-colors hover:text-[#2F6BFF]"
-                              >
-                                {item.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+              <div className={`${navShell} pb-4`}>
+                <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-border pt-4">
                   <Link
                     href="/wishlist"
                     onClick={closeMenu}
