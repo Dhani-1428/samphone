@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns } from "@/data/categories";
+import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildWooBrandGroups, type NavBrandGroup } from "@/lib/woo-category-nav";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -13,7 +14,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 
-type DropdownKey = "accessories" | "cards" | "brands" | null;
+type DropdownKey = "accessories" | "cards" | "brands" | "others" | null;
 
 function displayBrandLabel(label: string): string {
   if (label.toLowerCase() === "iphone") return "Apple";
@@ -1823,6 +1824,57 @@ function BrandMegaPanel({
   );
 }
 
+function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAllLabel: string }) {
+  return (
+    <div className={`${navShell} py-2`}>
+      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+        {NAV_OTHER_BRANDS.map((brand) => (
+          <div
+            key={brand.slug}
+            className="border-b border-r border-black/[0.06] px-4 py-4 last:border-r-0"
+          >
+            <div className="mb-3 inline-flex rounded-full bg-[#EEF1F4] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
+              {brand.name}
+            </div>
+            <ul className="space-y-2">
+              {brand.models.map((model) => {
+                const slug = slugifyModelLabel(model.label);
+                return (
+                  <li key={`${brand.slug}-${slug}`}>
+                    <Link
+                      href={`/model/${brand.slug}/models/${slug}`}
+                      onClick={onClose}
+                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                    >
+                      <span>{model.label}</span>
+                      {model.isNew ? (
+                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                          NEW
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+              {brand.seeAllHref ? (
+                <li>
+                  <Link
+                    href={brand.seeAllHref}
+                    onClick={onClose}
+                    className="text-[13px] font-medium text-[#2F6BFF] hover:underline"
+                  >
+                    {seeAllLabel}
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
@@ -2190,6 +2242,15 @@ export default function Navbar() {
     setMenuOpen(true);
   };
 
+  const openOthersMenu = (opts?: { force?: boolean }) => {
+    if (!opts?.force && menuOpen && openDropdown === "others") {
+      closeMenu();
+      return;
+    }
+    setOpenDropdown("others");
+    setMenuOpen(true);
+  };
+
   const primaryBrandIdx = {
     apple: findBrandIdx(["apple", "iphone"]),
     samsung: findBrandIdx(["samsung"]),
@@ -2197,10 +2258,8 @@ export default function Navbar() {
     honor: findBrandIdx(["honor"]),
     motorola: findBrandIdx(["motorola"]),
   };
-  const othersBrandIdx = brandGroups.findIndex((g) => {
-    const label = displayBrandLabel(g.brand.label).toLowerCase();
-    return !["apple", "iphone", "samsung", "xiaomi", "honor", "motorola"].some((k) => label.includes(k));
-  });
+
+  const othersActive = menuOpen && openDropdown === "others";
 
   const catLinkClass =
     "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-[#1a2b4a] transition-colors hover:text-[#2F6BFF]";
@@ -2287,7 +2346,6 @@ export default function Navbar() {
               { label: "Xiaomi", idx: primaryBrandIdx.xiaomi },
               { label: "Honor", idx: primaryBrandIdx.honor },
               { label: "Motorola", idx: primaryBrandIdx.motorola },
-              { label: t("nav_bar_others"), idx: othersBrandIdx },
             ] as const
           ).map((item) => {
             const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
@@ -2304,6 +2362,17 @@ export default function Navbar() {
               </button>
             );
           })}
+          <button
+            type="button"
+            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
+              othersActive ? "border-[#2F6BFF] text-[#2F6BFF]" : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
+            }`}
+            onMouseEnter={() => openOthersMenu({ force: true })}
+            onClick={() => openOthersMenu({ force: true })}
+          >
+            {othersActive ? <Wrench className="h-4 w-4" aria-hidden /> : null}
+            {t("nav_bar_others")}
+          </button>
 
           <Link href="/accessories" className={catLinkClass} onClick={closeMenu} onMouseEnter={closeMenu}>
             <Plug className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
@@ -2351,9 +2420,13 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(78vh,640px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] lg:block"
+            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] lg:block"
           >
-            <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+            {openDropdown === "others" ? (
+              <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
+            ) : (
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -2396,9 +2469,24 @@ export default function Navbar() {
                       {displayBrandLabel(group.brand.label)}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown("others")}
+                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                      openDropdown === "others"
+                        ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
+                        : "text-foreground/80 hover:text-foreground"
+                    }`}
+                  >
+                    {t("nav_bar_others")}
+                  </button>
                 </div>
               </div>
+              {openDropdown === "others" ? (
+              <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
+            ) : (
               <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+            )}
               <div className={`${navShell} pb-4`}>
                 <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-border pt-4">
                   <Link
