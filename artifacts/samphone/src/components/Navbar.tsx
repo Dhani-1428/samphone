@@ -3,6 +3,16 @@ import { Link, useLocation } from "wouter";
 import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns } from "@/data/categories";
+import {
+  APPLE_IPHONE_MODELS,
+  APPLE_WATCH_MODELS,
+  APPLE_IPAD_PRO_MODELS,
+  APPLE_IPAD_MINI_MODELS,
+  APPLE_IPAD_MODELS,
+  APPLE_IPAD_AIR_MODELS,
+  APPLE_MACBOOK_MODELS,
+  APPLE_NEW_MODELS,
+} from "@/data/nav-apple";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildWooBrandGroups, type NavBrandGroup } from "@/lib/woo-category-nav";
@@ -88,21 +98,9 @@ function slugifyModelLabel(label: string): string {
 }
 
 function isNewNavModel(label: string) {
-  return /\b(iPhone 17|2025|2026|Series 11|Series 10)\b/i.test(label);
-}
-
-function partitionIpadModels(models: string[]) {
-  const pro: string[] = [];
-  const mini: string[] = [];
-  const air: string[] = [];
-  const rest: string[] = [];
-  for (const m of models) {
-    if (/\bmini\b/i.test(m)) mini.push(m);
-    else if (/\bair\b/i.test(m)) air.push(m);
-    else if (/\bpro\b/i.test(m)) pro.push(m);
-    else rest.push(m);
-  }
-  return { pro, mini, air, rest };
+  if (APPLE_NEW_MODELS.has(label)) return true;
+  if (/^(iPhone |iPad |Series |Ultra |Air |Pro |13"|12'')/i.test(label)) return false;
+  return /\b(2025|2026)\b/i.test(label);
 }
 
 /** Map Woo / nav category slug (e.g. iphone-parts) to :brand segment used by ModelCatalogPage. */
@@ -125,115 +123,6 @@ function makeFamilyChildren(brandPartsSlug: string, family: string, labels: stri
     };
   });
 }
-
-const IPHONE_MODELS = [
-  "iPhone 17E",
-  "iPhone 17 Pro Max",
-  "iPhone 17 Air",
-  "iPhone 17 Pro",
-  "iPhone 17G",
-  "iPhone 16 Pro Max",
-  "iPhone 16 Plus",
-  "iPhone 16 Pro",
-  "iPhone 16G",
-  "iPhone 16E",
-  "iPhone 15 Pro Max",
-  "iPhone 15 Pro",
-  "iPhone 15 Plus",
-  "iPhone 15G",
-  "iPhone 14 Pro Max",
-  "iPhone 14 Pro",
-  "iPhone 14 Plus",
-  "iPhone 14G",
-  "iPhone 13 Pro Max",
-  "iPhone 13 Pro",
-  "iPhone 13 Mini",
-  "iPhone 13",
-  "iPhone 12 Pro",
-  "iPhone 12 Pro Max",
-  "iPhone 12 Mini",
-  "iPhone 12",
-  "iPhone 11 Pro Max",
-  "iPhone 11 Pro",
-  "iPhone 11",
-  "iPhone XS Max",
-  "iPhone XS",
-  "iPhone XR",
-  "iPhone X",
-  "iPhone 8 Plus",
-  "iPhone 8",
-  "iPhone SE 2022",
-  "iPhone SE 2020",
-  "iPhone 7 Plus",
-  "iPhone 7",
-  "iPhone 6S Plus",
-  "iPhone 6S",
-  "iPhone 6 Plus",
-  "iPhone 6",
-  "iPhone 5S",
-  "iPhone 5",
-];
-
-const IPAD_MODELS = [
-  "iPad Air 13 2024(A2898,A2899)",
-  "iPad Air 11 2024(A2902,A2903)",
-  "iPad Pro 12.9 2022/6th(A2436,A2764,A2437)",
-  "iPad Pro 11 2022/4th(A2759,A2435,A2761)",
-  "iPad 2022/iPad 10th(A2696,A2757)",
-  "iPad Air 2022/Air 5(A2588,A2589,A2591)",
-  "iPad 10.2 2021/iPad 9th(A2602,A2603,A2604)",
-  "iPad Mini 2021/Mini 6(A2568)",
-  "iPad Pro 12.9 2021/5th(A2379,A2461)",
-  "iPad Pro 11 2021/3rd(A2301,A2459)",
-  "iPad 10.2 2020/iPad 8th(A2270,A2428,A2429)",
-  "iPad Air 2020/Air 4(A2316,A2324,A2072)",
-  "iPad Pro 12.9 2020/4th(A2229,A2069,A2232)",
-  "iPad Pro 11 2020/2nd(A2228,A2068,A2230)",
-  "iPad 10.2 2019/iPad 7th(A2197,A2200,A2198)",
-  "iPad Mini 2019/Mini 5(A2133,A2126,A2124)",
-  "iPad Air 2019/Air 3(A2152,A2153,A2123)",
-  "iPad Pro 11 2018/1st(A1980,A2013,A1934)",
-  "iPad Pro 12.9 2018/3rd(A1876,A2014,A1895)",
-  "iPad 9.7 2018/iPad 6th(A1893,A1954)",
-  "iPad Pro 10.5 2017(A1701,A1709)",
-  "iPad Pro 12.9 2017/2nd(A1670,A1671)",
-  "iPad 9.7 2017/iPad 5th(A1822,A1823)",
-  "iPad Pro 9.7(A1673,A1674,A1675)",
-  "iPad Pro 12.9/1st(A1584,A1652)",
-  "iPad Mini 4",
-  "iPad Mini 3",
-  "iPad Air 2",
-  "iPad Air",
-  "iPad Mini 2",
-  "iPad 4",
-  "iPad Mini",
-  "iPad 3",
-  "iPad 2",
-  "iPad 1",
-];
-
-const IPAD_BY_FAMILY = partitionIpadModels(IPAD_MODELS);
-
-const IWATCH_MODELS = [
-  "Apple Watch Series 9 45mm",
-  "Apple Watch Series 9 41mm",
-  "Apple Watch Series 8 45mm",
-  "Apple Watch Series 8 41mm",
-  "Apple Watch Series 7 45mm",
-  "Apple Watch Series 7 41mm",
-  "Apple Watch Series 6 44mm",
-  "Apple Watch Series 6 40mm",
-  "Apple Watch Series SE2 44mm",
-  "Apple Watch Series SE2 40mm",
-  "Apple Watch Series SE 44mm",
-  "Apple Watch Series SE 40mm",
-  "Apple Watch Series 5 44mm",
-  "Apple Watch Series 5 40mm",
-  "Apple Watch Series 4 44mm",
-  "Apple Watch Series 4 40mm",
-  "Apple Watch Series 3 40mm",
-  "Apple Watch Series 3 38mm",
-];
 
 const SAMSUNG_A_SERIES_MODELS = [
   "Samsung Galaxy A01 (A015)",
@@ -1795,6 +1684,33 @@ const GOOGLE_PIXEL_SERIES_MODELS = [
   "Google Pixel 4A 5G",
 ];
 
+type NavFamily = NavBrandGroup["items"][number];
+
+function isAppleBrand(brand: NavBrandGroup) {
+  const slug = brand.brand.slug.toLowerCase();
+  const label = brand.brand.label.toLowerCase();
+  return slug === "iphone-parts" || label === "iphone" || label === "apple";
+}
+
+function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][] {
+  if (!isAppleBrand(brand)) return families.map((family) => [family]);
+  const bySlug = new Map(families.map((family) => [family.slug, family]));
+  const pick = (...slugs: string[]) =>
+    slugs.map((slug) => bySlug.get(slug)).filter((family): family is NavFamily => Boolean(family));
+  const columns = [
+    pick("iphones"),
+    pick("iwatch"),
+    pick("ipad-pro", "ipad-mini"),
+    pick("ipad", "ipad-air"),
+    pick("macbook"),
+  ].filter((col) => col.length > 0);
+  const used = new Set(columns.flat().map((family) => family.slug));
+  for (const leftover of families.filter((family) => !used.has(family.slug))) {
+    columns.push([leftover]);
+  }
+  return columns;
+}
+
 function BrandMegaPanel({
   brand,
   onClose,
@@ -1806,40 +1722,45 @@ function BrandMegaPanel({
   const families = brand.items.filter((item) => (item.children?.length ?? 0) > 0);
   const looseItems = brand.items.filter((item) => !(item.children?.length ?? 0));
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
+  const columns = packMegaColumns(brand, families);
 
   return (
     <div className={`${navShell} py-6`}>
       {families.length > 0 ? (
         <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 xl:grid-cols-5">
-          {families.map((family) => (
+          {columns.map((column, colIdx) => (
             <div
-              key={`${brand.brand.slug}-${family.slug}`}
-              className="border-b border-r border-black/[0.06] px-4 py-4"
+              key={`${brand.brand.slug}-col-${colIdx}-${column.map((f) => f.slug).join("-")}`}
+              className="flex flex-col gap-8 border-b border-r border-black/[0.06] px-4 py-4"
             >
-              <div className="mb-3 inline-flex rounded-full bg-[#EEF1F4] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
-                {family.label}
-              </div>
-              <ul className="space-y-2">
-                {(family.children ?? []).map((model, midx) => (
-                  <li key={`${family.slug}-${midx}-${model.slug}`}>
-                    <Link
-                      href={
-                        model.href ??
-                        `/model/${brandRoute}/${family.slug}/${model.slug}`
-                      }
-                      onClick={onClose}
-                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
-                    >
-                      <span>{model.label}</span>
-                      {isNewNavModel(model.label) ? (
-                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
-                          NEW
-                        </span>
-                      ) : null}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              {column.map((family) => (
+                <div key={`${brand.brand.slug}-${family.slug}`}>
+                  <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
+                    {family.label}
+                  </div>
+                  <ul className="space-y-2">
+                    {(family.children ?? []).map((model, midx) => (
+                      <li key={`${family.slug}-${midx}-${model.slug}`}>
+                        <Link
+                          href={
+                            model.href ??
+                            `/model/${brandRoute}/${family.slug}/${model.slug}`
+                          }
+                          onClick={onClose}
+                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                        >
+                          <span>{model.label}</span>
+                          {isNewNavModel(model.label) ? (
+                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                              NEW
+                            </span>
+                          ) : null}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -1952,32 +1873,37 @@ export default function Navbar() {
               {
                 label: "iPhone",
                 slug: "iphones",
-                children: makeFamilyChildren(b.slug, "iphones", IPHONE_MODELS),
+                children: makeFamilyChildren(b.slug, "iphones", APPLE_IPHONE_MODELS),
               },
               {
                 label: "Apple Watch",
                 slug: "iwatch",
-                children: makeFamilyChildren(b.slug, "iwatch", IWATCH_MODELS),
+                children: makeFamilyChildren(b.slug, "iwatch", APPLE_WATCH_MODELS),
               },
               {
                 label: "iPad Pro",
                 slug: "ipad-pro",
-                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.pro),
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_PRO_MODELS),
               },
               {
                 label: "iPad mini",
                 slug: "ipad-mini",
-                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.mini),
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MINI_MODELS),
               },
               {
                 label: "iPad",
                 slug: "ipad",
-                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.rest),
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MODELS),
               },
               {
                 label: "iPad Air",
                 slug: "ipad-air",
-                children: makeFamilyChildren(b.slug, "ipad", IPAD_BY_FAMILY.air),
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_AIR_MODELS),
+              },
+              {
+                label: "MacBook",
+                slug: "macbook",
+                children: makeFamilyChildren(b.slug, "macbook", APPLE_MACBOOK_MODELS),
               },
             ]
           : base.toLowerCase() === "samsung"
