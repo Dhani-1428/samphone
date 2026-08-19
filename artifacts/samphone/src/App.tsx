@@ -19,6 +19,7 @@ import Smartphones from "@/pages/Smartphones";
 import Cards from "@/pages/Cards";
 import NewArrivals from "@/pages/NewArrivals";
 import MultiBrand from "@/pages/MultiBrand";
+import BrandPage from "@/pages/BrandPage";
 import Contact from "@/pages/Contact";
 import CategoryPage from "@/pages/CategoryPage";
 import ProductPage from "@/pages/ProductPage";
@@ -69,6 +70,9 @@ function Router() {
       </Route>
       <Route path="/multi-brand">
         <Layout><MultiBrand /></Layout>
+      </Route>
+      <Route path="/brand/:slug">
+        <Layout><BrandPage /></Layout>
       </Route>
       <Route path="/contact">
         <Layout><Contact /></Layout>

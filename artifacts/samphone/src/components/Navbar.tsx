@@ -1825,7 +1825,7 @@ function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
 }
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalItems: cartCount, clearCart } = useCart();
@@ -2390,15 +2390,15 @@ export default function Navbar() {
 
           {(
             [
-              { label: "Apple", idx: primaryBrandIdx.apple },
-              { label: "Samsung", idx: primaryBrandIdx.samsung },
-              { label: "Xiaomi", idx: primaryBrandIdx.xiaomi },
-              { label: "Honor", idx: primaryBrandIdx.honor },
-              { label: "Motorola", idx: primaryBrandIdx.motorola },
-              { label: "OnePlus", idx: primaryBrandIdx.oneplus },
-              { label: "Oppo", idx: primaryBrandIdx.oppo },
-              { label: "Realme", idx: primaryBrandIdx.realme },
-              { label: "Vivo", idx: primaryBrandIdx.vivo },
+              { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
+              { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
+              { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
+              { label: "Honor", slug: "honor", idx: primaryBrandIdx.honor },
+              { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
+              { label: "OnePlus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
+              { label: "Oppo", slug: "oppo", idx: primaryBrandIdx.oppo },
+              { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
+              { label: "Vivo", slug: "vivo", idx: primaryBrandIdx.vivo },
             ] as const
           ).map((item) => {
             const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
@@ -2406,6 +2406,7 @@ export default function Navbar() {
               <button
                 key={item.label}
                 type="button"
+                title="Click to open menu · Double-click to view all products"
                 className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0.5 border-b-2 px-3 transition-colors ${
                   active
                     ? "border-[#FF6A00] text-[#FF6A00]"
@@ -2413,6 +2414,11 @@ export default function Navbar() {
                 }`}
                 aria-expanded={active}
                 onClick={() => openBrandMenu(item.idx)}
+                onDoubleClick={(e) => {
+                  e.preventDefault();
+                  closeMenu();
+                  navigate(`/brand/${item.slug}`);
+                }}
               >
                 <BrandIcon brand={item.label} />
                 <span className="text-[11px] font-semibold">{item.label}</span>
