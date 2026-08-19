@@ -27,7 +27,10 @@ import SmartSearch from "@/components/SmartSearch";
 type DropdownKey = "accessories" | "cards" | "brands" | "others" | null;
 
 function displayBrandLabel(label: string): string {
-  if (label.toLowerCase() === "iphone") return "Apple";
+  const key = label.toLowerCase();
+  if (key === "iphone") return "Apple";
+  if (key === "one plus") return "OnePlus";
+  if (key === "oppo reno") return "Oppo";
   return label;
 }
 
@@ -1785,7 +1788,7 @@ function BrandMegaPanel({
 function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAllLabel: string }) {
   return (
     <div className={`${navShell} py-2`}>
-      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {NAV_OTHER_BRANDS.map((brand) => (
           <div
             key={brand.slug}
@@ -2049,7 +2052,7 @@ export default function Navbar() {
                   children: makeFamilyChildren(b.slug, "nova-series", HUAWEI_NOVA_SERIES_MODELS),
                 },
               ]
-          : base.toLowerCase() === "one plus"
+          : base.toLowerCase() === "one plus" || base.toLowerCase() === "oneplus"
             ? [
                 {
                   label: "OnePlus series",
@@ -2215,7 +2218,7 @@ export default function Navbar() {
   };
 
   const openBrandMenu = (idx: number, opts?: { force?: boolean }) => {
-    if (idx < 0) idx = 0;
+    if (idx < 0) return;
     if (!opts?.force && menuOpen && activeBrandIdx === idx && openDropdown === "brands") {
       closeMenu();
       return;
@@ -2240,6 +2243,10 @@ export default function Navbar() {
     xiaomi: findBrandIdx(["xiaomi"]),
     honor: findBrandIdx(["honor"]),
     motorola: findBrandIdx(["motorola"]),
+    oneplus: findBrandIdx(["oneplus", "one plus"]),
+    oppo: findBrandIdx(["oppo"]),
+    realme: findBrandIdx(["realme"]),
+    vivo: findBrandIdx(["vivo"]),
   };
 
   const othersActive = menuOpen && openDropdown === "others";
@@ -2329,6 +2336,10 @@ export default function Navbar() {
               { label: "Xiaomi", idx: primaryBrandIdx.xiaomi },
               { label: "Honor", idx: primaryBrandIdx.honor },
               { label: "Motorola", idx: primaryBrandIdx.motorola },
+              { label: "OnePlus", idx: primaryBrandIdx.oneplus },
+              { label: "Oppo", idx: primaryBrandIdx.oppo },
+              { label: "Realme", idx: primaryBrandIdx.realme },
+              { label: "Vivo", idx: primaryBrandIdx.vivo },
             ] as const
           ).map((item) => {
             const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
