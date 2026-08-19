@@ -2255,22 +2255,7 @@ export default function Navbar() {
           {/* Search bar – desktop */}
           <div className="hidden min-w-0 flex-1 lg:block">
             <div className="flex items-center overflow-hidden rounded-full bg-white shadow-sm">
-              {/* "All Categories" prefix */}
-              <button
-                type="button"
-                className={`flex h-11 shrink-0 items-center gap-1.5 border-r border-neutral-200 pl-4 pr-3 text-[13px] font-semibold text-[#1a2b4a] transition-colors hover:bg-neutral-50 ${
-                  categoriesActive ? "bg-neutral-50 text-[#FF6A00]" : ""
-                }`}
-                onClick={openCategoriesMenu}
-                aria-expanded={categoriesActive}
-              >
-                <Menu className="h-4 w-4" strokeWidth={2} aria-hidden />
-                <span className="hidden xl:inline">{t("allCategories")}</span>
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
-              </button>
-              {/* Text input (no built-in button) */}
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
-              {/* Orange search button */}
               <button
                 type="button"
                 className="flex h-11 w-12 shrink-0 items-center justify-center bg-[#FF6A00] text-white transition-colors hover:bg-[#e85f00]"
@@ -2320,8 +2305,8 @@ export default function Navbar() {
 
       {/* ── White brand bar ── */}
       <nav className="hidden border-b border-black/[0.07] bg-white lg:block">
-        <div className={`${navShell} hide-dropdown-scrollbar flex h-[56px] items-center justify-center gap-1 overflow-x-auto`}>
-          {/* All Categories pill */}
+        <div className={`${navShell} flex h-[56px] items-center gap-3`}>
+          {/* All Accessories pill */}
           <button
             type="button"
             className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-4 text-[14px] font-bold text-white transition-colors ${
@@ -2331,12 +2316,10 @@ export default function Navbar() {
             onClick={openCategoriesMenu}
           >
             <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            {t("allCategories")}
+            All Accessories
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
           </button>
-
-          <span className="mx-2 h-5 w-px shrink-0 bg-black/10" aria-hidden />
-
+          <div className="flex min-w-0 flex-1 items-stretch">
           {(
             [
               { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
@@ -2356,7 +2339,7 @@ export default function Navbar() {
                 key={item.label}
                 type="button"
                 title="Click to open menu · Double-click to view all products"
-                className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0 border-b-2 px-3 transition-colors ${
+                className={`inline-flex h-[56px] min-w-[90px] flex-1 flex-col items-center justify-center gap-0 border-b-2 px-2 transition-colors ${
                   active
                     ? "border-[#FF6A00] text-[#FF6A00]"
                     : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
@@ -2375,7 +2358,7 @@ export default function Navbar() {
           })}
           <button
             type="button"
-            className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0 border-b-2 px-3 transition-colors ${
+            className={`inline-flex h-[56px] min-w-[90px] flex-1 flex-col items-center justify-center gap-0 border-b-2 px-2 transition-colors ${
               othersActive ? "border-[#FF6A00] text-[#FF6A00]" : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
             }`}
             aria-expanded={othersActive}
@@ -2383,6 +2366,40 @@ export default function Navbar() {
           >
             <span className="text-[14px] font-bold leading-none">{t("nav_bar_others")}</span>
           </button>
+          <Link
+            href="/phones"
+            className={`inline-flex h-[56px] min-w-[98px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
+              location.startsWith("/phones") || location.startsWith("/smartphones")
+                ? "border-[#FF6A00] text-[#FF6A00]"
+                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
+            }`}
+            onClick={closeMenu}
+          >
+            Smartphones
+          </Link>
+          <Link
+            href="/cards"
+            className={`inline-flex h-[56px] min-w-[86px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
+              location.startsWith("/cards")
+                ? "border-[#FF6A00] text-[#FF6A00]"
+                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
+            }`}
+            onClick={closeMenu}
+          >
+            Cards
+          </Link>
+          <Link
+            href="/book-repair"
+            className={`inline-flex h-[56px] min-w-[86px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
+              location.startsWith("/book-repair") || location.startsWith("/diagnostics") || location.startsWith("/trade-in")
+                ? "border-[#FF6A00] text-[#FF6A00]"
+                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
+            }`}
+            onClick={closeMenu}
+          >
+            Tools
+          </Link>
+          </div>
         </div>
       </nav>
 
@@ -2445,7 +2462,7 @@ export default function Navbar() {
                         : "text-foreground/80 hover:text-foreground"
                     }`}
                   >
-                    {t("allCategories")}
+                    All Accessories
                   </button>
                   {brandGroups.map((group, idx) => (
                     <button
