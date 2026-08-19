@@ -61,11 +61,11 @@ export default function Hero() {
 
   return (
     <section id="home" className="bg-[#F4F6F8]">
-      <div className="mx-auto w-full max-w-[1600px] px-5 py-4 sm:px-8 sm:py-5 md:px-10 md:py-6 lg:px-14 xl:px-16">
+      <div className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-8 sm:py-6 md:px-12 md:py-8 lg:px-16 lg:py-8">
         <Carousel
           setApi={setApi}
           opts={{ loop: true, align: "start" }}
-          className="w-full overflow-hidden rounded-[14px]"
+          className="w-full overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
         >
           <CarouselContent className="-ml-0">
             {slides.map((slide) => (
