@@ -22,6 +22,8 @@ type Props = {
   compact?: boolean;
   /** Utopya-style white search field on the dark header. */
   variant?: "default" | "header";
+  /** Hide the internal search button (when the parent provides its own). */
+  hideButton?: boolean;
 };
 
 function resolveHitHref(hit: SearchHit): string {
@@ -92,7 +94,7 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   );
 }
 
-export default function SmartSearch({ className, compact, variant = "default" }: Props) {
+export default function SmartSearch({ className, compact, variant = "default", hideButton = false }: Props) {
   const { t } = useLang();
   const { products, searchProducts } = useProductCatalog();
   const [open, setOpen] = useState(false);
@@ -138,8 +140,10 @@ export default function SmartSearch({ className, compact, variant = "default" }:
         <div
           className={cn(
             "flex items-center overflow-hidden transition-colors",
-            variant === "header"
+            variant === "header" && !hideButton
               ? "w-full rounded-md bg-white"
+              : variant === "header"
+              ? "w-full"
               : "rounded-lg border border-border bg-muted/40 focus-within:border-primary",
             compact && variant !== "header" ? "w-full" : !compact && variant !== "header" ? "flex-1" : null,
             className,
@@ -166,20 +170,22 @@ export default function SmartSearch({ className, compact, variant = "default" }:
             aria-expanded={open}
             aria-controls="search-suggestions"
           />
-          <button
-            type="button"
-            className={cn(
-              "shrink-0 transition-colors",
-              variant === "header"
-                ? "px-3 py-2.5 text-[#2F6BFF] hover:text-[#2458d6]"
-                : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
-            )}
-            data-testid="button-search"
-            onClick={() => inputRef.current?.focus()}
-            aria-label={t("searchPlaceholder")}
-          >
-            {variant === "header" ? <Search className="h-5 w-5" /> : <Search className="h-4 w-4" />}
-          </button>
+          {!hideButton && (
+            <button
+              type="button"
+              className={cn(
+                "shrink-0 transition-colors",
+                variant === "header"
+                  ? "px-3 py-2.5 text-[#2F6BFF] hover:text-[#2458d6]"
+                  : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
+              )}
+              data-testid="button-search"
+              onClick={() => inputRef.current?.focus()}
+              aria-label={t("searchPlaceholder")}
+            >
+              {variant === "header" ? <Search className="h-5 w-5" /> : <Search className="h-4 w-4" />}
+            </button>
+          )}
         </div>
       </PopoverAnchor>
       <PopoverContent

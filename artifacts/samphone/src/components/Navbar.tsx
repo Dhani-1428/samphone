@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, ChevronDown } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, ChevronDown, Search, Grid3X3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
 import {
@@ -90,6 +90,59 @@ function CountBadge({ count, tone = "primary" }: { count: number; tone?: "primar
 /** Shared horizontal inset so top bar, logo row, and blue nav align and do not hug the viewport edges */
 const navShell =
   "w-full max-w-[1600px] mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16";
+
+/** Minimal inline brand icon for the white nav bar */
+function BrandIcon({ brand }: { brand: string }) {
+  const b = brand.toLowerCase();
+  if (b === "apple") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+    </svg>
+  );
+  if (b === "samsung") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M19.083 12c0 3.866-3.218 6.999-7.187 6.999S4.71 15.866 4.71 12c0-3.866 3.217-7 7.186-7s7.187 3.134 7.187 7m-7.186 8.998c4.77 0 8.636-4.028 8.636-8.998S16.666 3 11.897 3C7.125 3 3.26 7.028 3.26 12s3.865 8.998 8.637 8.998"/>
+    </svg>
+  );
+  if (b === "xiaomi") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M3.15 3.15v17.7H6.3V9.45H9v11.4h3.15V9.45c0-3.47-2.81-6.3-6.3-6.3H3.15zM14.85 9.45c0-3.47 2.81-6.3 6.3-6.3v3.15c-1.73 0-3.15 1.42-3.15 3.15v11.4H14.85V9.45z"/>
+    </svg>
+  );
+  if (b === "honor") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+      <rect x="5" y="3" width="14" height="18" rx="3"/>
+      <circle cx="12" cy="15" r="2.5"/>
+      <line x1="12" y1="6" x2="12" y2="9"/>
+    </svg>
+  );
+  if (b === "motorola") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M11.998 2C6.476 2 2 6.476 2 12c0 5.523 4.476 9.999 9.998 9.999C17.522 21.999 22 17.523 22 12c0-5.524-4.478-10-10.002-10zm0 1.8c4.52 0 8.2 3.678 8.2 8.2s-3.68 8.2-8.2 8.2c-4.52 0-8.198-3.68-8.198-8.2 0-4.522 3.678-8.2 8.198-8.2zm-2.4 3.6v4l2.4 2.4 2.4-2.4v-4h-4.8z"/>
+    </svg>
+  );
+  if (b === "oneplus") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M14.5 3v8.5H11V3H8.5v8.5H6V14h2.5v4h2.5v-4H14v5h2.5V3H14.5z"/>
+    </svg>
+  );
+  if (b === "oppo") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+    </svg>
+  );
+  if (b === "realme") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M6 3l6 8-6 10h3.5l4.5-7.5V21H17V3h-3v8.5L10 3H6z"/>
+    </svg>
+  );
+  if (b === "vivo") return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
+      <path d="M12 2L5 21h4l3-8 3 8h4L12 2z"/>
+    </svg>
+  );
+  return <Grid3X3 className="h-5 w-5 shrink-0" aria-hidden />;
+}
 
 function slugifyModelLabel(label: string): string {
   return label
@@ -2220,8 +2273,10 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
+      {/* ── Navy top row ── */}
       <div className="bg-[#0B1736] text-white">
-        <div className={`${navShell} flex items-center gap-3 py-3.5 sm:gap-4`}>
+        <div className={`${navShell} flex items-center gap-4 py-3 lg:py-3.5`}>
+          {/* Mobile hamburger */}
           <button
             type="button"
             className="flex h-9 w-9 shrink-0 items-center justify-center text-white lg:hidden"
@@ -2238,58 +2293,89 @@ export default function Navbar() {
             {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
           </button>
 
-          <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
-            <span className="font-display text-[1.45rem] font-bold uppercase leading-none tracking-[0.08em] sm:text-[1.7rem]">
-              SAMPHONE
+          {/* Logo */}
+          <Link href="/" className="flex shrink-0 flex-col leading-none" onClick={closeMenu}>
+            <span className="font-display text-[1.5rem] font-extrabold uppercase tracking-widest sm:text-[1.7rem]">
+              SAMPHONE<span className="text-[0.65em] font-medium tracking-normal opacity-70">.PT</span>
+            </span>
+            <span className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-white/50 sm:block">
+              Smart choice, best price
             </span>
           </Link>
 
-          <div className="hidden min-w-0 flex-1 md:block">
-            <div className="mx-auto w-full max-w-[760px]">
-              <SmartSearch variant="header" />
+          {/* Search bar – desktop */}
+          <div className="hidden min-w-0 flex-1 lg:block">
+            <div className="flex items-center overflow-hidden rounded-full bg-white shadow-sm">
+              {/* "All Categories" prefix */}
+              <button
+                type="button"
+                className={`flex h-11 shrink-0 items-center gap-1.5 border-r border-neutral-200 pl-4 pr-3 text-[13px] font-semibold text-[#1a2b4a] transition-colors hover:bg-neutral-50 ${
+                  categoriesActive ? "bg-neutral-50 text-[#FF6A00]" : ""
+                }`}
+                onClick={openCategoriesMenu}
+                aria-expanded={categoriesActive}
+              >
+                <Menu className="h-4 w-4" strokeWidth={2} aria-hidden />
+                <span className="hidden xl:inline">{t("allCategories")}</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+              </button>
+              {/* Text input (no built-in button) */}
+              <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
+              {/* Orange search button */}
+              <button
+                type="button"
+                className="flex h-11 w-12 shrink-0 items-center justify-center bg-[#FF6A00] text-white transition-colors hover:bg-[#e85f00]"
+                aria-label={t("searchPlaceholder")}
+              >
+                <Search className="h-5 w-5" strokeWidth={2.2} />
+              </button>
             </div>
           </div>
 
-          <div className="ml-auto flex items-center gap-2 sm:gap-4">
+          {/* Right actions */}
+          <div className="ml-auto flex items-center gap-3 lg:ml-0">
             {user ? (
-              <HeaderAction
-                href="/account"
-                icon={<User className="h-5 w-5" strokeWidth={1.6} />}
-                label={t("auth_my_account")}
-              />
+              <Link href="/account" className="hidden flex-col items-start lg:flex" onClick={closeMenu}>
+                <span className="text-[11px] text-white/60">{t("auth_my_account")}</span>
+                <span className="text-[13px] font-semibold">My Account</span>
+              </Link>
             ) : (
-              <>
-                <HeaderAction
-                  href="/register"
-                  icon={<UserPlus className="h-5 w-5" strokeWidth={1.6} />}
-                  label={t("header_create_account")}
-                />
-                <HeaderAction
-                  href="/login"
-                  icon={<LogIn className="h-5 w-5" strokeWidth={1.6} />}
-                  label={t("header_sign_in")}
-                />
-              </>
+              <Link href="/login" className="hidden flex-col items-start lg:flex" onClick={closeMenu}>
+                <span className="text-[11px] text-white/60">Sign In / Register</span>
+                <span className="text-[13px] font-semibold">My Account</span>
+              </Link>
             )}
-            <HeaderAction
-              href="/cart"
-              icon={<ShoppingBag className="h-5 w-5" strokeWidth={1.6} />}
-              label={t("nav_cart")}
-              badge={<CountBadge count={cartCount} tone="danger" />}
-            />
+            <User className="hidden h-8 w-8 shrink-0 lg:block" strokeWidth={1.4} aria-hidden />
+
+            <Link href="/wishlist" className="relative hidden lg:block" onClick={closeMenu} aria-label={t("wishlist")}>
+              <Heart className="h-7 w-7" strokeWidth={1.4} />
+              <CountBadge count={wishlistKeys.length} tone="danger" />
+            </Link>
+            <span className="hidden text-[11px] font-semibold leading-none lg:block">{t("wishlist")}</span>
+
+            <Link href="/cart" className="relative flex items-center gap-2" onClick={closeMenu} aria-label={t("nav_cart")}>
+              <span className="relative">
+                <ShoppingBag className="h-7 w-7" strokeWidth={1.4} />
+                <CountBadge count={cartCount} tone="danger" />
+              </span>
+              <span className="hidden text-[13px] font-semibold lg:block">{t("nav_cart")}</span>
+            </Link>
           </div>
         </div>
 
-        <div className={`${navShell} pb-3 md:hidden`}>
+        {/* Mobile search */}
+        <div className={`${navShell} pb-3 lg:hidden`}>
           <SmartSearch variant="header" />
         </div>
       </div>
 
-      <nav className="hidden border-b border-black/[0.08] bg-white lg:block">
-        <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center justify-center gap-5 overflow-x-auto`}>
+      {/* ── White brand bar ── */}
+      <nav className="hidden border-b border-black/[0.07] bg-white lg:block">
+        <div className={`${navShell} hide-dropdown-scrollbar flex h-[56px] items-center justify-center gap-1 overflow-x-auto`}>
+          {/* All Categories pill */}
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[17px] font-bold text-white transition-colors ${
+            className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-4 text-[14px] font-bold text-white transition-colors ${
               categoriesActive ? "bg-[#e85f00]" : "bg-[#FF6A00] hover:bg-[#e85f00]"
             }`}
             aria-expanded={categoriesActive}
@@ -2297,11 +2383,11 @@ export default function Navbar() {
           >
             <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
             {t("allCategories")}
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`}
-              aria-hidden
-            />
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
           </button>
+
+          <span className="mx-2 h-5 w-px shrink-0 bg-black/10" aria-hidden />
+
           {(
             [
               { label: "Apple", idx: primaryBrandIdx.apple },
@@ -2320,25 +2406,29 @@ export default function Navbar() {
               <button
                 key={item.label}
                 type="button"
-                className={brandLinkClass(item.idx)}
+                className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0.5 border-b-2 px-3 transition-colors ${
+                  active
+                    ? "border-[#FF6A00] text-[#FF6A00]"
+                    : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
+                }`}
                 aria-expanded={active}
                 onClick={() => openBrandMenu(item.idx)}
               >
-                {active ? <Wrench className="h-4 w-4" aria-hidden /> : null}
-                {item.label}
+                <BrandIcon brand={item.label} />
+                <span className="text-[11px] font-semibold">{item.label}</span>
               </button>
             );
           })}
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[17px] font-bold transition-colors ${
-              othersActive ? "border-[#2F6BFF] text-[#2F6BFF]" : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
+            className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0.5 border-b-2 px-3 transition-colors ${
+              othersActive ? "border-[#FF6A00] text-[#FF6A00]" : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
             }`}
             aria-expanded={othersActive}
             onClick={() => openOthersMenu()}
           >
-            {othersActive ? <Wrench className="h-4 w-4" aria-hidden /> : null}
-            {t("nav_bar_others")}
+            <Grid3X3 className="h-5 w-5 shrink-0" aria-hidden />
+            <span className="text-[11px] font-semibold">{t("nav_bar_others")}</span>
           </button>
         </div>
       </nav>
