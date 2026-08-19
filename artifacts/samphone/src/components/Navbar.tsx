@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, ChevronDown, Search, Grid3X3 } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, ChevronDown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
 import {
@@ -91,58 +91,7 @@ function CountBadge({ count, tone = "primary" }: { count: number; tone?: "primar
 const navShell =
   "w-full max-w-[1600px] mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16";
 
-/** Minimal inline brand icon for the white nav bar */
-function BrandIcon({ brand }: { brand: string }) {
-  const b = brand.toLowerCase();
-  if (b === "apple") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-    </svg>
-  );
-  if (b === "samsung") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M19.083 12c0 3.866-3.218 6.999-7.187 6.999S4.71 15.866 4.71 12c0-3.866 3.217-7 7.186-7s7.187 3.134 7.187 7m-7.186 8.998c4.77 0 8.636-4.028 8.636-8.998S16.666 3 11.897 3C7.125 3 3.26 7.028 3.26 12s3.865 8.998 8.637 8.998"/>
-    </svg>
-  );
-  if (b === "xiaomi") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M3.15 3.15v17.7H6.3V9.45H9v11.4h3.15V9.45c0-3.47-2.81-6.3-6.3-6.3H3.15zM14.85 9.45c0-3.47 2.81-6.3 6.3-6.3v3.15c-1.73 0-3.15 1.42-3.15 3.15v11.4H14.85V9.45z"/>
-    </svg>
-  );
-  if (b === "honor") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <rect x="5" y="3" width="14" height="18" rx="3"/>
-      <circle cx="12" cy="15" r="2.5"/>
-      <line x1="12" y1="6" x2="12" y2="9"/>
-    </svg>
-  );
-  if (b === "motorola") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M11.998 2C6.476 2 2 6.476 2 12c0 5.523 4.476 9.999 9.998 9.999C17.522 21.999 22 17.523 22 12c0-5.524-4.478-10-10.002-10zm0 1.8c4.52 0 8.2 3.678 8.2 8.2s-3.68 8.2-8.2 8.2c-4.52 0-8.198-3.68-8.198-8.2 0-4.522 3.678-8.2 8.198-8.2zm-2.4 3.6v4l2.4 2.4 2.4-2.4v-4h-4.8z"/>
-    </svg>
-  );
-  if (b === "oneplus") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M14.5 3v8.5H11V3H8.5v8.5H6V14h2.5v4h2.5v-4H14v5h2.5V3H14.5z"/>
-    </svg>
-  );
-  if (b === "oppo") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-    </svg>
-  );
-  if (b === "realme") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M6 3l6 8-6 10h3.5l4.5-7.5V21H17V3h-3v8.5L10 3H6z"/>
-    </svg>
-  );
-  if (b === "vivo") return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="currentColor" aria-hidden>
-      <path d="M12 2L5 21h4l3-8 3 8h4L12 2z"/>
-    </svg>
-  );
-  return <Grid3X3 className="h-5 w-5 shrink-0" aria-hidden />;
-}
+// BrandIcon removed: brand tabs are text-only in the white bar
 
 function slugifyModelLabel(label: string): string {
   return label
@@ -2407,7 +2356,7 @@ export default function Navbar() {
                 key={item.label}
                 type="button"
                 title="Click to open menu · Double-click to view all products"
-                className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0.5 border-b-2 px-3 transition-colors ${
+                className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0 border-b-2 px-3 transition-colors ${
                   active
                     ? "border-[#FF6A00] text-[#FF6A00]"
                     : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
@@ -2420,21 +2369,19 @@ export default function Navbar() {
                   navigate(`/brand/${item.slug}`);
                 }}
               >
-                <BrandIcon brand={item.label} />
-                <span className="text-[11px] font-semibold">{item.label}</span>
+                <span className="text-[14px] font-bold leading-none">{item.label}</span>
               </button>
             );
           })}
           <button
             type="button"
-            className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0.5 border-b-2 px-3 transition-colors ${
+            className={`inline-flex h-[56px] shrink-0 flex-col items-center justify-center gap-0 border-b-2 px-3 transition-colors ${
               othersActive ? "border-[#FF6A00] text-[#FF6A00]" : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
             }`}
             aria-expanded={othersActive}
             onClick={() => openOthersMenu()}
           >
-            <Grid3X3 className="h-5 w-5 shrink-0" aria-hidden />
-            <span className="text-[11px] font-semibold">{t("nav_bar_others")}</span>
+            <span className="text-[14px] font-bold leading-none">{t("nav_bar_others")}</span>
           </button>
         </div>
       </nav>
