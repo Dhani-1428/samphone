@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, Plug, Shield, Monitor, Store, Smartphone, Laptop } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns } from "@/data/categories";
 import {
@@ -2140,8 +2140,6 @@ export default function Navbar() {
 
   const othersActive = menuOpen && openDropdown === "others";
 
-  const catLinkClass =
-    "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-medium text-[#1a2b4a] transition-colors hover:text-[#2F6BFF]";
   const brandLinkClass = (idx: number) =>
     `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
       menuOpen && openDropdown === "brands" && activeBrandIdx === idx
@@ -2256,34 +2254,6 @@ export default function Navbar() {
             {othersActive ? <Wrench className="h-4 w-4" aria-hidden /> : null}
             {t("nav_bar_others")}
           </button>
-
-          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
-            <Plug className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
-            {t("nav_bar_accessories")}
-          </Link>
-          <Link href="/accessories" className={catLinkClass} onClick={closeMenu}>
-            <Shield className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
-            {t("nav_bar_protection")}
-          </Link>
-          <Link href="/multi-brand" className={catLinkClass} onClick={closeMenu}>
-            <Monitor className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
-            {t("nav_bar_computing")}
-          </Link>
-          <Link href="/store" className={catLinkClass} onClick={closeMenu}>
-            <Store className="h-4 w-4 text-[#2F6BFF]" aria-hidden />
-            {t("nav_bar_store")}
-          </Link>
-
-          <span className="mx-1 h-5 w-px shrink-0 bg-black/10" aria-hidden />
-
-          <Link href="/smartphones" className={catLinkClass} onClick={closeMenu}>
-            <Smartphone className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
-            {t("nav_bar_devices")}
-          </Link>
-          <Link href="/tablets" className={catLinkClass} onClick={closeMenu}>
-            <Laptop className="h-4 w-4 text-[#3ECF8E]" aria-hidden />
-            {t("nav_bar_laptops")}
-          </Link>
         </div>
       </nav>
 
