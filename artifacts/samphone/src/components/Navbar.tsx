@@ -1600,15 +1600,24 @@ function BrandMegaPanel({
   const looseItems = brand.items.filter((item) => !(item.children?.length ?? 0));
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const columns = packMegaColumns(brand, families);
+  const manyCols = columns.length >= 5;
 
   return (
     <div className={`${navShell} py-6`}>
       {families.length > 0 ? (
-        <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 xl:grid-cols-5">
+        <div
+          className={`flex flex-wrap overflow-hidden border-x border-t border-black/[0.06] ${
+            manyCols ? "" : "justify-center"
+          }`}
+        >
           {columns.map((column, colIdx) => (
             <div
               key={`${brand.brand.slug}-col-${colIdx}-${column.map((f) => f.slug).join("-")}`}
-              className="flex flex-col gap-8 border-b border-r border-black/[0.06] px-4 py-4"
+              className={`flex flex-col gap-8 border-b border-r border-black/[0.06] px-4 py-4 ${
+                manyCols
+                  ? "w-1/2 sm:w-1/3 xl:w-1/5"
+                  : "w-1/2 min-w-0 sm:w-1/3 xl:w-[260px] xl:flex-none"
+              }`}
             >
               {column.map((family) => (
                 <div key={`${brand.brand.slug}-${family.slug}`}>
