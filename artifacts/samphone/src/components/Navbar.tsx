@@ -2203,7 +2203,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const brandLinkClass = (idx: number) =>
-    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
+    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[15px] font-medium transition-colors ${
       menuOpen && openDropdown === "brands" && activeBrandIdx === idx
         ? "border-[#2F6BFF] text-[#2F6BFF]"
         : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
@@ -2277,10 +2277,10 @@ export default function Navbar() {
       </div>
 
       <nav className="hidden border-b border-black/[0.08] bg-white lg:block">
-        <div className={`${navShell} grid h-[52px] grid-cols-[auto_minmax(0,1fr)_auto] items-center`}>
+        <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center justify-center gap-5 overflow-x-auto`}>
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[13px] font-semibold text-white transition-colors ${
+            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[15px] font-semibold text-white transition-colors ${
               categoriesActive ? "bg-[#e85f00]" : "bg-[#FF6A00] hover:bg-[#e85f00]"
             }`}
             aria-expanded={categoriesActive}
@@ -2293,8 +2293,6 @@ export default function Navbar() {
               aria-hidden
             />
           </button>
-
-          <div className="hide-dropdown-scrollbar flex min-w-0 items-center justify-center gap-5 overflow-x-auto">
           {(
             [
               { label: "Apple", idx: primaryBrandIdx.apple },
@@ -2324,7 +2322,7 @@ export default function Navbar() {
           })}
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
+            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[15px] font-medium transition-colors ${
               othersActive ? "border-[#2F6BFF] text-[#2F6BFF]" : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
             }`}
             aria-expanded={othersActive}
@@ -2333,16 +2331,6 @@ export default function Navbar() {
             {othersActive ? <Wrench className="h-4 w-4" aria-hidden /> : null}
             {t("nav_bar_others")}
           </button>
-          </div>
-
-          <div
-            className="invisible pointer-events-none inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[13px] font-semibold"
-            aria-hidden
-          >
-            <Menu className="h-4 w-4" />
-            {t("allCategories")}
-            <ChevronDown className="h-3.5 w-3.5" />
-          </div>
         </div>
       </nav>
 
