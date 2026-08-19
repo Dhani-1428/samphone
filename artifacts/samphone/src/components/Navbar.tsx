@@ -2203,7 +2203,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const brandLinkClass = (idx: number) =>
-    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[15px] font-medium transition-colors ${
+    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[17px] font-bold transition-colors ${
       menuOpen && openDropdown === "brands" && activeBrandIdx === idx
         ? "border-[#2F6BFF] text-[#2F6BFF]"
         : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
@@ -2280,7 +2280,7 @@ export default function Navbar() {
         <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center justify-center gap-5 overflow-x-auto`}>
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[15px] font-semibold text-white transition-colors ${
+            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[17px] font-bold text-white transition-colors ${
               categoriesActive ? "bg-[#e85f00]" : "bg-[#FF6A00] hover:bg-[#e85f00]"
             }`}
             aria-expanded={categoriesActive}
@@ -2322,7 +2322,7 @@ export default function Navbar() {
           })}
           <button
             type="button"
-            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[15px] font-medium transition-colors ${
+            className={`inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[17px] font-bold transition-colors ${
               othersActive ? "border-[#2F6BFF] text-[#2F6BFF]" : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
             }`}
             aria-expanded={othersActive}
@@ -2387,7 +2387,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setOpenDropdown("categories")}
-                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                    className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                       openDropdown === "categories"
                         ? "border-b-2 border-[#FF6A00] text-[#FF6A00]"
                         : "text-foreground/80 hover:text-foreground"
@@ -2403,7 +2403,7 @@ export default function Navbar() {
                         setOpenDropdown("brands");
                         setActiveBrandIdx(idx);
                       }}
-                      className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                      className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                         openDropdown === "brands" && idx === activeBrandIdx
                           ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
                           : "text-foreground/80 hover:text-foreground"
@@ -2415,7 +2415,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setOpenDropdown("others")}
-                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                    className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                       openDropdown === "others"
                         ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
                         : "text-foreground/80 hover:text-foreground"
