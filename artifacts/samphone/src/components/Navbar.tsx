@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, Wrench, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { smartphonesColumns } from "@/data/categories";
+import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
 import {
   APPLE_IPHONE_MODELS,
   APPLE_WATCH_MODELS,
@@ -24,7 +24,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 
-type DropdownKey = "accessories" | "cards" | "brands" | "others" | null;
+type DropdownKey = "accessories" | "cards" | "brands" | "others" | "categories" | null;
 
 function displayBrandLabel(label: string): string {
   const key = label.toLowerCase();
@@ -1710,6 +1710,58 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
   );
 }
 
+function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useLang();
+  const columns: { title: string; items: { label: string; href: string }[] }[] = [
+    {
+      title: t("woo_categories_label"),
+      items: [
+        { label: t("nav_bar_accessories"), href: "/accessories" },
+        { label: t("nav_bar_protection"), href: "/accessories" },
+        { label: t("nav_bar_computing"), href: "/multi-brand" },
+        { label: t("nav_bar_store"), href: "/store" },
+        { label: t("nav_bar_devices"), href: "/smartphones" },
+        { label: t("nav_bar_laptops"), href: "/tablets" },
+      ],
+    },
+    ...accessoriesColumns.map((col) => ({
+      title: col.title,
+      items: col.items.map((item) => ({ label: item.label, href: `/category/${item.slug}` })),
+    })),
+    ...cardsColumns.map((col) => ({
+      title: col.title,
+      items: col.items.map((item) => ({ label: item.label, href: `/category/${item.slug}` })),
+    })),
+  ];
+
+  return (
+    <div className={`${navShell} py-6`}>
+      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 xl:grid-cols-5">
+        {columns.map((column) => (
+          <div key={column.title} className="border-b border-r border-black/[0.06] px-4 py-4">
+            <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
+              {column.title}
+            </div>
+            <ul className="space-y-2">
+              {column.items.map((item) => (
+                <li key={`${column.title}-${item.href}-${item.label}`}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    className="text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const [location] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
@@ -2126,6 +2178,15 @@ export default function Navbar() {
     setMenuOpen(true);
   };
 
+  const openCategoriesMenu = () => {
+    if (menuOpen && openDropdown === "categories") {
+      closeMenu();
+      return;
+    }
+    setOpenDropdown("categories");
+    setMenuOpen(true);
+  };
+
   const primaryBrandIdx = {
     apple: findBrandIdx(["apple", "iphone"]),
     samsung: findBrandIdx(["samsung"]),
@@ -2139,6 +2200,7 @@ export default function Navbar() {
   };
 
   const othersActive = menuOpen && openDropdown === "others";
+  const categoriesActive = menuOpen && openDropdown === "categories";
 
   const brandLinkClass = (idx: number) =>
     `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[13px] font-medium transition-colors ${
@@ -2215,7 +2277,24 @@ export default function Navbar() {
       </div>
 
       <nav className="hidden border-b border-black/[0.08] bg-white lg:block">
-        <div className={`${navShell} hide-dropdown-scrollbar flex h-[52px] items-center gap-5 overflow-x-auto`}>
+        <div className={`${navShell} grid h-[52px] grid-cols-[auto_minmax(0,1fr)_auto] items-center`}>
+          <button
+            type="button"
+            className={`inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[13px] font-semibold text-white transition-colors ${
+              categoriesActive ? "bg-[#e85f00]" : "bg-[#FF6A00] hover:bg-[#e85f00]"
+            }`}
+            aria-expanded={categoriesActive}
+            onClick={openCategoriesMenu}
+          >
+            <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+            {t("allCategories")}
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`}
+              aria-hidden
+            />
+          </button>
+
+          <div className="hide-dropdown-scrollbar flex min-w-0 items-center justify-center gap-5 overflow-x-auto">
           {(
             [
               { label: "Apple", idx: primaryBrandIdx.apple },
@@ -2254,6 +2333,16 @@ export default function Navbar() {
             {othersActive ? <Wrench className="h-4 w-4" aria-hidden /> : null}
             {t("nav_bar_others")}
           </button>
+          </div>
+
+          <div
+            className="invisible pointer-events-none inline-flex h-[52px] shrink-0 items-center gap-2 px-3.5 text-[13px] font-semibold"
+            aria-hidden
+          >
+            <Menu className="h-4 w-4" />
+            {t("allCategories")}
+            <ChevronDown className="h-3.5 w-3.5" />
+          </div>
         </div>
       </nav>
 
@@ -2275,7 +2364,9 @@ export default function Navbar() {
             transition={{ duration: 0.16 }}
             className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] lg:block"
           >
-            {openDropdown === "others" ? (
+            {openDropdown === "categories" ? (
+              <AllCategoriesMegaPanel onClose={closeMenu} />
+            ) : openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             ) : (
               <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
@@ -2305,6 +2396,17 @@ export default function Navbar() {
             >
               <div className="hide-dropdown-scrollbar overflow-x-auto border-b border-border">
                 <div className={`${navShell} flex min-w-max items-center gap-1 py-1`}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown("categories")}
+                    className={`whitespace-nowrap px-3 py-3 text-sm font-semibold transition-colors ${
+                      openDropdown === "categories"
+                        ? "border-b-2 border-[#FF6A00] text-[#FF6A00]"
+                        : "text-foreground/80 hover:text-foreground"
+                    }`}
+                  >
+                    {t("allCategories")}
+                  </button>
                   {brandGroups.map((group, idx) => (
                     <button
                       key={group.brand.slug}
@@ -2335,7 +2437,9 @@ export default function Navbar() {
                   </button>
                 </div>
               </div>
-              {openDropdown === "others" ? (
+              {openDropdown === "categories" ? (
+              <AllCategoriesMegaPanel onClose={closeMenu} />
+            ) : openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             ) : (
               <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
