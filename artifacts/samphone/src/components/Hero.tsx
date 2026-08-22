@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -8,56 +8,49 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useLang } from "@/contexts/LanguageContext";
+import { fetchHeroBanners } from "@/lib/woocommerce";
 import homeHeroVideo from "@/assets/home-hero-video.mp4";
 import homeBanner from "@/assets/banner home.webp";
 import accessoriesBanner from "@/assets/accessories.webp";
 
+type Slide = { key: string; node: ReactNode };
+
 export default function Hero() {
   const { t, lang } = useLang();
   const [api, setApi] = useState<CarouselApi>();
+  const [slides, setSlides] = useState<Slide[]>(() => fallbackSlides(t("hero_line2"), lang));
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchHeroBanners()
+      .then((banners) => {
+        if (cancelled || banners.length === 0) return;
+        setSlides(
+          banners.map((b) => ({
+            key: `woo-${b.id}`,
+            node: (
+              <img
+                src={b.src}
+                alt={b.alt}
+                className="h-full w-full object-cover object-center"
+              />
+            ),
+          })),
+        );
+      })
+      .catch(() => {
+        /* keep local fallback slides */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!api) return;
     const id = window.setInterval(() => api.scrollNext(), 5500);
     return () => window.clearInterval(id);
   }, [api]);
-
-  const slides = [
-    {
-      key: "video",
-      node: (
-        <video
-          className="h-full w-full object-cover"
-          src={homeHeroVideo}
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-label={t("hero_line2")}
-        />
-      ),
-    },
-    {
-      key: "banner",
-      node: (
-        <img
-          src={homeBanner}
-          alt={lang === "pt" ? "SAMPHONE — acessórios e peças" : "SAMPHONE — accessories and parts"}
-          className="h-full w-full object-cover object-center"
-        />
-      ),
-    },
-    {
-      key: "accessories",
-      node: (
-        <img
-          src={accessoriesBanner}
-          alt={lang === "pt" ? "Acessórios SAMPHONE" : "SAMPHONE accessories"}
-          className="h-full w-full object-cover object-center"
-        />
-      ),
-    },
-  ];
 
   return (
     <section id="home" className="bg-background">
@@ -82,4 +75,43 @@ export default function Hero() {
       </div>
     </section>
   );
+}
+
+function fallbackSlides(videoLabel: string, lang: string): Slide[] {
+  return [
+    {
+      key: "video",
+      node: (
+        <video
+          className="h-full w-full object-cover"
+          src={homeHeroVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-label={videoLabel}
+        />
+      ),
+    },
+    {
+      key: "banner",
+      node: (
+        <img
+          src={homeBanner}
+          alt={lang === "pt" ? "SAMPHONE — acessórios e peças" : "SAMPHONE — accessories and parts"}
+          className="h-full w-full object-cover object-center"
+        />
+      ),
+    },
+    {
+      key: "accessories",
+      node: (
+        <img
+          src={accessoriesBanner}
+          alt={lang === "pt" ? "Acessórios SAMPHONE" : "SAMPHONE accessories"}
+          className="h-full w-full object-cover object-center"
+        />
+      ),
+    },
+  ];
 }

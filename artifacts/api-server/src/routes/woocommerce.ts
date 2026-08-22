@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { rateLimit } from "../middleware/rate-limit";
-import { getWooServerConfig, isWooConfigured } from "../lib/woocommerce-config";
+import { getWooServerConfig, isWooConfigured, fetchStoreBanners } from "../lib/woocommerce-config";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -37,6 +37,18 @@ router.get("{*path}", async (req: Request, res: Response) => {
 
   if (!subPath || subPath === "status") {
     res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  if (subPath === "banners") {
+    try {
+      const banners = await fetchStoreBanners(cfg);
+      res.setHeader("Cache-Control", "private, max-age=120");
+      res.json(banners);
+    } catch (err) {
+      logger.error({ err }, "WooCommerce banner fetch failed");
+      res.status(502).json({ error: "Failed to load homepage banners" });
+    }
     return;
   }
 

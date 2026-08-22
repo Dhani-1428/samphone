@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getWooServerConfig } from "./woocommerce-config";
+import { fetchStoreBanners, getWooServerConfig } from "./woocommerce-config";
 
 /** Read-only WooCommerce REST paths allowed through the proxy. */
 const ALLOWED_PREFIXES = ["products", "products/categories"];
@@ -36,6 +36,17 @@ export async function handleWooCommerceProxy(req: VercelRequest, res: VercelResp
   const subPath = pathFromQuery(req);
   if (!subPath || subPath === "status") {
     res.status(404).json({ error: "Not found" });
+    return;
+  }
+
+  if (subPath === "banners") {
+    try {
+      const banners = await fetchStoreBanners(cfg);
+      res.setHeader("Cache-Control", "private, max-age=120");
+      res.status(200).json(banners);
+    } catch {
+      res.status(502).json({ error: "Failed to load homepage banners" });
+    }
     return;
   }
 

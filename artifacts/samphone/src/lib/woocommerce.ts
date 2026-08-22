@@ -304,6 +304,13 @@ export async function fetchProducts(): Promise<WooProduct[]> {
   return fetchAllProducts();
 }
 
+/** GET /banners — homepage slides from store media (via API proxy). */
+export async function fetchHeroBanners(): Promise<{ id: number; src: string; alt: string }[]> {
+  const raw = await wooFetchJson<{ id: number; src: string; alt: string }[]>("banners");
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((b) => typeof b?.src === "string" && b.src.length > 0);
+}
+
 export function getDisplayPrice(product: WooProduct): string | null {
   const raw = product.price?.trim() ?? "";
   if (!raw) return null;
