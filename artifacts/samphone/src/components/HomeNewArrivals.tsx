@@ -48,7 +48,7 @@ export default function HomeNewArrivals() {
                   ) : (
                     <Link
                       href="/login"
-                      className="flex h-10 items-center justify-center rounded-md bg-[#2F6BFF] text-sm font-semibold text-white"
+                      className="flex h-10 items-center justify-center rounded-md bg-[#5A73A8] text-sm font-semibold text-white"
                     >
                       {t("login_for_price")}
                     </Link>

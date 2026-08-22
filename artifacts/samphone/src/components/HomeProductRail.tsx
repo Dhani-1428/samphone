@@ -60,7 +60,7 @@ export default function HomeProductRail({
             <span className="hidden text-sm tabular-nums text-muted-foreground sm:inline">
               {t("newArrivals_page")} {pageIndex} {t("newArrivals_of")} {pageTotal}
             </span>
-            <Link href={seeAllHref} className="text-sm font-semibold text-[#2F6BFF] hover:underline">
+            <Link href={seeAllHref} className="text-sm font-semibold text-[#5A73A8] hover:underline">
               {t("newArrivals_see_all")}
             </Link>
           </div>

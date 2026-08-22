@@ -176,7 +176,7 @@ export default function SmartSearch({ className, compact, variant = "default", h
               className={cn(
                 "shrink-0 transition-colors",
                 variant === "header"
-                  ? "px-3 py-2.5 text-[#2F6BFF] hover:text-[#2458d6]"
+                  ? "px-3 py-2.5 text-[#5A73A8] hover:text-[#4A6494]"
                   : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
               )}
               data-testid="button-search"

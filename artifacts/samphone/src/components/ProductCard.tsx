@@ -59,7 +59,7 @@ export default function ProductCard({
       <div className="px-3 pt-3">
         <div className="mb-2 min-h-[1.25rem]">
           {badge ? (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
               {badge === "New" ? t("badge_new") : badge}
             </span>
           ) : null}
@@ -77,7 +77,7 @@ export default function ProductCard({
         ) : (
           <Link
             href={loginHref}
-            className="flex h-10 items-center justify-center rounded-md bg-[#2F6BFF] text-sm font-semibold text-white hover:bg-[#1f5aee]"
+            className="flex h-10 items-center justify-center rounded-md bg-[#5A73A8] text-sm font-semibold text-white hover:bg-[#4A6494]"
           >
             {t("login_for_price")}
           </Link>

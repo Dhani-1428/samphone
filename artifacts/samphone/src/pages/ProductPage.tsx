@@ -42,7 +42,7 @@ function parseProductCartKey(pathname: string): string | null {
 
 const badgeColors: Record<string, string> = {
   Bestseller: "bg-amber-500 text-white",
-  New: "bg-[#2F6BFF] text-white",
+  New: "bg-[#5A73A8] text-white",
   Sale: "bg-red-500 text-white",
   Hot: "bg-orange-500 text-white",
 };
@@ -288,10 +288,10 @@ export default function ProductPage() {
                     "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
                     stock.isLow
                       ? "border border-amber-500/40 bg-amber-50 text-amber-800"
-                      : "bg-[#E8F0FF] text-[#2F6BFF]",
+                      : "bg-[#E8F0FF] text-[#5A73A8]",
                   )}
                 >
-                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-[#2F6BFF]")} />
+                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-[#5A73A8]")} />
                   {stock.isLow ? t("stock_low", { count: stock.count }) : t("product_in_stock")}
                 </div>
 

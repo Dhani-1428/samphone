@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Mail, Phone } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
   const { lang, t } = useLang();
@@ -39,6 +40,7 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
+            <BrandLogo className="mb-5 h-10 w-auto" />
             <h4 className="mb-4 font-display text-lg font-bold">{t("footer_need_help")}</h4>
             <ul className="space-y-2.5">
               {helpLinks.map((link) => (
@@ -96,7 +98,7 @@ export default function Footer() {
             </div>
             <p className="mb-2 text-sm font-semibold">{lang === "pt" ? "Newsletter" : "Newsletter"}</p>
             {subscribed ? (
-              <p className="text-sm text-[#7EB0FF]">{lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}</p>
+              <p className="text-sm text-[#A8B8D6]">{lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}</p>
             ) : (
               <form
                 onSubmit={(e) => {
@@ -110,12 +112,12 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#2F6BFF]"
+                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#5A73A8]"
                   data-testid="input-newsletter"
                 />
                 <button
                   type="submit"
-                  className="h-10 rounded-md bg-[#2F6BFF] px-3 text-sm font-semibold hover:bg-[#1f5aee]"
+                  className="h-10 rounded-md bg-[#5A73A8] px-3 text-sm font-semibold hover:bg-[#4A6494]"
                   data-testid="button-subscribe"
                 >
                   OK

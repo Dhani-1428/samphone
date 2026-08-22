@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, User, LogIn, UserPlus, Sun, Moon, Phone, ChevronDown, Search } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, GitCompare, Sun, Moon, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
 import {
@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
+import BrandLogo from "@/components/BrandLogo";
 
 type DropdownKey = "accessories" | "cards" | "brands" | "others" | "categories" | null;
 
@@ -74,12 +75,20 @@ function HeaderAction({
   );
 }
 
-function CountBadge({ count, tone = "primary" }: { count: number; tone?: "primary" | "danger" }) {
-  if (count <= 0) return null;
+function CountBadge({
+  count,
+  tone = "primary",
+  showZero = false,
+}: {
+  count: number;
+  tone?: "primary" | "danger";
+  showZero?: boolean;
+}) {
+  if (!showZero && count <= 0) return null;
   return (
     <span
       className={`absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] font-bold ${
-        tone === "danger" ? "bg-red-500 text-white" : "bg-[#2F6BFF] text-white"
+        tone === "danger" ? "bg-sam text-white" : "bg-brand text-white"
       }`}
     >
       {count > 99 ? "99+" : count}
@@ -1635,11 +1644,11 @@ function BrandMegaPanel({
                             `/model/${brandRoute}/${family.slug}/${model.slug}`
                           }
                           onClick={onClose}
-                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
                         >
                           <span>{model.label}</span>
                           {isNewNavModel(model.label) ? (
-                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#5A73A8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
                               NEW
                             </span>
                           ) : null}
@@ -1659,7 +1668,7 @@ function BrandMegaPanel({
               key={item.slug}
               href={item.href ?? `/category/${item.slug}`}
               onClick={onClose}
-              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
             >
               {item.label}
             </Link>
@@ -1690,11 +1699,11 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
                     <Link
                       href={`/model/${brand.slug}/models/${slug}`}
                       onClick={onClose}
-                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
                     >
                       <span>{model.label}</span>
                       {model.isNew ? (
-                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2F6BFF] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#5A73A8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
                           NEW
                         </span>
                       ) : null}
@@ -1707,7 +1716,7 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
                   <Link
                     href={brand.seeAllHref}
                     onClick={onClose}
-                    className="text-[13px] font-medium text-[#2F6BFF] hover:underline"
+                    className="text-[13px] font-medium text-[#5A73A8] hover:underline"
                   >
                     {seeAllLabel}
                   </Link>
@@ -1759,7 +1768,7 @@ function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
                   <Link
                     href={item.href}
                     onClick={onClose}
-                    className="text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2F6BFF]"
+                    className="text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
                   >
                     {item.label}
                   </Link>
@@ -2213,22 +2222,65 @@ export default function Navbar() {
   const othersActive = menuOpen && openDropdown === "others";
   const categoriesActive = menuOpen && openDropdown === "categories";
 
-  const brandLinkClass = (idx: number) =>
-    `inline-flex h-[52px] shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 text-[17px] font-bold transition-colors ${
-      menuOpen && openDropdown === "brands" && activeBrandIdx === idx
-        ? "border-[#2F6BFF] text-[#2F6BFF]"
-        : "border-transparent text-[#1a2b4a] hover:text-[#2F6BFF]"
+  const brandNavClass = (active: boolean) =>
+    `inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 text-[14px] font-semibold transition-colors ${
+      active ? "text-sam" : "text-white hover:text-sam"
     }`;
 
   return (
     <header className="sticky top-0 z-50 w-full">
-      {/* ── Navy top row ── */}
-      <div className="bg-[#0B1736] text-white">
+      {/* ── Light utility bar ── */}
+      <div className="hidden border-b border-black/[0.05] bg-[#F3F5F8] text-[13px] text-brand lg:block">
+        <div className={`${navShell} flex h-9 items-center justify-between gap-4`}>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              <Gift className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+              {t("welcome")}
+            </span>
+            <span className="h-3.5 w-px bg-brand/25" aria-hidden />
+            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand-dark">
+              <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+              {t("phone")}
+            </a>
+          </div>
+          <div className="flex items-center gap-3">
+            {user ? (
+              <Link href="/account" className="hover:text-brand-dark" onClick={closeMenu}>
+                {t("auth_my_account")}
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                <Link href="/login" className="hover:text-brand-dark" onClick={closeMenu}>
+                  {t("login")}
+                </Link>
+                <span className="text-brand/40">|</span>
+                <Link href="/register" className="hover:text-brand-dark" onClick={closeMenu}>
+                  {t("registration")}
+                </Link>
+              </span>
+            )}
+            <div className="relative">
+              <button
+                type="button"
+                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand"
+                onClick={() => setLang(lang === "en" ? "pt" : "en")}
+                aria-label={lang === "en" ? t("lang_english") : t("lang_portuguese")}
+              >
+                <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
+                {lang === "en" ? t("lang_english") : t("lang_portuguese")}
+                <ChevronDown className="h-3 w-3 opacity-70" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── White logo / search / actions ── */}
+      <div className="border-b border-black/[0.06] bg-white">
         <div className={`${navShell} flex items-center gap-4 py-3 lg:py-3.5`}>
-          {/* Mobile hamburger */}
           <button
             type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-white lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark lg:hidden"
             aria-expanded={menuOpen}
             aria-label={t("header_menu")}
             data-testid="button-nav-menu"
@@ -2242,23 +2294,14 @@ export default function Navbar() {
             {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
           </button>
 
-          {/* Logo */}
-          <Link href="/" className="flex shrink-0 flex-col leading-none" onClick={closeMenu}>
-            <span className="font-display text-[1.5rem] font-extrabold uppercase tracking-widest sm:text-[1.7rem]">
-              SAMPHONE<span className="text-[0.65em] font-medium tracking-normal opacity-70">.PT</span>
-            </span>
-            <span className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-white/50 sm:block">
-              Smart choice, best price
-            </span>
-          </Link>
+          <BrandLogo onClick={closeMenu} />
 
-          {/* Search bar – desktop */}
           <div className="hidden min-w-0 flex-1 lg:block">
-            <div className="flex items-center overflow-hidden rounded-full bg-white shadow-sm">
+            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.12] bg-white">
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
-                className="flex h-11 w-12 shrink-0 items-center justify-center bg-[#FF6A00] text-white transition-colors hover:bg-[#e85f00]"
+                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand-dark text-white transition-colors hover:bg-navy"
                 aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-5 w-5" strokeWidth={2.2} />
@@ -2266,30 +2309,36 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Right actions */}
-          <div className="ml-auto flex items-center gap-3 lg:ml-0">
-            {user ? (
-              <Link href="/account" className="hidden flex-col items-start lg:flex" onClick={closeMenu}>
-                <span className="text-[11px] text-white/60">{t("auth_my_account")}</span>
-                <span className="text-[13px] font-semibold">My Account</span>
-              </Link>
-            ) : (
-              <Link href="/login" className="hidden flex-col items-start lg:flex" onClick={closeMenu}>
-                <span className="text-[11px] text-white/60">Sign In / Register</span>
-                <span className="text-[13px] font-semibold">My Account</span>
-              </Link>
-            )}
-            <User className="hidden h-8 w-8 shrink-0 lg:block" strokeWidth={1.4} aria-hidden />
-
-            <Link href="/wishlist" className="relative hidden lg:block" onClick={closeMenu} aria-label={t("wishlist")}>
-              <Heart className="h-7 w-7" strokeWidth={1.4} />
-              <CountBadge count={wishlistKeys.length} tone="danger" />
+          <div className="ml-auto flex items-center lg:ml-0">
+            <Link
+              href="/compare"
+              className="hidden items-center gap-2 px-4 text-brand-dark lg:flex"
+              onClick={closeMenu}
+              aria-label={t("compare")}
+            >
+              <span className="relative">
+                <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
+                <CountBadge count={compareKeys.length} />
+              </span>
+              <span className="text-[14px] font-semibold">{t("compare")}</span>
             </Link>
-            <span className="hidden text-[11px] font-semibold leading-none lg:block">{t("wishlist")}</span>
-
+            <span className="hidden h-8 w-px bg-black/[0.08] lg:block" aria-hidden />
+            <Link
+              href="/wishlist"
+              className="hidden items-center gap-2 px-4 text-brand-dark lg:flex"
+              onClick={closeMenu}
+              aria-label={t("wishlist")}
+            >
+              <span className="relative">
+                <Heart className="h-6 w-6" strokeWidth={1.7} />
+                <CountBadge count={wishlistKeys.length} tone="danger" />
+              </span>
+              <span className="text-[14px] font-semibold">{t("wishlist")}</span>
+            </Link>
+            <span className="hidden h-8 w-px bg-black/[0.08] lg:block" aria-hidden />
             <button
               type="button"
-              className="relative flex items-center gap-2"
+              className="relative flex items-center gap-2 px-1 text-brand-dark lg:px-4"
               onClick={() => {
                 closeMenu();
                 openCart();
@@ -2297,28 +2346,27 @@ export default function Navbar() {
               aria-label={t("nav_cart")}
             >
               <span className="relative">
-                <ShoppingBag className="h-7 w-7" strokeWidth={1.4} />
-                <CountBadge count={cartCount} tone="danger" />
+                <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
+                <CountBadge count={cartCount} tone="danger" showZero />
               </span>
-              <span className="hidden text-[13px] font-semibold lg:block">{t("nav_cart")}</span>
             </button>
           </div>
         </div>
 
-        {/* Mobile search */}
         <div className={`${navShell} pb-3 lg:hidden`}>
-          <SmartSearch variant="header" />
+          <div className="overflow-hidden rounded-md border border-black/[0.12]">
+            <SmartSearch variant="header" />
+          </div>
         </div>
       </div>
 
-      {/* ── White brand bar ── */}
-      <nav className="hidden border-b border-black/[0.07] bg-white lg:block">
-        <div className={`${navShell} flex h-[56px] items-center gap-3`}>
-          {/* All Accessories pill */}
+      {/* ── Blue brand nav ── */}
+      <nav className="hidden bg-brand-dark lg:block">
+        <div className={`${navShell} flex h-[46px] items-center gap-1`}>
           <button
             type="button"
-            className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-4 text-[14px] font-bold text-white transition-colors ${
-              categoriesActive ? "bg-[#e85f00]" : "bg-[#FF6A00] hover:bg-[#e85f00]"
+            className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold text-white transition-colors ${
+              categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
             }`}
             aria-expanded={categoriesActive}
             onClick={openCategoriesMenu}
@@ -2327,7 +2375,7 @@ export default function Navbar() {
             All Accessories
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
           </button>
-          <div className="flex min-w-0 flex-1 items-stretch">
+          <div className="flex min-w-0 flex-1 items-stretch justify-end overflow-x-auto">
           {(
             [
               { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
@@ -2347,11 +2395,7 @@ export default function Navbar() {
                 key={item.label}
                 type="button"
                 title="Click to open menu · Double-click to view all products"
-                className={`inline-flex h-[56px] min-w-[90px] flex-1 flex-col items-center justify-center gap-0 border-b-2 px-2 transition-colors ${
-                  active
-                    ? "border-[#FF6A00] text-[#FF6A00]"
-                    : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
-                }`}
+                className={brandNavClass(active)}
                 aria-expanded={active}
                 onClick={() => openBrandMenu(item.idx)}
                 onDoubleClick={(e) => {
@@ -2360,49 +2404,37 @@ export default function Navbar() {
                   navigate(`/brand/${item.slug}`);
                 }}
               >
-                <span className="text-[14px] font-bold leading-none">{item.label}</span>
+                {item.label}
               </button>
             );
           })}
           <button
             type="button"
-            className={`inline-flex h-[56px] min-w-[90px] flex-1 flex-col items-center justify-center gap-0 border-b-2 px-2 transition-colors ${
-              othersActive ? "border-[#FF6A00] text-[#FF6A00]" : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
-            }`}
+            className={brandNavClass(othersActive)}
             aria-expanded={othersActive}
             onClick={() => openOthersMenu()}
           >
-            <span className="text-[14px] font-bold leading-none">{t("nav_bar_others")}</span>
+            {t("nav_bar_others")}
           </button>
           <Link
             href="/phones"
-            className={`inline-flex h-[56px] min-w-[98px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
-              location.startsWith("/phones") || location.startsWith("/smartphones")
-                ? "border-[#FF6A00] text-[#FF6A00]"
-                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
-            }`}
+            className={brandNavClass(location.startsWith("/phones") || location.startsWith("/smartphones"))}
             onClick={closeMenu}
           >
             Smartphones
           </Link>
           <Link
             href="/cards"
-            className={`inline-flex h-[56px] min-w-[86px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
-              location.startsWith("/cards")
-                ? "border-[#FF6A00] text-[#FF6A00]"
-                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
-            }`}
+            className={brandNavClass(location.startsWith("/cards"))}
             onClick={closeMenu}
           >
             Cards
           </Link>
           <Link
             href="/book-repair"
-            className={`inline-flex h-[56px] min-w-[86px] flex-1 items-center justify-center border-b-2 px-2 text-[14px] font-bold transition-colors ${
-              location.startsWith("/book-repair") || location.startsWith("/diagnostics") || location.startsWith("/trade-in")
-                ? "border-[#FF6A00] text-[#FF6A00]"
-                : "border-transparent text-[#1a2b4a] hover:text-[#FF6A00]"
-            }`}
+            className={brandNavClass(
+              location.startsWith("/book-repair") || location.startsWith("/diagnostics") || location.startsWith("/trade-in"),
+            )}
             onClick={closeMenu}
           >
             Tools
@@ -2466,7 +2498,7 @@ export default function Navbar() {
                     onClick={() => setOpenDropdown("categories")}
                     className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                       openDropdown === "categories"
-                        ? "border-b-2 border-[#FF6A00] text-[#FF6A00]"
+                        ? "border-b-2 border-sam text-sam"
                         : "text-foreground/80 hover:text-foreground"
                     }`}
                   >
@@ -2482,7 +2514,7 @@ export default function Navbar() {
                       }}
                       className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                         openDropdown === "brands" && idx === activeBrandIdx
-                          ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
+                          ? "border-b-2 border-brand text-brand"
                           : "text-foreground/80 hover:text-foreground"
                       }`}
                     >
@@ -2494,7 +2526,7 @@ export default function Navbar() {
                     onClick={() => setOpenDropdown("others")}
                     className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
                       openDropdown === "others"
-                        ? "border-b-2 border-[#2F6BFF] text-[#2F6BFF]"
+                        ? "border-b-2 border-brand text-brand"
                         : "text-foreground/80 hover:text-foreground"
                     }`}
                   >
@@ -2552,14 +2584,14 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => setLang("en")}
-                      className={`px-2 py-0.5 ${lang === "en" ? "bg-[#2F6BFF] text-white" : "text-muted-foreground"}`}
+                      className={`px-2 py-0.5 ${lang === "en" ? "bg-brand text-white" : "text-muted-foreground"}`}
                     >
                       EN
                     </button>
                     <button
                       type="button"
                       onClick={() => setLang("pt")}
-                      className={`px-2 py-0.5 ${lang === "pt" ? "bg-[#2F6BFF] text-white" : "text-muted-foreground"}`}
+                      className={`px-2 py-0.5 ${lang === "pt" ? "bg-brand text-white" : "text-muted-foreground"}`}
                     >
                       PT
                     </button>

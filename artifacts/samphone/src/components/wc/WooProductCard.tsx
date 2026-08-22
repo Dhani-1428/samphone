@@ -74,12 +74,12 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
       <div className="relative px-3 pt-3">
         <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
           {recent && (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
               {t("badge_new")}
             </span>
           )}
           {service && (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#2F6BFF]">
+            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
               {t("badge_service")}
             </span>
           )}
@@ -110,7 +110,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
         ) : (
           <Link
             href={loginHref}
-            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#2F6BFF] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#1f5aee]"
+            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#5A73A8] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#4A6494]"
           >
             {t("login_for_price")}
           </Link>

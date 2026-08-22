@@ -80,7 +80,7 @@ export default function CartSider() {
         <SheetTitle className="sr-only">{t("cart_sider_title")}</SheetTitle>
         <SheetDescription className="sr-only">{countLabel}</SheetDescription>
 
-        <header className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#0B1736] via-[#122a5c] to-[#1b3d82] px-4 pb-5 pt-4 text-white">
+        <header className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#3E5480] via-[#4A6494] to-[#5A73A8] px-4 pb-5 pt-4 text-white">
           <ShoppingBag
             className="pointer-events-none absolute -right-3 bottom-0 h-24 w-24 rotate-12 text-white/[0.07]"
             strokeWidth={1.1}
@@ -96,7 +96,7 @@ export default function CartSider() {
                   <span key={`${part}-${i}`}>
                     {part}
                     {i < arr.length - 1 && (
-                      <span className="font-semibold text-[#FF6A00]">{totalItems}</span>
+                      <span className="font-semibold text-[#FFB133]">{totalItems}</span>
                     )}
                   </span>
                 ))}
@@ -105,7 +105,7 @@ export default function CartSider() {
             <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
               <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
               {totalItems > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FF6A00] px-1 text-[10px] font-bold leading-none text-white">
+                <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#FFB133] px-1 text-[10px] font-bold leading-none text-white">
                   {totalItems > 99 ? "99+" : totalItems}
                 </span>
               )}
@@ -117,12 +117,12 @@ export default function CartSider() {
           {lines.length === 0 ? (
             <div className="flex flex-col items-center px-5 py-10 text-center">
               <PromoArt />
-              <p className="mt-4 text-[15px] font-bold text-[#0B1736]">{t("cart_empty_title")}</p>
+              <p className="mt-4 text-[15px] font-bold text-[#3E5480]">{t("cart_empty_title")}</p>
               <p className="mt-1 text-[12px] leading-relaxed text-slate-500">{t("cart_empty_body")}</p>
               <Link
                 href="/store"
                 onClick={closeCart}
-                className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-[#FF6A00] hover:underline"
+                className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-[#FFB133] hover:underline"
               >
                 {t("cart_sider_continue")}
                 <ChevronRight className="h-4 w-4" />
@@ -140,7 +140,7 @@ export default function CartSider() {
                       <button
                         type="button"
                         onClick={() => removeLine(line.cartKey)}
-                        className="mt-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6e4ff] bg-[#eef4ff] text-[#2F6BFF] transition-colors hover:bg-[#dce8ff]"
+                        className="mt-3 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d6e4ff] bg-[#eef4ff] text-[#5A73A8] transition-colors hover:bg-[#dce8ff]"
                         aria-label={t("cart_remove_line")}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -160,7 +160,7 @@ export default function CartSider() {
                         <Link
                           href={line.href}
                           onClick={closeCart}
-                          className="line-clamp-2 text-[13px] font-bold leading-snug text-[#0B1736] hover:text-[#2F6BFF]"
+                          className="line-clamp-2 text-[13px] font-bold leading-snug text-[#3E5480] hover:text-[#5A73A8]"
                         >
                           {line.name}
                         </Link>
@@ -174,18 +174,18 @@ export default function CartSider() {
                           <div className="inline-flex h-7 items-center rounded-full border border-slate-200 bg-white">
                             <button
                               type="button"
-                              className="flex h-7 w-7 items-center justify-center text-[#2F6BFF] disabled:opacity-40"
+                              className="flex h-7 w-7 items-center justify-center text-[#5A73A8] disabled:opacity-40"
                               onClick={() => decrement(line.cartKey)}
                               aria-label="Decrease quantity"
                             >
                               <Minus className="h-3 w-3" strokeWidth={2.4} />
                             </button>
-                            <span className="min-w-[1.1rem] text-center text-[12px] font-bold tabular-nums text-[#0B1736]">
+                            <span className="min-w-[1.1rem] text-center text-[12px] font-bold tabular-nums text-[#3E5480]">
                               {line.qty}
                             </span>
                             <button
                               type="button"
-                              className="flex h-7 w-7 items-center justify-center text-[#FF6A00] disabled:opacity-40"
+                              className="flex h-7 w-7 items-center justify-center text-[#FFB133] disabled:opacity-40"
                               onClick={() => {
                                 if (!atMax) increment(line.cartKey, maxStock);
                               }}
@@ -196,7 +196,7 @@ export default function CartSider() {
                             </button>
                           </div>
                           {user && line.unitPrice != null && (
-                            <span className="text-[14px] font-bold tabular-nums text-[#0B1736]">
+                            <span className="text-[14px] font-bold tabular-nums text-[#3E5480]">
                               {formatEuro(line.unitPrice * line.qty)}
                             </span>
                           )}
@@ -209,7 +209,7 @@ export default function CartSider() {
 
               <div className="flex flex-col items-center px-5 pb-2 pt-4 text-center">
                 <PromoArt />
-                <p className="mt-3 text-[14px] font-bold leading-snug text-[#0B1736]">
+                <p className="mt-3 text-[14px] font-bold leading-snug text-[#3E5480]">
                   {t("cart_sider_looking_good")}
                 </p>
                 <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
@@ -225,9 +225,9 @@ export default function CartSider() {
             <button
               type="button"
               onClick={() => clearCart()}
-              className="flex w-full items-center gap-2 border-y border-slate-100 px-4 py-3 text-left text-[13px] font-semibold text-[#0B1736] transition-colors hover:bg-slate-50"
+              className="flex w-full items-center gap-2 border-y border-slate-100 px-4 py-3 text-left text-[13px] font-semibold text-[#3E5480] transition-colors hover:bg-slate-50"
             >
-              <Trash2 className="h-4 w-4 text-[#2F6BFF]" />
+              <Trash2 className="h-4 w-4 text-[#5A73A8]" />
               <span className="flex-1">{t("cart_sider_clear")}</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
             </button>
@@ -239,7 +239,7 @@ export default function CartSider() {
                 <>
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="text-[13px] text-slate-500">{t("cart_subtotal")}</span>
-                    <span className="text-[18px] font-bold tabular-nums text-[#0B1736]">
+                    <span className="text-[18px] font-bold tabular-nums text-[#3E5480]">
                       {subtotal?.missing ? "—" : formatEuro(subtotal?.sum ?? 0)}
                     </span>
                   </div>
@@ -248,13 +248,13 @@ export default function CartSider() {
                   <Link
                     href="/cart"
                     onClick={closeCart}
-                    className="mt-3 flex h-11 w-full items-center justify-between rounded-xl bg-gradient-to-r from-[#FF6A00] to-[#ff8a33] px-2 text-white shadow-[0_8px_18px_rgba(255,106,0,0.28)] transition-opacity hover:opacity-95"
+                    className="mt-3 flex h-11 w-full items-center justify-between rounded-xl bg-gradient-to-r from-[#FFB133] to-[#FFC15C] px-2 text-white shadow-[0_8px_18px_rgba(255,106,0,0.28)] transition-opacity hover:opacity-95"
                   >
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
                       <Lock className="h-3.5 w-3.5" />
                     </span>
                     <span className="text-[13px] font-bold tracking-wide">{t("cart_checkout_cta")}</span>
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#FF6A00]">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#FFB133]">
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </Link>
@@ -262,7 +262,7 @@ export default function CartSider() {
                   <Link
                     href="/cart"
                     onClick={closeCart}
-                    className="mt-2 flex h-10 w-full items-center justify-between rounded-xl border-2 border-[#FF6A00] px-3 text-[#FF6A00] transition-colors hover:bg-[#fff4ec]"
+                    className="mt-2 flex h-10 w-full items-center justify-between rounded-xl border-2 border-[#FFB133] px-3 text-[#FFB133] transition-colors hover:bg-[#fff4ec]"
                   >
                     <Eye className="h-4 w-4" />
                     <span className="text-[13px] font-bold">{t("cart_sider_review")}</span>
@@ -287,11 +287,11 @@ export default function CartSider() {
 function PromoArt() {
   return (
     <div className="relative flex h-[88px] w-[88px] items-center justify-center">
-      <span className="absolute left-1 top-2 h-1.5 w-1.5 rounded-full bg-[#2F6BFF]/40" />
-      <span className="absolute right-2 top-4 h-1 w-1 rounded-full bg-[#FF6A00]/50" />
-      <span className="absolute bottom-3 left-3 h-1 w-1 rotate-45 bg-[#2F6BFF]/30" />
+      <span className="absolute left-1 top-2 h-1.5 w-1.5 rounded-full bg-[#5A73A8]/40" />
+      <span className="absolute right-2 top-4 h-1 w-1 rounded-full bg-[#FFB133]/50" />
+      <span className="absolute bottom-3 left-3 h-1 w-1 rotate-45 bg-[#5A73A8]/30" />
       <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-[#e8f1ff] ring-1 ring-[#d6e4ff]">
-        <ShoppingBag className="h-9 w-9 text-[#2F6BFF]" strokeWidth={1.5} />
+        <ShoppingBag className="h-9 w-9 text-[#5A73A8]" strokeWidth={1.5} />
       </div>
     </div>
   );
@@ -308,8 +308,8 @@ function TrustBadge({
 }) {
   return (
     <div className="flex flex-col items-center gap-1 px-0.5 text-center">
-      <Icon className="h-4 w-4 text-[#2F6BFF]" strokeWidth={1.8} />
-      <p className="text-[9px] font-bold leading-tight text-[#0B1736]">{label}</p>
+      <Icon className="h-4 w-4 text-[#5A73A8]" strokeWidth={1.8} />
+      <p className="text-[9px] font-bold leading-tight text-[#3E5480]">{label}</p>
       {hint && <p className="text-[8px] leading-tight text-slate-500">{hint}</p>}
     </div>
   );

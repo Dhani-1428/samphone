@@ -71,14 +71,14 @@ export default function Register() {
               className="h-11 bg-[#F4F6F8]"
             />
           </div>
-          <Button type="submit" className="h-11 w-full bg-[#2F6BFF] text-white hover:bg-[#2458d6]">
+          <Button type="submit" className="h-11 w-full bg-[#5A73A8] text-white hover:bg-[#4A6494]">
             {t("auth_submit_register")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {t("auth_has_account")}{" "}
             <Link
               href={`/login${typeof window !== "undefined" ? window.location.search : ""}`}
-              className="font-semibold text-[#2F6BFF] hover:underline"
+              className="font-semibold text-[#5A73A8] hover:underline"
             >
               {t("login")}
             </Link>

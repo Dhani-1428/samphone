@@ -63,7 +63,7 @@ export default function Accessories() {
               key={cat}
               type="button"
               onClick={() => setActiveCategory(cat)}
-              className={`border-b-2 pb-2 text-sm transition-colors ${activeCategory === cat ? "border-[#2F6BFF] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+              className={`border-b-2 pb-2 text-sm transition-colors ${activeCategory === cat ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
             >
               {cat}
             </button>

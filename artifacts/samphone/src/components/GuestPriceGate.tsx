@@ -29,12 +29,12 @@ export default function GuestPriceGate({ variant = "card" }: { variant?: Variant
     return (
       <div className="max-w-md space-y-4">
         <p className="text-sm text-muted-foreground">{t("loginForPricing")}</p>
-        <Button asChild className="h-11 w-full bg-[#2F6BFF] text-white hover:bg-[#2458d6]">
+        <Button asChild className="h-11 w-full bg-[#5A73A8] text-white hover:bg-[#4A6494]">
           <Link href={loginHref}>{t("login_for_price")}</Link>
         </Button>
         <p className="text-sm text-muted-foreground">
           {t("auth_no_account")}{" "}
-          <Link href={`/register?next=${encodeURIComponent(loc)}`} className="font-semibold text-[#2F6BFF] hover:underline">
+          <Link href={`/register?next=${encodeURIComponent(loc)}`} className="font-semibold text-[#5A73A8] hover:underline">
             {t("auth_register_title")}
           </Link>
         </p>
@@ -45,7 +45,7 @@ export default function GuestPriceGate({ variant = "card" }: { variant?: Variant
   return (
     <Link
       href={loginHref}
-            className={cn("flex h-10 items-center justify-center rounded-md bg-[#2F6BFF] text-sm font-semibold text-white hover:bg-[#2458d6]")}
+            className={cn("flex h-10 items-center justify-center rounded-md bg-[#5A73A8] text-sm font-semibold text-white hover:bg-[#4A6494]")}
     >
       {t("login_for_price")}
     </Link>

@@ -130,7 +130,7 @@ export default function ProductCartControls({
           size="icon"
           className={cn(
             variant === "icon-stepper"
-              ? "h-9 w-9 shrink-0 rounded-md bg-[#2F6BFF] hover:bg-[#1f5aee] text-white shadow-none"
+              ? "h-9 w-9 shrink-0 rounded-md bg-[#5A73A8] hover:bg-[#4A6494] text-white shadow-none"
               : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
             buttonClassName,
           )}

@@ -45,8 +45,11 @@
   --font-mono: var(--app-font-mono);
   --font-display: 'Space Grotesk', sans-serif;
 
-  --color-navy: #0B1736;
-  --color-utopya: #2F6BFF;
+  --color-navy: #3E5480;
+  --color-utopya: #5A73A8;
+  --color-sam: #FFB133;
+  --color-brand: #5A73A8;
+  --color-brand-dark: #3E5480;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -65,7 +68,7 @@
   --popover-foreground: 223 66% 13%;
   --popover-border: 214.3 20% 90%;
 
-  --primary: 221 100% 59%;
+  --primary: 221 31% 51%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 16% 94%;
@@ -74,15 +77,15 @@
   --muted: 220 16% 94%;
   --muted-foreground: 220 10% 42%;
 
-  --accent: 221 100% 59%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 37 100% 60%;
+  --accent-foreground: 223 40% 18%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
   --border: 214 20% 88%;
   --input: 214 20% 88%;
-  --ring: 221 100% 59%;
+  --ring: 221 31% 51%;
 
   --radius: 0.75rem;
 
