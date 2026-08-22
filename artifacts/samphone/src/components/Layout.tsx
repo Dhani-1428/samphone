@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SupportWidget from "@/components/SupportWidget";
+import CartSider from "@/components/CartSider";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -11,6 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
+      <CartSider />
       <SupportWidget />
     </div>
   );

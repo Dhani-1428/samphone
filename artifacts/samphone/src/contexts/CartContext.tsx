@@ -37,6 +37,10 @@ interface CartContextValue {
   decrement: (cartKey: string) => void;
   removeLine: (cartKey: string) => void;
   clearCart: () => void;
+  isOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  setCartOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -45,6 +49,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Record<string, number>>(() =>
     typeof window !== "undefined" ? loadCartFromStorage() : {},
   );
+  const [isOpen, setCartOpen] = useState(false);
+  const openCart = useCallback(() => setCartOpen(true), []);
+  const closeCart = useCallback(() => setCartOpen(false), []);
 
   useEffect(() => {
     try {
@@ -108,8 +115,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ items, getQty, totalItems, increment, decrement, removeLine, clearCart }),
-    [items, getQty, totalItems, increment, decrement, removeLine, clearCart],
+    () => ({
+      items,
+      getQty,
+      totalItems,
+      increment,
+      decrement,
+      removeLine,
+      clearCart,
+      isOpen,
+      openCart,
+      closeCart,
+      setCartOpen,
+    }),
+    [items, getQty, totalItems, increment, decrement, removeLine, clearCart, isOpen, openCart, closeCart],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

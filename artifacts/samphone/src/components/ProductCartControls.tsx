@@ -27,11 +27,15 @@ export default function ProductCartControls({
   const { user } = useAuth();
   const [loc] = useLocation();
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
-  const { getQty, increment, decrement } = useCart();
+  const { getQty, increment, decrement, openCart } = useCart();
   const { t } = useLang();
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
   const atMax = qty >= maxStock;
+  const addToCart = () => {
+    increment(cartKey, maxStock);
+    if (loc !== "/cart") openCart();
+  };
 
   if (!user) {
     if (variant === "compact" || variant === "icon-stepper") {
@@ -107,7 +111,7 @@ export default function ProductCartControls({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            if (!atMax) increment(cartKey, maxStock);
+            if (!atMax) addToCart();
           }}
           aria-label="Increase quantity"
           disabled={atMax}
@@ -133,7 +137,7 @@ export default function ProductCartControls({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            increment(cartKey, maxStock);
+            addToCart();
           }}
           aria-label={t("addToCart")}
           data-testid={`add-cart-${cartKey}`}
@@ -150,7 +154,7 @@ export default function ProductCartControls({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          increment(cartKey, maxStock);
+          addToCart();
         }}
         data-testid={`add-cart-${cartKey}`}
       >
@@ -192,7 +196,7 @@ export default function ProductCartControls({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (!atMax) increment(cartKey, maxStock);
+          if (!atMax) addToCart();
         }}
         aria-label="Increase quantity"
         disabled={atMax}

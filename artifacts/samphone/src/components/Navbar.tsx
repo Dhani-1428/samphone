@@ -1777,7 +1777,7 @@ export default function Navbar() {
   const [location, navigate] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
   const [menuOpen, setMenuOpen] = useState(false);
-  const { totalItems: cartCount, clearCart } = useCart();
+  const { totalItems: cartCount, clearCart, openCart } = useCart();
   const { user, logout } = useAuth();
   const { keys: compareKeys } = useCompare();
   const { keys: wishlistKeys } = useWishlist();
@@ -2287,13 +2287,21 @@ export default function Navbar() {
             </Link>
             <span className="hidden text-[11px] font-semibold leading-none lg:block">{t("wishlist")}</span>
 
-            <Link href="/cart" className="relative flex items-center gap-2" onClick={closeMenu} aria-label={t("nav_cart")}>
+            <button
+              type="button"
+              className="relative flex items-center gap-2"
+              onClick={() => {
+                closeMenu();
+                openCart();
+              }}
+              aria-label={t("nav_cart")}
+            >
               <span className="relative">
                 <ShoppingBag className="h-7 w-7" strokeWidth={1.4} />
                 <CountBadge count={cartCount} tone="danger" />
               </span>
               <span className="hidden text-[13px] font-semibold lg:block">{t("nav_cart")}</span>
-            </Link>
+            </button>
           </div>
         </div>
 
