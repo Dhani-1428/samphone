@@ -1,6 +1,53 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { fetchStoreBanners, type WooServerConfig } from "../api/_lib/woocommerce-config";
+
+export type WooServerConfig = {
+  storeUrl: string;
+  consumerKey: string;
+  consumerSecret: string;
+};
+
+async function fetchStoreBanners(cfg: WooServerConfig): Promise<{ id: number; src: string; alt: string }[]> {
+  const qs = new URLSearchParams({
+    search: "banner",
+    per_page: "12",
+    media_type: "image",
+    orderby: "date",
+    order: "desc",
+    consumer_key: cfg.consumerKey,
+    consumer_secret: cfg.consumerSecret,
+  });
+  const res = await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`Banner media request failed (${res.status})`);
+  const data = (await res.json()) as Array<{
+    id?: number;
+    source_url?: string;
+    alt_text?: string;
+    mime_type?: string;
+    title?: { rendered?: string };
+  }>;
+  if (!Array.isArray(data)) return [];
+  const seen = new Set<string>();
+  const out: { id: number; src: string; alt: string }[] = [];
+  for (const item of data) {
+    const src = typeof item.source_url === "string" ? item.source_url.trim() : "";
+    if (!src || seen.has(src)) continue;
+    if (item.mime_type && !String(item.mime_type).startsWith("image/")) continue;
+    seen.add(src);
+    const title = String(item.title?.rendered ?? "")
+      .replace(/<[^>]+>/g, "")
+      .trim();
+    out.push({
+      id: typeof item.id === "number" ? item.id : out.length,
+      src,
+      alt: (item.alt_text?.trim() || title || "SAMPHONE").slice(0, 160),
+    });
+  }
+  return out;
+}
 
 /** Read-only WooCommerce REST paths allowed through the proxy. */
 const ALLOWED_PREFIXES = ["products", "products/categories"];
