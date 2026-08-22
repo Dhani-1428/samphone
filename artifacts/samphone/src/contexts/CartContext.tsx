@@ -43,7 +43,13 @@ interface CartContextValue {
   setCartOpen: (open: boolean) => void;
 }
 
-const CartContext = createContext<CartContextValue | null>(null);
+const CartContext =
+  (import.meta.hot?.data as { cartContext?: ReturnType<typeof createContext<CartContextValue | null>> } | undefined)
+    ?.cartContext ?? createContext<CartContextValue | null>(null);
+
+if (import.meta.hot) {
+  import.meta.hot.data.cartContext = CartContext;
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Record<string, number>>(() =>
