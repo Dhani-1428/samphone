@@ -4,17 +4,37 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/samphone run build && node scripts/prepare-vercel-public.mjs && node scripts/sync-vercel-api.mjs",
   "outputDirectory": "public",
+  "functions": {
+    "api/woocommerce/status.js": {
+      "maxDuration": 10
+    },
+    "api/woocommerce/proxy.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/woocommerce",
-      "destination": "/api/woo"
+      "source": "/api/woocommerce/banners",
+      "destination": "/api/woocommerce/proxy?p=banners"
     },
     {
-      "source": "/api/woocommerce/:path*",
-      "destination": "/api/woo?p=:path*"
+      "source": "/api/woocommerce/products/categories/:id",
+      "destination": "/api/woocommerce/proxy?p=products/categories/:id"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/woocommerce/products/categories",
+      "destination": "/api/woocommerce/proxy?p=products/categories"
+    },
+    {
+      "source": "/api/woocommerce/products/:id",
+      "destination": "/api/woocommerce/proxy?p=products/:id"
+    },
+    {
+      "source": "/api/woocommerce/products",
+      "destination": "/api/woocommerce/proxy?p=products"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
