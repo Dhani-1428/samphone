@@ -2362,7 +2362,7 @@ export default function Navbar() {
 
       {/* ── Blue brand nav ── */}
       <nav className="hidden bg-brand-dark lg:block">
-        <div className={`${navShell} flex h-[46px] items-center gap-1`}>
+        <div className={`${navShell} flex h-[46px] items-center justify-center gap-1.5`}>
           <button
             type="button"
             className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold text-white transition-colors ${
@@ -2375,7 +2375,7 @@ export default function Navbar() {
             All Accessories
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
           </button>
-          <div className="flex min-w-0 flex-1 items-stretch justify-end overflow-x-auto">
+          <div className="flex min-w-0 items-center overflow-x-auto">
           {(
             [
               { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
