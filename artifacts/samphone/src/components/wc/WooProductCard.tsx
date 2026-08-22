@@ -56,7 +56,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
       : null;
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/[0.04] transition-shadow hover:shadow-md">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-black/[0.04] transition-shadow hover:shadow-md dark:ring-white/10">
       <button
         type="button"
         onClick={(e) => {
@@ -64,7 +64,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
           e.stopPropagation();
           wishToggle(cartKey);
         }}
-        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:bg-card dark:text-foreground"
         aria-pressed={wishlisted}
         aria-label="Wishlist"
       >
@@ -98,7 +98,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
         {user ? (
           <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-bold tabular-nums leading-none text-navy">
+            <span className="text-lg font-bold tabular-nums leading-none text-foreground">
               {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
             </span>
             {showPrice && (
@@ -116,7 +116,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
           </Link>
         )}
         <Link href={productHref} className="mt-auto block">
-          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-navy">{product.name}</h3>
+          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">{product.name}</h3>
         </Link>
       </div>
     </article>

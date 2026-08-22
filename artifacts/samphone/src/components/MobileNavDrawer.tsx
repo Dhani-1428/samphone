@@ -94,15 +94,15 @@ export default function MobileNavDrawer({
   const visible = showMore ? brandItems : brandItems.slice(0, 8);
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex flex-col bg-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
+    <div className="fixed inset-0 z-[80] flex flex-col bg-white text-brand-dark dark:bg-[#12192A] dark:text-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
       <div className="flex items-center justify-between px-4 py-3">
-        <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center text-brand-dark" aria-label="Close">
+        <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center text-brand-dark dark:text-white" aria-label="Close">
           <X className="h-6 w-6" strokeWidth={1.8} />
         </button>
         <BrandLogo className="h-8 w-auto" onClick={onClose} />
         <button
           type="button"
-          className="relative flex h-10 w-10 items-center justify-center text-brand-dark"
+          className="relative flex h-10 w-10 items-center justify-center text-brand-dark dark:text-white"
           onClick={() => {
             onClose();
             onOpenCart();
@@ -121,7 +121,7 @@ export default function MobileNavDrawer({
             hideButton
             leadingIcon
             placeholder={t("search_products_brands")}
-            className="h-11 rounded-lg border border-black/[0.12] bg-white"
+            className="h-11 rounded-lg border border-black/[0.12] bg-white dark:border-white/15 dark:bg-[#1B2436]"
           />
         </div>
 
@@ -179,7 +179,7 @@ export default function MobileNavDrawer({
               key={item.slug}
               href={`/brand/${item.slug}`}
               onClick={onClose}
-              className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] px-1 text-center text-[12px] font-semibold text-brand-dark"
+              className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] px-1 text-center text-[12px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
             >
               {item.label}
             </Link>
@@ -188,7 +188,7 @@ export default function MobileNavDrawer({
             <button
               type="button"
               onClick={() => setShowMore(true)}
-              className="flex h-11 items-center justify-center gap-1 rounded-lg border border-black/[0.1] text-[12px] font-semibold text-brand-dark"
+              className="flex h-11 items-center justify-center gap-1 rounded-lg border border-black/[0.1] text-[12px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
             >
               {t("nav_more_brands")}
               <ChevronDown className="h-3.5 w-3.5" />
@@ -199,7 +199,7 @@ export default function MobileNavDrawer({
         <Link
           href="/multi-brand"
           onClick={onClose}
-          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#E8EEF7] px-4 text-brand-dark"
+          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#E8EEF7] px-4 text-brand-dark dark:bg-[#1B2436] dark:text-white"
         >
           <span className="inline-flex items-center gap-2 text-[14px] font-bold">
             <LayoutGrid className="h-4 w-4" />
@@ -208,7 +208,7 @@ export default function MobileNavDrawer({
           <ChevronRight className="h-5 w-5" />
         </Link>
 
-        <Link href="/wishlist" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark">
+        <Link href="/wishlist" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
               <Heart className="h-5 w-5" />
@@ -218,7 +218,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
-        <Link href="/compare" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark">
+        <Link href="/compare" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
               <Repeat2 className="h-5 w-5" />
@@ -228,7 +228,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
-        <a href="tel:+351937119295" className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark">
+        <a href="tel:+351937119295" className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Phone className="h-5 w-5" />
             {t("phone")}
@@ -236,7 +236,7 @@ export default function MobileNavDrawer({
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </a>
 
-        <div className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark">
+        <div className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             {t("nav_dark_mode")}
@@ -263,7 +263,7 @@ export default function MobileNavDrawer({
         <button
           type="button"
           onClick={() => setLang(lang === "en" ? "pt" : "en")}
-          className="flex h-12 w-full items-center justify-between text-brand-dark"
+          className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white"
         >
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Globe className="h-5 w-5" />
@@ -274,7 +274,7 @@ export default function MobileNavDrawer({
 
         {user ? (
           <>
-            <Link href="/account" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark">
+            <Link href="/account" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
               <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
                 <User className="h-5 w-5" />
                 {t("auth_my_account")}
@@ -288,14 +288,14 @@ export default function MobileNavDrawer({
                 logout();
                 onClose();
               }}
-              className="flex h-12 w-full items-center justify-between text-brand-dark"
+              className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white"
             >
               <span className="text-[14px] font-semibold">{t("auth_logout")}</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
             </button>
           </>
         ) : (
-          <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark">
+          <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
             <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
               <User className="h-5 w-5" />
               {t("login")}
@@ -304,11 +304,11 @@ export default function MobileNavDrawer({
           </Link>
         )}
 
-        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#E8EEF7] px-4 py-3">
-          <ShieldCheck className="h-8 w-8 shrink-0 text-brand-dark" />
+        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#E8EEF7] px-4 py-3 dark:bg-[#1B2436]">
+          <ShieldCheck className="h-8 w-8 shrink-0 text-brand-dark dark:text-white" />
           <div>
-            <p className="text-[14px] font-bold text-brand-dark">{t("nav_secure_shopping")}</p>
-            <p className="text-[12px] text-brand-dark/70">{t("nav_secure_shopping_sub")}</p>
+            <p className="text-[14px] font-bold text-brand-dark dark:text-white">{t("nav_secure_shopping")}</p>
+            <p className="text-[12px] text-brand-dark/70 dark:text-white/70">{t("nav_secure_shopping_sub")}</p>
           </div>
         </div>
       </div>

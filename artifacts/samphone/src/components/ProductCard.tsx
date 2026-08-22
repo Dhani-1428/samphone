@@ -41,7 +41,7 @@ export default function ProductCard({
 
   return (
     <article
-      className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/[0.04]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-black/[0.04] dark:ring-white/10"
       data-testid={`card-${testPrefix}-${id}`}
     >
       <button
@@ -51,7 +51,7 @@ export default function ProductCard({
           e.stopPropagation();
           wishToggle(cartKey);
         }}
-        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:bg-card dark:text-foreground"
         data-testid={`button-wishlist-${testPrefix}-${id}`}
       >
         <Heart className={`h-4 w-4 ${wishlisted ? "fill-red-500 text-red-500" : "text-navy"}`} />
@@ -71,7 +71,7 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
         {user ? (
           <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-bold tabular-nums text-navy">€{price.toFixed(2).replace(".", ",")}</span>
+            <span className="text-lg font-bold tabular-nums text-foreground">€{price.toFixed(2).replace(".", ",")}</span>
             <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
           </div>
         ) : (
@@ -83,7 +83,7 @@ export default function ProductCard({
           </Link>
         )}
         <Link href={productHref} className="mt-auto block">
-          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-navy">{name}</h3>
+          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">{name}</h3>
         </Link>
       </div>
     </article>

@@ -26,7 +26,7 @@ export default function HomeNewArrivals() {
         ? [
             <div
               key="loading"
-              className="flex h-64 items-center justify-center rounded-xl bg-white text-sm text-muted-foreground"
+              className="flex h-64 items-center justify-center rounded-xl bg-card text-sm text-muted-foreground"
             >
               {t("woo_loading")}
             </div>,
@@ -35,7 +35,7 @@ export default function HomeNewArrivals() {
             const { daysAgo: _d, ...card } = product;
             const href = hrefForCartKey(card.cartKey);
             return (
-              <article key={card.cartKey} className="flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/[0.04]">
+              <article key={card.cartKey} className="flex h-full flex-col overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-black/[0.04] dark:ring-white/10">
                 <Link href={href} className="block aspect-square p-4">
                   <img src={card.img} alt={card.name} className="h-full w-full object-contain" />
                 </Link>

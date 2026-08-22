@@ -25,6 +25,7 @@ import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 import BrandLogo from "@/components/BrandLogo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type DropdownKey = "accessories" | "cards" | "brands" | "others" | "categories" | null;
 
@@ -2279,7 +2280,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
-      <div className="border-b border-black/[0.05] bg-[#F3F5F8] text-[12px] text-brand sm:text-[13px]">
+      <div className="border-b border-black/[0.05] bg-[#F3F5F8] text-[12px] text-brand sm:text-[13px] dark:border-white/10 dark:bg-[#161E2E] dark:text-[#C5D0E8]">
         <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -2287,31 +2288,32 @@ export default function Navbar() {
               {t("welcome")}
             </span>
             <span className="hidden h-3.5 w-px bg-brand/25 sm:block" aria-hidden />
-            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand-dark">
+            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand-dark dark:hover:text-white">
               <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("phone")}
             </a>
           </div>
           <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             {user ? (
-              <Link href="/account" className="hover:text-brand-dark" onClick={closeMenu}>
+              <Link href="/account" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
                 {t("auth_my_account")}
               </Link>
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Link href="/login" className="hover:text-brand-dark" onClick={closeMenu}>
+                <Link href="/login" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
                   {t("login")}
                 </Link>
                 <span className="text-brand/40">|</span>
-                <Link href="/register" className="hover:text-brand-dark" onClick={closeMenu}>
+                <Link href="/register" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
                   {t("registration")}
                 </Link>
               </span>
             )}
+            <ThemeToggle />
             <div className="relative">
               <button
                 type="button"
-                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand"
+                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]"
                 onClick={() => setLang(lang === "en" ? "pt" : "en")}
                 aria-label={lang === "en" ? t("lang_english") : t("lang_portuguese")}
               >
@@ -2325,11 +2327,11 @@ export default function Navbar() {
       </div>
 
       {/* ── White logo / search / actions ── */}
-      <div className="border-b border-black/[0.06] bg-white">
+      <div className="border-b border-black/[0.06] bg-white dark:border-white/10 dark:bg-[#12192A]">
         <div className={`${navShell} flex items-center gap-4 py-3 lg:py-3.5`}>
           <button
             type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark xl:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark dark:text-white xl:hidden"
             aria-expanded={drawerOpen}
             aria-label={t("header_menu")}
             data-testid="button-nav-menu"
@@ -2341,7 +2343,7 @@ export default function Navbar() {
           <BrandLogo onClick={closeMenu} />
 
           <div className="hidden min-w-0 flex-1 lg:block">
-            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.12] bg-white">
+            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.12] bg-white dark:border-white/15 dark:bg-[#1B2436]">
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
@@ -2356,7 +2358,7 @@ export default function Navbar() {
           <div className="ml-auto flex items-center lg:ml-0">
             <Link
               href="/compare"
-              className="hidden items-center gap-2 px-4 text-brand-dark lg:flex"
+              className="hidden items-center gap-2 px-4 text-brand-dark dark:text-white lg:flex"
               onClick={closeMenu}
               aria-label={t("compare")}
             >
@@ -2366,10 +2368,10 @@ export default function Navbar() {
               </span>
               <span className="text-[14px] font-semibold">{t("compare")}</span>
             </Link>
-            <span className="hidden h-8 w-px bg-black/[0.08] lg:block" aria-hidden />
+            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
               href="/wishlist"
-              className="hidden items-center gap-2 px-4 text-brand-dark lg:flex"
+              className="hidden items-center gap-2 px-4 text-brand-dark dark:text-white lg:flex"
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
@@ -2379,10 +2381,10 @@ export default function Navbar() {
               </span>
               <span className="text-[14px] font-semibold">{t("wishlist")}</span>
             </Link>
-            <span className="hidden h-8 w-px bg-black/[0.08] lg:block" aria-hidden />
+            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <button
               type="button"
-              className="relative flex items-center gap-2 px-1 text-brand-dark lg:px-4"
+              className="relative flex items-center gap-2 px-1 text-brand-dark dark:text-white lg:px-4"
               onClick={() => {
                 closeMenu();
                 openCart();
@@ -2398,7 +2400,7 @@ export default function Navbar() {
         </div>
 
         <div className={`${navShell} pb-3 lg:hidden`}>
-          <div className="overflow-hidden rounded-md border border-black/[0.12]">
+          <div className="overflow-hidden rounded-md border border-black/[0.12] dark:border-white/15">
             <SmartSearch variant="header" />
           </div>
         </div>
@@ -2503,7 +2505,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] xl:block"
+            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
           >
             {openDropdown === "categories" ? (
               <AllCategoriesMegaPanel onClose={closeMenu} />

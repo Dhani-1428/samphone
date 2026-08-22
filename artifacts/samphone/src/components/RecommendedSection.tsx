@@ -31,7 +31,7 @@ export default function RecommendedSection() {
         ? [
             <div
               key="loading"
-              className="flex h-64 items-center justify-center rounded-xl bg-white text-sm text-muted-foreground"
+              className="flex h-64 items-center justify-center rounded-xl bg-card text-sm text-muted-foreground"
             >
               {t("woo_loading")}
             </div>,

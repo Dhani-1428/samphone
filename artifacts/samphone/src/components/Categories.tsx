@@ -62,7 +62,7 @@ export default function Categories() {
           transition={{ duration: 0.6 }}
           className="mb-6 text-left"
         >
-          <h2 className="font-display text-2xl font-bold tracking-tight text-navy md:text-[2rem] mb-2">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-[2rem] mb-2">
             {copy.title}
           </h2>
           <p className="text-muted-foreground text-sm max-w-xl">

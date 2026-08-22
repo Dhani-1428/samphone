@@ -60,7 +60,7 @@ export default function Hero() {
   ];
 
   return (
-    <section id="home" className="bg-[#F4F6F8]">
+    <section id="home" className="bg-background">
       <div className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-8 sm:py-6 md:px-12 md:py-8 lg:px-16 lg:py-8">
         <Carousel
           setApi={setApi}
@@ -76,8 +76,8 @@ export default function Hero() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-3 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white md:left-5" />
-          <CarouselNext className="right-3 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white md:right-5" />
+          <CarouselPrevious className="left-3 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white dark:bg-card dark:text-foreground md:left-5" />
+          <CarouselNext className="right-3 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white dark:bg-card dark:text-foreground md:right-5" />
         </Carousel>
       </div>
     </section>
