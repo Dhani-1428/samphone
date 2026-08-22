@@ -1599,12 +1599,28 @@ function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily
   return columns;
 }
 
+function brandPageSlug(partsSlug: string): string {
+  const s = partsSlug.toLowerCase();
+  if (s.includes("iphone") || s.includes("apple")) return "apple";
+  if (s.includes("samsung")) return "samsung";
+  if (s.includes("xiaomi")) return "xiaomi";
+  if (s.includes("honor")) return "honor";
+  if (s.includes("motorola")) return "motorola";
+  if (s.includes("oneplus") || s.includes("one-plus")) return "oneplus";
+  if (s.includes("oppo")) return "oppo";
+  if (s.includes("realme")) return "realme";
+  if (s.includes("vivo")) return "vivo";
+  return s.replace(/-parts$/i, "") || s;
+}
+
 function BrandMegaPanel({
   brand,
   onClose,
+  seeAllLabel,
 }: {
   brand: NavBrandGroup | null;
   onClose: () => void;
+  seeAllLabel: string;
 }) {
   if (!brand) return null;
   const families = brand.items.filter((item) => (item.children?.length ?? 0) > 0);
@@ -1612,6 +1628,7 @@ function BrandMegaPanel({
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const columns = packMegaColumns(brand, families);
   const manyCols = columns.length >= 5;
+  const seeAllBrandHref = `/brand/${brandPageSlug(brand.brand.slug)}`;
 
   return (
     <div className={`${navShell} py-6`}>
@@ -1630,13 +1647,17 @@ function BrandMegaPanel({
                   : "w-1/2 min-w-0 sm:w-1/3 xl:w-[260px] xl:flex-none"
               }`}
             >
-              {column.map((family) => (
+              {column.map((family) => {
+                const models = family.children ?? [];
+                const preview = models.slice(0, 5);
+                const seeAllHref = `/model/${brandRoute}/${family.slug}`;
+                return (
                 <div key={`${brand.brand.slug}-${family.slug}`}>
                   <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
                     {family.label}
                   </div>
                   <ul className="space-y-2">
-                    {(family.children ?? []).map((model, midx) => (
+                    {preview.map((model, midx) => (
                       <li key={`${family.slug}-${midx}-${model.slug}`}>
                         <Link
                           href={
@@ -1655,15 +1676,27 @@ function BrandMegaPanel({
                         </Link>
                       </li>
                     ))}
+                    {models.length > 5 ? (
+                      <li>
+                        <Link
+                          href={seeAllHref}
+                          onClick={onClose}
+                          className="text-[13px] font-semibold text-[#5A73A8] hover:underline"
+                        >
+                          {seeAllLabel}
+                        </Link>
+                      </li>
+                    ) : null}
                   </ul>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
-          {looseItems.map((item) => (
+          {looseItems.slice(0, 5).map((item) => (
             <Link
               key={item.slug}
               href={item.href ?? `/category/${item.slug}`}
@@ -1675,6 +1708,15 @@ function BrandMegaPanel({
           ))}
         </div>
       )}
+      <div className="mt-4 flex justify-center">
+        <Link
+          href={seeAllBrandHref}
+          onClick={onClose}
+          className="inline-flex h-10 items-center rounded-md bg-sam px-5 text-[13px] font-bold text-white hover:bg-[#E89A1C]"
+        >
+          {seeAllLabel}
+        </Link>
+      </div>
     </div>
   );
 }
@@ -1692,7 +1734,7 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
               {brand.name}
             </div>
             <ul className="space-y-2">
-              {brand.models.map((model) => {
+              {brand.models.slice(0, 5).map((model) => {
                 const slug = slugifyModelLabel(model.label);
                 return (
                   <li key={`${brand.slug}-${slug}`}>
@@ -1711,12 +1753,12 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
                   </li>
                 );
               })}
-              {brand.seeAllHref ? (
+              {(brand.seeAllHref || brand.models.length > 5) ? (
                 <li>
                   <Link
-                    href={brand.seeAllHref}
+                    href={brand.seeAllHref ?? `/brand/${brand.slug}`}
                     onClick={onClose}
-                    className="text-[13px] font-medium text-[#5A73A8] hover:underline"
+                    className="text-[13px] font-semibold text-[#5A73A8] hover:underline"
                   >
                     {seeAllLabel}
                   </Link>
@@ -2280,7 +2322,7 @@ export default function Navbar() {
         <div className={`${navShell} flex items-center gap-4 py-3 lg:py-3.5`}>
           <button
             type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark xl:hidden"
             aria-expanded={menuOpen}
             aria-label={t("header_menu")}
             data-testid="button-nav-menu"
@@ -2360,25 +2402,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Compact nav: one button on tablet/phone so brands do not wrap */}
-      <nav className="bg-brand-dark xl:hidden">
-        <div className={`${navShell} flex h-[46px] items-center justify-center`}>
-          <button
-            type="button"
-            className={`inline-flex h-9 items-center gap-2 rounded-md px-4 text-[13px] font-bold text-white transition-colors ${
-              categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
-            }`}
-            aria-expanded={categoriesActive}
-            onClick={openCategoriesMenu}
-          >
-            <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            All Accessories
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
-          </button>
-        </div>
-      </nav>
-
-      {/* Full brand row only on wide desktops */}
+      {/* Full brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="hidden bg-brand-dark xl:block">
         <div className={`${navShell} flex h-[46px] items-center justify-center gap-1.5`}>
           <button
@@ -2484,7 +2508,7 @@ export default function Navbar() {
             ) : openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             ) : (
-              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             )}
           </motion.div>
         )}
@@ -2560,7 +2584,7 @@ export default function Navbar() {
             ) : openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             ) : (
-              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
             )}
               <div className={`${navShell} pb-4`}>
                 <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-border pt-4">
