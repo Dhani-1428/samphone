@@ -2278,21 +2278,21 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
-      {/* ── Light utility bar ── */}
-      <div className="hidden border-b border-black/[0.05] bg-[#F3F5F8] text-[13px] text-brand lg:block">
-        <div className={`${navShell} flex h-9 items-center justify-between gap-4`}>
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 truncate">
+      {/* ── Light utility bar (phones, tablets, and desktops) ── */}
+      <div className="border-b border-black/[0.05] bg-[#F3F5F8] text-[12px] text-brand sm:text-[13px]">
+        <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
               <Gift className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("welcome")}
             </span>
-            <span className="h-3.5 w-px bg-brand/25" aria-hidden />
+            <span className="hidden h-3.5 w-px bg-brand/25 sm:block" aria-hidden />
             <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand-dark">
               <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("phone")}
             </a>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             {user ? (
               <Link href="/account" className="hover:text-brand-dark" onClick={closeMenu}>
                 {t("auth_my_account")}
