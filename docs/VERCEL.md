@@ -60,7 +60,7 @@ Optional (storefront display — also set as `VITE_*` if needed at build time):
 
 ```
 Browser  →  https://your-app.vercel.app/api/woocommerce/products
-         →  Vercel functions `api/woocommerce/status.js` and `api/woocommerce/proxy.js`
+         →  Vercel functions `api/woocommerce/status.ts`, `banners.ts`, `products.ts`
          →  WooCommerce REST (keys added server-side)
 ```
 
