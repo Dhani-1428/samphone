@@ -90,6 +90,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
             alt={product.images?.[0]?.alt || product.name}
             className="h-full w-full object-contain"
             loading="lazy"
+            referrerPolicy="no-referrer"
             onError={() => setImgOk(false)}
           />
         </Link>

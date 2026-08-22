@@ -38,7 +38,6 @@ export default function RecommendedSection() {
           ]
         : mockSlice.map((p) => <ProductCard key={p.cartKey} {...p} testPrefix="rec" />);
 
-  if (woo && !loading && wooSlice.length === 0) return null;
   if (!woo && mockSlice.length === 0) return null;
 
   return (

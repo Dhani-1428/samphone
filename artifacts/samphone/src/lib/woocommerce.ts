@@ -113,16 +113,6 @@ async function wooFetchJson<T>(
   pathAfterWc: string,
   extra: Record<string, string | number | undefined> = {},
 ): Promise<T> {
-  const ok = await checkWooProxy();
-  if (!ok) {
-    const store = getWooStoreDisplayUrl();
-    throw new WooCommerceFetchError(
-      store
-        ? `Catalog API unavailable. Start the API server (port 8080) with WOOCOMMERCE_* credentials — store: ${store}`
-        : "Catalog API unavailable. Configure WOOCOMMERCE_* on the API server (see artifacts/api-server/.env.example).",
-    );
-  }
-
   const basePath = getApiBasePath();
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(extra)) {
@@ -136,12 +126,25 @@ async function wooFetchJson<T>(
   try {
     res = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
   } catch {
+    const proxyOk = await checkWooProxy();
+    const store = getWooStoreDisplayUrl();
     throw new WooCommerceFetchError(
-      `Network request failed. Ensure the API server is running and /api is proxied. Attempted: ${url.split("?")[0]}`,
+      proxyOk
+        ? `Network request failed. Attempted: ${url.split("?")[0]}`
+        : store
+          ? `Catalog API unavailable. Start the storefront (` +
+            `pnpm --filter @workspace/samphone dev) so /api/woocommerce is proxied — store: ${store}`
+          : "Catalog API unavailable. Set WOOCOMMERCE_* in artifacts/api-server/.env.",
     );
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    if (res.status === 503) {
+      throw new WooCommerceFetchError(
+        text || "WooCommerce proxy is not configured on the server.",
+        res.status,
+      );
+    }
     throw new WooCommerceFetchError(text || `Request failed with status ${res.status}`, res.status);
   }
   return (await res.json()) as T;

@@ -35,8 +35,6 @@ export default function Products() {
           ]
         : HOME_PRODUCTS.map((product) => <ProductCard key={product.id} {...product} testPrefix="home" />);
 
-  if (woo && !loading && featured.length === 0) return null;
-
   return (
     <div id="products">
       <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">

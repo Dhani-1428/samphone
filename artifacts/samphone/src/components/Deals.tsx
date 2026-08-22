@@ -36,8 +36,6 @@ export default function Deals() {
           ]
         : DEAL_PRODUCTS.map((deal) => <ProductCard key={deal.cartKey} {...deal} testPrefix="deal" />);
 
-  if (woo && !loading && deals.length === 0) return null;
-
   return (
     <div id="deals">
       <HomeProductRail title={t("crazy_deals_title")} seeAllHref="/accessories">

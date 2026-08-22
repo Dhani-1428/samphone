@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -13,28 +13,27 @@ import homeHeroVideo from "@/assets/home-hero-video.mp4";
 import homeBanner from "@/assets/banner home.webp";
 import accessoriesBanner from "@/assets/accessories.webp";
 
-type Slide = { key: string; node: ReactNode };
+type Slide =
+  | { key: string; kind: "video"; src: string; label: string }
+  | { key: string; kind: "image"; src: string; alt: string };
 
 export default function Hero() {
   const { t, lang } = useLang();
   const [api, setApi] = useState<CarouselApi>();
-  const [slides, setSlides] = useState<Slide[]>(() => fallbackSlides(t("hero_line2"), lang));
+  const [storeSlides, setStoreSlides] = useState<Slide[] | null>(null);
+  const slides = storeSlides && storeSlides.length > 0 ? storeSlides : fallbackSlides(t("hero_line2"), lang);
 
   useEffect(() => {
     let cancelled = false;
     void fetchHeroBanners()
       .then((banners) => {
         if (cancelled || banners.length === 0) return;
-        setSlides(
+        setStoreSlides(
           banners.map((b) => ({
             key: `woo-${b.id}`,
-            node: (
-              <img
-                src={b.src}
-                alt={b.alt}
-                className="h-full w-full object-cover object-center"
-              />
-            ),
+            kind: "image" as const,
+            src: b.src,
+            alt: b.alt,
           })),
         );
       })
@@ -63,8 +62,26 @@ export default function Hero() {
           <CarouselContent className="-ml-0">
             {slides.map((slide) => (
               <CarouselItem key={slide.key} className="pl-0">
-                <div className="relative h-[200px] w-full overflow-hidden sm:h-[280px] md:h-[360px] lg:h-[420px]">
-                  {slide.node}
+                <div className="relative h-[200px] w-full overflow-hidden bg-muted sm:h-[280px] md:h-[360px] lg:h-[420px]">
+                  {slide.kind === "video" ? (
+                    <video
+                      className="h-full w-full object-cover"
+                      src={slide.src}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      aria-label={slide.label}
+                    />
+                  ) : (
+                    <img
+                      src={slide.src}
+                      alt={slide.alt}
+                      className="h-full w-full object-cover object-center"
+                      referrerPolicy="no-referrer"
+                      decoding="async"
+                    />
+                  )}
                 </div>
               </CarouselItem>
             ))}
@@ -81,37 +98,21 @@ function fallbackSlides(videoLabel: string, lang: string): Slide[] {
   return [
     {
       key: "video",
-      node: (
-        <video
-          className="h-full w-full object-cover"
-          src={homeHeroVideo}
-          autoPlay
-          muted
-          loop
-          playsInline
-          aria-label={videoLabel}
-        />
-      ),
+      kind: "video",
+      src: homeHeroVideo,
+      label: videoLabel,
     },
     {
       key: "banner",
-      node: (
-        <img
-          src={homeBanner}
-          alt={lang === "pt" ? "SAMPHONE — acessórios e peças" : "SAMPHONE — accessories and parts"}
-          className="h-full w-full object-cover object-center"
-        />
-      ),
+      kind: "image",
+      src: homeBanner,
+      alt: lang === "pt" ? "SAMPHONE — acessórios e peças" : "SAMPHONE — accessories and parts",
     },
     {
       key: "accessories",
-      node: (
-        <img
-          src={accessoriesBanner}
-          alt={lang === "pt" ? "Acessórios SAMPHONE" : "SAMPHONE accessories"}
-          className="h-full w-full object-cover object-center"
-        />
-      ),
+      kind: "image",
+      src: accessoriesBanner,
+      alt: lang === "pt" ? "Acessórios SAMPHONE" : "SAMPHONE accessories",
     },
   ];
 }

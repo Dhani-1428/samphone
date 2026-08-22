@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { wooConfigFromEnv, wooDevPlugin } from "./server/woo-dev-plugin";
 
 const rawPort = process.env.PORT ?? "5173";
 const port = Number(rawPort);
@@ -19,17 +20,20 @@ export default defineConfig(async ({ mode }) => {
   const appRoot = path.resolve(import.meta.dirname);
   const env = {
     ...loadEnv(mode, workspaceRoot, ""),
+    ...loadEnv(mode, path.join(workspaceRoot, "artifacts/api-server"), ""),
     ...loadEnv(mode, appRoot, ""),
   };
+  const wooCfg = wooConfigFromEnv(env);
 
   return {
   /**
-   * Only non-secret `VITE_*` vars are loaded here.
-   * WooCommerce keys must live in artifacts/api-server/.env (server-side).
+   * Browser bundle only receives `VITE_*` from envDir.
+   * WooCommerce REST keys are loaded above for the Vite `/api/woocommerce` plugin.
    */
   envDir: appRoot,
   base: basePath,
   plugins: [
+    wooDevPlugin(wooCfg),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),

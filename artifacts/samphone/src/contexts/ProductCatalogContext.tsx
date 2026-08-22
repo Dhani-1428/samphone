@@ -166,7 +166,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
                 ? e.message
                 : "Unknown error";
           setError(msg);
-          setProducts([]);
+          if (productsLenRef.current === 0) setProducts([]);
         }
 
         if (cr.status === "fulfilled") {

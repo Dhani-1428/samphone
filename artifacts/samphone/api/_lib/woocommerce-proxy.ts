@@ -35,7 +35,7 @@ export async function handleWooCommerceProxy(req: VercelRequest, res: VercelResp
 
   const subPath = pathFromQuery(req);
   if (!subPath || subPath === "status") {
-    res.status(404).json({ error: "Not found" });
+    res.status(200).json({ configured: true });
     return;
   }
 
