@@ -70,13 +70,19 @@ SPA routes (`/category/samsung-parts`, etc.) rewrite to `index.html`.
 ## Verify after deploy
 
 1. Open `https://your-app.vercel.app/api/woocommerce/status`  
-   Expected: `{"configured":true}`
-2. Open a category page — products should load.
-3. If `configured: false`, WooCommerce env vars are missing or still placeholders.
+   Expected: `{"configured":true}` — **JSON**, not the homepage HTML.
+2. If that URL shows the website or `configured: false`, products and banners will stay empty.
+3. Open a category page — products should load.
 
-## Redeploy
+Env vars do **not** update a live deployment by themselves. After changing them, click **Deployments → ⋮ → Redeploy** (uncheck “Use existing Build Cache”).
 
-After adding or changing environment variables, trigger a **new deployment** (Redeploy from Vercel dashboard).
+`VITE_*` values are baked in at **build** time. `WOOCOMMERCE_*` are read by `/api/woocommerce` at **runtime**, but Vercel still needs a new deployment to attach them.
+
+## If the Vercel link still looks old or empty
+
+- Confirm you opened the project that GitHub actually deployed (this repo currently has multiple Vercel projects: `samphone`, `samphone-api-server`, `samphone-api-server-8bff`). Env vars must be on **that** project, for **Production**.
+- If the link redirects to `vercel.com/sso-api`, Deployment Protection is on — visitors will not see the store. In Vercel: **Settings → Deployment Protection → Off** (or Standard Protection off for Production).
+- Check `https://<your-app>/api/woocommerce/status`. If it returns HTML, API routes are missing (Root Directory `artifacts/api-server` must include the committed `api/` folder).
 
 ## Local vs Vercel
 

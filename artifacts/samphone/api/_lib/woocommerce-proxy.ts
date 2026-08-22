@@ -14,8 +14,14 @@ function isAllowedWooPath(path: string): boolean {
 
 function pathFromQuery(req: VercelRequest): string {
   const raw = req.query.path;
-  if (Array.isArray(raw)) return raw.join("/");
-  return typeof raw === "string" ? raw : "";
+  if (Array.isArray(raw) && raw.length > 0) return raw.join("/");
+  if (typeof raw === "string" && raw.length > 0) return raw;
+  const pathname = (req.url ?? "").split("?")[0] ?? "";
+  const marker = "/api/woocommerce/";
+  const at = pathname.indexOf(marker);
+  if (at >= 0) return pathname.slice(at + marker.length).replace(/\/$/, "");
+  if (pathname.endsWith("/api/woocommerce")) return "";
+  return "";
 }
 
 /** Proxy GET /api/woocommerce/* to WooCommerce REST (credentials added server-side). */
