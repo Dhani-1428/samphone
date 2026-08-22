@@ -72,9 +72,11 @@ export default function CartSider() {
     <Sheet open={isOpen} onOpenChange={setCartOpen}>
       <SheetContent
         side="right"
+        overlayClassName="bg-black/15"
         className={cn(
-          "flex h-full w-[min(100%,340px)] max-w-[340px] flex-col gap-0 overflow-hidden border-0 p-0 shadow-[-12px_0_40px_rgba(11,23,54,0.18)]",
-          "rounded-none sm:rounded-l-[1.35rem] [&>button.absolute]:hidden",
+          "!inset-y-0 !right-0 !left-auto !h-dvh !w-[min(340px,85vw)] !max-w-[340px] gap-0 overflow-hidden border-0 p-0",
+          "flex flex-col shadow-[-12px_0_40px_rgba(11,23,54,0.18)]",
+          "rounded-none [&>button.absolute]:hidden",
         )}
       >
         <SheetTitle className="sr-only">{t("cart_sider_title")}</SheetTitle>
