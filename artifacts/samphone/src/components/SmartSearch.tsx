@@ -204,7 +204,7 @@ export default function SmartSearch({
       <PopoverContent
         id="search-suggestions"
         align="start"
-        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] border-black/[0.08] bg-white p-0 text-brand-dark shadow-[0_12px_40px_rgba(62,84,128,0.18)]"
+        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] border-black/[0.08] !bg-white p-0 !text-brand-dark shadow-[0_12px_40px_rgba(62,84,128,0.18)]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
