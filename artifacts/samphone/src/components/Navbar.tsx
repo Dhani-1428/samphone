@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, GitCompare, Sun, Moon, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
+import { ShoppingBag, Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
+import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
 import {
@@ -1828,8 +1829,9 @@ export default function Navbar() {
   const [location, navigate] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>("brands");
   const [menuOpen, setMenuOpen] = useState(false);
-  const { totalItems: cartCount, clearCart, openCart } = useCart();
-  const { user, logout } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { totalItems: cartCount, openCart } = useCart();
+  const { user } = useAuth();
   const { keys: compareKeys } = useCompare();
   const { keys: wishlistKeys } = useWishlist();
   const { categories: wooCategories } = useProductCatalog();
@@ -1840,17 +1842,22 @@ export default function Navbar() {
   const closeMenu = () => {
     setOpenDropdown("brands");
     setMenuOpen(false);
-  };
-
-  const handleLogout = () => {
-    clearCart();
-    logout();
+    setDrawerOpen(false);
   };
 
   useEffect(() => {
     setMenuOpen(false);
+    setDrawerOpen(false);
     setOpenDropdown("brands");
   }, [location]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 1280) setDrawerOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const fallbackBrandGroups = useMemo<NavBrandGroup[]>(() => {
     const brands = smartphonesColumns.flatMap((col) => col.items);
@@ -2323,17 +2330,12 @@ export default function Navbar() {
           <button
             type="button"
             className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark xl:hidden"
-            aria-expanded={menuOpen}
+            aria-expanded={drawerOpen}
             aria-label={t("header_menu")}
             data-testid="button-nav-menu"
-            onClick={() => {
-              setMenuOpen((open) => {
-                if (!open) setOpenDropdown("brands");
-                return !open;
-              });
-            }}
+            onClick={() => setDrawerOpen((open) => !open)}
           >
-            {menuOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
+            {drawerOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
           </button>
 
           <BrandLogo onClick={closeMenu} />
@@ -2514,151 +2516,16 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <>
-            <motion.button
-              type="button"
-              aria-label="Close menu"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45 xl:hidden"
-              onClick={closeMenu}
-            />
-            <motion.nav
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.18 }}
-              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-y-auto border-b border-border bg-white shadow-2xl xl:hidden"
-            >
-              <div className={`${navShell} grid grid-cols-2 gap-2 py-3`}>
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown("categories")}
-                    className={`col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md text-[14px] font-bold text-white ${
-                      openDropdown === "categories" ? "bg-[#E89A1C]" : "bg-sam"
-                    }`}
-                  >
-                    <Menu className="h-4 w-4" />
-                    All Accessories
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown("brands")}
-                    className={`inline-flex h-10 items-center justify-center rounded-md border text-[13px] font-semibold ${
-                      openDropdown === "brands" ? "border-brand bg-brand/10 text-brand" : "border-border text-brand-dark"
-                    }`}
-                  >
-                    Brands
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown("others")}
-                    className={`inline-flex h-10 items-center justify-center rounded-md border text-[13px] font-semibold ${
-                      openDropdown === "others" ? "border-brand bg-brand/10 text-brand" : "border-border text-brand-dark"
-                    }`}
-                  >
-                    {t("nav_bar_others")}
-                  </button>
-              </div>
-              {openDropdown === "brands" ? (
-                <div className={`${navShell} flex flex-wrap gap-2 pb-3`}>
-                  {brandGroups.map((group, idx) => (
-                    <button
-                      key={group.brand.slug}
-                      type="button"
-                      onClick={() => setActiveBrandIdx(idx)}
-                      className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ${
-                        idx === activeBrandIdx ? "bg-brand text-white" : "bg-[#F3F5F8] text-brand-dark"
-                      }`}
-                    >
-                      {displayBrandLabel(group.brand.label)}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-              {openDropdown === "categories" ? (
-              <AllCategoriesMegaPanel onClose={closeMenu} />
-            ) : openDropdown === "others" ? (
-              <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
-            ) : (
-              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
-            )}
-              <div className={`${navShell} pb-4`}>
-                <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-                  <Link
-                    href="/wishlist"
-                    onClick={closeMenu}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
-                  >
-                    <span className="relative">
-                      <Heart className="h-4 w-4" />
-                      <CountBadge count={wishlistKeys.length} tone="danger" />
-                    </span>
-                    {t("wishlist")}
-                  </Link>
-                  <Link
-                    href="/compare"
-                    onClick={closeMenu}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
-                  >
-                    <span className="relative">
-                      <GitCompare className="h-4 w-4" />
-                      <CountBadge count={compareKeys.length} />
-                    </span>
-                    {t("compare")}
-                  </Link>
-                  <a
-                    href="tel:+351937119295"
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
-                  >
-                    <Phone className="h-4 w-4" /> {t("phone")}
-                  </a>
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
-                    data-testid="button-theme-toggle"
-                  >
-                    {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    {theme === "dark" ? "Light" : "Dark"}
-                  </button>
-                  <div className="inline-flex overflow-hidden rounded-full border border-border text-xs font-semibold sm:hidden">
-                    <button
-                      type="button"
-                      onClick={() => setLang("en")}
-                      className={`px-2 py-0.5 ${lang === "en" ? "bg-brand text-white" : "text-muted-foreground"}`}
-                    >
-                      EN
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLang("pt")}
-                      className={`px-2 py-0.5 ${lang === "pt" ? "bg-brand text-white" : "text-muted-foreground"}`}
-                    >
-                      PT
-                    </button>
-                  </div>
-                  {user ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleLogout();
-                        closeMenu();
-                      }}
-                      className="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
-                    >
-                      {t("auth_logout")}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            </motion.nav>
-          </>
-        )}
-      </AnimatePresence>
+      <MobileNavDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        cartCount={cartCount}
+        wishlistCount={wishlistKeys.length}
+        compareCount={compareKeys.length}
+        onOpenCart={openCart}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
     </header>
   );
 }

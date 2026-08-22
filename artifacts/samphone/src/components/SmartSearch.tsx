@@ -24,6 +24,8 @@ type Props = {
   variant?: "default" | "header";
   /** Hide the internal search button (when the parent provides its own). */
   hideButton?: boolean;
+  leadingIcon?: boolean;
+  placeholder?: string;
 };
 
 function resolveHitHref(hit: SearchHit): string {
@@ -94,7 +96,14 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   );
 }
 
-export default function SmartSearch({ className, compact, variant = "default", hideButton = false }: Props) {
+export default function SmartSearch({
+  className,
+  compact,
+  variant = "default",
+  hideButton = false,
+  leadingIcon = false,
+  placeholder,
+}: Props) {
   const { t } = useLang();
   const { products, searchProducts } = useProductCatalog();
   const [open, setOpen] = useState(false);
@@ -149,6 +158,7 @@ export default function SmartSearch({ className, compact, variant = "default", h
             className,
           )}
         >
+          {leadingIcon ? <Search className="ml-3 h-4 w-4 shrink-0 text-brand-dark" strokeWidth={2} /> : null}
           <input
             ref={inputRef}
             type="search"
@@ -158,12 +168,13 @@ export default function SmartSearch({ className, compact, variant = "default", h
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            placeholder={t("searchPlaceholder")}
+            placeholder={placeholder ?? t("searchPlaceholder")}
             className={cn(
               "min-w-0 flex-1 bg-transparent focus:outline-none",
               variant === "header"
-                ? "px-4 py-2.5 text-[15px] text-neutral-800 placeholder:text-neutral-400"
-                : "px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
+                ? "py-2.5 text-[15px] text-neutral-800 placeholder:text-neutral-400"
+                : "py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
+              leadingIcon ? "px-2" : "px-4",
             )}
             data-testid="input-search"
             autoComplete="off"
@@ -191,7 +202,7 @@ export default function SmartSearch({ className, compact, variant = "default", h
       <PopoverContent
         id="search-suggestions"
         align="start"
-        className="z-[70] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] p-0"
+        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
