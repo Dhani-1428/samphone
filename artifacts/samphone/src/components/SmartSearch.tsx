@@ -44,26 +44,26 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
 
   const price = !user ? (
-    <span className="flex max-w-[5.5rem] items-center gap-1 text-[11px] leading-tight text-muted-foreground">
-      <Lock className="h-3 w-3 shrink-0" aria-hidden />
+    <span className="flex max-w-[5.5rem] items-center gap-1 text-[11px] leading-tight text-brand-dark/70">
+      <Lock className="h-3 w-3 shrink-0 text-brand-dark" aria-hidden />
       <span className="line-clamp-2">{t("loginToSeePrice")}</span>
     </span>
   ) : hit.priceText ? (
-    <span className="whitespace-nowrap text-sm font-semibold tabular-nums">{hit.priceText}</span>
+    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">{hit.priceText}</span>
   ) : hit.priceNumber != null ? (
-    <span className="whitespace-nowrap text-sm font-semibold tabular-nums">
+    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">
       {currencySymbol}
       {hit.priceNumber.toFixed(2)}
     </span>
   ) : (
-    <span className="text-xs text-muted-foreground">{t("woo_price_na")}</span>
+    <span className="text-xs text-brand-dark/55">{t("woo_price_na")}</span>
   );
 
   const thumb = (
     <img
       src={imgOk ? hit.imageSrc : SEARCH_PLACEHOLDER}
       alt=""
-      className="h-12 w-12 shrink-0 rounded-lg bg-muted object-cover"
+      className="h-12 w-12 shrink-0 rounded-lg bg-[#F3F5F8] object-cover"
       loading="lazy"
       onError={() => setImgOk(false)}
     />
@@ -71,9 +71,9 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
 
   const details = (
     <div className="min-w-0 flex-1">
-      <span className="line-clamp-2 text-sm font-medium leading-snug text-foreground">{hit.name}</span>
+      <span className="line-clamp-2 text-sm font-medium leading-snug text-brand-dark">{hit.name}</span>
       {hit.subtitle ? (
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">{hit.subtitle}</span>
+        <span className="mt-0.5 block truncate text-xs text-brand/80">{hit.subtitle}</span>
       ) : null}
     </div>
   );
@@ -83,7 +83,7 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   const productHref = resolveHitHref(hit);
 
   return (
-    <li className="flex items-center gap-2 border-b border-border/40 px-2.5 py-2 last:border-0 hover:bg-muted/80">
+    <li className="flex items-center gap-2 border-b border-black/[0.08] px-2.5 py-2 last:border-0 hover:bg-[#F3F5F8]">
       <Link href={productHref} className={productLinkClass} onClick={onSelect}>
         {thumb}
         {details}
@@ -158,7 +158,9 @@ export default function SmartSearch({
             className,
           )}
         >
-          {leadingIcon ? <Search className="ml-3 h-4 w-4 shrink-0 text-brand-dark" strokeWidth={2} /> : null}
+          {leadingIcon ? (
+            <Search className="ml-3 h-4 w-4 shrink-0 text-brand-dark drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]" strokeWidth={2.2} />
+          ) : null}
           <input
             ref={inputRef}
             type="search"
@@ -170,9 +172,9 @@ export default function SmartSearch({
             onFocus={() => setOpen(true)}
             placeholder={placeholder ?? t("searchPlaceholder")}
             className={cn(
-              "min-w-0 flex-1 bg-transparent focus:outline-none",
+              "min-w-0 flex-1 bg-transparent focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
               variant === "header"
-                ? "py-2.5 text-[15px] text-neutral-800 placeholder:text-neutral-400"
+                ? "py-2.5 text-[15px] text-brand-dark placeholder:text-neutral-400"
                 : "py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
               leadingIcon ? "px-2" : "px-4",
             )}
@@ -187,7 +189,7 @@ export default function SmartSearch({
               className={cn(
                 "shrink-0 transition-colors",
                 variant === "header"
-                  ? "px-3 py-2.5 text-[#5A73A8] hover:text-[#4A6494]"
+                  ? "px-3 py-2.5 text-brand-dark hover:text-[#2F4268]"
                   : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
               )}
               data-testid="button-search"
@@ -202,14 +204,14 @@ export default function SmartSearch({
       <PopoverContent
         id="search-suggestions"
         align="start"
-        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] p-0"
+        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] border-black/[0.08] bg-white p-0 text-brand-dark shadow-[0_12px_40px_rgba(62,84,128,0.18)]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
           {q.trim().length < 1 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">{t("search_suggestions")}</p>
+            <p className="px-3 py-2 text-xs text-brand-dark/55">{t("search_suggestions")}</p>
           ) : hits.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-muted-foreground">{t("search_no_results")}</p>
+            <p className="px-3 py-2 text-sm text-brand-dark/55">{t("search_no_results")}</p>
           ) : (
             <ul className="text-sm">
               {hits.map((h) => (

@@ -43,9 +43,9 @@ export default function ProductCartControls({
         <Link
           href={loginHref}
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-lg border border-border",
+            "inline-flex shrink-0 items-center justify-center rounded-lg border-0 text-white transition-colors",
             variant === "icon-stepper" ? "h-9 w-9" : "h-10 w-10",
-            "bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+            "bg-gradient-to-b from-[#6A84C0] to-[#3E5480] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#5C74B1] hover:to-[#33466C]",
           )}
           aria-label={t("loginToSeePrice")}
           onClick={(e) => e.stopPropagation()}
@@ -130,7 +130,7 @@ export default function ProductCartControls({
           size="icon"
           className={cn(
             variant === "icon-stepper"
-              ? "h-9 w-9 shrink-0 rounded-md bg-[#5A73A8] hover:bg-[#4A6494] text-white shadow-none"
+              ? "h-9 w-9 shrink-0 rounded-md bg-gradient-to-b from-[#6A84C0] to-[#3E5480] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#5C74B1] hover:to-[#33466C]"
               : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
             buttonClassName,
           )}

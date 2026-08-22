@@ -46,9 +46,9 @@
   --font-display: 'Space Grotesk', sans-serif;
 
   --color-navy: #3E5480;
-  --color-utopya: #5A73A8;
+  --color-utopya: #4F6AA3;
   --color-sam: #FFB133;
-  --color-brand: #5A73A8;
+  --color-brand: #4F6AA3;
   --color-brand-dark: #3E5480;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -68,7 +68,7 @@
   --popover-foreground: 223 66% 13%;
   --popover-border: 214.3 20% 90%;
 
-  --primary: 221 31% 51%;
+  --primary: 221 35% 44%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 16% 94%;
