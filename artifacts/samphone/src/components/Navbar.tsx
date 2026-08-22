@@ -2360,8 +2360,26 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Blue brand nav ── */}
-      <nav className="hidden bg-brand-dark lg:block">
+      {/* Compact nav: one button on tablet/phone so brands do not wrap */}
+      <nav className="bg-brand-dark xl:hidden">
+        <div className={`${navShell} flex h-[46px] items-center justify-center`}>
+          <button
+            type="button"
+            className={`inline-flex h-9 items-center gap-2 rounded-md px-4 text-[13px] font-bold text-white transition-colors ${
+              categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
+            }`}
+            aria-expanded={categoriesActive}
+            onClick={openCategoriesMenu}
+          >
+            <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+            All Accessories
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+          </button>
+        </div>
+      </nav>
+
+      {/* Full brand row only on wide desktops */}
+      <nav className="hidden bg-brand-dark xl:block">
         <div className={`${navShell} flex h-[46px] items-center justify-center gap-1.5`}>
           <button
             type="button"
@@ -2375,7 +2393,7 @@ export default function Navbar() {
             All Accessories
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
           </button>
-          <div className="flex min-w-0 items-center overflow-x-auto">
+          <div className="flex min-w-0 items-center">
           {(
             [
               { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
@@ -2447,7 +2465,7 @@ export default function Navbar() {
         <button
           type="button"
           aria-label="Close menu"
-          className="absolute left-0 right-0 top-full z-40 hidden h-screen bg-transparent lg:block"
+              className="absolute left-0 right-0 top-full z-40 hidden h-screen bg-transparent xl:block"
           onClick={closeMenu}
         />
       ) : null}
@@ -2459,7 +2477,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] lg:block"
+            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] xl:block"
           >
             {openDropdown === "categories" ? (
               <AllCategoriesMegaPanel onClose={closeMenu} />
@@ -2481,7 +2499,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45 lg:hidden"
+              className="absolute left-0 right-0 top-full z-40 h-screen bg-black/45 xl:hidden"
               onClick={closeMenu}
             />
             <motion.nav
@@ -2489,51 +2507,54 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.18 }}
-              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-y-auto border-b border-border bg-white shadow-2xl lg:hidden"
+              className="absolute left-0 right-0 top-full z-50 max-h-[min(78vh,720px)] overflow-y-auto border-b border-border bg-white shadow-2xl xl:hidden"
             >
-              <div className="hide-dropdown-scrollbar overflow-x-auto border-b border-border">
-                <div className={`${navShell} flex min-w-max items-center gap-1 py-1`}>
+              <div className={`${navShell} grid grid-cols-2 gap-2 py-3`}>
                   <button
                     type="button"
                     onClick={() => setOpenDropdown("categories")}
-                    className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
-                      openDropdown === "categories"
-                        ? "border-b-2 border-sam text-sam"
-                        : "text-foreground/80 hover:text-foreground"
+                    className={`col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-md text-[14px] font-bold text-white ${
+                      openDropdown === "categories" ? "bg-[#E89A1C]" : "bg-sam"
                     }`}
                   >
+                    <Menu className="h-4 w-4" />
                     All Accessories
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown("brands")}
+                    className={`inline-flex h-10 items-center justify-center rounded-md border text-[13px] font-semibold ${
+                      openDropdown === "brands" ? "border-brand bg-brand/10 text-brand" : "border-border text-brand-dark"
+                    }`}
+                  >
+                    Brands
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown("others")}
+                    className={`inline-flex h-10 items-center justify-center rounded-md border text-[13px] font-semibold ${
+                      openDropdown === "others" ? "border-brand bg-brand/10 text-brand" : "border-border text-brand-dark"
+                    }`}
+                  >
+                    {t("nav_bar_others")}
+                  </button>
+              </div>
+              {openDropdown === "brands" ? (
+                <div className={`${navShell} flex flex-wrap gap-2 pb-3`}>
                   {brandGroups.map((group, idx) => (
                     <button
                       key={group.brand.slug}
                       type="button"
-                      onClick={() => {
-                        setOpenDropdown("brands");
-                        setActiveBrandIdx(idx);
-                      }}
-                      className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
-                        openDropdown === "brands" && idx === activeBrandIdx
-                          ? "border-b-2 border-brand text-brand"
-                          : "text-foreground/80 hover:text-foreground"
+                      onClick={() => setActiveBrandIdx(idx)}
+                      className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ${
+                        idx === activeBrandIdx ? "bg-brand text-white" : "bg-[#F3F5F8] text-brand-dark"
                       }`}
                     >
                       {displayBrandLabel(group.brand.label)}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown("others")}
-                    className={`whitespace-nowrap px-3 py-3 text-[17px] font-bold transition-colors ${
-                      openDropdown === "others"
-                        ? "border-b-2 border-brand text-brand"
-                        : "text-foreground/80 hover:text-foreground"
-                    }`}
-                  >
-                    {t("nav_bar_others")}
-                  </button>
                 </div>
-              </div>
+              ) : null}
               {openDropdown === "categories" ? (
               <AllCategoriesMegaPanel onClose={closeMenu} />
             ) : openDropdown === "others" ? (
