@@ -14,11 +14,25 @@
   },
   "rewrites": [
     {
+      "source": "/cloud-api",
+      "destination": "https://samphone.cloud/api"
+    },
+    {
+      "source": "/cloud-api/:path*",
+      "destination": "https://samphone.cloud/api/:path*"
+    },
+    {
       "source": "/:path*",
       "destination": "/index.html"
     }
   ],
   "headers": [
+    {
+      "source": "/cloud-api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [

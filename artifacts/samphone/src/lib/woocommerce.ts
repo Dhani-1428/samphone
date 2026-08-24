@@ -15,6 +15,8 @@ export interface WooProductAttribute {
 
 export interface WooProduct {
   id: number;
+  /** FastAPI catalog UUID (`GET /products/{id}`). */
+  cloudId?: string;
   name: string;
   slug: string;
   permalink: string;
@@ -30,6 +32,8 @@ export interface WooProduct {
   attributes?: WooProductAttribute[];
   /** Present when requested via `_fields` (lighter list payloads). */
   date_created?: string;
+  stock_status?: string;
+  on_sale?: boolean;
 }
 
 /** Stable gallery order, deduped by `src` (Woo occasionally repeats URLs). */
@@ -172,53 +176,16 @@ const STORE_PRODUCT_PARAMS = { status: "publish" as const };
 const PRODUCT_LIST_FIELDS =
   "id,name,slug,permalink,price,regular_price,sale_price,categories,images,date_created";
 
-/** First page only — use for fast initial UI; follow with `fetchProductsPage` for remaining pages. */
+/** First page from samphone.cloud FastAPI (home rails + catalog page). */
 export async function fetchProductsFirstBatch(perPage = 100): Promise<WooProduct[]> {
-  const raw = await wooFetchJson<WooProduct[]>("products", {
-    ...STORE_PRODUCT_PARAMS,
-    per_page: perPage,
-    page: 1,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
-  return Array.isArray(raw) ? raw.map(normalizeProductGallery) : [];
-}
-
-/** Single page of products (same field projection as first batch). */
-export async function fetchProductsPage(page: number, perPage = 100): Promise<WooProduct[]> {
-  if (!Number.isFinite(page) || page < 1) return [];
-  const raw = await wooFetchJson<WooProduct[]>("products", {
-    ...STORE_PRODUCT_PARAMS,
-    per_page: perPage,
-    page,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
-  return Array.isArray(raw) ? raw.map(normalizeProductGallery) : [];
-}
-
-/** GET /products — all products (paginated). Normalizes `images` for gallery viewers. */
-export async function fetchAllProducts(): Promise<WooProduct[]> {
-  const raw = await fetchAllPages<WooProduct>("products", {
-    ...STORE_PRODUCT_PARAMS,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
-  return raw.map(normalizeProductGallery);
-}
-
-/**
- * WooCommerce GET /products?search=… — server-side search (title, content, SKU depending on store).
- * Paginates until no more results. Returns deduped products.
- */
-export async function searchProductsQuery(query: string): Promise<WooProduct[]> {
-  const term = query.trim();
-  if (!term) return [];
-  const raw = await fetchAllPages<WooProduct>("products", {
-    ...STORE_PRODUCT_PARAMS,
-    search: term,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
+  const cloud = await import("@/lib/samphone-cloud");
+  const [seed, page] = await Promise.all([
+    cloud.fetchCloudHomeSeed(Math.min(perPage, 24)),
+    cloud.fetchCloudProductsPage(0, perPage),
+  ]);
   const seen = new Set<number>();
   const out: WooProduct[] = [];
-  for (const p of raw.map(normalizeProductGallery)) {
+  for (const p of [...seed, ...page]) {
     if (seen.has(p.id)) continue;
     seen.add(p.id);
     out.push(p);
@@ -226,80 +193,74 @@ export async function searchProductsQuery(query: string): Promise<WooProduct[]> 
   return out;
 }
 
-/** GET /products/:id — single product (full gallery; same schema as list). */
+/** Next catalog page (`offset` pagination on FastAPI). */
+export async function fetchProductsPage(page: number, perPage = 100): Promise<WooProduct[]> {
+  if (!Number.isFinite(page) || page < 1) return [];
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudProductsPage((page - 1) * perPage, perPage);
+}
+
+/** GET /products — paginated FastAPI catalog. */
+export async function fetchAllProducts(): Promise<WooProduct[]> {
+  const cloud = await import("@/lib/samphone-cloud");
+  const all: WooProduct[] = [];
+  const seen = new Set<number>();
+  let offset = 0;
+  const perPage = 100;
+  for (let i = 0; i < 80; i += 1) {
+    const batch = await cloud.fetchCloudProductsPage(offset, perPage);
+    if (!batch.length) break;
+    for (const p of batch) {
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      all.push(p);
+    }
+    if (batch.length < perPage) break;
+    offset += perPage;
+  }
+  return all;
+}
+
+export async function searchProductsQuery(query: string): Promise<WooProduct[]> {
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.searchCloudProducts(query, 50);
+}
+
+/** GET /products/:id — FastAPI UUID or Woo wc_id lookup. */
 export async function fetchProductById(id: number): Promise<WooProduct | null> {
-  if (!Number.isFinite(id) || id <= 0) return null;
-  try {
-    const p = await wooFetchJson<WooProduct>(`products/${id}`);
-    return p?.id != null ? normalizeProductGallery(p) : null;
-  } catch (e) {
-    if (e instanceof WooCommerceFetchError && e.status === 404) return null;
-    throw e;
-  }
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudProductByWcId(id);
 }
 
-/** GET /products?category={id} — products in a WooCommerce category (by ID). */
-export async function fetchProductsByCategory(categoryId: number): Promise<WooProduct[]> {
-  if (!Number.isFinite(categoryId) || categoryId <= 0) {
-    throw new WooCommerceFetchError("Invalid category ID.");
-  }
-  const raw = await fetchAllPages<WooProduct>("products", {
-    category: categoryId,
-    ...STORE_PRODUCT_PARAMS,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
-  return raw.map(normalizeProductGallery);
+/** GET /products?category={id} — products in a category (by Woo category ID). */
+export async function fetchProductsByCategory(categoryId: number, categoryName?: string): Promise<WooProduct[]> {
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudProductsByCategory(categoryId, categoryName);
 }
 
-const CATEGORY_LIST_FIELDS = "id,name,slug,parent,count";
-
-/** GET /products/categories — all product categories (paginated). */
+/** GET /categories — FastAPI catalog categories. */
 export async function fetchCategories(): Promise<WooCategory[]> {
-  return fetchAllPages<WooCategory>("products/categories", {
-    hide_empty: 0,
-    _fields: CATEGORY_LIST_FIELDS,
-  });
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudCategories();
 }
 
-/** Resolve a storefront category by slug (WooCommerce `slug` matches `/category/:slug`). */
+/** Resolve a storefront category by slug. */
 export async function fetchCategoryBySlug(slug: string): Promise<WooCategory | null> {
   const s = slug.trim();
   if (!s) return null;
-  const list = await wooFetchJson<WooCategory[]>("products/categories", {
-    slug: s,
-    per_page: 100,
-    page: 1,
-    hide_empty: 0,
-    _fields: CATEGORY_LIST_FIELDS,
-  });
-  if (!Array.isArray(list) || list.length === 0) return null;
-  const exact = list.find((c) => c.slug === s);
-  return exact ?? list[0] ?? null;
+  const list = await fetchCategories();
+  return list.find((c) => c.slug === s) ?? null;
 }
 
-/** GET /products/categories/:id */
+/** GET /categories/:id */
 export async function fetchCategoryById(id: number): Promise<WooCategory | null> {
-  try {
-    const c = await wooFetchJson<WooCategory>(`products/categories/${id}`);
-    return c?.id != null ? c : null;
-  } catch (e) {
-    if (e instanceof WooCommerceFetchError && e.status === 404) return null;
-    throw e;
-  }
+  const list = await fetchCategories();
+  return list.find((c) => c.id === id) ?? null;
 }
 
-/** GET /products?search= — live search (no client-side product cache). */
 export async function searchProductsRemote(query: string, limit = 10): Promise<WooProduct[]> {
-  const q = query.trim();
-  if (!q) return [];
-  const list = await wooFetchJson<WooProduct[]>("products", {
-    search: q,
-    per_page: limit,
-    page: 1,
-    ...STORE_PRODUCT_PARAMS,
-    _fields: PRODUCT_LIST_FIELDS,
-  });
-  return Array.isArray(list) ? list.map(normalizeProductGallery) : [];
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.searchCloudProducts(query, limit);
 }
 
 /** @deprecated Use fetchAllProducts() — same behavior, live API only. */
@@ -307,11 +268,10 @@ export async function fetchProducts(): Promise<WooProduct[]> {
   return fetchAllProducts();
 }
 
-/** GET /banners — homepage slides from store media (via API proxy). */
+/** GET /banners — scraped homepage slides from samphone.cloud. */
 export async function fetchHeroBanners(): Promise<{ id: number; src: string; alt: string }[]> {
-  const raw = await wooFetchJson<{ id: number; src: string; alt: string }[]>("banners");
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((b) => typeof b?.src === "string" && b.src.length > 0);
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudBanners();
 }
 
 export function getDisplayPrice(product: WooProduct): string | null {

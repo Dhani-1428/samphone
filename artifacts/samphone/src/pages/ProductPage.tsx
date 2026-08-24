@@ -13,6 +13,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
 import { hasCompareSpecs } from "@/data/device-specs";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
+import CatalogImage from "@/components/CatalogImage";
 import Product360Viewer from "@/components/product/Product360Viewer";
 import StockBadge from "@/components/StockBadge";
 import DeliveryEstimator from "@/components/DeliveryEstimator";
@@ -180,7 +181,7 @@ export default function ProductPage() {
                       key={src}
                       className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted"
                     >
-                      <img
+                      <CatalogImage
                         src={src}
                         alt=""
                         className="h-full w-full object-contain p-3"

@@ -24,6 +24,18 @@ export default defineConfig(async ({ mode }) => {
     ...loadEnv(mode, appRoot, ""),
   };
   const wooCfg = wooConfigFromEnv(env);
+  const cloudApiProxy = {
+    "/cloud-api": {
+      target: env.VITE_SAMPHONE_CLOUD_ORIGIN ?? "https://samphone.cloud",
+      changeOrigin: true,
+      secure: true,
+      rewrite: (p: string) => p.replace(/^\/cloud-api/, "/api"),
+    },
+    "/api": {
+      target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
+      changeOrigin: true,
+    },
+  };
 
   return {
   /**
@@ -96,23 +108,13 @@ export default defineConfig(async ({ mode }) => {
       strict: true,
       deny: ["**/.*"],
     },
-    proxy: {
-      "/api": {
-        target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
-        changeOrigin: true,
-      },
-    },
+    proxy: cloudApiProxy,
   },
   preview: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    proxy: {
-      "/api": {
-        target: env.VITE_PRICING_API_PROXY ?? "http://127.0.0.1:8080",
-        changeOrigin: true,
-      },
-    },
+    proxy: cloudApiProxy,
   },
 };
 });

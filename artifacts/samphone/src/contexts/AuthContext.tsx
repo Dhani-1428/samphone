@@ -6,12 +6,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getStoredApiJwt, setStoredApiJwt } from "@/config/samphone";
 
 const STORAGE_KEY = "samphone-auth-user";
 
 export interface AuthUser {
   email: string;
   name: string;
+  token?: string;
 }
 
 interface AuthContextValue {
@@ -30,6 +32,7 @@ function readStoredUser(): AuthUser | null {
       return {
         email: parsed.email,
         name: typeof parsed.name === "string" ? parsed.name : parsed.email.split("@")[0],
+        token: getStoredApiJwt() ?? undefined,
       };
     }
   } catch {
@@ -47,14 +50,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalized: AuthUser = {
       email: next.email.trim(),
       name: next.name.trim() || next.email.split("@")[0],
+      token: next.token,
     };
     setUser(normalized);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: normalized.email, name: normalized.name }));
+    setStoredApiJwt(normalized.token ?? null);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
+    setStoredApiJwt(null);
   }, []);
 
   const value = useMemo(

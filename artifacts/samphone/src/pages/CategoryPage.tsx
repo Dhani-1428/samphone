@@ -116,7 +116,7 @@ export default function CategoryPage() {
           setRemote({ loading: false, items: [] });
           return;
         }
-        const list = await fetchProductsByCategory(cat.id);
+        const list = await fetchProductsByCategory(cat.id, cat.name);
         if (alive) setRemote({ loading: false, items: list });
       } catch (e) {
         if (!alive) return;

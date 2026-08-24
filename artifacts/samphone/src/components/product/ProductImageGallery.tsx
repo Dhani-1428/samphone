@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Lens } from "@/components/ui/lens";
+import CatalogImage from "@/components/CatalogImage";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -42,7 +43,7 @@ export default function ProductImageGallery({
           </span>
         )}
         <Lens hovering={hovering} setHovering={setHovering} zoomFactor={1.85} lensSize={200}>
-          <img
+          <CatalogImage
             src={main}
             alt={productName}
             className={cn(
@@ -76,7 +77,7 @@ export default function ProductImageGallery({
                 i === active ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50",
               )}
             >
-              <img src={src} alt="" className="w-full h-full object-cover" />
+              <CatalogImage src={src} alt="" className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -88,7 +89,7 @@ export default function ProductImageGallery({
             <DialogTitle className="text-left font-display">{productName}</DialogTitle>
           </DialogHeader>
           <div className="overflow-auto max-h-[calc(90vh-4rem)] p-4 flex items-center justify-center">
-            <img
+            <CatalogImage
               src={main}
               alt={productName}
               className="max-w-none w-auto h-auto min-w-[min(100%,480px)] max-h-[75vh] object-contain select-none"

@@ -9,6 +9,7 @@ export type CartLinePreview = {
   href: string;
   unitPrice: number | null;
   isWoo: boolean;
+  productId: string | null;
 };
 
 export function buildWooProductMap(products: WooProduct[]): Map<number, WooProduct> {
@@ -33,6 +34,7 @@ export function buildCartLinePreview(
       href,
       unitPrice: dp != null && dp !== "" ? Number.parseFloat(dp) : null,
       isWoo: true,
+      productId: w?.cloudId || (Number.isFinite(id) ? String(id) : null),
     };
   }
   const c = resolveCatalogProduct(cartKey);
@@ -44,5 +46,6 @@ export function buildCartLinePreview(
     href,
     unitPrice: c?.price ?? null,
     isWoo: false,
+    productId: null,
   };
 }

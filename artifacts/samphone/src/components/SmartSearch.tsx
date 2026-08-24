@@ -9,6 +9,7 @@ import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import CatalogImage from "@/components/CatalogImage";
 
 const SEARCH_PLACEHOLDER =
   "data:image/svg+xml," +
@@ -60,7 +61,7 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   );
 
   const thumb = (
-    <img
+    <CatalogImage
       src={imgOk ? hit.imageSrc : SEARCH_PLACEHOLDER}
       alt=""
       className="h-12 w-12 shrink-0 rounded-lg bg-[#F3F5F8] object-cover"

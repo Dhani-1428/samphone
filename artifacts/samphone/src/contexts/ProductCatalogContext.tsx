@@ -17,13 +17,14 @@ import {
   type WooProduct,
 } from "@/lib/woocommerce";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
+import { useAuth } from "@/contexts/AuthContext";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
-const CACHE_KEY = "samphone-products-cache-json-v4";
-const CACHE_META_KEY = "samphone-products-cache-meta-v4";
+const CACHE_KEY = "samphone-products-cache-json-v5-cloud";
+const CACHE_META_KEY = "samphone-products-cache-meta-v5-cloud";
 const PER_PAGE = 100;
-const CAT_CACHE_KEY = "samphone-woo-categories-cache-v1";
-const CAT_META_KEY = "samphone-woo-categories-meta-v1";
+const CAT_CACHE_KEY = "samphone-woo-categories-cache-v2-cloud";
+const CAT_META_KEY = "samphone-woo-categories-meta-v2-cloud";
 
 interface ProductCatalogValue {
   products: WooProduct[];
@@ -63,6 +64,7 @@ function normalizeQuery(q: string): string[] {
 }
 
 export function ProductCatalogProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState<WooProduct[]>([]);
   const [categories, setCategories] = useState<WooCategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -226,7 +228,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       mounted.current = false;
       fetchAbortRef.current?.abort();
     };
-  }, [readCache, readCategoryCache, refreshNow]);
+  }, [readCache, readCategoryCache, refreshNow, isAuthenticated]);
 
   const searchProducts = useCallback(
     (q: string, limit = 10): WooProduct[] => {

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { useLang } from "@/contexts/LanguageContext";
 import { fetchHeroBanners } from "@/lib/woocommerce";
+import CatalogImage from "@/components/CatalogImage";
 import homeHeroVideo from "@/assets/home-hero-video.mp4";
 import homeBanner from "@/assets/banner home.webp";
 import accessoriesBanner from "@/assets/accessories.webp";
@@ -74,11 +75,10 @@ export default function Hero() {
                       aria-label={slide.label}
                     />
                   ) : (
-                    <img
+                    <CatalogImage
                       src={slide.src}
                       alt={slide.alt}
                       className="h-full w-full object-cover object-center"
-                      referrerPolicy="no-referrer"
                       decoding="async"
                     />
                   )}

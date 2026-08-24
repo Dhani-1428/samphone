@@ -9,6 +9,7 @@ import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import ProductCartControls from "@/components/ProductCartControls";
+import CatalogImage from "@/components/CatalogImage";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -85,12 +86,11 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
           )}
         </div>
         <Link href={productHref} className="block aspect-square">
-          <img
+          <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={product.images?.[0]?.alt || product.name}
             className="h-full w-full object-contain"
             loading="lazy"
-            referrerPolicy="no-referrer"
             onError={() => setImgOk(false)}
           />
         </Link>

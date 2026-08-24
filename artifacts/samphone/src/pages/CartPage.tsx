@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -8,7 +8,9 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { Button } from "@/components/ui/button";
 import ProductCartControls from "@/components/ProductCartControls";
 import GuestPriceGate from "@/components/GuestPriceGate";
+import CatalogImage from "@/components/CatalogImage";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
+import { startStripeCheckout } from "@/lib/samphone-cloud";
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,8 @@ export default function CartPage() {
   const { user } = useAuth();
   const { products: wooProducts } = useProductCatalog();
   const wooById = useMemo(() => buildWooProductMap(wooProducts), [wooProducts]);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const lines = useMemo(() => {
     return Object.entries(items)
@@ -45,6 +49,26 @@ export default function CartPage() {
     }
     return { sum, missing };
   }, [lines, user]);
+
+  const handleCheckout = async () => {
+    const payload = lines
+      .filter((line) => line.productId && line.qty > 0)
+      .map((line) => ({ productId: line.productId as string, quantity: line.qty }));
+    if (payload.length === 0) {
+      setCheckoutError(t("cart_checkout_note"));
+      return;
+    }
+    setCheckoutBusy(true);
+    setCheckoutError(null);
+    try {
+      const url = await startStripeCheckout(payload);
+      window.location.assign(url);
+    } catch (e) {
+      setCheckoutError(e instanceof Error ? e.message : t("cart_checkout_cta"));
+    } finally {
+      setCheckoutBusy(false);
+    }
+  };
 
   return (
     <div className="min-h-screen py-10">
@@ -93,7 +117,7 @@ export default function CartPage() {
                   <li key={line.cartKey} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5">
                     <Link href={line.href} className="flex shrink-0 gap-4 sm:items-center">
                       <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-border bg-muted sm:h-24 sm:w-24">
-                        <img
+                        <CatalogImage
                           src={line.img ?? PLACEHOLDER}
                           alt=""
                           className="h-full w-full object-cover"
@@ -166,7 +190,13 @@ export default function CartPage() {
                     <p className="mt-3 text-xs text-muted-foreground">{t("cart_subtotal_partial")}</p>
                   )}
                   <p className="mt-4 text-xs text-muted-foreground">{t("cart_checkout_note")}</p>
-                  <Button className="mt-6 w-full sm:w-auto" size="lg" disabled>
+                  {checkoutError ? <p className="mt-2 text-sm text-red-600">{checkoutError}</p> : null}
+                  <Button
+                    className="mt-6 w-full sm:w-auto"
+                    size="lg"
+                    disabled={checkoutBusy || !user}
+                    onClick={() => void handleCheckout()}
+                  >
                     {t("cart_checkout_cta")}
                   </Button>
                 </>

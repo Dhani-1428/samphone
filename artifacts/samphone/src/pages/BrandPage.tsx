@@ -386,7 +386,7 @@ export default function BrandPage() {
               >
                 {filteredProducts.map((p) => (
                   <motion.div key={p.id} variants={itemVariants}>
-                    <WooProductCard product={p} />
+                    <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
                   </motion.div>
                 ))}
               </motion.div>

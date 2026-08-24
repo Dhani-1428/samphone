@@ -12,6 +12,11 @@ interface ImportMetaEnv {
   readonly VITE_WOO_EXTRA_TABLET_CATEGORY_SLUGS?: string;
   /** Must stay false in production — enables insecure client-side Woo keys. */
   readonly VITE_WOO_USE_CLIENT_CREDENTIALS?: string;
+  /** Same-origin prefix rewritten to https://samphone.cloud/api (default `/cloud-api`). */
+  readonly VITE_SAMPHONE_API_URL?: string;
+  readonly VITE_CLERK_PUBLISHABLE_KEY?: string;
+  readonly VITE_CLERK_FRONTEND_API?: string;
+  readonly VITE_STRIPE_PUBLISHABLE_KEY?: string;
 }
 
 interface ImportMeta {
