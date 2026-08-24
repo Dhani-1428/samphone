@@ -13,7 +13,6 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
 import { hasCompareSpecs } from "@/data/device-specs";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
-import CatalogImage from "@/components/CatalogImage";
 import Product360Viewer from "@/components/product/Product360Viewer";
 import StockBadge from "@/components/StockBadge";
 import DeliveryEstimator from "@/components/DeliveryEstimator";
@@ -25,6 +24,7 @@ import { notifyStock } from "@/lib/samphone-cloud";
 import { getWooProductDescriptionHtml } from "@/lib/woo-product-html";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
+import ColorSwatches from "@/components/wc/ColorSwatches";
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +78,7 @@ export default function ProductPage() {
   const [related, setRelated] = useState<WooProduct[]>([]);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyMsg, setNotifyMsg] = useState<string | null>(null);
+  const [colorIdx, setColorIdx] = useState(0);
 
   useEffect(() => {
     if (cartKey) recordView(cartKey);
@@ -94,6 +95,7 @@ export default function ProductPage() {
       .then((p) => {
         if (!alive) return;
         setWooProduct(p);
+        setColorIdx(0);
         if (p?.cloudId) {
           void fetchRelatedProducts(p.cloudId).then((rows) => {
             if (alive) setRelated(rows);
@@ -126,9 +128,12 @@ export default function ProductPage() {
         </div>
       );
     }
+    const swatches = wooProduct.colorSwatches ?? [];
+    const preferredSrc = swatches[colorIdx]?.image || null;
     const gallery = (wooProduct.images ?? [])
       .map((img) => img.src)
       .filter((src): src is string => Boolean(src));
+    if (preferredSrc && !gallery.includes(preferredSrc)) gallery.unshift(preferredSrc);
     const displayPrice = getDisplayPrice(wooProduct);
     const descHtml = getWooProductDescriptionHtml(wooProduct);
     const primaryCat = wooProduct.categories?.[0];
@@ -188,24 +193,12 @@ export default function ProductPage() {
                 <div className="flex aspect-square items-center justify-center rounded-2xl border border-border bg-muted text-sm text-muted-foreground">
                   —
                 </div>
-              ) : gallery.length === 2 ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {gallery.map((src, i) => (
-                    <div
-                      key={src}
-                      className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted"
-                    >
-                      <CatalogImage
-                        src={src}
-                        alt=""
-                        className="h-full w-full object-contain p-3"
-                        loading={i === 0 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ))}
-                </div>
               ) : (
-                <ProductImageGallery images={gallery} productName={wooProduct.name} />
+                <ProductImageGallery
+                  images={gallery}
+                  productName={wooProduct.name}
+                  preferredSrc={preferredSrc}
+                />
               )}
             </div>
 
@@ -219,13 +212,18 @@ export default function ProductPage() {
                   {primaryCat.name}
                 </span>
               )}
-              {wooProduct.colorVariants && wooProduct.colorVariants.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {wooProduct.colorVariants.map((c) => (
-                    <span key={c} className="rounded-full border border-border px-3 py-1 text-xs font-medium">
-                      {c}
-                    </span>
-                  ))}
+              {swatches.length > 0 ? (
+                <div className="mt-4 space-y-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {swatches[colorIdx]?.label}
+                  </p>
+                  <ColorSwatches
+                    swatches={swatches}
+                    selected={colorIdx}
+                    onSelect={setColorIdx}
+                    max={16}
+                    size="md"
+                  />
                 </div>
               ) : null}
 

@@ -36,8 +36,15 @@ export interface WooProduct {
   on_sale?: boolean;
   specs?: Record<string, string>;
   colorVariants?: string[];
+  colorSwatches?: ProductColorSwatch[];
   brand?: string;
 }
+
+export type ProductColorSwatch = {
+  label: string;
+  hex: string;
+  image: string | null;
+};
 
 /** Stable gallery order, deduped by `src` (Woo occasionally repeats URLs). */
 export function dedupeGalleryImages(images: WooProduct["images"] | undefined | null): WooProduct["images"] {

@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { useState } from "react";
 import { Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -10,6 +10,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import ProductCartControls from "@/components/ProductCartControls";
 import CatalogImage from "@/components/CatalogImage";
+import ColorSwatches from "@/components/wc/ColorSwatches";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -34,6 +35,7 @@ function isServicePack(product: WooProduct) {
 
 export default function WooProductCard({ product, priceUnavailableLabel }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
+  const [colorIdx, setColorIdx] = useState(0);
   const { user } = useAuth();
   const { t } = useLang();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
@@ -42,7 +44,9 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
   const catalogPrice = getDisplayPrice(product);
   const { displayFormatted, hasCustomPrice } = useCustomerProductPrice(product);
   const showPrice = user != null && (catalogPrice != null || hasCustomPrice);
-  const imageUrl = getPrimaryImageUrl(product);
+  const swatches = product.colorSwatches ?? [];
+  const variantImage = swatches[colorIdx]?.image;
+  const imageUrl = variantImage || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
@@ -88,12 +92,24 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
         <Link href={productHref} className="block aspect-square">
           <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-            alt={product.images?.[0]?.alt || product.name}
+            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className="h-full w-full object-contain"
             loading="lazy"
             onError={() => setImgOk(false)}
           />
         </Link>
+        {swatches.length > 0 ? (
+          <div className="mt-2">
+            <ColorSwatches
+              swatches={swatches}
+              selected={colorIdx}
+              onSelect={(i) => {
+                setColorIdx(i);
+                setImgOk(true);
+              }}
+            />
+          </div>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">

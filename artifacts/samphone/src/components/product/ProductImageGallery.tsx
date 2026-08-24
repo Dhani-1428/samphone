@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ type Props = {
   productName: string;
   badge?: string | null;
   badgeClassName?: string;
+  preferredSrc?: string | null;
 };
 
 export default function ProductImageGallery({
@@ -23,10 +24,18 @@ export default function ProductImageGallery({
   productName,
   badge,
   badgeClassName,
+  preferredSrc,
 }: Props) {
   const [active, setActive] = useState(0);
   const [hovering, setHovering] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
+
+  useEffect(() => {
+    if (!preferredSrc) return;
+    const i = images.indexOf(preferredSrc);
+    if (i >= 0) setActive(i);
+  }, [preferredSrc, images]);
+
   const main = images[active] ?? images[0];
 
   return (

@@ -101,6 +101,13 @@ function imageList(p: CloudProduct): WooProduct["images"] {
     }
   }
   if (typeof p.image === "string") raw.unshift(p.image);
+  if (Array.isArray(p.color_variants)) {
+    for (const row of p.color_variants) {
+      if (row && typeof row === "object" && typeof (row as { image?: string }).image === "string") {
+        raw.push((row as { image: string }).image);
+      }
+    }
+  }
   const out: WooProduct["images"] = [];
   const seen = new Set<string>();
   let i = 0;
@@ -144,22 +151,64 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     stock_status: p.in_stock === false ? "outofstock" : "instock",
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
     colorVariants: colorNames(p.color_variants),
+    colorSwatches: parseColorSwatches(p.color_variants),
     brand: p.brand,
   });
 }
 
-function colorNames(raw: unknown): string[] | undefined {
+function parseColorSwatches(raw: unknown): WooProduct["colorSwatches"] {
   if (!Array.isArray(raw) || raw.length === 0) return undefined;
-  const out: string[] = [];
+  const out: NonNullable<WooProduct["colorSwatches"]> = [];
+  const seen = new Set<string>();
   for (const row of raw) {
-    if (typeof row === "string" && row.trim()) out.push(row.trim());
-    else if (row && typeof row === "object") {
-      const o = row as { name?: string; color?: string; title?: string };
-      const n = o.name || o.color || o.title;
-      if (n) out.push(n);
+    if (typeof row === "string" && row.trim()) {
+      const label = row.trim();
+      const key = label.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ label, hex: hexFromLabel(label), image: null });
+      continue;
     }
+    if (!row || typeof row !== "object") continue;
+    const o = row as { label?: string; name?: string; color?: string; title?: string; image?: string };
+    const label = (o.label || o.name || o.title || o.color || "").trim();
+    if (!label) continue;
+    const key = label.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const hex = /^#?[0-9a-f]{3,8}$/i.test(o.color || "")
+      ? o.color!.startsWith("#")
+        ? o.color!
+        : `#${o.color}`
+      : hexFromLabel(label);
+    const image = normalizeCatalogImageUrl(o.image) || null;
+    out.push({ label, hex, image });
   }
   return out.length ? out : undefined;
+}
+
+function hexFromLabel(label: string): string {
+  const n = label.toLowerCase();
+  if (/\b(black|blk)\b/.test(n)) return "#1a1a1a";
+  if (/\b(white|wht)\b/.test(n)) return "#f5f5f5";
+  if (/\bred\b/.test(n)) return "#e53935";
+  if (/\b(pink|pnk)\b/.test(n)) return "#f48fb1";
+  if (/\b(blue|blu)\b/.test(n)) return "#2196f3";
+  if (/\b(green|grn|pista)\b/.test(n) || /sea\s*green/.test(n)) return "#4caf50";
+  if (/\byellow\b/.test(n)) return "#fdd835";
+  if (/\b(purple|lavender)\b/.test(n)) return "#9c27b0";
+  if (/\bmagenta\b/.test(n)) return "#4c2a4a";
+  if (/\b(transparent|clear)\b/.test(n)) return "#e8e8e8";
+  if (/\bgold\b/.test(n)) return "#d4af37";
+  if (/\bsilver\b/.test(n)) return "#c0c0c0";
+  if (/\borange\b/.test(n)) return "#fb8c00";
+  if (/\bbrown\b/.test(n)) return "#6d4c41";
+  if (/\b(grey|gray)\b/.test(n)) return "#9e9e9e";
+  return "#9ca3af";
+}
+
+function colorNames(raw: unknown): string[] | undefined {
+  return parseColorSwatches(raw)?.map((s) => s.label);
 }
 
 function hashString(s: string): number {
