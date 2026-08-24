@@ -7,44 +7,47 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { SITE_HOME_BANNERS } from "@/config/samphone";
 import { useLang } from "@/contexts/LanguageContext";
 import { fetchHeroBanners } from "@/lib/woocommerce";
 import CatalogImage from "@/components/CatalogImage";
-import homeHeroVideo from "@/assets/home-hero-video.mp4";
-import homeBanner from "@/assets/banner home.webp";
-import accessoriesBanner from "@/assets/accessories.webp";
 
-type Slide =
-  | { key: string; kind: "video"; src: string; label: string }
-  | { key: string; kind: "image"; src: string; alt: string };
+type Slide = { key: string; src: string; alt: string };
+
+function siteBannerSlides(lang: string): Slide[] {
+  const alt = lang === "pt" ? "SAMPHONE — destaques da loja" : "SAMPHONE — store highlights";
+  return SITE_HOME_BANNERS.map((src, i) => ({
+    key: `site-${i}`,
+    src,
+    alt,
+  }));
+}
 
 export default function Hero() {
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const [api, setApi] = useState<CarouselApi>();
-  const [storeSlides, setStoreSlides] = useState<Slide[] | null>(null);
-  const slides = storeSlides && storeSlides.length > 0 ? storeSlides : fallbackSlides(t("hero_line2"), lang);
+  const [slides, setSlides] = useState<Slide[]>(() => siteBannerSlides(lang));
 
   useEffect(() => {
     let cancelled = false;
     void fetchHeroBanners()
       .then((banners) => {
         if (cancelled || banners.length === 0) return;
-        setStoreSlides(
+        setSlides(
           banners.map((b) => ({
             key: `woo-${b.id}`,
-            kind: "image" as const,
             src: b.src,
-            alt: b.alt,
+            alt: b.alt || (lang === "pt" ? "SAMPHONE" : "SAMPHONE"),
           })),
         );
       })
       .catch(() => {
-        /* keep local fallback slides */
+        /* keep www.samphone.pt homepage banners */
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (!api) return;
@@ -58,30 +61,21 @@ export default function Hero() {
         <Carousel
           setApi={setApi}
           opts={{ loop: true, align: "start" }}
-          className="w-full overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
+          className="w-full overflow-hidden rounded-2xl bg-neutral-950 shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
         >
           <CarouselContent className="-ml-0">
-            {slides.map((slide) => (
+            {slides.map((slide, i) => (
               <CarouselItem key={slide.key} className="pl-0">
-                <div className="relative h-[200px] w-full overflow-hidden bg-muted sm:h-[280px] md:h-[360px] lg:h-[420px]">
-                  {slide.kind === "video" ? (
-                    <video
-                      className="h-full w-full object-cover"
-                      src={slide.src}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      aria-label={slide.label}
-                    />
-                  ) : (
-                    <CatalogImage
-                      src={slide.src}
-                      alt={slide.alt}
-                      className="h-full w-full object-cover object-center"
-                      decoding="async"
-                    />
-                  )}
+                <div className="relative aspect-[5/2] w-full overflow-hidden bg-neutral-950">
+                  <CatalogImage
+                    src={slide.src}
+                    alt={slide.alt}
+                    className="h-full w-full object-contain object-center"
+                    decoding="async"
+                    fetchPriority={i === 0 ? "high" : "low"}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    sizes="(min-width: 1600px) 1600px, 100vw"
+                  />
                 </div>
               </CarouselItem>
             ))}
@@ -92,27 +86,4 @@ export default function Hero() {
       </div>
     </section>
   );
-}
-
-function fallbackSlides(videoLabel: string, lang: string): Slide[] {
-  return [
-    {
-      key: "video",
-      kind: "video",
-      src: homeHeroVideo,
-      label: videoLabel,
-    },
-    {
-      key: "banner",
-      kind: "image",
-      src: homeBanner,
-      alt: lang === "pt" ? "SAMPHONE — acessórios e peças" : "SAMPHONE — accessories and parts",
-    },
-    {
-      key: "accessories",
-      kind: "image",
-      src: accessoriesBanner,
-      alt: lang === "pt" ? "Acessórios SAMPHONE" : "SAMPHONE accessories",
-    },
-  ];
 }

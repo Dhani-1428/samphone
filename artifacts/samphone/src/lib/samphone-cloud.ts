@@ -1,8 +1,10 @@
 import {
   SAMPHONE_API_BASE,
+  SITE_HOME_BANNERS,
   catalogImageReferrerPolicy,
   getStoredApiJwt,
   normalizeCatalogImageUrl,
+  preferOriginalUpload,
   setStoredApiJwt,
 } from "@/config/samphone";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
@@ -231,13 +233,49 @@ export async function fetchCloudBanners(): Promise<{ id: number; src: string; al
   const out: { id: number; src: string; alt: string }[] = [];
   const seen = new Set<string>();
   for (const b of items) {
-    const src = normalizeCatalogImageUrl(b.src || b.image_url || b.image);
+    const src = preferOriginalUpload(
+      normalizeCatalogImageUrl(b.src || b.image_url || b.image) || "",
+    );
     if (!src || seen.has(src)) continue;
     seen.add(src);
     const id = typeof b.wc_id === "number" ? b.wc_id : Number(b.id) || out.length;
     out.push({ id, src, alt: b.title || "SAMPHONE" });
   }
-  return out;
+  if (out.length > 0) return out;
+  return SITE_HOME_BANNERS.map((src, i) => ({ id: i + 1, src, alt: "SAMPHONE" }));
+}
+
+export function firstCatalogImage(products: WooProduct[]): string | null {
+  for (const p of products) {
+    for (const img of p.images ?? []) {
+      const src = preferOriginalUpload(img.src);
+      if (src) return src;
+    }
+  }
+  return null;
+}
+
+export async function fetchCloudProductList(
+  query: Record<string, string>,
+  limit = 16,
+): Promise<{ items: WooProduct[]; total: number }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: "0", ...query });
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/products?${params.toString()}`);
+  const items = mapItems(data);
+  return { items, total: typeof data.total === "number" ? data.total : items.length };
+}
+
+export async function searchCloudProductsPage(
+  query: string,
+  limit = 24,
+): Promise<{ items: WooProduct[]; total: number }> {
+  const q = query.trim();
+  if (!q) return { items: [], total: 0 };
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(
+    `/products-search?q=${encodeURIComponent(q)}&sort=date_desc`,
+  );
+  const items = mapItems(data);
+  return { items: items.slice(0, limit), total: typeof data.total === "number" ? data.total : items.length };
 }
 
 export async function fetchCloudProductByWcId(wcId: number | string): Promise<WooProduct | null> {
@@ -354,10 +392,8 @@ export async function fetchCloudBrands(): Promise<{ name: string; count: number 
 export async function fetchCloudProductsByGroup(group: string, limit = 48): Promise<WooProduct[]> {
   const g = group.trim();
   if (!g) return [];
-  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(
-    `/products?category_group=${encodeURIComponent(g)}&limit=${limit}&offset=0`,
-  );
-  return mapItems(data);
+  const page = await fetchCloudProductList({ category_group: g }, limit);
+  return page.items;
 }
 
 export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {

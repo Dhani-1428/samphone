@@ -56,7 +56,19 @@ export function isPlaceholderImage(src: string): boolean {
   return /woocommerce-placeholder|display-banner-samphone/i.test(src);
 }
 
-/** Prefer www.samphone.pt uploads; skip empty/placeholder art. */
+export function preferOriginalUpload(src: string): string {
+  return src.replace(/-\d+x\d+(?=\.(?:png|jpe?g|webp|gif))/i, "");
+}
+
+/** Public homepage slides on www.samphone.pt (1500×600). */
+export const SITE_HOME_BANNERS = [
+  "https://www.samphone.pt/wp-content/uploads/2026/08/banner-1.png",
+  "https://www.samphone.pt/wp-content/uploads/2026/08/ban-2.png",
+  "https://www.samphone.pt/wp-content/uploads/2026/08/ban-3.png",
+  "https://www.samphone.pt/wp-content/uploads/2026/07/BAN-2.png",
+  "https://www.samphone.pt/wp-content/uploads/2026/06/BAN-B2.png",
+] as const;
+
 export function normalizeCatalogImageUrl(src: string | null | undefined): string | null {
   const raw = typeof src === "string" ? src.trim() : "";
   if (!raw || isPlaceholderImage(raw)) return null;
