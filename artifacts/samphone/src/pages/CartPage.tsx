@@ -21,6 +21,7 @@ import {
 } from "@/lib/samphone-cloud";
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
+import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -45,6 +46,7 @@ export default function CartPage() {
   const [notes, setNotes] = useState("");
   const [shipping, setShipping] = useState("standard");
   const [payMethod, setPayMethod] = useState("card");
+  const [tradeIn, setTradeIn] = useState(() => loadTradeInVoucher());
 
   const lines = useMemo(() => {
     return Object.entries(items)
@@ -79,6 +81,7 @@ export default function CartPage() {
       setCheckoutError(t("checkout_full_name"));
       return;
     }
+    const tradeNote = tradeIn ? `Trade-in ${tradeIn.code} (€${tradeIn.value})` : "";
     const draft: CheckoutDraft = {
       items: payload,
       full_name: fullName.trim(),
@@ -88,7 +91,7 @@ export default function CartPage() {
       postal_code: postal.trim(),
       shipping_method: shipping,
       payment_method: payMethod,
-      notes: notes.trim(),
+      notes: [notes.trim(), tradeNote].filter(Boolean).join("\n"),
     };
     setCheckoutBusy(true);
     setCheckoutError(null);
@@ -277,6 +280,26 @@ export default function CartPage() {
                   </div>
                   {subtotal?.missing && (
                     <p className="mt-3 text-xs text-muted-foreground">{t("cart_subtotal_partial")}</p>
+                  )}
+                  {tradeIn && (
+                    <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
+                      <p>
+                        {t("trade_code_label")}: <span className="font-mono font-semibold">{tradeIn.code}</span>
+                        <span className="ml-2 text-muted-foreground">€{tradeIn.value}</span>
+                        <span className="mt-1 block text-xs text-muted-foreground">{t("trade_apply")}</span>
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          clearTradeInVoucher();
+                          setTradeIn(null);
+                        }}
+                      >
+                        {t("cart_remove_line")}
+                      </Button>
+                    </div>
                   )}
                   {checkoutOk ? (
                     <p className="mt-4 text-sm font-medium text-emerald-700">{t("checkout_success")}</p>

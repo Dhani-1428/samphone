@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
-import { PackageSearch } from "lucide-react";
+import { Link, useSearch } from "wouter";
+import { Loader2, PackageSearch } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ensureDemoOrder, getOrderById, type OrderStatus, type StoredOrder } from "@/lib/orders";
+import { getOrderById, type OrderStatus, type StoredOrder } from "@/lib/orders";
+import { fetchCloudOrderLookup, type CloudOrder } from "@/lib/samphone-cloud";
+import { getStoredApiJwt } from "@/config/samphone";
 import { cn } from "@/lib/utils";
 
 const STEP_LABELS = [
@@ -15,19 +17,15 @@ const STEP_LABELS = [
   "track_step_done",
 ] as const;
 
-function stepFromStatus(status: OrderStatus): number {
-  switch (status) {
-    case "processing":
-      return 1;
-    case "shipped":
-      return 2;
-    case "out_for_delivery":
-      return 3;
-    case "delivered":
-      return 4;
-    default:
-      return 0;
-  }
+function stepFromStatus(status: string): number {
+  const s = status.toLowerCase();
+  if (/cancel/.test(s)) return 0;
+  if (/deliver/.test(s)) return 4;
+  if (/out.?for|distribution|courier/.test(s)) return 3;
+  if (/ship/.test(s)) return 2;
+  if (/pack/.test(s)) return 1;
+  if (/process|paid|pending|confirm/.test(s)) return 1;
+  return 0;
 }
 
 function resolveStep(o: StoredOrder): number {
@@ -35,27 +33,52 @@ function resolveStep(o: StoredOrder): number {
   return stepFromStatus(o.status);
 }
 
+function fromCloud(o: CloudOrder): StoredOrder {
+  return {
+    id: o.id,
+    createdAt: o.createdAt,
+    status: (o.status as OrderStatus) || "processing",
+    lines: o.lines.map((l, i) => ({ cartKey: `api:${o.id}:${i}`, name: l.name, qty: l.qty })),
+    stepIndex: stepFromStatus(o.status),
+    totalEur: o.totalEur,
+  };
+}
+
 export default function TrackOrder() {
   const { t } = useLang();
+  const search = useSearch();
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState<StoredOrder | null>(null);
   const [tried, setTried] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const signedIn = Boolean(getStoredApiJwt());
+
+  const lookup = async (raw?: string) => {
+    const id = (raw ?? query).trim();
+    setTried(true);
+    if (!id) {
+      setOrder(null);
+      return;
+    }
+    setBusy(true);
+    try {
+      const cloud = await fetchCloudOrderLookup(id);
+      setOrder(cloud ? fromCloud(cloud) : getOrderById(id));
+    } catch {
+      setOrder(getOrderById(id));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   useEffect(() => {
-    ensureDemoOrder();
-    const q = new URLSearchParams(window.location.search).get("q");
+    const q = new URLSearchParams(search).get("q");
     if (q) {
       setQuery(q);
-      setTried(true);
-      setOrder(getOrderById(q));
+      void lookup(q);
     }
-  }, []);
-
-  const lookup = () => {
-    setTried(true);
-    const found = getOrderById(query);
-    setOrder(found);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const stepIdx = order ? resolveStep(order) : -1;
 
@@ -77,22 +100,29 @@ export default function TrackOrder() {
           </div>
           <p className="text-muted-foreground text-sm mb-6">{t("track_sub")}</p>
 
-          <div className="flex flex-col sm:flex-row gap-2 mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("track_placeholder")}
               className="flex-1"
-              onKeyDown={(e) => e.key === "Enter" && lookup()}
+              onKeyDown={(e) => e.key === "Enter" && void lookup()}
             />
-            <Button type="button" onClick={lookup}>
-              {t("track_button")}
+            <Button type="button" onClick={() => void lookup()} disabled={busy}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("track_button")}
             </Button>
           </div>
 
-          {tried && !order && (
-            <p className="text-sm text-destructive mb-6">{t("track_not_found")}</p>
+          {!signedIn && (
+            <p className="text-xs text-muted-foreground mb-6">
+              {t("track_login_hint")}{" "}
+              <Link href="/login?next=/track" className="text-primary underline">
+                {t("login")}
+              </Link>
+            </p>
           )}
+
+          {tried && !order && !busy && <p className="text-sm text-destructive mb-6">{t("track_not_found")}</p>}
 
           {order && (
             <div className="space-y-6">
@@ -105,10 +135,7 @@ export default function TrackOrder() {
                 {STEP_LABELS.map((labelKey, i) => (
                   <li
                     key={labelKey}
-                    className={cn(
-                      "text-sm",
-                      i <= stepIdx ? "text-foreground font-medium" : "text-muted-foreground",
-                    )}
+                    className={cn("text-sm", i <= stepIdx ? "text-foreground font-medium" : "text-muted-foreground")}
                   >
                     <span
                       className={cn(

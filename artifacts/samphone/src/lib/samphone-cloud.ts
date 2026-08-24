@@ -504,6 +504,27 @@ export async function fetchCloudOrders(): Promise<CloudOrder[]> {
   return list.map(mapCloudOrder).filter((o): o is CloudOrder => o != null);
 }
 
+export async function fetchCloudOrderLookup(orderId: string): Promise<CloudOrder | null> {
+  const needle = orderId.trim();
+  if (!needle) return null;
+  try {
+    const mapped = mapCloudOrder(await cloudFetchJson<unknown>(`/orders/${encodeURIComponent(needle)}`));
+    if (mapped) return mapped;
+  } catch (e) {
+    if (!(e instanceof WooCommerceFetchError) || (e.status !== 401 && e.status !== 403 && e.status !== 404)) {
+      throw e;
+    }
+  }
+  if (!getStoredApiJwt()) return null;
+  try {
+    const all = await fetchCloudOrders();
+    const n = needle.toLowerCase();
+    return all.find((o) => o.id.toLowerCase() === n) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function createCloudOrder(payload: {
   items: { product_id: string; quantity: number }[];
   full_name: string;

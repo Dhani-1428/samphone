@@ -1,6 +1,7 @@
 import { resolveCatalogProduct } from "@/data/catalog";
 
 const STORAGE_KEY = "samphone-orders";
+const DEMO_ID = "SP-DEMO-TRACK";
 
 export type OrderStatus = "processing" | "shipped" | "out_for_delivery" | "delivered";
 
@@ -43,6 +44,8 @@ export function listOrders(): StoredOrder[] {
 
 export function getOrderById(id: string): StoredOrder | null {
   const normalized = id.trim().toUpperCase();
+  if (!normalized) return null;
+  if (normalized === DEMO_ID) ensureDemoOrder();
   return readAll().find((o) => o.id.toUpperCase() === normalized) ?? null;
 }
 
@@ -93,7 +96,6 @@ export function createOrderFromCart(items: Record<string, number>): StoredOrder 
 }
 
 /** Demo order always resolvable for marketing / QA. */
-const DEMO_ID = "SP-DEMO-TRACK";
 
 export function ensureDemoOrder(): void {
   const all = readAll();

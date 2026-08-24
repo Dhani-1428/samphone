@@ -25,7 +25,7 @@ export default function HomeServices() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand/40"
+                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand/40 hover:bg-muted/30"
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-[#6A84C0] to-[#3E5480] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
                   <Icon className="h-5 w-5" />

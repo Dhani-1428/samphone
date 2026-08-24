@@ -27,3 +27,29 @@ export function generateTradeInCode(): string {
   const part = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `TRADE-${part}`;
 }
+
+export const TRADEIN_CODE_KEY = "samphone-tradein-code";
+export const TRADEIN_VALUE_KEY = "samphone-tradein-value";
+
+export type TradeInVoucher = { code: string; value: number };
+
+export function loadTradeInVoucher(): TradeInVoucher | null {
+  try {
+    const code = localStorage.getItem(TRADEIN_CODE_KEY)?.trim() ?? "";
+    const value = Number.parseFloat(localStorage.getItem(TRADEIN_VALUE_KEY) ?? "");
+    if (!code || !Number.isFinite(value) || value <= 0) return null;
+    return { code, value };
+  } catch {
+    return null;
+  }
+}
+
+export function saveTradeInVoucher(code: string, value: number): void {
+  localStorage.setItem(TRADEIN_CODE_KEY, code);
+  localStorage.setItem(TRADEIN_VALUE_KEY, String(value));
+}
+
+export function clearTradeInVoucher(): void {
+  localStorage.removeItem(TRADEIN_CODE_KEY);
+  localStorage.removeItem(TRADEIN_VALUE_KEY);
+}
