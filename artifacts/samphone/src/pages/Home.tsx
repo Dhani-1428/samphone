@@ -1,6 +1,6 @@
 import Hero from "@/components/Hero";
-import Categories from "@/components/Categories";
 import HomeServices from "@/components/HomeServices";
+import Categories from "@/components/Categories";
 import HomeNewArrivals from "@/components/HomeNewArrivals";
 import HomeCloudRails from "@/components/HomeCloudRails";
 import Products from "@/components/Products";
@@ -13,8 +13,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Categories />
       <HomeServices />
+      <Categories />
       <HomeNewArrivals />
       <HomeCloudRails />
       <RecommendedSection />
