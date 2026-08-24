@@ -13,10 +13,10 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <Categories />
       <HomeServices />
       <HomeNewArrivals />
       <HomeCloudRails />
-      <Categories />
       <RecommendedSection />
       <Products />
       <RecentlyViewedSection />
