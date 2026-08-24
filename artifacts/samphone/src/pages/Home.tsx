@@ -1,7 +1,4 @@
 import Hero from "@/components/Hero";
-import TrustBadges from "@/components/TrustBadges";
-import HomeBrandCarousel from "@/components/HomeBrandCarousel";
-import HomeAccessoryTiles from "@/components/HomeAccessoryTiles";
 import HomeServices from "@/components/HomeServices";
 import HomeNewArrivals from "@/components/HomeNewArrivals";
 import HomeCloudRails from "@/components/HomeCloudRails";
@@ -16,9 +13,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <TrustBadges />
-      <HomeBrandCarousel />
-      <HomeAccessoryTiles />
       <HomeServices />
       <HomeNewArrivals />
       <HomeCloudRails />

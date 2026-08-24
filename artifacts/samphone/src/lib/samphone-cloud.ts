@@ -382,13 +382,6 @@ export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
   };
 }
 
-export async function fetchCloudBrands(): Promise<{ name: string; count: number }[]> {
-  const data = await cloudFetchJson<ListEnvelope<{ name?: string; count?: number }>>("/brands");
-  return (data.items ?? [])
-    .filter((b) => typeof b.name === "string" && b.name)
-    .map((b) => ({ name: b.name as string, count: typeof b.count === "number" ? b.count : 0 }));
-}
-
 export async function fetchCloudProductsByGroup(group: string, limit = 48): Promise<WooProduct[]> {
   const g = group.trim();
   if (!g) return [];
