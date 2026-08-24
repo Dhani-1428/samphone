@@ -44,17 +44,24 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
     const upstream = await fetch(`${c.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
       headers: { Accept: "application/json" },
     });
-    if (!upstream.ok) {
+    const body = await upstream.text();
+    if (upstream.status < 200 || upstream.status >= 300) {
       sendJson(res, 502, { error: "Failed to load homepage banners" });
       return;
     }
-    const data = (await upstream.json()) as Array<{
+    let data: Array<{
       id?: number;
       source_url?: string;
       alt_text?: string;
       mime_type?: string;
       title?: { rendered?: string };
-    }>;
+    }> = [];
+    try {
+      data = JSON.parse(body) as typeof data;
+    } catch {
+      sendJson(res, 502, { error: "Failed to load homepage banners" });
+      return;
+    }
     const seen = new Set<string>();
     const out: { id: number; src: string; alt: string }[] = [];
     for (const item of Array.isArray(data) ? data : []) {

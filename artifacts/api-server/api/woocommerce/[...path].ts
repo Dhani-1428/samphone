@@ -70,12 +70,13 @@ async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; c
     consumer_key: cfg.consumerKey,
     consumer_secret: cfg.consumerSecret,
   });
-  const res = await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
+  const upstream = await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
     method: "GET",
     headers: { Accept: "application/json" },
   });
-  if (!res.ok) throw new Error("Banner media request failed");
-  const data = (await res.json()) as Array<{
+  const body = await upstream.text();
+  if (upstream.status < 200 || upstream.status >= 300) throw new Error("Banner media request failed");
+  const data = JSON.parse(body) as Array<{
     id?: number;
     source_url?: string;
     alt_text?: string;
