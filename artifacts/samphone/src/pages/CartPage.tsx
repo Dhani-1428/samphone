@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
@@ -6,11 +6,19 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import ProductCartControls from "@/components/ProductCartControls";
 import GuestPriceGate from "@/components/GuestPriceGate";
 import CatalogImage from "@/components/CatalogImage";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
-import { startStripeCheckout } from "@/lib/samphone-cloud";
+import {
+  CHECKOUT_DRAFT_KEY,
+  createCloudOrder,
+  startStripeCheckout,
+  type CheckoutDraft,
+} from "@/lib/samphone-cloud";
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +36,15 @@ export default function CartPage() {
   const wooById = useMemo(() => buildWooProductMap(wooProducts), [wooProducts]);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [checkoutOk, setCheckoutOk] = useState(false);
+  const [fullName, setFullName] = useState(user?.name ?? "");
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("Lisboa");
+  const [postal, setPostal] = useState("");
+  const [notes, setNotes] = useState("");
+  const [shipping, setShipping] = useState("standard");
+  const [payMethod, setPayMethod] = useState("card");
 
   const lines = useMemo(() => {
     return Object.entries(items)
@@ -58,17 +75,89 @@ export default function CartPage() {
       setCheckoutError(t("cart_checkout_note"));
       return;
     }
+    if (!fullName.trim() || !phone.trim() || !address.trim() || !city.trim() || !postal.trim()) {
+      setCheckoutError(t("checkout_full_name"));
+      return;
+    }
+    const draft: CheckoutDraft = {
+      items: payload,
+      full_name: fullName.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      city: city.trim(),
+      postal_code: postal.trim(),
+      shipping_method: shipping,
+      payment_method: payMethod,
+      notes: notes.trim(),
+    };
     setCheckoutBusy(true);
     setCheckoutError(null);
     try {
-      const url = await startStripeCheckout(payload);
-      window.location.assign(url);
+      const stripePay = payMethod === "card" || payMethod === "mb_way" || payMethod === "multibanco";
+      if (stripePay) {
+        sessionStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
+        const url = await startStripeCheckout(payload);
+        window.location.assign(url);
+        return;
+      }
+      await createCloudOrder({
+        items: payload.map((row) => ({ product_id: row.productId, quantity: row.quantity })),
+        full_name: draft.full_name,
+        phone: draft.phone,
+        address: draft.address,
+        city: draft.city,
+        postal_code: draft.postal_code,
+        payment_method: payMethod,
+        shipping_method: shipping,
+        notes: draft.notes || undefined,
+      });
+      clearCart();
+      setCheckoutOk(true);
     } catch (e) {
       setCheckoutError(e instanceof Error ? e.message : t("cart_checkout_cta"));
     } finally {
       setCheckoutBusy(false);
     }
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") !== "success") return;
+    const raw = sessionStorage.getItem(CHECKOUT_DRAFT_KEY);
+    if (!raw) {
+      setCheckoutOk(true);
+      return;
+    }
+    let draft: CheckoutDraft;
+    try {
+      draft = JSON.parse(raw) as CheckoutDraft;
+    } catch {
+      return;
+    }
+    void (async () => {
+      setCheckoutBusy(true);
+      try {
+        await createCloudOrder({
+          items: draft.items.map((row) => ({ product_id: row.productId, quantity: row.quantity })),
+          full_name: draft.full_name,
+          phone: draft.phone,
+          address: draft.address,
+          city: draft.city,
+          postal_code: draft.postal_code,
+          payment_method: draft.payment_method,
+          shipping_method: draft.shipping_method,
+          notes: draft.notes || undefined,
+        });
+        sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);
+        clearCart();
+        setCheckoutOk(true);
+      } catch (e) {
+        setCheckoutError(e instanceof Error ? e.message : t("cart_checkout_cta"));
+      } finally {
+        setCheckoutBusy(false);
+      }
+    })();
+  }, [clearCart, t]);
 
   return (
     <div className="min-h-screen py-10">
@@ -189,16 +278,80 @@ export default function CartPage() {
                   {subtotal?.missing && (
                     <p className="mt-3 text-xs text-muted-foreground">{t("cart_subtotal_partial")}</p>
                   )}
-                  <p className="mt-4 text-xs text-muted-foreground">{t("cart_checkout_note")}</p>
-                  {checkoutError ? <p className="mt-2 text-sm text-red-600">{checkoutError}</p> : null}
-                  <Button
-                    className="mt-6 w-full sm:w-auto"
-                    size="lg"
-                    disabled={checkoutBusy || !user}
-                    onClick={() => void handleCheckout()}
-                  >
-                    {t("cart_checkout_cta")}
-                  </Button>
+                  {checkoutOk ? (
+                    <p className="mt-4 text-sm font-medium text-emerald-700">{t("checkout_success")}</p>
+                  ) : (
+                    <div className="mt-6 space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <Label>{t("checkout_full_name")}</Label>
+                          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label>{t("checkout_phone")}</Label>
+                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <Label>{t("checkout_address")}</Label>
+                          <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label>{t("checkout_city")}</Label>
+                          <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label>{t("checkout_postal")}</Label>
+                          <Input value={postal} onChange={(e) => setPostal(e.target.value)} />
+                        </div>
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <Label>{t("checkout_notes")}</Label>
+                          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+                        </div>
+                      </div>
+                      <fieldset className="space-y-2">
+                        <legend className="text-sm font-medium">{t("checkout_shipping")}</legend>
+                        {(
+                          [
+                            ["standard", t("checkout_shipping_standard")],
+                            ["pickup", t("checkout_shipping_pickup")],
+                            ["business", t("checkout_shipping_business")],
+                          ] as const
+                        ).map(([id, label]) => (
+                          <label key={id} className="flex items-center gap-2 text-sm">
+                            <input type="radio" name="ship" checked={shipping === id} onChange={() => setShipping(id)} />
+                            {label}
+                          </label>
+                        ))}
+                      </fieldset>
+                      <fieldset className="space-y-2">
+                        <legend className="text-sm font-medium">{t("checkout_pay")}</legend>
+                        {(
+                          [
+                            ["card", t("checkout_pay_card")],
+                            ["mb_way", t("checkout_pay_mbway")],
+                            ["multibanco", t("checkout_pay_multibanco")],
+                            ["cash_on_delivery", t("checkout_pay_cod")],
+                            ["pay_in_store", t("checkout_pay_store")],
+                          ] as const
+                        ).map(([id, label]) => (
+                          <label key={id} className="flex items-center gap-2 text-sm">
+                            <input type="radio" name="pay" checked={payMethod === id} onChange={() => setPayMethod(id)} />
+                            {label}
+                          </label>
+                        ))}
+                      </fieldset>
+                      <p className="text-xs text-muted-foreground">{t("cart_checkout_note")}</p>
+                      {checkoutError ? <p className="text-sm text-red-600">{checkoutError}</p> : null}
+                      <Button
+                        className="w-full sm:w-auto"
+                        size="lg"
+                        disabled={checkoutBusy || !user}
+                        onClick={() => void handleCheckout()}
+                      >
+                        {t("cart_checkout_cta")}
+                      </Button>
+                    </div>
+                  )}
                 </>
               )}
             </div>

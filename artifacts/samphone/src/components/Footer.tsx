@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Mail, Phone } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { LEGAL_LINKS, STORE_EMAIL, STORE_PHONE } from "@/config/samphone";
 import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
@@ -89,11 +90,11 @@ export default function Footer() {
             <h4 className="mb-4 font-display text-lg font-bold">{lang === "pt" ? "Contacte-nos" : "Contact"}</h4>
             <div className="mb-5 space-y-2 text-sm text-white/70">
               <p>Rua da Palma N.221–223<br />1100-391 Lisboa, Portugal</p>
-              <a href="tel:+351937119295" className="flex items-center gap-2 hover:text-white">
-                <Phone className="h-4 w-4" /> +351 937 119 295
+              <a href={`tel:${STORE_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-white">
+                <Phone className="h-4 w-4" /> {STORE_PHONE}
               </a>
-              <a href="mailto:hello@samphone.pt" className="flex items-center gap-2 hover:text-white">
-                <Mail className="h-4 w-4" /> hello@samphone.pt
+              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2 hover:text-white">
+                <Mail className="h-4 w-4" /> {STORE_EMAIL}
               </a>
             </div>
             <p className="mb-2 text-sm font-semibold">{lang === "pt" ? "Newsletter" : "Newsletter"}</p>
@@ -129,7 +130,23 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/50 md:flex-row">
           <p>© {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221–223, Lisboa.</p>
-          <p>Developed by Bonus IT Solutions</p>
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+            <a href={LEGAL_LINKS.privacy} className="hover:text-white" target="_blank" rel="noreferrer">
+              {t("footer_privacy")}
+            </a>
+            <a href={LEGAL_LINKS.terms} className="hover:text-white" target="_blank" rel="noreferrer">
+              {t("footer_terms")}
+            </a>
+            <a href={LEGAL_LINKS.refunds} className="hover:text-white" target="_blank" rel="noreferrer">
+              {t("footer_refunds")}
+            </a>
+            <a href={LEGAL_LINKS.shipping} className="hover:text-white" target="_blank" rel="noreferrer">
+              {t("footer_shipping_policy")}
+            </a>
+            <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
+              {t("footer_livro")}
+            </a>
+          </div>
         </div>
       </div>
     </footer>

@@ -18,6 +18,9 @@ type Props = {
   onDataChange: (next: AccountData) => void;
   onSave: () => void;
   onPlaceOrder: () => void;
+  onExport?: () => void;
+  onDeleteAccount?: () => void;
+  onCancelOrder?: (id: string) => void;
 };
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -37,6 +40,9 @@ export default function AccountSectionPanels({
   onDataChange,
   onSave,
   onPlaceOrder,
+  onExport,
+  onDeleteAccount,
+  onCancelOrder,
 }: Props) {
   const { t } = useLang();
   const currency = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
@@ -50,9 +56,17 @@ export default function AccountSectionPanels({
           showCompany
           showDeliveryCheckbox
         />
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
           <Button type="button" onClick={onSave}>
             {t("account_save_address")}
+          </Button>
+        </div>
+        <div className="mt-8 flex flex-wrap gap-2 border-t border-border pt-6">
+          <Button type="button" variant="outline" onClick={() => onExport?.()}>
+            {t("gdpr_export")}
+          </Button>
+          <Button type="button" variant="destructive" onClick={() => onDeleteAccount?.()}>
+            {t("gdpr_delete")}
           </Button>
         </div>
       </Panel>
@@ -187,9 +201,16 @@ export default function AccountSectionPanels({
                     </span>
                   ) : null}
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/track?q=${encodeURIComponent(o.id)}`}>{t("account_track_link")}</Link>
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/track?q=${encodeURIComponent(o.id)}`}>{t("account_track_link")}</Link>
+                  </Button>
+                  {o.status !== "delivered" ? (
+                    <Button variant="ghost" size="sm" type="button" onClick={() => onCancelOrder?.(o.id)}>
+                      {t("order_cancel")}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             ))
           )}

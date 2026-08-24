@@ -18,7 +18,7 @@ import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildWooBrandGroups, type NavBrandGroup } from "@/lib/woo-category-nav";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLang } from "@/contexts/LanguageContext";
+import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCompare } from "@/contexts/CompareContext";
@@ -2311,16 +2311,21 @@ export default function Navbar() {
             )}
             <ThemeToggle />
             <div className="relative">
-              <button
-                type="button"
-                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]"
-                onClick={() => setLang(lang === "en" ? "pt" : "en")}
-                aria-label={lang === "en" ? t("lang_english") : t("lang_portuguese")}
-              >
+              <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
                 <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
-                {lang === "en" ? t("lang_english") : t("lang_portuguese")}
-                <ChevronDown className="h-3 w-3 opacity-70" />
-              </button>
+                <select
+                  className="max-w-[7.5rem] bg-transparent text-[12px] font-medium outline-none"
+                  value={lang}
+                  aria-label="Language"
+                  onChange={(e) => setLang(e.target.value as (typeof LANG_OPTIONS)[number]["id"])}
+                >
+                  {LANG_OPTIONS.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
         </div>

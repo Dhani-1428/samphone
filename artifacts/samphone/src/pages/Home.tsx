@@ -1,8 +1,11 @@
 import Hero from "@/components/Hero";
-import HomeNewArrivals from "@/components/HomeNewArrivals";
+import TrustBadges from "@/components/TrustBadges";
+import HomeBrandCarousel from "@/components/HomeBrandCarousel";
+import HomeAccessoryTiles from "@/components/HomeAccessoryTiles";
 import HomeServices from "@/components/HomeServices";
+import HomeNewArrivals from "@/components/HomeNewArrivals";
+import HomeCloudRails from "@/components/HomeCloudRails";
 import Products from "@/components/Products";
-import Deals from "@/components/Deals";
 import RecommendedSection from "@/components/RecommendedSection";
 import Categories from "@/components/Categories";
 import RecentlyViewedSection from "@/components/RecentlyViewedSection";
@@ -13,12 +16,15 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <TrustBadges />
+      <HomeBrandCarousel />
+      <HomeAccessoryTiles />
       <HomeServices />
       <HomeNewArrivals />
+      <HomeCloudRails />
       <Categories />
       <RecommendedSection />
       <Products />
-      <Deals />
       <RecentlyViewedSection />
       <Reviews />
       <About />

@@ -13,11 +13,18 @@ import {
   saveAccountData,
   type AccountData,
 } from "@/lib/account-store";
-import { createOrderFromCart, ensureDemoOrder, listOrders, type StoredOrder } from "@/lib/orders";
+import { listOrders, type StoredOrder } from "@/lib/orders";
+import {
+  cancelCloudOrder,
+  deleteCloudAccount,
+  exportCloudAccount,
+  fetchCloudOrders,
+  patchCloudProfile,
+} from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Account() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { user, logout } = useAuth();
   const { items, clearCart } = useCart();
   const search = useSearch();
@@ -34,9 +41,24 @@ export default function Account() {
 
   useEffect(() => {
     if (!user) return;
-    ensureDemoOrder();
     setAccountData(loadAccountData(user.email));
     setOrders(listOrders());
+    void fetchCloudOrders()
+      .then((rows) => {
+        setOrders(
+          rows.map((o) => ({
+            id: o.id,
+            createdAt: o.createdAt,
+            status: (o.status as StoredOrder["status"]) || "processing",
+            lines: o.lines.map((l, i) => ({ cartKey: `api:${o.id}:${i}`, name: l.name, qty: l.qty })),
+            stepIndex: 0,
+            totalEur: o.totalEur,
+          })),
+        );
+      })
+      .catch(() => {
+        /* keep local fallback */
+      });
   }, [user]);
 
   const navigateSection = useCallback(
@@ -56,7 +78,19 @@ export default function Account() {
   );
 
   const handleSave = () => {
-    if (accountData) persist(accountData);
+    if (!accountData || !user) return;
+    persist(accountData);
+    void patchCloudProfile({
+      name: user.name,
+      phone: accountData.address.phone,
+      address: accountData.address.street,
+      city: accountData.address.city,
+      postal_code: accountData.address.zip,
+      vatNumber: accountData.vatNumber,
+      language: lang,
+    }).catch(() => {
+      /* local save still applied */
+    });
     toast({ title: t("account_save_changes") });
   };
 
@@ -66,14 +100,60 @@ export default function Account() {
     setLocation("/");
   };
 
-  const refreshOrders = () => setOrders(listOrders());
+  const refreshOrders = () => {
+    void fetchCloudOrders()
+      .then((rows) => {
+        setOrders(
+          rows.map((o) => ({
+            id: o.id,
+            createdAt: o.createdAt,
+            status: (o.status as StoredOrder["status"]) || "processing",
+            lines: o.lines.map((l, i) => ({ cartKey: `api:${o.id}:${i}`, name: l.name, qty: l.qty })),
+            stepIndex: 0,
+            totalEur: o.totalEur,
+          })),
+        );
+      })
+      .catch(() => setOrders(listOrders()));
+  };
 
   const placeFromCart = () => {
-    const o = createOrderFromCart(items);
-    if (o) {
+    setLocation("/cart");
+  };
+
+  const handleExport = async () => {
+    try {
+      const data = await exportCloudAccount();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "samphone-account-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : t("gdpr_export") });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm(t("gdpr_delete_confirm"))) return;
+    try {
+      await deleteCloudAccount();
       clearCart();
+      logout();
+      setLocation("/");
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : t("gdpr_delete") });
+    }
+  };
+
+  const handleCancelOrder = async (id: string) => {
+    try {
+      await cancelCloudOrder(id);
       refreshOrders();
-      toast({ title: t("account_order_created"), description: o.id });
+    } catch (e) {
+      toast({ title: e instanceof Error ? e.message : t("order_cancel") });
     }
   };
 
@@ -138,6 +218,9 @@ export default function Account() {
                 onDataChange={persist}
                 onSave={handleSave}
                 onPlaceOrder={placeFromCart}
+                onExport={handleExport}
+                onDeleteAccount={handleDeleteAccount}
+                onCancelOrder={handleCancelOrder}
               />
             )}
           </div>

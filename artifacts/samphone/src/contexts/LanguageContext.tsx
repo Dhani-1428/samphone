@@ -1,6 +1,17 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
-export type Lang = "en" | "pt";
+export type Lang = "pt" | "en" | "fr" | "es" | "nl" | "hi" | "pa" | "ur";
+
+export const LANG_OPTIONS: { id: Lang; label: string }[] = [
+  { id: "pt", label: "Português" },
+  { id: "en", label: "English" },
+  { id: "fr", label: "Français" },
+  { id: "es", label: "Español" },
+  { id: "nl", label: "Nederlands" },
+  { id: "hi", label: "हिन्दी" },
+  { id: "pa", label: "ਪੰਜਾਬੀ" },
+  { id: "ur", label: "اردو" },
+];
 
 const translations = {
   en: {
@@ -143,6 +154,43 @@ const translations = {
     cart_subtotal_partial: "Some items have no listed price; subtotal may be incomplete.",
     cart_checkout_note: "Pay securely with Stripe (card, MB WAY, Multibanco). Amounts are calculated on the server.",
     cart_checkout_cta: "Proceed to checkout",
+    home_accessory_groups_title: "Accessories",
+    home_best_sellers: "Best Sellers",
+    checkout_shipping: "Shipping",
+    checkout_shipping_standard: "Home delivery",
+    checkout_shipping_pickup: "Store pickup (Lisboa)",
+    checkout_shipping_business: "Business delivery",
+    checkout_full_name: "Full name",
+    checkout_phone: "Phone",
+    checkout_address: "Address",
+    checkout_city: "City",
+    checkout_postal: "Postal code",
+    checkout_notes: "Order notes",
+    checkout_pay: "Payment",
+    checkout_pay_card: "Card (Visa / Mastercard / Amex)",
+    checkout_pay_mbway: "MB WAY",
+    checkout_pay_multibanco: "Multibanco",
+    checkout_pay_cod: "Cash on delivery",
+    checkout_pay_store: "Pay in store",
+    checkout_success: "Thank you — your order was placed.",
+    register_account_type: "Account type",
+    register_personal: "Personal (B2C)",
+    register_business: "Business / wholesale (B2B)",
+    register_company: "Company name",
+    register_vat: "VAT / NIF",
+    register_business_type: "Business type",
+    register_pending_wholesale: "Wholesale access is pending admin approval. You will see retail prices until then.",
+    notify_stock: "Notify me when back in stock",
+    notify_stock_ok: "We will email you when this item is available.",
+    gdpr_export: "Download my data",
+    gdpr_delete: "Delete my account",
+    gdpr_delete_confirm: "Permanently delete your account and data?",
+    order_cancel: "Cancel order",
+    footer_privacy: "Privacy",
+    footer_terms: "Terms",
+    footer_refunds: "Refunds",
+    footer_shipping_policy: "Shipping policy",
+    footer_livro: "Livro de Reclamações",
     cart_items_count: "{count} items in cart",
     cart_sider_title: "My Cart",
     cart_sider_count_one: "{count} item in your cart",
@@ -505,6 +553,43 @@ const translations = {
     cart_subtotal_partial: "Alguns artigos sem preço listado; o subtotal pode estar incompleto.",
     cart_checkout_note: "Pagamento seguro via Stripe (cartão, MB WAY, Multibanco). Os valores são calculados no servidor.",
     cart_checkout_cta: "Continuar para checkout",
+    home_accessory_groups_title: "Acessórios",
+    home_best_sellers: "Mais vendidos",
+    checkout_shipping: "Envio",
+    checkout_shipping_standard: "Entrega ao domicílio",
+    checkout_shipping_pickup: "Levantamento em loja (Lisboa)",
+    checkout_shipping_business: "Entrega empresarial",
+    checkout_full_name: "Nome completo",
+    checkout_phone: "Telefone",
+    checkout_address: "Morada",
+    checkout_city: "Cidade",
+    checkout_postal: "Código postal",
+    checkout_notes: "Notas da encomenda",
+    checkout_pay: "Pagamento",
+    checkout_pay_card: "Cartão (Visa / Mastercard / Amex)",
+    checkout_pay_mbway: "MB WAY",
+    checkout_pay_multibanco: "Multibanco",
+    checkout_pay_cod: "Pagamento na entrega",
+    checkout_pay_store: "Pagar na loja",
+    checkout_success: "Obrigado — a sua encomenda foi registada.",
+    register_account_type: "Tipo de conta",
+    register_personal: "Particular (B2C)",
+    register_business: "Empresa / retalho (B2B)",
+    register_company: "Nome da empresa",
+    register_vat: "NIF / IVA",
+    register_business_type: "Tipo de negócio",
+    register_pending_wholesale: "O acesso grossista aguarda aprovação. Até lá vê preços de retalho.",
+    notify_stock: "Avisar-me quando voltar",
+    notify_stock_ok: "Enviamos um email quando estiver disponível.",
+    gdpr_export: "Descarregar os meus dados",
+    gdpr_delete: "Eliminar a minha conta",
+    gdpr_delete_confirm: "Eliminar permanentemente a conta e os dados?",
+    order_cancel: "Cancelar encomenda",
+    footer_privacy: "Privacidade",
+    footer_terms: "Termos",
+    footer_refunds: "Devoluções",
+    footer_shipping_policy: "Política de envio",
+    footer_livro: "Livro de Reclamações",
     cart_items_count: "{count} artigos no carrinho",
     cart_sider_title: "O meu carrinho",
     cart_sider_count_one: "{count} artigo no carrinho",
@@ -747,7 +832,7 @@ const LangContext = createContext<LangContextValue>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
     const stored = localStorage.getItem("samphone-lang");
-    return stored === "pt" ? "pt" : "en";
+    return LANG_OPTIONS.some((o) => o.id === stored) ? (stored as Lang) : "pt";
   });
 
   const setLang = (l: Lang) => {
@@ -756,7 +841,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   const t = useCallback((key: TranslationKey, vars?: Record<string, string | number>) => {
-    let s = translations[lang][key] as string;
+    const table = lang === "pt" ? translations.pt : translations.en;
+    let s = (table[key] ?? translations.en[key]) as string;
     if (vars) {
       for (const [k, v] of Object.entries(vars)) {
         s = s.replaceAll(`{${k}}`, String(v));

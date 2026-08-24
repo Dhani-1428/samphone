@@ -34,6 +34,9 @@ export interface WooProduct {
   date_created?: string;
   stock_status?: string;
   on_sale?: boolean;
+  specs?: Record<string, string>;
+  colorVariants?: string[];
+  brand?: string;
 }
 
 /** Stable gallery order, deduped by `src` (Woo occasionally repeats URLs). */
@@ -266,6 +269,16 @@ export async function searchProductsRemote(query: string, limit = 10): Promise<W
 /** @deprecated Use fetchAllProducts() — same behavior, live API only. */
 export async function fetchProducts(): Promise<WooProduct[]> {
   return fetchAllProducts();
+}
+
+export async function fetchProductsByGroup(group: string): Promise<WooProduct[]> {
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudProductsByGroup(group);
+}
+
+export async function fetchRelatedProducts(productId: string): Promise<WooProduct[]> {
+  const cloud = await import("@/lib/samphone-cloud");
+  return cloud.fetchCloudRelated(productId);
 }
 
 /** GET /banners — scraped homepage slides from samphone.cloud. */

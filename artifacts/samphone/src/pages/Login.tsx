@@ -25,7 +25,16 @@ export default function Login() {
     setError(null);
     try {
       const result = await cloudAuth("/auth/login", { email: trimmed, password });
-      login({ email: result.email, name: result.name, token: result.token ?? undefined });
+      login({
+        email: result.email,
+        name: result.name,
+        token: result.token ?? undefined,
+        isWholesale: result.isWholesale,
+        wholesaleStatus: result.wholesaleStatus,
+        accountType: result.accountType,
+        dealerTier: result.dealerTier,
+        phone: result.phone,
+      });
       const params = new URLSearchParams(window.location.search);
       const next = safeRedirectPath(params.get("next"));
       setLocation(next);

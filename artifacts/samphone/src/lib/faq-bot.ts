@@ -74,7 +74,7 @@ const FAQ_PT: { keys: string[]; answer: string }[] = [
   },
 ];
 
-export function answerFaq(question: string, lang: "en" | "pt"): string {
+export function answerFaq(question: string, lang: string): string {
   const q = question.trim().toLowerCase();
   if (!q) return lang === "pt" ? "Escreva uma pergunta." : "Ask a question about shipping, repairs, or orders.";
   const table = lang === "pt" ? FAQ_PT : FAQ_EN;

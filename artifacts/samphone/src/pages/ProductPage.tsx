@@ -20,7 +20,8 @@ import DeliveryEstimator from "@/components/DeliveryEstimator";
 import PeopleAlsoBought from "@/components/PeopleAlsoBought";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { fetchProductById, getDisplayPrice, type WooProduct } from "@/lib/woocommerce";
+import { fetchProductById, fetchRelatedProducts, getDisplayPrice, type WooProduct } from "@/lib/woocommerce";
+import { notifyStock } from "@/lib/samphone-cloud";
 import { getWooProductDescriptionHtml } from "@/lib/woo-product-html";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
@@ -74,6 +75,9 @@ export default function ProductPage() {
   }, [cartKey, isWooProduct]);
   const [wooProduct, setWooProduct] = useState<WooProduct | null>(null);
   const [wooLoading, setWooLoading] = useState(false);
+  const [related, setRelated] = useState<WooProduct[]>([]);
+  const [notifyEmail, setNotifyEmail] = useState("");
+  const [notifyMsg, setNotifyMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (cartKey) recordView(cartKey);
@@ -90,6 +94,11 @@ export default function ProductPage() {
       .then((p) => {
         if (!alive) return;
         setWooProduct(p);
+        if (p?.cloudId) {
+          void fetchRelatedProducts(p.cloudId).then((rows) => {
+            if (alive) setRelated(rows);
+          });
+        }
       })
       .finally(() => {
         if (alive) setWooLoading(false);
@@ -123,7 +132,7 @@ export default function ProductPage() {
     const displayPrice = getDisplayPrice(wooProduct);
     const descHtml = getWooProductDescriptionHtml(wooProduct);
     const primaryCat = wooProduct.categories?.[0];
-    const stock = cartKey ? getStockLevel(cartKey) : { count: 0, isLow: true };
+    const inStock = wooProduct.stock_status !== "outofstock";
     const categoryIds = (wooProduct.categories ?? []).map((c) => c.id);
 
     const specRows: { label: string; value: ReactNode }[] = [];
@@ -132,6 +141,11 @@ export default function ProductPage() {
     );
     for (const a of attrs) {
       specRows.push({ label: a.name, value: a.options.join(", ") });
+    }
+    if (wooProduct.specs) {
+      for (const [label, value] of Object.entries(wooProduct.specs)) {
+        if (!specRows.some((r) => r.label === label)) specRows.push({ label, value });
+      }
     }
     if (wooProduct.sku?.trim()) {
       specRows.push({ label: t("woo_sku"), value: wooProduct.sku.trim() });
@@ -205,6 +219,15 @@ export default function ProductPage() {
                   {primaryCat.name}
                 </span>
               )}
+              {wooProduct.colorVariants && wooProduct.colorVariants.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {wooProduct.colorVariants.map((c) => (
+                    <span key={c} className="rounded-full border border-border px-3 py-1 text-xs font-medium">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
 
               {cartKey && (
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -287,24 +310,49 @@ export default function ProductPage() {
                 <div
                   className={cn(
                     "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
-                    stock.isLow
-                      ? "border border-amber-500/40 bg-amber-50 text-amber-800"
-                      : "bg-[#E8F0FF] text-[#5A73A8]",
+                    inStock ? "bg-[#E8F0FF] text-[#5A73A8]" : "border border-amber-500/40 bg-amber-50 text-amber-800",
                   )}
                 >
-                  <span className={cn("h-2 w-2 shrink-0 rounded-full", stock.isLow ? "bg-amber-500" : "bg-[#5A73A8]")} />
-                  {stock.isLow ? t("stock_low", { count: stock.count }) : t("product_in_stock")}
+                  <span className={cn("h-2 w-2 shrink-0 rounded-full", inStock ? "bg-[#5A73A8]" : "bg-amber-500")} />
+                  {inStock ? t("product_in_stock") : t("notify_stock")}
                 </div>
+
+                {!inStock ? (
+                  <form
+                    className="space-y-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const email = notifyEmail.trim() || user?.email || "";
+                      if (!email || !wooProduct.cloudId) return;
+                      void notifyStock(wooProduct.cloudId, email)
+                        .then(() => setNotifyMsg(t("notify_stock_ok")))
+                        .catch((err) => setNotifyMsg(err instanceof Error ? err.message : t("notify_stock")));
+                    }}
+                  >
+                    <input
+                      type="email"
+                      required
+                      value={notifyEmail}
+                      onChange={(e) => setNotifyEmail(e.target.value)}
+                      placeholder={user?.email || "email"}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    />
+                    <Button type="submit" variant="outline" className="w-full">
+                      {t("notify_stock")}
+                    </Button>
+                    {notifyMsg ? <p className="text-xs text-muted-foreground">{notifyMsg}</p> : null}
+                  </form>
+                ) : null}
 
                 <div className="rounded-xl bg-[#F4F6F8] p-4 text-sm text-navy">
                   <DeliveryEstimator />
                 </div>
 
-                {cartKey && (
+                {cartKey && inStock ? (
                   <div className="pt-1">
                     <ProductCartControls cartKey={cartKey} size="md" />
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -324,7 +372,7 @@ export default function ProductPage() {
           <WooRelatedAccessoriesSlider
             currentProductId={wooProduct.id}
             categoryIds={categoryIds}
-            products={wooCatalogProducts}
+            products={related.length > 0 ? related : wooCatalogProducts}
             priceUnavailableLabel={t("woo_price_na")}
           />
         </div>

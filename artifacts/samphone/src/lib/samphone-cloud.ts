@@ -39,6 +39,7 @@ type CloudProduct = {
   variants?: unknown[];
   in_stock?: boolean;
   on_sale?: boolean;
+  specs?: Record<string, string>;
 };
 
 type ListEnvelope<T> = { items?: T[]; total?: number; has_more?: boolean };
@@ -139,7 +140,24 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     description: p.description,
     on_sale: Boolean(p.on_sale) || Boolean(money(p.salePrice)),
     stock_status: p.in_stock === false ? "outofstock" : "instock",
+    specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
+    colorVariants: colorNames(p.color_variants),
+    brand: p.brand,
   });
+}
+
+function colorNames(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const out: string[] = [];
+  for (const row of raw) {
+    if (typeof row === "string" && row.trim()) out.push(row.trim());
+    else if (row && typeof row === "object") {
+      const o = row as { name?: string; color?: string; title?: string };
+      const n = o.name || o.color || o.title;
+      if (n) out.push(n);
+    }
+  }
+  return out.length ? out : undefined;
 }
 
 function hashString(s: string): number {
@@ -266,27 +284,34 @@ function parseAuthPayload(data: Record<string, unknown>, fallbackEmail: string, 
     (typeof data.token === "string" && data.token) ||
     (typeof data.jwt === "string" && data.jwt) ||
     null;
-  const user = (data.user && typeof data.user === "object" ? data.user : data) as {
-    email?: string;
-    name?: string;
-  };
+  const user = (data.user && typeof data.user === "object" ? data.user : data) as Record<string, unknown>;
+  const str = (k: string) => (typeof user[k] === "string" ? (user[k] as string) : "");
   return {
     token,
-    email: user.email || fallbackEmail,
-    name: user.name || fallbackName || fallbackEmail.split("@")[0],
+    email: str("email") || fallbackEmail,
+    name: str("name") || fallbackName || fallbackEmail.split("@")[0],
+    isWholesale: user.isWholesale === true,
+    wholesaleStatus: str("wholesaleStatus") || undefined,
+    accountType: str("accountType") || undefined,
+    dealerTier: str("dealerTier") || undefined,
+    phone: str("phone") || undefined,
+    vatNumber: str("vatNumber") || undefined,
+    businessName: str("businessName") || undefined,
   };
 }
 
 export async function cloudAuth(
   path: "/auth/login" | "/auth/register" | "/auth/clerk-sync",
-  body: Record<string, string>,
+  body: Record<string, string | boolean | number>,
 ) {
   const data = await cloudFetchJson<Record<string, unknown>>(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const parsed = parseAuthPayload(data, body.email || "", body.name);
+  const email = typeof body.email === "string" ? body.email : "";
+  const name = typeof body.name === "string" ? body.name : undefined;
+  const parsed = parseAuthPayload(data, email, name);
   if (parsed.token) setStoredApiJwt(parsed.token);
   return parsed;
 }
@@ -295,7 +320,202 @@ export async function clerkSync(clerkToken: string) {
   return cloudAuth("/auth/clerk-sync", { clerk_token: clerkToken });
 }
 
-export async function startStripeCheckout(items: { productId: string; quantity: number }[]): Promise<string> {
+export type CloudHomeRails = {
+  best: WooProduct[];
+  fresh: WooProduct[];
+  sections: { key: string; title: string; group?: string; items: WooProduct[] }[];
+};
+
+export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
+  const data = await cloudFetchJson<{
+    best?: CloudProduct[];
+    fresh?: CloudProduct[];
+    sections?: { key?: string; title?: string; category_group?: string; items?: CloudProduct[] }[];
+  }>(`/home-rails?part=all&limit=${limit}`);
+  return {
+    best: mapItems(data.best ?? []),
+    fresh: mapItems(data.fresh ?? []),
+    sections: (data.sections ?? []).map((s) => ({
+      key: s.key || s.title || "",
+      title: s.title || s.key || "",
+      group: s.category_group,
+      items: mapItems(s.items ?? []),
+    })),
+  };
+}
+
+export async function fetchCloudBrands(): Promise<{ name: string; count: number }[]> {
+  const data = await cloudFetchJson<ListEnvelope<{ name?: string; count?: number }>>("/brands");
+  return (data.items ?? [])
+    .filter((b) => typeof b.name === "string" && b.name)
+    .map((b) => ({ name: b.name as string, count: typeof b.count === "number" ? b.count : 0 }));
+}
+
+export async function fetchCloudProductsByGroup(group: string, limit = 48): Promise<WooProduct[]> {
+  const g = group.trim();
+  if (!g) return [];
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(
+    `/products?category_group=${encodeURIComponent(g)}&limit=${limit}&offset=0`,
+  );
+  return mapItems(data);
+}
+
+export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {
+  const id = productId.trim();
+  if (!id) return [];
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/related/${encodeURIComponent(id)}`);
+  return mapItems(data);
+}
+
+export async function notifyStock(productId: string, email: string): Promise<void> {
+  await cloudFetchJson("/notify-stock", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ product_id: productId, email }),
+  });
+}
+
+export type CloudProfile = {
+  email: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  vatNumber?: string;
+  businessName?: string;
+  businessType?: string;
+  accountType?: string;
+  isWholesale?: boolean;
+  wholesaleStatus?: string;
+  dealerTier?: string;
+  language?: string;
+};
+
+export async function fetchCloudMe(): Promise<CloudProfile | null> {
+  try {
+    const data = await cloudFetchJson<Record<string, unknown>>("/auth/me");
+    const parsed = parseAuthPayload(data, "");
+    const extra = (data.user && typeof data.user === "object" ? data.user : data) as Record<string, unknown>;
+    return {
+      ...parsed,
+      phone: parsed.phone,
+      address: typeof extra.address === "string" ? extra.address : undefined,
+      city: typeof extra.city === "string" ? extra.city : undefined,
+      postal_code: typeof extra.postal_code === "string" ? extra.postal_code : undefined,
+      vatNumber: parsed.vatNumber,
+      businessName: parsed.businessName,
+      businessType: typeof extra.businessType === "string" ? extra.businessType : undefined,
+      language: typeof extra.language === "string" ? extra.language : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function patchCloudProfile(body: Record<string, string>): Promise<CloudProfile | null> {
+  const data = await cloudFetchJson<Record<string, unknown>>("/auth/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return parseAuthPayload(data, "");
+}
+
+export async function exportCloudAccount(): Promise<unknown> {
+  return cloudFetchJson("/auth/export");
+}
+
+export async function deleteCloudAccount(): Promise<void> {
+  await cloudFetchJson("/auth/account", { method: "DELETE" });
+}
+
+export type CloudOrder = {
+  id: string;
+  createdAt: string;
+  status: string;
+  totalEur?: number;
+  lines: { name: string; qty: number }[];
+};
+
+function mapCloudOrder(raw: unknown): CloudOrder | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const id = o.id != null ? String(o.id) : o.order_id != null ? String(o.order_id) : "";
+  if (!id) return null;
+  const items = Array.isArray(o.items) ? o.items : Array.isArray(o.lines) ? o.lines : [];
+  const lines = items.map((row) => {
+    const r = row && typeof row === "object" ? (row as Record<string, unknown>) : {};
+    const qty = typeof r.quantity === "number" ? r.quantity : typeof r.qty === "number" ? r.qty : 1;
+    const name =
+      (typeof r.title === "string" && r.title) ||
+      (typeof r.name === "string" && r.name) ||
+      (typeof r.product_name === "string" && r.product_name) ||
+      "Item";
+    return { name, qty };
+  });
+  const totalRaw = o.total ?? o.totalEur ?? o.amount ?? o.grand_total;
+  const totalEur = typeof totalRaw === "number" ? totalRaw : Number.parseFloat(String(totalRaw ?? ""));
+  return {
+    id,
+    createdAt: typeof o.created_at === "string" ? o.created_at : typeof o.createdAt === "string" ? o.createdAt : new Date().toISOString(),
+    status: typeof o.status === "string" ? o.status : "processing",
+    totalEur: Number.isFinite(totalEur) ? totalEur : undefined,
+    lines,
+  };
+}
+
+export async function fetchCloudOrders(): Promise<CloudOrder[]> {
+  const data = await cloudFetchJson<unknown>("/orders");
+  const list = Array.isArray(data)
+    ? data
+    : data && typeof data === "object" && Array.isArray((data as { items?: unknown[] }).items)
+      ? (data as { items: unknown[] }).items
+      : [];
+  return list.map(mapCloudOrder).filter((o): o is CloudOrder => o != null);
+}
+
+export async function createCloudOrder(payload: {
+  items: { product_id: string; quantity: number }[];
+  full_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  payment_method: string;
+  shipping_method?: string;
+  notes?: string;
+}): Promise<CloudOrder> {
+  const data = await cloudFetchJson<unknown>("/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return mapCloudOrder(data) ?? { id: "ok", createdAt: new Date().toISOString(), status: "processing", lines: [] };
+}
+
+export async function cancelCloudOrder(orderId: string): Promise<void> {
+  await cloudFetchJson(`/orders/${encodeURIComponent(orderId)}/cancel`, { method: "POST" });
+}
+
+export const CHECKOUT_DRAFT_KEY = "samphone-checkout-draft";
+
+export type CheckoutDraft = {
+  items: { productId: string; quantity: number }[];
+  full_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  shipping_method: string;
+  payment_method: string;
+  notes: string;
+};
+
+export async function startStripeCheckout(
+  items: { productId: string; quantity: number }[],
+  extra?: { successPath?: string },
+): Promise<string> {
   if (items.length === 0) throw new WooCommerceFetchError("Cart is empty.");
   const cartItems = items.map((row) => ({ product_id: row.productId, quantity: row.quantity }));
   try {
@@ -308,13 +528,14 @@ export async function startStripeCheckout(items: { productId: string; quantity: 
     /* Checkout session still recalculates amounts server-side. */
   }
   const origin = window.location.origin;
+  const successPath = extra?.successPath ?? "/cart?checkout=success";
   const data = await cloudFetchJson<{ url?: string; checkout_url?: string; session_url?: string }>(
     "/payments/stripe/checkout-session",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        success_url: `${origin}/cart?checkout=success`,
+        success_url: `${origin}${successPath}`,
         cancel_url: `${origin}/cart?checkout=cancel`,
         items: cartItems,
       }),

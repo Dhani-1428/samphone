@@ -20,7 +20,7 @@ import BrandLogo from "@/components/BrandLogo";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
-import { useLang } from "@/contexts/LanguageContext";
+import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { cn } from "@/lib/utils";
 
@@ -260,17 +260,23 @@ export default function MobileNavDrawer({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setLang(lang === "en" ? "pt" : "en")}
-          className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white"
-        >
+        <label className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Globe className="h-5 w-5" />
-            {lang === "en" ? t("lang_english") : t("lang_portuguese")}
+            {LANG_OPTIONS.find((o) => o.id === lang)?.label ?? lang}
           </span>
-          <ChevronDown className="h-4 w-4 text-slate-400" />
-        </button>
+          <select
+            className="bg-transparent text-sm outline-none"
+            value={lang}
+            onChange={(e) => setLang(e.target.value as (typeof LANG_OPTIONS)[number]["id"])}
+          >
+            {LANG_OPTIONS.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         {user ? (
           <>

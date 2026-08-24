@@ -35,6 +35,7 @@ import TradeIn from "@/pages/TradeIn";
 import DeviceDiagnostics from "@/pages/DeviceDiagnostics";
 import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
+import ShopGroupPage from "@/pages/ShopGroupPage";
 import AdminPricing from "@/pages/admin/AdminPricing";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -109,6 +110,9 @@ function Router() {
       </Route>
       <Route path="/store">
         <Layout><WooStore /></Layout>
+      </Route>
+      <Route path="/group/:group">
+        <Layout><ShopGroupPage /></Layout>
       </Route>
       <Route path="/model/:brand/:family/:model">
         <Layout><ModelCatalogPage /></Layout>

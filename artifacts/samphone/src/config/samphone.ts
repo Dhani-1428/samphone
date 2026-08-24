@@ -15,6 +15,18 @@ export const STRIPE_PUBLISHABLE_KEY =
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ??
   "pk_live_51TsRh0IFNHslwSxObrZX8Fx7eneUwyjSeSj0QmbJJKB39lmLDrwNzGOjfk646Y4hacs0jyT9bJSPpGuk4hlojYTy00Ir71HQaq";
 
+export const LEGAL_LINKS = {
+  privacy: "https://samphone.pt/privacy-policy-and-data-protection",
+  terms: "https://samphone.pt/terms-conditions",
+  refunds: "https://samphone.pt/refund-return-policy",
+  shipping: "https://samphone.pt/shipping-policy",
+  livro: "https://www.livroreclamacoes.pt/Inicio",
+} as const;
+
+export const STORE_PHONE = "+351 937 119 295";
+export const STORE_EMAIL = "samphone.pt@gmail.com";
+export const STORE_ADDRESS = "R. da Palma N.221 223, 1100-391 Lisboa, Portugal";
+
 export const JWT_STORAGE_KEY = "samphone-api-jwt";
 
 export function getStoredApiJwt(): string | null {

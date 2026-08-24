@@ -15,6 +15,13 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState<"b2c" | "b2b">("b2c");
+  const [businessName, setBusinessName] = useState("");
+  const [vatNumber, setVatNumber] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -29,8 +36,31 @@ export default function Register() {
         email: em,
         password,
         name: name.trim() || em.split("@")[0],
+        account_type: accountType,
+        ...(accountType === "b2b"
+          ? {
+              businessName: businessName.trim(),
+              vatNumber: vatNumber.trim(),
+              vat: vatNumber.trim(),
+              nif: vatNumber.trim(),
+              businessType: businessType.trim() || "retailer",
+              phone: phone.trim(),
+              address: address.trim(),
+              city: city.trim(),
+              company_name: businessName.trim(),
+            }
+          : {}),
       });
-      login({ email: result.email, name: result.name, token: result.token ?? undefined });
+      login({
+        email: result.email,
+        name: result.name,
+        token: result.token ?? undefined,
+        isWholesale: result.isWholesale,
+        wholesaleStatus: result.wholesaleStatus,
+        accountType: result.accountType || accountType,
+        dealerTier: result.dealerTier,
+        phone: result.phone,
+      });
       const params = new URLSearchParams(window.location.search);
       const next = safeRedirectPath(params.get("next"));
       setLocation(next);
@@ -48,16 +78,27 @@ export default function Register() {
         <p className="mt-1 text-sm text-muted-foreground">{t("loginForPricing")}</p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-2">
+            <Label>{t("register_account_type")}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2c" ? "bg-[#5A73A8] text-white" : "bg-[#F4F6F8] text-navy"}`}
+                onClick={() => setAccountType("b2c")}
+              >
+                {t("register_personal")}
+              </button>
+              <button
+                type="button"
+                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2b" ? "bg-[#5A73A8] text-white" : "bg-[#F4F6F8] text-navy"}`}
+                onClick={() => setAccountType("b2b")}
+              >
+                {t("register_business")}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="reg-name">{t("auth_name")}</Label>
-            <Input
-              id="reg-name"
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Jane Doe"
-              className="h-11 bg-[#F4F6F8]"
-            />
+            <Input id="reg-name" value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-[#F4F6F8]" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-email">{t("auth_email")}</Label>
@@ -68,7 +109,6 @@ export default function Register() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
               className="h-11 bg-[#F4F6F8]"
             />
           </div>
@@ -79,12 +119,41 @@ export default function Register() {
               type="password"
               autoComplete="new-password"
               required
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
               className="h-11 bg-[#F4F6F8]"
             />
           </div>
+          {accountType === "b2b" ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="reg-company">{t("register_company")}</Label>
+                <Input id="reg-company" required value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-vat">{t("register_vat")}</Label>
+                <Input id="reg-vat" required value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-btype">{t("register_business_type")}</Label>
+                <Input id="reg-btype" value={businessType} onChange={(e) => setBusinessType(e.target.value)} placeholder="retailer" className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-phone">{t("checkout_phone")}</Label>
+                <Input id="reg-phone" required value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-address">{t("checkout_address")}</Label>
+                <Input id="reg-address" required value={address} onChange={(e) => setAddress(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-city">{t("checkout_city")}</Label>
+                <Input id="reg-city" required value={city} onChange={(e) => setCity(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+              </div>
+              <p className="text-xs text-muted-foreground">{t("register_pending_wholesale")}</p>
+            </>
+          ) : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" disabled={busy} className="h-11 w-full bg-[#5A73A8] text-white hover:bg-[#4A6494]">
             {t("auth_submit_register")}
