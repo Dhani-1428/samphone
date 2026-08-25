@@ -6,6 +6,13 @@ type ApiRes = {
   end: (body: string) => void;
 };
 
+/** Vercel function TS uses a Node `Response` type without fetch methods. */
+type Upstream = {
+  status: number;
+  text: () => Promise<string>;
+  headers: { get: (name: string) => string | null };
+};
+
 function sendJson(res: ApiRes, status: number, body: unknown): void {
   if (res.writableEnded) return;
   res.statusCode = status;
@@ -41,9 +48,9 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
       consumer_key: c.consumerKey,
       consumer_secret: c.consumerSecret,
     });
-    const upstream = await fetch(`${c.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
+    const upstream = (await fetch(`${c.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
       headers: { Accept: "application/json" },
-    });
+    })) as unknown as Upstream;
     const body = await upstream.text();
     if (upstream.status < 200 || upstream.status >= 300) {
       sendJson(res, 502, { error: "Failed to load homepage banners" });

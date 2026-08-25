@@ -6,6 +6,12 @@ type ApiRes = {
   end: (body: string) => void;
 };
 
+type Upstream = {
+  status: number;
+  text: () => Promise<string>;
+  headers: { get: (name: string) => string | null };
+};
+
 function sendJson(res: ApiRes, status: number, body: unknown): void {
   if (res.writableEnded) return;
   res.statusCode = status;
@@ -42,9 +48,9 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
     const qs = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
     qs.set("consumer_key", c.consumerKey);
     qs.set("consumer_secret", c.consumerSecret);
-    const upstream = await fetch(`${c.storeUrl}/wp-json/wc/v3/products?${qs.toString()}`, {
+    const upstream = (await fetch(`${c.storeUrl}/wp-json/wc/v3/products?${qs.toString()}`, {
       headers: { Accept: "application/json" },
-    });
+    })) as unknown as Upstream;
     const body = await upstream.text();
     res.statusCode = upstream.status;
     res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/json; charset=utf-8");

@@ -60,6 +60,12 @@ function isAllowedWooPath(path: string): boolean {
   return normalized === "products" || normalized.startsWith("products/");
 }
 
+type Upstream = {
+  status: number;
+  text: () => Promise<string>;
+  headers: { get: (name: string) => string | null };
+};
+
 async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; consumerSecret: string }) {
   const qs = new URLSearchParams({
     search: "banner",
@@ -70,10 +76,10 @@ async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; c
     consumer_key: cfg.consumerKey,
     consumer_secret: cfg.consumerSecret,
   });
-  const upstream = await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
+  const upstream = (await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
     method: "GET",
     headers: { Accept: "application/json" },
-  });
+  })) as unknown as Upstream;
   const body = await upstream.text();
   if (upstream.status < 200 || upstream.status >= 300) throw new Error("Banner media request failed");
   const data = JSON.parse(body) as Array<{
@@ -146,7 +152,7 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
     qs.set("consumer_key", cfg.consumerKey);
     qs.set("consumer_secret", cfg.consumerSecret);
     const target = `${cfg.storeUrl}/wp-json/wc/v3/${subPath}?${qs.toString()}`;
-    const upstream = await fetch(target, { method: "GET", headers: { Accept: "application/json" } });
+    const upstream = (await fetch(target, { method: "GET", headers: { Accept: "application/json" } })) as unknown as Upstream;
     const body = await upstream.text();
     if (res.writableEnded) return;
     res.statusCode = upstream.status;
