@@ -6,6 +6,7 @@ import { fetchCloudHomeRails, fetchCloudProductsByGroup, type CloudHomeRails } f
 import type { WooProduct } from "@/lib/woocommerce";
 
 const EXTRA_GROUPS = [
+  { key: "hoco", title: "Hoco", group: "Hoco" },
   { key: "magsafe", title: "MagSafe", group: "MagSafe" },
   { key: "jelly", title: "Soft Jelly", group: "Soft Jelly" },
   { key: "glass", title: "Full Glue Glass", group: "Full Glue Glass" },

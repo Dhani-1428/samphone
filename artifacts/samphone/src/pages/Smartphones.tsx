@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Loader2, X } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
@@ -43,7 +43,7 @@ export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
   const { products, loading, error, syncingMore } = useProductCatalog();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const routeSection = sectionFromPath(location);
   const [section, setSection] = useState<DeviceSection>(routeSection);
   const [selected, setSelected] = useState<string | null>(null);
@@ -143,7 +143,7 @@ export default function Smartphones() {
             <div className="flex flex-wrap items-center gap-5">
               <button
                 type="button"
-                onClick={() => setSection("phones")}
+                onClick={() => navigate("/phones")}
                 className={cn(
                   "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "phones"
@@ -155,7 +155,7 @@ export default function Smartphones() {
               </button>
               <button
                 type="button"
-                onClick={() => setSection("tablets")}
+                onClick={() => navigate("/tablets")}
                 className={cn(
                   "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "tablets"
@@ -166,12 +166,6 @@ export default function Smartphones() {
                 {t("smartphones_tab_tablets")}
               </button>
             </div>
-            <Link
-              href="/category/tablets"
-              className="text-sm font-medium text-[#5A73A8] hover:underline sm:ml-auto"
-            >
-              {t("smartphones_category_tablets_link")}
-            </Link>
           </div>
         </div>
       </section>

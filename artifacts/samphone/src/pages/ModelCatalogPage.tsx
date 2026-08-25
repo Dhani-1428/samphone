@@ -7,12 +7,14 @@ import PageVideoHero from "@/components/PageVideoHero";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
+  classifyModelProduct,
   modelSearchNames,
   productBelongsToModel,
   splitModelCatalog,
+  typesWithCounts,
 } from "@/lib/model-catalog";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { sortByPrice } from "@/lib/woo-product-filters";
+import { cn } from "@/lib/utils";
 
 function parseModelName(slug: string): string {
   if (slug === "iphones") return "iPhones";
@@ -39,6 +41,49 @@ function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty:
   );
 }
 
+function TypeChips({
+  allLabel,
+  selected,
+  onSelect,
+  chips,
+}: {
+  allLabel: string;
+  selected: string | null;
+  onSelect: (id: string | null) => void;
+  chips: { id: string; label: string; count: number }[];
+}) {
+  if (chips.length === 0) return null;
+  return (
+    <div className="mb-5 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className={cn(
+          "border-b-2 pb-2 text-sm transition-colors",
+          !selected ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy",
+        )}
+      >
+        {allLabel}
+      </button>
+      {chips.map((c) => (
+        <button
+          key={c.id}
+          type="button"
+          onClick={() => onSelect(c.id)}
+          className={cn(
+            "border-b-2 pb-2 text-sm transition-colors",
+            selected === c.id
+              ? "border-[#5A73A8] font-semibold text-navy"
+              : "border-transparent text-muted-foreground hover:text-navy",
+          )}
+        >
+          {c.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ModelCatalogPage() {
   const params = useParams<{ brand: string; family?: string; model: string }>();
   const brand = params.brand ?? "iphone";
@@ -47,8 +92,15 @@ export default function ModelCatalogPage() {
   const { t } = useLang();
   const { products, loading: catalogLoading, error: catalogError } = useProductCatalog();
   const [remote, setRemote] = useState<WooProduct[] | null>(null);
+  const [partType, setPartType] = useState<string | null>(null);
+  const [accType, setAccType] = useState<string | null>(null);
 
   const modelLabel = model ? parseModelName(model) : null;
+
+  useEffect(() => {
+    setPartType(null);
+    setAccType(null);
+  }, [brand, model, family]);
 
   useEffect(() => {
     if (!model) {
@@ -62,7 +114,7 @@ export default function ModelCatalogPage() {
       .then((list) => {
         if (!alive) return;
         const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n)));
-        setRemote(strict.length > 0 ? strict : list);
+        setRemote(strict);
       })
       .catch(() => {
         if (alive) setRemote([]);
@@ -76,13 +128,23 @@ export default function ModelCatalogPage() {
     if (model) return remote ?? [];
     const familyLabel = parseModelName(family);
     const brandLabel = parseModelName(brand);
-    return products.filter((p) => {
-      const hay = `${p.name} ${(p.categories ?? []).map((c) => c.name).join(" ")}`;
-      return productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`);
-    });
+    return products.filter(
+      (p) => productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`),
+    );
   }, [model, remote, products, brand, family]);
 
   const { parts, accessories } = useMemo(() => splitModelCatalog(modelProducts), [modelProducts]);
+  const partChips = useMemo(() => typesWithCounts(parts, "part"), [parts]);
+  const accChips = useMemo(() => typesWithCounts(accessories, "accessory"), [accessories]);
+
+  const visibleParts = useMemo(
+    () => (partType ? parts.filter((p) => classifyModelProduct(p).typeId === partType) : parts),
+    [parts, partType],
+  );
+  const visibleAccessories = useMemo(
+    () => (accType ? accessories.filter((p) => classifyModelProduct(p).typeId === accType) : accessories),
+    [accessories, accType],
+  );
 
   const brandName = parseModelName(brand);
   const familyName = parseModelName(family);
@@ -121,16 +183,22 @@ export default function ModelCatalogPage() {
             <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
           ) : (
             <div className="space-y-10">
-              <section>
-                <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_parts_title")}</h2>
-                <p className="mb-4 text-sm text-muted-foreground">{t("model_parts_hint")}</p>
-                <ProductGrid items={parts} empty={t("woo_empty")} priceLabel={priceLabel} />
-              </section>
-              <section>
-                <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_accessories_section")}</h2>
-                <p className="mb-4 text-sm text-muted-foreground">{t("model_accessories_section_hint")}</p>
-                <ProductGrid items={sortByPrice(accessories, "asc")} empty={t("woo_empty")} priceLabel={priceLabel} />
-              </section>
+              {parts.length > 0 ? (
+                <section>
+                  <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_parts_title")}</h2>
+                  <p className="mb-4 text-sm text-muted-foreground">{t("model_parts_hint")}</p>
+                  <TypeChips allLabel={t("model_filter_all")} selected={partType} onSelect={setPartType} chips={partChips} />
+                  <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
+                </section>
+              ) : null}
+              {accessories.length > 0 ? (
+                <section>
+                  <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_accessories_section")}</h2>
+                  <p className="mb-4 text-sm text-muted-foreground">{t("model_accessories_section_hint")}</p>
+                  <TypeChips allLabel={t("model_filter_all")} selected={accType} onSelect={setAccType} chips={accChips} />
+                  <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
+                </section>
+              ) : null}
             </div>
           )
         ) : null}

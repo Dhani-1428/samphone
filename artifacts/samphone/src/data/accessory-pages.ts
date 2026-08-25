@@ -60,7 +60,10 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
     group: "Smartwatch",
     subtypes: [
       { label: "Smartwatches", needles: ["smartwatch", "smart watch"] },
-      { label: "Accessories", needles: ["smartwatch accessor", "watch charging", "iwatch"] },
+      {
+        label: "Smartwatch Accessories",
+        needles: ["smartwatch accessor", "watch strap", "watch band", "watch charger", "watch case", "watch charging", "iwatch"],
+      },
     ],
   },
   {
@@ -96,7 +99,10 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Electronics",
     group: "Electronics",
-    subtypes: [{ label: "Fans", needles: ["fan"] }],
+    subtypes: [
+      { label: "Fans", needles: ["fan"] },
+      { label: "Small Electronics", needles: ["electronic", "lamp", "humidifier", "night light", "usb light"] },
+    ],
   },
   {
     label: "Beautycare",
@@ -106,12 +112,16 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Cell AA/AAA",
     group: "Cell AA/AAA",
-    subtypes: [{ label: "Cell AA/AAA", needles: ["aa", "aaa", "batter"] }],
+    subtypes: [
+      { label: "AA/AAA Cells", needles: ["aa", "aaa", "cr2032", "button cell", "coin cell"] },
+    ],
   },
   {
     label: "Original Accessories",
     group: "Original Accessories",
-    subtypes: [{ label: "Original Accessories", needles: ["original accessor"] }],
+    subtypes: [
+      { label: "Original Accessories", needles: ["original accessor", "oem accessor", "genuine accessor"] },
+    ],
   },
   {
     label: "Cards",
@@ -124,9 +134,29 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Repairing Tools",
     group: "Repairing Tools",
-    subtypes: [{ label: "Repairing Tools", needles: ["repair", "tool"] }],
+    subtypes: [
+      { label: "Screwdrivers", needles: ["screwdriver", "phillips", "torx"] },
+      { label: "Openers", needles: ["opener", "spudger", "pry tool", "opening tool"] },
+      { label: "Repair Kits", needles: ["repair kit", "tool kit", "toolkit"] },
+    ],
   },
 ];
+
+/** Hoco is a brand shop, not one of the 15 accessory groups. */
+export const HOCO_SHOP_PAGE: AccessoryNavPage = {
+  label: "Hoco",
+  group: "Hoco",
+  subtypes: [
+    { label: "Chargers", needles: ["charger", "adapter"] },
+    { label: "Cables", needles: ["cable"] },
+    { label: "Cases", needles: ["case", "cover", "jelly"] },
+    { label: "Audio", needles: ["earphone", "headphone", "speaker", "headset", "audio"] },
+    { label: "Power Banks", needles: ["power bank", "powerbank"] },
+    { label: "Car Accessories", needles: ["car"] },
+  ],
+};
+
+export const ALL_SHOP_PAGES: AccessoryNavPage[] = [...ACCESSORY_NAV_PAGES, HOCO_SHOP_PAGE];
 
 export function accessoryPageHref(group: string, subtype?: string): string {
   const base = `/group/${encodeURIComponent(group)}`;
@@ -136,7 +166,12 @@ export function accessoryPageHref(group: string, subtype?: string): string {
 
 export function findAccessoryPage(group: string): AccessoryNavPage | undefined {
   const key = group.trim().toLowerCase();
-  return ACCESSORY_NAV_PAGES.find((p) => p.group.toLowerCase() === key || p.label.toLowerCase() === key);
+  return ALL_SHOP_PAGES.find((p) => p.group.toLowerCase() === key || p.label.toLowerCase() === key);
+}
+
+export function isAccessoryNavGroup(group: string): boolean {
+  const key = group.trim().toLowerCase();
+  return ACCESSORY_NAV_PAGES.some((p) => p.group.toLowerCase() === key || p.label.toLowerCase() === key);
 }
 
 function haystack(p: WooProduct): string {
@@ -146,5 +181,11 @@ function haystack(p: WooProduct): string {
 
 export function productMatchesSubtype(p: WooProduct, subtype: AccessorySubtype): boolean {
   const h = haystack(p);
-  return subtype.needles.some((n) => h.includes(n.toLowerCase()));
+  return subtype.needles.some((n) => {
+    const needle = n.toLowerCase();
+    if (needle.length <= 3) {
+      return new RegExp(`(?:^|[^a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:$|[^a-z0-9])`).test(h);
+    }
+    return h.includes(needle);
+  });
 }

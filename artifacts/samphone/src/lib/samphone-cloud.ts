@@ -37,6 +37,8 @@ type CloudProduct = {
   categories?: { wc_id?: number; id?: number; name?: string; slug?: string }[];
   category?: string;
   brand?: string;
+  part_type?: string;
+  leaf_category?: string;
   color_variants?: unknown[];
   variants?: unknown[];
   in_stock?: boolean;
@@ -153,6 +155,7 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     colorVariants: colorNames(p.color_variants),
     colorSwatches: parseColorSwatches(p.color_variants),
     brand: p.brand,
+    partType: (p.part_type || p.leaf_category || p.specs?.Type || "").trim() || undefined,
   });
 }
 

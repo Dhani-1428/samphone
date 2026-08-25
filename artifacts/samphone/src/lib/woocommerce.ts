@@ -38,6 +38,8 @@ export interface WooProduct {
   colorVariants?: string[];
   colorSwatches?: ProductColorSwatch[];
   brand?: string;
+  /** FastAPI catalog type label (e.g. "Screen / LCD Assembly"). */
+  partType?: string;
 }
 
 export type ProductColorSwatch = {

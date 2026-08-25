@@ -27,6 +27,21 @@ export const NAV_OTHER_BRANDS: NavOtherBrand[] = [
     ],
   },
   {
+    name: "Alcatel",
+    slug: "alcatel",
+    seeAllHref: "/category/alcatel-parts",
+    models: [
+      { label: "Alcatel 1B 2022 5031" },
+      { label: "Alcatel 1L Pro 2021" },
+      { label: "Alcatel 1 2021" },
+      { label: "Alcatel 1V 2021" },
+      { label: "Alcatel 1S 2021" },
+      { label: "Alcatel 1SE 2020" },
+      { label: "Alcatel 1 2019" },
+      { label: "Alcatel 1S 2020" },
+    ],
+  },
+  {
     name: "Blackview",
     slug: "blackview",
     models: [
@@ -39,7 +54,7 @@ export const NAV_OTHER_BRANDS: NavOtherBrand[] = [
     ],
   },
   {
-    name: "Google",
+    name: "Google Pixel",
     slug: "google-pixel",
     seeAllHref: "/category/google-pixel-parts",
     models: [
@@ -65,6 +80,21 @@ export const NAV_OTHER_BRANDS: NavOtherBrand[] = [
       { label: "P30" },
       { label: "P30 Lite XL/New Edition" },
       { label: "P30 Lite" },
+    ],
+  },
+  {
+    name: "LG",
+    slug: "lg",
+    seeAllHref: "/category/lg-parts",
+    models: [
+      { label: "LG Velvet" },
+      { label: "LG Wing" },
+      { label: "LG G8 ThinQ" },
+      { label: "LG G7 ThinQ" },
+      { label: "LG V40 ThinQ" },
+      { label: "LG K50" },
+      { label: "LG K40" },
+      { label: "LG K30" },
     ],
   },
   {
@@ -107,6 +137,21 @@ export const NAV_OTHER_BRANDS: NavOtherBrand[] = [
     ],
   },
   {
+    name: "Nokia",
+    slug: "nokia",
+    seeAllHref: "/category/nokia-parts",
+    models: [
+      { label: "Nokia X20" },
+      { label: "Nokia X10" },
+      { label: "Nokia G60" },
+      { label: "Nokia G50" },
+      { label: "Nokia G21" },
+      { label: "Nokia C20" },
+      { label: "Nokia 8.3" },
+      { label: "Nokia 5.4" },
+    ],
+  },
+  {
     name: "Sony",
     slug: "sony",
     seeAllHref: "/category/other-parts",
@@ -130,6 +175,21 @@ export const NAV_OTHER_BRANDS: NavOtherBrand[] = [
       { label: "50 Pro 5G" },
       { label: "50 5G" },
       { label: "30 SE" },
+    ],
+  },
+  {
+    name: "ZTE",
+    slug: "zte",
+    seeAllHref: "/category/zte-parts",
+    models: [
+      { label: "ZTE Blade A54" },
+      { label: "ZTE A34" },
+      { label: "ZTE A33S" },
+      { label: "ZTE A31 Plus" },
+      { label: "ZTE A31" },
+      { label: "ZTE A71" },
+      { label: "ZTE A5 2020" },
+      { label: "ZTE A7 2020" },
     ],
   },
   {

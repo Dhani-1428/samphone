@@ -1729,6 +1729,15 @@ function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className={`${navShell} py-6`}>
       <AccessoryPageButtons onNavigate={onClose} />
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <Link
+          href="/group/Hoco"
+          onClick={onClose}
+          className="inline-flex h-10 min-w-[9.5rem] items-center justify-center rounded-md border border-black/[0.1] bg-white px-3.5 text-center text-[13px] font-semibold text-brand-dark hover:border-sam hover:bg-sam hover:text-white dark:border-white/15 dark:bg-[#1B2436] dark:text-white"
+        >
+          Hoco
+        </Link>
+      </div>
     </div>
   );
 }
@@ -2382,8 +2391,22 @@ export default function Navbar() {
             Smartphones
           </Link>
           <Link
+            href="/tablets"
+            className={brandNavClass(location.startsWith("/tablets"))}
+            onClick={closeMenu}
+          >
+            Tablets
+          </Link>
+          <Link
+            href="/group/Hoco"
+            className={brandNavClass(location.startsWith("/group/Hoco") || location.startsWith("/group/hoco"))}
+            onClick={closeMenu}
+          >
+            Hoco
+          </Link>
+          <Link
             href="/cards"
-            className={brandNavClass(location.startsWith("/cards"))}
+            className={brandNavClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
             onClick={closeMenu}
           >
             Cards

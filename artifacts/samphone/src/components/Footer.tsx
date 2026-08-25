@@ -31,6 +31,8 @@ export default function Footer() {
   const shopLinks = [
     { href: "/accessories", label: t("nav_accessories") },
     { href: "/smartphones", label: t("nav_smartphones") },
+    { href: "/tablets", label: t("nav_tablets") },
+    { href: "/group/Hoco", label: t("nav_hoco") },
     { href: "/cards", label: t("nav_cards") },
     { href: "/new", label: t("nav_new") },
     { href: "/multi-brand", label: t("nav_multibrand") },

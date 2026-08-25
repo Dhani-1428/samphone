@@ -8,6 +8,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import {
   accessoryPageHref,
   findAccessoryPage,
+  isAccessoryNavGroup,
   productMatchesSubtype,
 } from "@/data/accessory-pages";
 import { fetchCloudAllProducts } from "@/lib/samphone-cloud";
@@ -15,12 +16,13 @@ import { sortByPrice } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
 import type { WooProduct } from "@/lib/woocommerce";
 
-export default function ShopGroupPage() {
+export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } = {}) {
   const params = useParams<{ group: string }>();
   const [, navigate] = useLocation();
   const search = useSearch();
-  const group = decodeURIComponent(params.group ?? "").trim();
+  const group = (forcedGroup ?? decodeURIComponent(params.group ?? "")).trim();
   const page = findAccessoryPage(group);
+  const showAccessoryButtons = isAccessoryNavGroup(group);
   const typeParam = new URLSearchParams(search).get("type") ?? "";
   const { t } = useLang();
   const [items, setItems] = useState<WooProduct[] | null>(null);
@@ -54,26 +56,37 @@ export default function ShopGroupPage() {
   }, [items, subtype]);
 
   const title = page?.label ?? group ?? t("nav_all_accessories");
+  const description = page?.group === "Hoco" ? t("shop_hoco_sub") : t("home_accessories_sub");
 
   return (
     <div className="min-h-screen">
-      <PageVideoHero eyebrow={t("nav_accessories")} title={title} description={t("home_accessories_sub")} />
+      <PageVideoHero eyebrow={t("nav_accessories")} title={title} description={description} />
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" />
           {t("backToHome")}
         </Link>
 
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{t("nav_all_accessories")}</p>
-        <div className="mb-6">
-          <AccessoryPageButtons className="justify-start" activeGroup={page?.group} />
-        </div>
+        {showAccessoryButtons ? (
+          <>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{t("nav_all_accessories")}</p>
+            <div className="mb-6">
+              <AccessoryPageButtons className="justify-start" activeGroup={page?.group} />
+            </div>
+          </>
+        ) : (
+          <div className="mb-6">
+            <Link href="/accessories" className="text-sm font-semibold text-[#5A73A8] hover:underline">
+              {t("nav_all_accessories")}
+            </Link>
+          </div>
+        )}
 
         {page && page.subtypes.length > 0 ? (
           <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
             <button
               type="button"
-              onClick={() => navigate(accessoryPageHref(page.group))}
+              onClick={() => navigate(forcedGroup === "Cards" ? "/cards" : accessoryPageHref(page.group))}
               className={cn(
                 "border-b-2 pb-2 text-sm transition-colors",
                 !subtype ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy",
@@ -85,7 +98,13 @@ export default function ShopGroupPage() {
               <button
                 key={s.label}
                 type="button"
-                onClick={() => navigate(accessoryPageHref(page.group, s.label))}
+                onClick={() =>
+                  navigate(
+                    forcedGroup === "Cards"
+                      ? `/cards?type=${encodeURIComponent(s.label)}`
+                      : accessoryPageHref(page.group, s.label),
+                  )
+                }
                 className={cn(
                   "border-b-2 pb-2 text-sm transition-colors",
                   subtype?.label === s.label
