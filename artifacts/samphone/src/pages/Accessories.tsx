@@ -1,141 +1,25 @@
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import ProductCard from "@/components/ProductCard";
-import WooProductCard from "@/components/wc/WooProductCard";
+import { Link } from "wouter";
+import { ArrowLeft } from "lucide-react";
+import Categories from "@/components/Categories";
 import PageVideoHero from "@/components/PageVideoHero";
-import { ACCESSORIES_PRODUCTS } from "@/data/catalog";
-import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
-import {
-  filterAccessoryCatalog,
-  filterAccessoryChip,
-  sortByPrice,
-} from "@/lib/woo-product-filters";
-
-const categories = ["All", "Screen Protection", "Cases & Covers", "Chargers", "Cables", "Audio", "Smartwatches", "Hoco Accessories"];
-
-const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
-const cardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
-
-function AccessoriesHeader() {
-  return (
-    <PageVideoHero
-      eyebrow="Home / Accessories"
-      title="Accessories"
-      description="Premium accessories for every device and lifestyle."
-    />
-  );
-}
 
 export default function Accessories() {
   const { t } = useLang();
-  const woo = hasWooCommerceConfig();
-  const { products, loading, error } = useProductCatalog();
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("Popular");
-
-  const wooPool = useMemo(() => filterAccessoryCatalog(products), [products]);
-
-  const filteredWoo = useMemo(() => {
-    let list = filterAccessoryChip(wooPool, activeCategory);
-    if (sortBy === "Price: Low to High") list = sortByPrice(list, "asc");
-    else if (sortBy === "Price: High to Low") list = sortByPrice(list, "desc");
-    else if (sortBy === "Newest") list = [...list].sort((a, b) => b.id - a.id);
-    return list;
-  }, [wooPool, activeCategory, sortBy]);
-
-  const filteredMock =
-    activeCategory === "All"
-      ? ACCESSORIES_PRODUCTS
-      : ACCESSORIES_PRODUCTS.filter((p) => p.subtitle === activeCategory);
-
   return (
     <div>
-      <AccessoriesHeader />
-
-      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setActiveCategory(cat)}
-              className={`border-b-2 pb-2 text-sm transition-colors ${activeCategory === cat ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        <div className="mb-6 flex items-center justify-between pb-4">
-          <p className="text-sm text-muted-foreground">
-            {woo ? `${filteredWoo.length} products` : `${filteredMock.length} products found`}
-          </p>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2 border-border bg-white">
-              <SlidersHorizontal className="w-4 h-4" /> Filters
-            </Button>
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-1.5 text-sm">
-              <span className="text-muted-foreground">Sort:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="cursor-pointer bg-transparent font-medium text-foreground focus:outline-none"
-              >
-                <option>Popular</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {woo && loading && filteredWoo.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("woo_loading")}</p>
-          </div>
-        )}
-
-        {woo && !loading && error && <p className="text-center text-sm text-destructive py-12">{error}</p>}
-
-        {woo && !loading && !error && filteredWoo.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground py-16">{t("woo_empty")}</p>
-        )}
-
-        {woo && filteredWoo.length > 0 && (
-          <motion.ul
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 p-0"
-          >
-            {filteredWoo.map((p) => (
-              <motion.li key={p.id} variants={cardVariants}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.li>
-            ))}
-          </motion.ul>
-        )}
-
-        {!woo && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
-          >
-            {filteredMock.map((p) => (
-              <motion.div key={p.cartKey} variants={cardVariants}>
-                <ProductCard {...p} testPrefix="acc" />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+      <PageVideoHero
+        eyebrow="Home / Accessories"
+        title={t("home_accessories_title")}
+        description={t("home_accessories_sub")}
+      />
+      <div className="mx-auto w-full max-w-[1600px] px-5 pt-6 sm:px-8 md:px-10 lg:px-14">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
+          <ArrowLeft className="h-4 w-4" />
+          {t("backToHome")}
+        </Link>
       </div>
+      <Categories />
     </div>
   );
 }

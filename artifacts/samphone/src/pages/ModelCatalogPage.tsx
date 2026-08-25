@@ -1,120 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { useLang, type TranslationKey } from "@/contexts/LanguageContext";
+import { useLang } from "@/contexts/LanguageContext";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import type { WooProduct } from "@/lib/woocommerce";
+import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
-  ACCESSORY_BUCKET_IDS,
-  countProductsByAccessoryBucket,
-  productMatchesAccessoryBucket,
-  type AccessoryBucketId,
-} from "@/lib/model-accessory-buckets";
-
-const ACCESSORY_LABEL_KEYS: Record<Exclude<AccessoryBucketId, "all">, TranslationKey> = {
-  cases: "model_acc_cases",
-  chargers: "model_acc_chargers",
-  screen_glass: "model_acc_screen_glass",
-  camera_lens: "model_acc_camera_lens",
-  cables: "model_acc_cables",
-  audio: "model_acc_audio",
-  batteries: "model_acc_batteries",
-  screens_parts: "model_acc_screens_parts",
-  other: "model_acc_other",
-};
-
-function tokenRegexForModel(modelSlug: string): RegExp {
-  if (modelSlug === "iphones") return /\biphone\b/i;
-  if (modelSlug === "ipad") return /\bipad\b/i;
-  if (modelSlug === "iwatch") return /\bwatch\b|apple\s*watch|iwatch/i;
-  const token = modelSlug.replace(/-/g, "\\s*");
-  return new RegExp(token, "i");
-}
-
-function tokenRegexForFamily(familySlug: string): RegExp {
-  if (familySlug === "iphones") return /\biphone\b/i;
-  if (familySlug === "ipad") return /\bipad\b/i;
-  if (familySlug === "iwatch") return /\bwatch\b|apple\s*watch|iwatch/i;
-  if (familySlug === "a-series") return /\ba\d{1,2}\b|a-series|galaxy\s*a/i;
-  if (familySlug === "s-series") return /\bs\d{1,2}\b|s-series|galaxy\s*s|ultra/i;
-  if (familySlug === "z-series") return /\bz\s*fold\b|\bz\s*flip\b|\bfold\b|\bflip\b|z-series/i;
-  if (familySlug === "m-series") return /\bm\d{1,2}\b|m-series|galaxy\s*m/i;
-  if (familySlug === "j-series") return /\bj\d{1,2}\b|j-series|galaxy\s*j/i;
-  if (familySlug === "note-series") return /\bnote\b|note-series|galaxy\s*note/i;
-  if (familySlug === "redmi-series") return /\bredmi\b|\bredmi\s*a\b|redmi-series/i;
-  if (familySlug === "poco-series") return /\bpoco\b|poco-series/i;
-  if (familySlug === "redmi-note-series") return /\bredmi\s*note\b|redmi-note-series/i;
-  if (familySlug === "mi-series") return /\bmi\b|\bxiaomi\s+\d|mi-series|xiaomi\s+mi/i;
-  if (familySlug === "reno-series") return /\breno\b|reno-series/i;
-  if (familySlug === "find-x-series") return /\bfind\s*x\b|find-x-series/i;
-  if (familySlug === "f-series") return /\bf\d{1,2}\b|f-series|oppo\s*f/i;
-  if (familySlug === "p-series") return /\bpura\b|\bp\d{1,2}\b|p-series|huawei\s*p\s*smart/i;
-  if (familySlug === "y-series") return /\by\d{1,2}\b|y-series|huawei\s*y/i;
-  if (familySlug === "honor-series") return /\bhonor\b|honor-series|magic|view|x\d/i;
-  if (familySlug === "mate-series") return /\bmate\b|mate-series/i;
-  if (familySlug === "nova-series") return /\bnova\b|nova-series/i;
-  if (familySlug === "oneplus-series") return /\boneplus\b|oneplus-series|one\s*plus/i;
-  if (familySlug === "oneplus-nord-series") return /\bnord\b|oneplus-nord-series|one\s*plus\s*nord/i;
-  if (familySlug === "motorola-series") return /\bmotorola\b|\bmoto\b|\bedge\b|\bg\d{1,3}\b|\be\d{1,2}\b|motorola-series/i;
-  if (familySlug === "alcatel-series") return /\balcatel\b|alcatel-series|pixi|idol|one\s*touch|ot[-\s]?|pop/i;
-  if (familySlug === "tcl-series") return /\btcl\b|tcl-series|nxtpaper|t\d{3,4}[a-z]?|n30/i;
-  if (familySlug === "zte-series") return /\bzte\b|zte-series|blade|axon|v\d{2}|a\d{2}|l210/i;
-  if (familySlug === "vivo-series") return /\bvivo\b|vivo-series|\by\d{1,2}\b|\bv\d{1,2}\b|\bt\d\b|\bs\d{1,2}\b/i;
-  if (familySlug === "ipads") return /\bipad\b|ipad\s*pro|ipad\s*air|ipad\s*mini/i;
-  if (familySlug === "tcl-tablets") return /\btcl\b.*\btab\b|\btcl\s*tab\b/i;
-  if (familySlug === "lenovo-tablets") return /\blenovo\b.*\btab\b|\blenovo\s*pad\b/i;
-  if (familySlug === "samsung-tablets") return /\bsamsung\b.*\btab\b|\bgalaxy\s*tab\b/i;
-  if (familySlug === "xiaomi-redmi-tablets") return /\bxiaomi\s*pad\b|\bredmi\s*pad\b/i;
-  if (familySlug === "huawei-tablets") return /\bhuawei\b.*\bpad\b|\bmate\s*pad\b|\bmedia\s*pad\b|\bhonor\s*pad\b|\bhonor\s*tab\b/i;
-  if (familySlug === "nokia-series") return /\bnokia\b|nokia-series|\bx\d{1,2}\b|\bc\d{1,2}\b|\bg\d{1,2}\b/i;
-  if (familySlug === "google-pixel-series") return /\bgoogle\s*pixel\b|google-pixel-series|\bpixel\b/i;
-  if (familySlug === "series") return /\brealme\s*\d|\b\d{1,2}\s*(pro|plus|5g|4g)\b/i;
-  if (familySlug === "narzo-series") return /\bnarzo\b|narzo-series/i;
-  if (familySlug === "c-series") return /\bc\d{1,2}\b|c-series|realme\s*c/i;
-  return tokenRegexForModel(familySlug);
-}
-
-function brandRegex(brandSlug: string): RegExp {
-  if (brandSlug === "iphone") return /\biphone\b|\bapple\b|\bipad\b|\bwatch\b/i;
-  if (brandSlug === "samsung") return /\bsamsung\b|\bgalaxy\b/i;
-  if (brandSlug === "xiaomi") return /\bxiaomi\b|\bredmi\b|\bpoco\b/i;
-  if (brandSlug === "oppo" || brandSlug.startsWith("oppo-")) return /\boppo\b/i;
-  if (brandSlug === "huawei" || brandSlug.startsWith("huawei-")) return /\bhuawei\b|\bhonor\b/i;
-  if (brandSlug === "realme" || brandSlug.startsWith("realme-")) return /\brealme\b|\bnarzo\b/i;
-  if (brandSlug === "one-plus" || brandSlug.startsWith("one-plus")) return /\boneplus\b|one\s*plus|\bnord\b/i;
-  if (brandSlug === "motorola" || brandSlug.startsWith("motorola-")) return /\bmotorola\b|\bmoto\b/i;
-  if (brandSlug === "tablets") {
-    return /\btablet\b|\btab\b|\bipad\b|\bgalaxy\s*tab\b|\bmate\s*pad\b|\bmedia\s*pad\b|\bxiaomi\s*pad\b|\bredmi\s*pad\b|\blenovo\s*tab\b|\bhonor\s*pad\b|\bhonor\s*tab\b/i;
-  }
-  if (brandSlug === "nokia" || brandSlug.startsWith("nokia-")) return /\bnokia\b/i;
-  if (brandSlug === "google-pixel" || brandSlug.startsWith("google-pixel")) return /\bgoogle\s*pixel\b|\bpixel\b/i;
-  const token = brandSlug.replace(/-/g, "\\s*");
-  return new RegExp(token, "i");
-}
+  modelSearchNames,
+  productBelongsToModel,
+  splitModelCatalog,
+} from "@/lib/model-catalog";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import { sortByPrice } from "@/lib/woo-product-filters";
 
 function parseModelName(slug: string): string {
   if (slug === "iphones") return "iPhones";
   if (slug === "ipad") return "iPad";
   if (slug === "iwatch") return "iWatch";
+  if (slug.toLowerCase().startsWith("iphone-")) {
+    return slug.replace(/-/g, " ").replace(/^iphone/i, "iPhone");
+  }
   return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function matchesModelProduct(
-  p: WooProduct,
-  brandSlug: string,
-  familySlug: string,
-  modelSlug?: string,
-): boolean {
-  const hay = `${p.name} ${p.categories?.map((c) => `${c.name} ${c.slug}`).join(" ") ?? ""}`;
-  if (!brandRegex(brandSlug).test(hay)) return false;
-  if (!tokenRegexForFamily(familySlug).test(hay)) return false;
-  if (modelSlug) {
-    return tokenRegexForModel(modelSlug).test(hay);
+function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty: string; priceLabel: string }) {
+  if (items.length === 0) {
+    return <p className="py-8 text-sm text-muted-foreground">{empty}</p>;
   }
-  return true;
+  return (
+    <ul className="grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 md:gap-4">
+      {items.map((p) => (
+        <li key={p.cloudId || p.id}>
+          <WooProductCard product={p} priceUnavailableLabel={priceLabel} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export default function ModelCatalogPage() {
@@ -122,201 +44,96 @@ export default function ModelCatalogPage() {
   const brand = params.brand ?? "iphone";
   const family = params.family ?? params.model ?? "iphones";
   const model = params.family ? params.model : undefined;
-  const { t, lang } = useLang();
-  const configured = hasWooCommerceConfig();
-  const { products, loading, error } = useProductCatalog();
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [activeAccessory, setActiveAccessory] = useState<AccessoryBucketId>("all");
+  const { t } = useLang();
+  const { products, loading: catalogLoading, error: catalogError } = useProductCatalog();
+  const [remote, setRemote] = useState<WooProduct[] | null>(null);
+
+  const modelLabel = model ? parseModelName(model) : null;
+
+  useEffect(() => {
+    if (!model) {
+      setRemote(null);
+      return;
+    }
+    let alive = true;
+    setRemote(null);
+    const names = modelSearchNames(brand, model);
+    void fetchCloudProductsForModel(names)
+      .then((list) => {
+        if (!alive) return;
+        const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n)));
+        setRemote(strict.length > 0 ? strict : list);
+      })
+      .catch(() => {
+        if (alive) setRemote([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [brand, model]);
 
   const modelProducts = useMemo(() => {
-    const strict = products.filter((p) => matchesModelProduct(p, brand, family, model));
-    if (strict.length > 0 || !model) return strict;
-    // Fallback for inconsistent Woo model naming: keep brand+family scope when model token is too strict.
-    return products.filter((p) => matchesModelProduct(p, brand, family));
-  }, [products, brand, family, model]);
+    if (model) return remote ?? [];
+    const familyLabel = parseModelName(family);
+    const brandLabel = parseModelName(brand);
+    return products.filter((p) => {
+      const hay = `${p.name} ${(p.categories ?? []).map((c) => c.name).join(" ")}`;
+      return productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`);
+    });
+  }, [model, remote, products, brand, family]);
 
-  useEffect(() => {
-    setActiveCategory("all");
-    setActiveAccessory("all");
-  }, [brand, family, model]);
-
-  useEffect(() => {
-    setActiveCategory("all");
-  }, [activeAccessory]);
-
-  const accessoryCounts = useMemo(() => countProductsByAccessoryBucket(modelProducts), [modelProducts]);
-
-  const categoryOptions = useMemo(() => {
-    const map = new Map<string, { slug: string; label: string; count: number }>();
-    for (const p of modelProducts) {
-      if (!productMatchesAccessoryBucket(p, activeAccessory)) continue;
-      for (const c of p.categories ?? []) {
-        const prev = map.get(c.slug);
-        if (prev) {
-          prev.count += 1;
-        } else {
-          map.set(c.slug, { slug: c.slug, label: c.name, count: 1 });
-        }
-      }
-    }
-    return [...map.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-  }, [modelProducts, activeAccessory]);
-
-  const afterAccessory = useMemo(
-    () => modelProducts.filter((p) => productMatchesAccessoryBucket(p, activeAccessory)),
-    [modelProducts, activeAccessory],
-  );
-
-  const visibleProducts = useMemo(() => {
-    if (activeCategory === "all") return afterAccessory;
-    return afterAccessory.filter((p) => p.categories?.some((c) => c.slug === activeCategory));
-  }, [afterAccessory, activeCategory]);
+  const { parts, accessories } = useMemo(() => splitModelCatalog(modelProducts), [modelProducts]);
 
   const brandName = parseModelName(brand);
   const familyName = parseModelName(family);
-  const modelName = model ? parseModelName(model) : null;
+  const title = modelLabel ?? `${brandName} ${familyName}`;
+  const loading = model ? remote == null : catalogLoading;
+  const error = model ? null : catalogError;
+  const priceLabel = t("woo_price_na");
 
   return (
     <div className="min-h-screen">
       <PageVideoHero
-        eyebrow={modelName ? `Home / ${brandName} / ${familyName} / ${modelName}` : `Home / ${brandName} / ${familyName}`}
-        title={modelName ? `${brandName} ${modelName}` : `${brandName} ${familyName}`}
-        description={configured ? t("model_accessories_hint") : "API catalog for selected model with category filters."}
+        eyebrow={modelLabel ? `Home / ${brandName} / ${modelLabel}` : `Home / ${brandName} / ${familyName}`}
+        title={title}
+        description={model ? t("model_page_hint") : t("model_accessories_hint")}
       />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-7"
+          className="mb-7 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Home
+          <ArrowLeft className="h-4 w-4" /> {t("backToHome")}
         </Link>
 
-        {!configured && (
-          <p className="text-sm text-muted-foreground py-8">
-            {lang === "pt"
-              ? "Configure as chaves WooCommerce para carregar produtos da API."
-              : "Configure WooCommerce API keys to load products."}
-          </p>
-        )}
-
-        {configured && loading && (
+        {loading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-muted-foreground">
             <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
             <p className="text-sm font-medium">{t("woo_loading")}</p>
           </div>
-        )}
+        ) : null}
 
-        {configured && !loading && error && (
-          <p className="text-sm text-destructive py-8">{error}</p>
-        )}
+        {error && !loading ? <p className="py-8 text-sm text-destructive">{error}</p> : null}
 
-        {configured && !loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(260px,300px)_minmax(0,1fr)] gap-6">
-            <aside className="rounded-2xl border border-border bg-card p-4 h-fit space-y-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60 mb-1">
-                  {t("model_accessories_title")}
-                </p>
-                <p className="text-[11px] text-muted-foreground mb-3">{t("model_accessories_hint")}</p>
-                <button
-                  type="button"
-                  onClick={() => setActiveAccessory("all")}
-                  className={`w-full text-left rounded-lg px-3 py-2 text-sm mb-1 ${
-                    activeAccessory === "all"
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {t("model_filter_all")} ({accessoryCounts.all})
-                </button>
-                <div className="space-y-1 max-h-[32vh] md:max-h-[28vh] overflow-auto pr-1">
-                  {ACCESSORY_BUCKET_IDS.map((id) => {
-                    const n = accessoryCounts[id];
-                    if (n === 0) return null;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setActiveAccessory(id)}
-                        className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-                          activeAccessory === id
-                            ? "bg-primary/10 text-primary"
-                            : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <span className="truncate text-left">{t(ACCESSORY_LABEL_KEYS[id])}</span>
-                        <span className="text-xs shrink-0 ml-1">{n}</span>
-                      </button>
-                    );
-                  })}
-                  {accessoryCounts.other > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveAccessory("other")}
-                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-                        activeAccessory === "other"
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      <span className="truncate text-left">{t(ACCESSORY_LABEL_KEYS.other)}</span>
-                      <span className="text-xs shrink-0 ml-1">{accessoryCounts.other}</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-foreground/60 mb-3">
-                  {t("model_categories_title")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveCategory("all")}
-                  className={`w-full text-left rounded-lg px-3 py-2 text-sm mb-1 ${
-                    activeCategory === "all"
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {t("model_filter_all")} ({afterAccessory.length})
-                </button>
-                <div className="space-y-1 max-h-[28vh] overflow-auto pr-1">
-                  {categoryOptions.map((c) => (
-                    <button
-                      key={c.slug}
-                      type="button"
-                      onClick={() => setActiveCategory(c.slug)}
-                      className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-                        activeCategory === c.slug
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/75 hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      <span className="truncate">{c.label}</span>
-                      <span className="text-xs shrink-0 ml-1">{c.count}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </aside>
-
-            <section>
-              {visibleProducts.length === 0 ? (
-                <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
-              ) : (
-                <ul className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5 p-0">
-                  {visibleProducts.map((p) => (
-                    <li key={p.id}>
-                      <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </div>
-        )}
+        {!loading && !error ? (
+          modelProducts.length === 0 ? (
+            <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
+          ) : (
+            <div className="space-y-10">
+              <section>
+                <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_parts_title")}</h2>
+                <p className="mb-4 text-sm text-muted-foreground">{t("model_parts_hint")}</p>
+                <ProductGrid items={parts} empty={t("woo_empty")} priceLabel={priceLabel} />
+              </section>
+              <section>
+                <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_accessories_section")}</h2>
+                <p className="mb-4 text-sm text-muted-foreground">{t("model_accessories_section_hint")}</p>
+                <ProductGrid items={sortByPrice(accessories, "asc")} empty={t("woo_empty")} priceLabel={priceLabel} />
+              </section>
+            </div>
+          )
+        ) : null}
       </div>
     </div>
   );

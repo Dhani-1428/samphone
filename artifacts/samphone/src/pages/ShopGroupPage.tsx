@@ -1,26 +1,39 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "wouter";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams, useSearch } from "wouter";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import { useLang } from "@/contexts/LanguageContext";
-import { fetchCloudProductsByGroup } from "@/lib/samphone-cloud";
+import {
+  accessoryPageHref,
+  findAccessoryPage,
+  productMatchesSubtype,
+} from "@/data/accessory-pages";
+import { fetchCloudAllProducts } from "@/lib/samphone-cloud";
+import { sortByPrice } from "@/lib/woo-product-filters";
+import { cn } from "@/lib/utils";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function ShopGroupPage() {
   const params = useParams<{ group: string }>();
+  const [, navigate] = useLocation();
+  const search = useSearch();
   const group = decodeURIComponent(params.group ?? "").trim();
+  const page = findAccessoryPage(group);
+  const typeParam = new URLSearchParams(search).get("type") ?? "";
   const { t } = useLang();
   const [items, setItems] = useState<WooProduct[] | null>(null);
+  const fetchGroup = page?.group ?? group;
 
   useEffect(() => {
     let alive = true;
     setItems(null);
-    if (!group) {
+    if (!fetchGroup) {
       setItems([]);
       return;
     }
-    void fetchCloudProductsByGroup(group, 48)
+    void fetchCloudAllProducts({ category_group: fetchGroup })
       .then((list) => {
         if (alive) setItems(list);
       })
@@ -30,25 +43,71 @@ export default function ShopGroupPage() {
     return () => {
       alive = false;
     };
-  }, [group]);
+  }, [fetchGroup]);
+
+  const subtype = page?.subtypes.find((s) => s.label === typeParam) ?? null;
+
+  const visible = useMemo(() => {
+    const list = items ?? [];
+    const filtered = subtype ? list.filter((p) => productMatchesSubtype(p, subtype)) : list;
+    return sortByPrice(filtered, "asc");
+  }, [items, subtype]);
+
+  const title = page?.label ?? group ?? t("nav_all_accessories");
 
   return (
     <div className="min-h-screen">
-      <PageVideoHero eyebrow={t("nav_accessories")} title={group || t("nav_all_accessories")} description="" />
+      <PageVideoHero eyebrow={t("nav_accessories")} title={title} description={t("home_accessories_sub")} />
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <Link href="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" />
           {t("backToHome")}
         </Link>
+
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{t("nav_all_accessories")}</p>
+        <div className="mb-6">
+          <AccessoryPageButtons className="justify-start" activeGroup={page?.group} />
+        </div>
+
+        {page && page.subtypes.length > 0 ? (
+          <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
+            <button
+              type="button"
+              onClick={() => navigate(accessoryPageHref(page.group))}
+              className={cn(
+                "border-b-2 pb-2 text-sm transition-colors",
+                !subtype ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy",
+              )}
+            >
+              {t("accessory_filter_all")}
+            </button>
+            {page.subtypes.map((s) => (
+              <button
+                key={s.label}
+                type="button"
+                onClick={() => navigate(accessoryPageHref(page.group, s.label))}
+                className={cn(
+                  "border-b-2 pb-2 text-sm transition-colors",
+                  subtype?.label === s.label
+                    ? "border-[#5A73A8] font-semibold text-navy"
+                    : "border-transparent text-muted-foreground hover:text-navy",
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {items == null ? (
           <div className="flex justify-center py-16 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        ) : items.length === 0 ? (
+        ) : visible.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("productNotFound")}</p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {items.map((p) => (
+            {visible.map((p) => (
               <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
             ))}
           </div>

@@ -431,11 +431,54 @@ export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
   };
 }
 
+export async function fetchCloudAllProducts(
+  query: Record<string, string>,
+  maxPages = 20,
+): Promise<WooProduct[]> {
+  const all: WooProduct[] = [];
+  const seen = new Set<number>();
+  let offset = 0;
+  const pageSize = 50;
+  for (let i = 0; i < maxPages; i += 1) {
+    const { items, total } = await fetchCloudProductList(
+      { ...query, offset: String(offset) },
+      pageSize,
+    );
+    for (const p of items) {
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      all.push(p);
+    }
+    offset += pageSize;
+    if (items.length < pageSize || (total > 0 && all.length >= total)) break;
+  }
+  return all;
+}
+
 export async function fetchCloudProductsByGroup(group: string, limit = 48): Promise<WooProduct[]> {
   const g = group.trim();
   if (!g) return [];
-  const page = await fetchCloudProductList({ category_group: g }, limit);
-  return page.items;
+  if (limit <= 50) {
+    const page = await fetchCloudProductList({ category_group: g }, limit);
+    return page.items;
+  }
+  return fetchCloudAllProducts({ category_group: g });
+}
+
+export async function fetchCloudProductsForModel(names: string[]): Promise<WooProduct[]> {
+  for (const name of names) {
+    const q = name.trim();
+    if (!q) continue;
+    const byModel = await fetchCloudAllProducts({ model: q });
+    if (byModel.length > 0) return byModel;
+  }
+  for (const name of names) {
+    const q = name.trim();
+    if (!q) continue;
+    const byQuery = await fetchCloudAllProducts({ q });
+    if (byQuery.length > 0) return byQuery;
+  }
+  return [];
 }
 
 export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {
