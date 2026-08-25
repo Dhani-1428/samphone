@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
-import { Loader2 } from "lucide-react";
+import { LayoutGrid, Loader2 } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
-import CatalogImage from "@/components/CatalogImage";
-import { FilterChip, subtypeIcon } from "@/components/AccessoryFilterChip";
+import ModelHeroBanner from "@/components/ModelHeroBanner";
+import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
+import { groupIcon, subtypeIcon } from "@/components/AccessoryFilterChip";
 import { useLang } from "@/contexts/LanguageContext";
 import {
   accessoryPageCopy,
@@ -70,13 +71,22 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
 
   const heroImages = useMemo(() => {
     const urls: string[] = [];
-    for (const p of items ?? []) {
+    const list = items ?? [];
+    if (page) {
+      for (const s of page.subtypes) {
+        const match = list.find((p) => productMatchesSubtype(p, s));
+        const src = match ? getPrimaryImageUrl(match) : null;
+        if (src && !urls.includes(src)) urls.push(src);
+        if (urls.length >= 2) return urls;
+      }
+    }
+    for (const p of list) {
       const src = getPrimaryImageUrl(p);
       if (src && !urls.includes(src)) urls.push(src);
       if (urls.length >= 2) break;
     }
     return urls;
-  }, [items]);
+  }, [items, page]);
 
   const title = page?.label ?? group ?? t("home_accessories_title");
   const countLabel =
@@ -96,78 +106,50 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
     );
   };
 
+  const headingHint = items == null ? t("woo_loading") : countLabel;
+
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
-      <div className="mx-auto w-full max-w-[1600px] space-y-6 px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <section className="overflow-hidden rounded-2xl border border-black/[0.08] bg-white px-6 py-8 sm:px-10 md:px-12">
-          <div className="grid items-center gap-8 md:grid-cols-[1fr_minmax(220px,38%)]">
-            <div>
-              <p className="mb-3 text-[13px] text-muted-foreground">
-                {t("accessory_breadcrumb_home")}
-                <span className="mx-1.5">›</span>
-                {t("home_accessories_title")}
-                <span className="mx-1.5">›</span>
-                {title}
-              </p>
-              <h1 className="font-display text-4xl font-bold tracking-tight text-navy md:text-5xl">{title}</h1>
-              <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{copy.blurb}</p>
-            </div>
-            <div className="relative mx-auto flex h-44 w-full max-w-sm items-center justify-center md:h-52">
-              <div className="absolute size-40 rounded-full bg-[#D6E4FF] md:size-48" aria-hidden />
-              <div className="absolute size-28 rounded-full bg-white/50 md:size-36" aria-hidden />
-              {heroImages[0] ? (
-                <CatalogImage
-                  src={heroImages[0]}
-                  alt=""
-                  className="relative z-[1] h-32 w-32 object-contain drop-shadow-md md:h-40 md:w-40"
-                />
-              ) : null}
-              {heroImages[1] ? (
-                <CatalogImage
-                  src={heroImages[1]}
-                  alt=""
-                  className="absolute bottom-2 right-6 z-[2] h-20 w-20 object-contain drop-shadow-md md:h-24 md:w-24"
-                />
-              ) : null}
-            </div>
-          </div>
-        </section>
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
+        <ModelHeroBanner
+          crumbs={[t("accessory_breadcrumb_home"), t("home_accessories_title"), title]}
+          title={title}
+          description={copy.blurb}
+          images={heroImages}
+        />
 
-        {page && page.subtypes.length > 0 ? (
-          <section className="sticky top-[4.5rem] z-30 rounded-2xl border border-black/[0.08] bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:px-6 xl:top-[7.5rem]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{copy.typesLabel}</p>
-              {items != null ? (
-                <p className="inline-flex items-center gap-2 text-[12px] text-muted-foreground">
-                  {countLabel}
-                  {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                </p>
-              ) : null}
-            </div>
-            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
-              <FilterChip active={!subtype} onClick={goAll}>
-                {t("accessory_filter_all")}
-              </FilterChip>
+        <CatalogBackLink />
+
+        <section>
+          <CatalogSectionHeading
+            icon={groupIcon(page?.group ?? title)}
+            title={page && page.subtypes.length > 0 ? copy.typesLabel : title}
+            hint={headingHint}
+          />
+          {page && page.subtypes.length > 0 ? (
+            <div className="mb-6 flex flex-wrap gap-2">
+              <CatalogTypeChip active={!subtype} onClick={goAll} icon={LayoutGrid}>
+                {t("model_filter_all")}
+              </CatalogTypeChip>
               {page.subtypes.map((s) => (
-                <FilterChip
+                <CatalogTypeChip
                   key={s.label}
                   active={subtype?.label === s.label}
                   onClick={() => goType(s.label)}
                   icon={subtypeIcon(s.label)}
                 >
                   {s.label}
-                </FilterChip>
+                </CatalogTypeChip>
               ))}
             </div>
-          </section>
-        ) : items != null ? (
-          <p className="text-sm text-muted-foreground">{countLabel}</p>
-        ) : null}
+          ) : null}
+        </section>
 
         <div>
           {items == null ? (
-            <div className="flex justify-center py-16 text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin" />
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="text-sm font-medium">{t("woo_loading")}</p>
             </div>
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>

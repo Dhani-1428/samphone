@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
-import { Link, useParams } from "wouter";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { useParams } from "wouter";
 import { allSlugs } from "@/data/categories";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
@@ -14,11 +14,13 @@ import {
   fetchCategoryBySlug,
   fetchProductsByCategory,
   WooCommerceFetchError,
+  getPrimaryImageUrl,
   type WooProduct,
 } from "@/lib/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import PageVideoHero from "@/components/PageVideoHero";
+import ModelHeroBanner from "@/components/ModelHeroBanner";
+import { CatalogBackLink } from "@/components/CatalogPageChrome";
 
 const imgPool = [productCase, productCharger, productScreen];
 
@@ -156,27 +158,33 @@ export default function CategoryPage() {
     configured && !wooLoading && !catalogError && wooList.length === 0;
   const showNotFound = !configured && !staticMeta && !wooLoading;
 
-  return (
-    <div className="min-h-screen">
-      <PageVideoHero
-        eyebrow={`Home / ${parent}`}
-        title={label}
-        description={
-          showWooGrid
-            ? `${wooList.length} products`
-            : useMock
-              ? `${mockProducts.length} products available`
-              : ""
-        }
-      />
+  const heroImages = useMemo(() => {
+    const urls: string[] = [];
+    for (const p of wooList) {
+      const src = getPrimaryImageUrl(p);
+      if (src && !urls.includes(src)) urls.push(src);
+      if (urls.length >= 2) break;
+    }
+    if (urls.length === 0 && mockProducts[0]?.img) urls.push(mockProducts[0].img);
+    return urls;
+  }, [wooList, mockProducts]);
 
+  const heroDescription = showWooGrid
+    ? `${wooList.length} products`
+    : useMock
+      ? `${mockProducts.length} products available`
+      : "";
+
+  return (
+    <div className="min-h-screen bg-[#F4F6F8]">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-7"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Home
-        </Link>
+        <ModelHeroBanner
+          crumbs={[t("breadcrumb_home"), parent, label]}
+          title={label}
+          description={heroDescription}
+          images={heroImages}
+        />
+        <CatalogBackLink />
 
         {configured && catalogError && (
           <div className="mb-8 flex max-w-lg flex-col gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-5" role="alert">

@@ -1,25 +1,45 @@
-import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import Categories from "@/components/Categories";
-import PageVideoHero from "@/components/PageVideoHero";
+import ModelHeroBanner from "@/components/ModelHeroBanner";
+import { CatalogBackLink, CatalogSectionHeading } from "@/components/CatalogPageChrome";
 import { useLang } from "@/contexts/LanguageContext";
+import { fetchCloudProductList, firstCatalogImage } from "@/lib/samphone-cloud";
 
 export default function Accessories() {
   const { t } = useLang();
+  const [images, setImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    void Promise.all([
+      fetchCloudProductList({ category_group: "Chargers" }, 6),
+      fetchCloudProductList({ category_group: "Cables" }, 6),
+    ]).then(([chargers, cables]) => {
+      if (!alive) return;
+      const urls = [firstCatalogImage(chargers.items), firstCatalogImage(cables.items)].filter(
+        (src): src is string => Boolean(src),
+      );
+      setImages(urls);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
-    <div>
-      <PageVideoHero
-        eyebrow="Home / Accessories"
-        title={t("home_accessories_title")}
-        description={t("home_accessories_sub")}
-      />
-      <div className="mx-auto w-full max-w-[1600px] px-5 pt-6 sm:px-8 md:px-10 lg:px-14">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-4 w-4" />
-          {t("backToHome")}
-        </Link>
+    <div className="min-h-screen bg-[#F4F6F8] pb-16">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
+        <ModelHeroBanner
+          crumbs={[t("accessory_breadcrumb_home"), t("home_accessories_title")]}
+          title={t("home_accessories_title")}
+          description={t("home_accessories_sub")}
+          images={images}
+        />
+        <CatalogBackLink />
+        <CatalogSectionHeading icon={Sparkles} title={t("accessory_groups_title")} hint={t("accessory_groups_hint")} />
+        <Categories showHeading={false} cardStyle="catalog" embedded />
       </div>
-      <Categories />
     </div>
   );
 }
