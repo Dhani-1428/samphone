@@ -158,6 +158,29 @@ export const HOCO_SHOP_PAGE: AccessoryNavPage = {
 
 export const ALL_SHOP_PAGES: AccessoryNavPage[] = [...ACCESSORY_NAV_PAGES, HOCO_SHOP_PAGE];
 
+const PAGE_COPY: Record<string, { blurb: string; typesLabel: string }> = {
+  Powerbanks: { blurb: "Stay charged on the go with compact, high-capacity power banks.", typesLabel: "Power bank types" },
+  Chargers: { blurb: "Power up your devices with our high-quality chargers.", typesLabel: "Charger types" },
+  Cables: { blurb: "Lightning, USB-C, HDMI and more — cables for every connection.", typesLabel: "Cable types" },
+  Headphones: { blurb: "Headphones, earphones, and wireless headsets for every day.", typesLabel: "Headphone types" },
+  Speakers: { blurb: "Portable speakers with clear sound for home and travel.", typesLabel: "Speaker types" },
+  Smartwatch: { blurb: "Smartwatches and straps, chargers, and cases to go with them.", typesLabel: "Smartwatch types" },
+  "Mobile Car Support": { blurb: "Car mounts and chargers that keep your phone ready on the road.", typesLabel: "Car support types" },
+  Laptop: { blurb: "Chargers, hubs, keyboards, and tools for laptops and PCs.", typesLabel: "Laptop types" },
+  "Audio & Microphone": { blurb: "Microphones and audio cables for recording and playback.", typesLabel: "Audio types" },
+  Electronics: { blurb: "Fans and other small electronics for desk and travel.", typesLabel: "Electronics types" },
+  Beautycare: { blurb: "Hoco beauty-care accessories for everyday use.", typesLabel: "Beautycare types" },
+  "Cell AA/AAA": { blurb: "AA, AAA, and similar cells for remotes, toys, and tools.", typesLabel: "Cell types" },
+  "Original Accessories": { blurb: "Original brand accessories, matched to the devices you already own.", typesLabel: "Accessory types" },
+  Cards: { blurb: "SIM cards and memory cards to keep you connected and storing more.", typesLabel: "Card types" },
+  "Repairing Tools": { blurb: "Screwdrivers, openers, and kits for phone and device repair.", typesLabel: "Tool types" },
+  Hoco: { blurb: "Hoco chargers, cables, cases, audio, power banks, and car accessories.", typesLabel: "Hoco types" },
+};
+
+export function accessoryPageCopy(page: AccessoryNavPage): { blurb: string; typesLabel: string } {
+  return PAGE_COPY[page.group] ?? { blurb: "Browse this collection, filtered by type.", typesLabel: `${page.label} types` };
+}
+
 export function accessoryPageHref(group: string, subtype?: string): string {
   const base = `/group/${encodeURIComponent(group)}`;
   if (!subtype) return base;
