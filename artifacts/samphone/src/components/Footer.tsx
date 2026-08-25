@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <BrandLogo className="mb-5 h-10 w-auto" />
+            <BrandLogo className="mb-5 h-8 w-auto" />
             <h4 className="mb-4 font-display text-lg font-bold">{t("footer_need_help")}</h4>
             <ul className="space-y-2.5">
               {helpLinks.map((link) => (
