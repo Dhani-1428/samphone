@@ -1,14 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Aperture,
+  ArrowLeft,
+  Battery,
+  Camera,
+  Cable,
+  CreditCard,
+  Fingerprint,
+  LayoutGrid,
+  Loader2,
+  Radio,
+  Shield,
+  Smartphone,
+  Sparkles,
+  Volume2,
+  Vibrate,
+  Wrench,
+} from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import WooProductCard from "@/components/wc/WooProductCard";
-import PageVideoHero from "@/components/PageVideoHero";
+import ModelHeroBanner from "@/components/ModelHeroBanner";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
   classifyModelProduct,
+  displayBrandName,
   modelSearchNames,
+  pickModelHeroImages,
   productBelongsToModel,
   splitModelCatalog,
   typesWithCounts,
@@ -19,11 +39,69 @@ import { cn } from "@/lib/utils";
 function parseModelName(slug: string): string {
   if (slug === "iphones") return "iPhones";
   if (slug === "ipad") return "iPad";
-  if (slug === "iwatch") return "iWatch";
-  if (slug.toLowerCase().startsWith("iphone-")) {
-    return slug.replace(/-/g, " ").replace(/^iphone/i, "iPhone");
+  if (slug === "iwatch") return "Apple Watch";
+  const titled = slug
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b([a-z])/g, (c) => c.toUpperCase());
+  return titled
+    .replace(/\bIphone\b/g, "iPhone")
+    .replace(/\bIpad\b/g, "iPad")
+    .replace(/\bIwatch\b/g, "Apple Watch")
+    .replace(/\bMacbook\b/g, "MacBook")
+    .replace(/\bSe\b/g, "SE")
+    .replace(/\bLg\b/g, "LG")
+    .replace(/\bTcl\b/g, "TCL");
+}
+
+function typeChipIcon(id: string): LucideIcon {
+  switch (id) {
+    case "screen":
+      return Smartphone;
+    case "battery":
+      return Battery;
+    case "back-glass":
+    case "housing":
+    case "jelly":
+    case "antishock":
+    case "flip":
+    case "ring":
+    case "magsafe":
+    case "design":
+      return Smartphone;
+    case "front-cam":
+    case "rear-cam":
+      return Camera;
+    case "cam-lens":
+    case "lens-3in1":
+      return Aperture;
+    case "charging-flex":
+    case "main-flex":
+    case "side-buttons":
+      return Cable;
+    case "speaker":
+      return Volume2;
+    case "fingerprint":
+      return Fingerprint;
+    case "vibrator":
+      return Vibrate;
+    case "sim-tray":
+    case "sim-reader":
+      return CreditCard;
+    case "antenna":
+      return Radio;
+    case "full-glue":
+    case "privacy":
+    case "normal-glass":
+    case "curved-full-glue":
+    case "watch-glass":
+      return Shield;
+    case "other-accessories":
+      return Sparkles;
+    default:
+      return LayoutGrid;
   }
-  return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty: string; priceLabel: string }) {
@@ -53,33 +131,56 @@ function TypeChips({
   chips: { id: string; label: string; count: number }[];
 }) {
   if (chips.length === 0) return null;
+  const items: { id: string | null; label: string; Icon: LucideIcon }[] = [
+    { id: null, label: allLabel, Icon: LayoutGrid },
+    ...chips.map((c) => ({ id: c.id, label: c.label, Icon: typeChipIcon(c.id) })),
+  ];
   return (
-    <div className="mb-5 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
-      <button
-        type="button"
-        onClick={() => onSelect(null)}
-        className={cn(
-          "border-b-2 pb-2 text-sm transition-colors",
-          !selected ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy",
-        )}
-      >
-        {allLabel}
-      </button>
-      {chips.map((c) => (
-        <button
-          key={c.id}
-          type="button"
-          onClick={() => onSelect(c.id)}
-          className={cn(
-            "border-b-2 pb-2 text-sm transition-colors",
-            selected === c.id
-              ? "border-[#5A73A8] font-semibold text-navy"
-              : "border-transparent text-muted-foreground hover:text-navy",
-          )}
-        >
-          {c.label}
-        </button>
-      ))}
+    <div className="mb-6 flex flex-wrap gap-2">
+      {items.map((c) => {
+        const active = selected === c.id;
+        const Icon = c.Icon;
+        return (
+          <button
+            key={c.id ?? "all"}
+            type="button"
+            onClick={() => onSelect(c.id)}
+            aria-pressed={active}
+            className={cn(
+              "relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-lg border px-3.5 text-sm font-medium transition-colors",
+              active
+                ? "border-transparent bg-[#4A6FA8] text-white"
+                : "border-black/[0.12] bg-white text-[#3E5480] hover:border-[#4A6FA8]/40",
+            )}
+          >
+            {active ? <span className="absolute inset-x-0 bottom-0 h-[3px] bg-sam" aria-hidden /> : null}
+            <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+            {c.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function SectionHeading({
+  icon: Icon,
+  title,
+  hint,
+}: {
+  icon: LucideIcon;
+  title: string;
+  hint: string;
+}) {
+  return (
+    <div className="mb-4 flex items-start gap-3">
+      <span className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sam text-white">
+        <Icon className="h-5 w-5" strokeWidth={2.2} />
+      </span>
+      <div>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-navy">{title}</h2>
+        <p className="mt-0.5 text-sm text-[#5B6B86]">{hint}</p>
+      </div>
     </div>
   );
 }
@@ -127,7 +228,7 @@ export default function ModelCatalogPage() {
   const modelProducts = useMemo(() => {
     if (model) return remote ?? [];
     const familyLabel = parseModelName(family);
-    const brandLabel = parseModelName(brand);
+    const brandLabel = displayBrandName(brand);
     return products.filter(
       (p) => productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`),
     );
@@ -136,6 +237,7 @@ export default function ModelCatalogPage() {
   const { parts, accessories } = useMemo(() => splitModelCatalog(modelProducts), [modelProducts]);
   const partChips = useMemo(() => typesWithCounts(parts, "part"), [parts]);
   const accChips = useMemo(() => typesWithCounts(accessories, "accessory"), [accessories]);
+  const heroImages = useMemo(() => pickModelHeroImages(modelProducts), [modelProducts]);
 
   const visibleParts = useMemo(
     () => (partType ? parts.filter((p) => classifyModelProduct(p).typeId === partType) : parts),
@@ -146,27 +248,33 @@ export default function ModelCatalogPage() {
     [accessories, accType],
   );
 
-  const brandName = parseModelName(brand);
+  const brandName = displayBrandName(brand);
   const familyName = parseModelName(family);
   const title = modelLabel ?? `${brandName} ${familyName}`;
+  const crumbBrand =
+    brand === "iphone" && /^(ipad|iwatch|macbook)/i.test(family) ? "Apple" : brandName;
   const loading = model ? remote == null : catalogLoading;
   const error = model ? null : catalogError;
   const priceLabel = t("woo_price_na");
 
   return (
-    <div className="min-h-screen">
-      <PageVideoHero
-        eyebrow={modelLabel ? `Home / ${brandName} / ${modelLabel}` : `Home / ${brandName} / ${familyName}`}
-        title={title}
-        description={model ? t("model_page_hint") : t("model_accessories_hint")}
-      />
-
+    <div className="min-h-screen bg-[#F4F6F8]">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        <ModelHeroBanner
+          crumbs={[t("breadcrumb_home"), crumbBrand, title]}
+          title={title}
+          description={model ? t("model_page_hint") : t("model_accessories_hint")}
+          images={heroImages}
+        />
+
         <Link
           href="/"
-          className="mb-7 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
+          className="mb-8 mt-6 inline-flex items-center gap-2.5 text-sm font-medium text-navy transition-colors hover:text-[#4A6FA8]"
         >
-          <ArrowLeft className="h-4 w-4" /> {t("backToHome")}
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-sam text-sam">
+            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </span>
+          {t("backToHome")}
         </Link>
 
         {loading ? (
@@ -185,16 +293,18 @@ export default function ModelCatalogPage() {
             <div className="space-y-10">
               {parts.length > 0 ? (
                 <section>
-                  <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_parts_title")}</h2>
-                  <p className="mb-4 text-sm text-muted-foreground">{t("model_parts_hint")}</p>
+                  <SectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
                   <TypeChips allLabel={t("model_filter_all")} selected={partType} onSelect={setPartType} chips={partChips} />
                   <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
                 </section>
               ) : null}
               {accessories.length > 0 ? (
                 <section>
-                  <h2 className="mb-1 font-display text-xl font-bold text-foreground">{t("model_accessories_section")}</h2>
-                  <p className="mb-4 text-sm text-muted-foreground">{t("model_accessories_section_hint")}</p>
+                  <SectionHeading
+                    icon={Sparkles}
+                    title={t("model_accessories_section")}
+                    hint={t("model_accessories_section_hint")}
+                  />
                   <TypeChips allLabel={t("model_filter_all")} selected={accType} onSelect={setAccType} chips={accChips} />
                   <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
                 </section>

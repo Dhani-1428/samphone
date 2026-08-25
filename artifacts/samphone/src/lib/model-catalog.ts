@@ -1,5 +1,30 @@
-import type { WooProduct } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
+
+export function displayBrandName(slug: string): string {
+  const key = slug.toLowerCase();
+  const map: Record<string, string> = {
+    iphone: "iPhone",
+    apple: "Apple",
+    samsung: "Samsung",
+    xiaomi: "Xiaomi",
+    honor: "Honor",
+    motorola: "Motorola",
+    oneplus: "OnePlus",
+    oppo: "Oppo",
+    realme: "Realme",
+    vivo: "Vivo",
+    huawei: "Huawei",
+    alcatel: "Alcatel",
+    tcl: "TCL",
+    zte: "ZTE",
+    nokia: "Nokia",
+    lg: "LG",
+    "google-pixel": "Google Pixel",
+    google: "Google Pixel",
+  };
+  return map[key] ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function modelSearchNames(brand: string, modelSlug: string): string[] {
   const raw = modelSlug.replace(/-/g, " ").replace(/\s+/g, " ").trim();
@@ -386,4 +411,51 @@ export function splitModelCatalog(products: WooProduct[]): { parts: WooProduct[]
     parts: sortByTypeThenPrice(parts, "part"),
     accessories: sortByTypeThenPrice(accessories, "accessory"),
   };
+}
+
+const HERO_TYPE_PREF = ["housing", "back-glass"];
+const HERO_FALLBACK_SKIP = new Set([
+  "charging-flex",
+  "side-buttons",
+  "main-flex",
+  "speaker",
+  "vibrator",
+  "sim-reader",
+  "antenna",
+  "fingerprint",
+  "screen",
+]);
+
+/** Prefer housing / back-glass shots so the banner shows the device, not LCD/flex crops. */
+export function pickModelHeroImages(products: WooProduct[], max = 2): string[] {
+  const ranked = products
+    .map((p) => {
+      const url = getPrimaryImageUrl(p);
+      if (!url) return null;
+      const { kind, typeId } = classifyModelProduct(p);
+      const pref = HERO_TYPE_PREF.indexOf(typeId);
+      const score = pref >= 0 ? 200 - pref * 15 : kind === "part" ? 50 : 10;
+      return { url, typeId, score };
+    })
+    .filter((x): x is { url: string; typeId: string; score: number } => x != null)
+    .sort((a, b) => b.score - a.score);
+
+  const urls: string[] = [];
+  const usedTypes = new Set<string>();
+  for (const item of ranked) {
+    if (!HERO_TYPE_PREF.includes(item.typeId)) continue;
+    if (urls.includes(item.url) || usedTypes.has(item.typeId)) continue;
+    urls.push(item.url);
+    usedTypes.add(item.typeId);
+    if (urls.length >= max) return urls;
+  }
+  if (urls.length > 0) return urls;
+
+  for (const item of ranked) {
+    if (HERO_FALLBACK_SKIP.has(item.typeId)) continue;
+    if (urls.includes(item.url)) continue;
+    urls.push(item.url);
+    if (urls.length >= 1) return urls;
+  }
+  return ranked[0] ? [ranked[0].url] : [];
 }
