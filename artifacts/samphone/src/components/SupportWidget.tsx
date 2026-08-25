@@ -34,7 +34,7 @@ export default function SupportWidget() {
       <SheetTrigger asChild>
         <button
           type="button"
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#5A73A8] text-white shadow-lg md:bottom-8 md:right-8"
+          className="fixed bottom-6 left-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#5A73A8] text-white shadow-lg md:bottom-8 md:left-8"
           aria-label={t("support_open")}
           data-testid="button-support-widget"
         >
