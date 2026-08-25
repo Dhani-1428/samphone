@@ -16,6 +16,7 @@ import {
   User,
   X,
 } from "lucide-react";
+import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import BrandLogo from "@/components/BrandLogo";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
@@ -312,17 +313,13 @@ export default function MobileNavDrawer({
           />
         </div>
 
-        <Link
-          href="/accessories"
-          onClick={onClose}
-          className="mb-5 flex h-12 w-full items-center justify-between rounded-lg bg-sam px-4 text-white"
-        >
-          <span className="inline-flex items-center gap-2 text-[15px] font-bold">
+        <div className="mb-5">
+          <p className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold text-brand-dark dark:text-white">
             <LayoutGrid className="h-4 w-4" />
             {t("nav_all_accessories")}
-          </span>
-          <ChevronRight className="h-5 w-5" />
-        </Link>
+          </p>
+          <AccessoryPageButtons onNavigate={onClose} className="grid grid-cols-2 gap-2 [&>a]:min-w-0 [&>a]:w-full" />
+        </div>
 
         <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">{t("nav_browse_by")}</p>
         <div className="relative mb-4 grid grid-cols-2 gap-2">

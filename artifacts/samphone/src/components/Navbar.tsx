@@ -3,7 +3,8 @@ import { Link, useLocation } from "wouter";
 import { ShoppingBag, Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
-import { smartphonesColumns, accessoriesColumns, cardsColumns } from "@/data/categories";
+import AccessoryPageButtons from "@/components/AccessoryPageButtons";
+import { smartphonesColumns } from "@/data/categories";
 import {
   APPLE_IPHONE_MODELS,
   APPLE_WATCH_MODELS,
@@ -1725,53 +1726,9 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
 }
 
 function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
-  const { t } = useLang();
-  const columns: { title: string; items: { label: string; href: string }[] }[] = [
-    {
-      title: t("woo_categories_label"),
-      items: [
-        { label: t("nav_bar_accessories"), href: "/accessories" },
-        { label: t("nav_bar_protection"), href: "/accessories" },
-        { label: t("nav_bar_computing"), href: "/multi-brand" },
-        { label: t("nav_bar_store"), href: "/store" },
-        { label: t("nav_bar_devices"), href: "/smartphones" },
-        { label: t("nav_bar_laptops"), href: "/tablets" },
-      ],
-    },
-    ...accessoriesColumns.map((col) => ({
-      title: col.title,
-      items: col.items.map((item) => ({ label: item.label, href: `/category/${item.slug}` })),
-    })),
-    ...cardsColumns.map((col) => ({
-      title: col.title,
-      items: col.items.map((item) => ({ label: item.label, href: `/category/${item.slug}` })),
-    })),
-  ];
-
   return (
     <div className={`${navShell} py-6`}>
-      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 xl:grid-cols-5">
-        {columns.map((column) => (
-          <div key={column.title} className="border-b border-r border-black/[0.06] px-4 py-4">
-            <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
-              {column.title}
-            </div>
-            <ul className="space-y-2">
-              {column.items.map((item) => (
-                <li key={`${column.title}-${item.href}-${item.label}`}>
-                  <Link
-                    href={item.href}
-                    onClick={onClose}
-                    className="text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <AccessoryPageButtons onNavigate={onClose} />
     </div>
   );
 }
