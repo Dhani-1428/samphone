@@ -60,11 +60,25 @@ function isAllowedWooPath(path: string): boolean {
   return normalized === "products" || normalized.startsWith("products/");
 }
 
-type Upstream = {
-  status: number;
-  text: () => Promise<string>;
-  headers: { get: (name: string) => string | null };
-};
+function httpGet(url: string): Promise<{ status: number; body: string; contentType: string }> {
+  const https = require("https") as typeof import("https");
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
+      const chunks: Buffer[] = [];
+      incoming.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      incoming.on("end", () => {
+        resolve({
+          status: incoming.statusCode ?? 0,
+          body: Buffer.concat(chunks).toString("utf8"),
+          contentType: String(incoming.headers["content-type"] || "application/json; charset=utf-8"),
+        });
+      });
+    });
+    req.on("error", reject);
+  });
+}
 
 async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; consumerSecret: string }) {
   const qs = new URLSearchParams({
@@ -76,13 +90,9 @@ async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; c
     consumer_key: cfg.consumerKey,
     consumer_secret: cfg.consumerSecret,
   });
-  const upstream = (await fetch(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-  })) as unknown as Upstream;
-  const body = await upstream.text();
+  const upstream = await httpGet(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`);
   if (upstream.status < 200 || upstream.status >= 300) throw new Error("Banner media request failed");
-  const data = JSON.parse(body) as Array<{
+  const data = JSON.parse(upstream.body) as Array<{
     id?: number;
     source_url?: string;
     alt_text?: string;
@@ -152,13 +162,12 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
     qs.set("consumer_key", cfg.consumerKey);
     qs.set("consumer_secret", cfg.consumerSecret);
     const target = `${cfg.storeUrl}/wp-json/wc/v3/${subPath}?${qs.toString()}`;
-    const upstream = (await fetch(target, { method: "GET", headers: { Accept: "application/json" } })) as unknown as Upstream;
-    const body = await upstream.text();
+    const upstream = await httpGet(target);
     if (res.writableEnded) return;
     res.statusCode = upstream.status;
-    res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/json; charset=utf-8");
+    res.setHeader("Content-Type", upstream.contentType);
     res.setHeader("Cache-Control", "private, max-age=60");
-    res.end(body);
+    res.end(upstream.body);
   } catch {
     sendJson(res, 500, { error: "Function error" });
   }

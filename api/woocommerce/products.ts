@@ -6,12 +6,6 @@ type ApiRes = {
   end: (body: string) => void;
 };
 
-type Upstream = {
-  status: number;
-  text: () => Promise<string>;
-  headers: { get: (name: string) => string | null };
-};
-
 function sendJson(res: ApiRes, status: number, body: unknown): void {
   if (res.writableEnded) return;
   res.statusCode = status;
@@ -25,6 +19,26 @@ function cfg() {
   const consumerSecret = String(process.env.WOOCOMMERCE_CONSUMER_SECRET || "").trim();
   if (!storeUrl || !consumerKey || !consumerSecret) return null;
   return { storeUrl, consumerKey, consumerSecret };
+}
+
+function httpGet(url: string): Promise<{ status: number; body: string; contentType: string }> {
+  const https = require("https") as typeof import("https");
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
+      const chunks: Buffer[] = [];
+      incoming.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      incoming.on("end", () => {
+        resolve({
+          status: incoming.statusCode ?? 0,
+          body: Buffer.concat(chunks).toString("utf8"),
+          contentType: String(incoming.headers["content-type"] || "application/json; charset=utf-8"),
+        });
+      });
+    });
+    req.on("error", reject);
+  });
 }
 
 export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
@@ -48,14 +62,11 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
     const qs = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
     qs.set("consumer_key", c.consumerKey);
     qs.set("consumer_secret", c.consumerSecret);
-    const upstream = (await fetch(`${c.storeUrl}/wp-json/wc/v3/products?${qs.toString()}`, {
-      headers: { Accept: "application/json" },
-    })) as unknown as Upstream;
-    const body = await upstream.text();
+    const upstream = await httpGet(`${c.storeUrl}/wp-json/wc/v3/products?${qs.toString()}`);
     res.statusCode = upstream.status;
-    res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/json; charset=utf-8");
+    res.setHeader("Content-Type", upstream.contentType);
     res.setHeader("Cache-Control", "private, max-age=60");
-    res.end(body);
+    res.end(upstream.body);
   } catch {
     sendJson(res, 500, { error: "Function error" });
   }

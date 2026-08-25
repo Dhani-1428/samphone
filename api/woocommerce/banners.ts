@@ -6,13 +6,6 @@ type ApiRes = {
   end: (body: string) => void;
 };
 
-/** Vercel function TS uses a Node `Response` type without fetch methods. */
-type Upstream = {
-  status: number;
-  text: () => Promise<string>;
-  headers: { get: (name: string) => string | null };
-};
-
 function sendJson(res: ApiRes, status: number, body: unknown): void {
   if (res.writableEnded) return;
   res.statusCode = status;
@@ -26,6 +19,25 @@ function cfg() {
   const consumerSecret = String(process.env.WOOCOMMERCE_CONSUMER_SECRET || "").trim();
   if (!storeUrl || !consumerKey || !consumerSecret) return null;
   return { storeUrl, consumerKey, consumerSecret };
+}
+
+function httpGet(url: string): Promise<{ status: number; body: string }> {
+  const https = require("https") as typeof import("https");
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
+      const chunks: Buffer[] = [];
+      incoming.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+      incoming.on("end", () => {
+        resolve({
+          status: incoming.statusCode ?? 0,
+          body: Buffer.concat(chunks).toString("utf8"),
+        });
+      });
+    });
+    req.on("error", reject);
+  });
 }
 
 export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
@@ -48,10 +60,7 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
       consumer_key: c.consumerKey,
       consumer_secret: c.consumerSecret,
     });
-    const upstream = (await fetch(`${c.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`, {
-      headers: { Accept: "application/json" },
-    })) as unknown as Upstream;
-    const body = await upstream.text();
+    const upstream = await httpGet(`${c.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`);
     if (upstream.status < 200 || upstream.status >= 300) {
       sendJson(res, 502, { error: "Failed to load homepage banners" });
       return;
@@ -64,7 +73,7 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
       title?: { rendered?: string };
     }> = [];
     try {
-      data = JSON.parse(body) as typeof data;
+      data = JSON.parse(upstream.body) as typeof data;
     } catch {
       sendJson(res, 502, { error: "Failed to load homepage banners" });
       return;

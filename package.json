@@ -8,7 +8,8 @@
     "vercel:env": "node scripts/merge-vercel-env.mjs",
     "build": "npx -y pnpm@10.33.2 run typecheck && npx -y pnpm@10.33.2 -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck": "npx -y pnpm@10.33.2 run typecheck:libs && npx -y pnpm@10.33.2 -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "typecheck:vercel-api": "tsc -p api/tsconfig.json --noEmit",
+    "typecheck": "npx -y pnpm@10.33.2 run typecheck:libs && npx -y pnpm@10.33.2 run typecheck:vercel-api && npx -y pnpm@10.33.2 -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
   "devDependencies": {
