@@ -1601,28 +1601,12 @@ function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily
   return columns;
 }
 
-function brandPageSlug(partsSlug: string): string {
-  const s = partsSlug.toLowerCase();
-  if (s.includes("iphone") || s.includes("apple")) return "apple";
-  if (s.includes("samsung")) return "samsung";
-  if (s.includes("xiaomi")) return "xiaomi";
-  if (s.includes("honor")) return "honor";
-  if (s.includes("motorola")) return "motorola";
-  if (s.includes("oneplus") || s.includes("one-plus")) return "oneplus";
-  if (s.includes("oppo")) return "oppo";
-  if (s.includes("realme")) return "realme";
-  if (s.includes("vivo")) return "vivo";
-  return s.replace(/-parts$/i, "") || s;
-}
-
 function BrandMegaPanel({
   brand,
   onClose,
-  seeAllLabel,
 }: {
   brand: NavBrandGroup | null;
   onClose: () => void;
-  seeAllLabel: string;
 }) {
   if (!brand) return null;
   const families = brand.items.filter((item) => (item.children?.length ?? 0) > 0);
@@ -1630,7 +1614,6 @@ function BrandMegaPanel({
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const columns = packMegaColumns(brand, families);
   const manyCols = columns.length >= 5;
-  const seeAllBrandHref = `/brand/${brandPageSlug(brand.brand.slug)}`;
 
   return (
     <div className={`${navShell} py-6`}>
@@ -1651,15 +1634,13 @@ function BrandMegaPanel({
             >
               {column.map((family) => {
                 const models = family.children ?? [];
-                const preview = models.slice(0, 5);
-                const seeAllHref = `/model/${brandRoute}/${family.slug}`;
                 return (
                 <div key={`${brand.brand.slug}-${family.slug}`}>
                   <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
                     {family.label}
                   </div>
                   <ul className="space-y-2">
-                    {preview.map((model, midx) => (
+                    {models.map((model, midx) => (
                       <li key={`${family.slug}-${midx}-${model.slug}`}>
                         <Link
                           href={
@@ -1678,17 +1659,6 @@ function BrandMegaPanel({
                         </Link>
                       </li>
                     ))}
-                    {models.length > 5 ? (
-                      <li>
-                        <Link
-                          href={seeAllHref}
-                          onClick={onClose}
-                          className="text-[13px] font-semibold text-[#5A73A8] hover:underline"
-                        >
-                          {seeAllLabel}
-                        </Link>
-                      </li>
-                    ) : null}
                   </ul>
                 </div>
                 );
@@ -1698,7 +1668,7 @@ function BrandMegaPanel({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
-          {looseItems.slice(0, 5).map((item) => (
+          {looseItems.map((item) => (
             <Link
               key={item.slug}
               href={item.href ?? `/category/${item.slug}`}
@@ -1710,20 +1680,11 @@ function BrandMegaPanel({
           ))}
         </div>
       )}
-      <div className="mt-4 flex justify-center">
-        <Link
-          href={seeAllBrandHref}
-          onClick={onClose}
-          className="inline-flex h-10 items-center rounded-md bg-sam px-5 text-[13px] font-bold text-white hover:bg-[#E89A1C]"
-        >
-          {seeAllLabel}
-        </Link>
-      </div>
     </div>
   );
 }
 
-function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAllLabel: string }) {
+function OthersMegaPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className={`${navShell} py-2`}>
       <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -1736,7 +1697,7 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
               {brand.name}
             </div>
             <ul className="space-y-2">
-              {brand.models.slice(0, 5).map((model) => {
+              {brand.models.map((model) => {
                 const slug = slugifyModelLabel(model.label);
                 return (
                   <li key={`${brand.slug}-${slug}`}>
@@ -1755,17 +1716,6 @@ function OthersMegaPanel({ onClose, seeAllLabel }: { onClose: () => void; seeAll
                   </li>
                 );
               })}
-              {(brand.seeAllHref || brand.models.length > 5) ? (
-                <li>
-                  <Link
-                    href={brand.seeAllHref ?? `/brand/${brand.slug}`}
-                    onClick={onClose}
-                    className="text-[13px] font-semibold text-[#5A73A8] hover:underline"
-                  >
-                    {seeAllLabel}
-                  </Link>
-                </li>
-              ) : null}
             </ul>
           </div>
         ))}
@@ -2515,9 +2465,9 @@ export default function Navbar() {
             {openDropdown === "categories" ? (
               <AllCategoriesMegaPanel onClose={closeMenu} />
             ) : openDropdown === "others" ? (
-              <OthersMegaPanel onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
+              <OthersMegaPanel onClose={closeMenu} />
             ) : (
-              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} seeAllLabel={t("nav_mega_see_all")} />
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
             )}
           </motion.div>
         )}
@@ -2532,6 +2482,7 @@ export default function Navbar() {
         onOpenCart={openCart}
         theme={theme}
         onToggleTheme={toggleTheme}
+        brandGroups={brandGroups}
       />
     </header>
   );

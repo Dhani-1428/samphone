@@ -22,7 +22,190 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
+import type { NavBrandGroup } from "@/lib/woo-category-nav";
 import { cn } from "@/lib/utils";
+
+const MODEL_PREVIEW = 5;
+
+const BRAND_ALIASES: Record<string, string[]> = {
+  apple: ["apple", "iphone"],
+  samsung: ["samsung"],
+  xiaomi: ["xiaomi"],
+  honor: ["honor"],
+  motorola: ["motorola"],
+  oneplus: ["oneplus", "one plus"],
+  oppo: ["oppo"],
+  realme: ["realme"],
+  vivo: ["vivo"],
+};
+
+function catalogBrandForModelRoutes(partsSlug: string): string {
+  const s = partsSlug.toLowerCase();
+  if (s === "iphone-parts") return "iphone";
+  if (s === "samsung-parts") return "samsung";
+  if (s === "honor-parts") return "honor";
+  return s.replace(/-parts$/i, "") || s;
+}
+
+function slugifyModelLabel(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
+function findBrandGroup(groups: NavBrandGroup[], slug: string): NavBrandGroup | undefined {
+  const keys = (BRAND_ALIASES[slug] ?? [slug]).map((k) => k.toLowerCase());
+  return groups.find((g) => {
+    const label = g.brand.label.toLowerCase();
+    const s = g.brand.slug.toLowerCase();
+    return keys.some((k) => label.includes(k) || s.includes(k));
+  });
+}
+
+function brandHasModelList(
+  slug: string,
+  browse: "brands" | "others",
+  brandGroups: NavBrandGroup[],
+) {
+  if (browse === "others") {
+    return (NAV_OTHER_BRANDS.find((b) => b.slug === slug)?.models.length ?? 0) > 0;
+  }
+  const group = findBrandGroup(brandGroups, slug);
+  if (!group) return false;
+  return group.items.some((item) => (item.children?.length ?? 0) > 0) || group.items.length > 0;
+}
+
+function DrawerBrandModels({
+  browse,
+  slug,
+  brandGroups,
+  onClose,
+  seeAllLabel,
+}: {
+  browse: "brands" | "others";
+  slug: string;
+  brandGroups: NavBrandGroup[];
+  onClose: () => void;
+  seeAllLabel: string;
+}) {
+  if (browse === "others") {
+    const brand = NAV_OTHER_BRANDS.find((b) => b.slug === slug);
+    if (!brand) return null;
+    const preview = brand.models.slice(0, MODEL_PREVIEW);
+    const seeAllHref = brand.seeAllHref ?? `/brand/${brand.slug}`;
+    return (
+      <div className="mb-3 rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
+        <ul className="space-y-2">
+          {preview.map((model) => {
+            const modelSlug = slugifyModelLabel(model.label);
+            return (
+              <li key={`${brand.slug}-${modelSlug}`}>
+                <Link
+                  href={`/model/${brand.slug}/models/${modelSlug}`}
+                  onClick={onClose}
+                  className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+                >
+                  {model.label}
+                </Link>
+              </li>
+            );
+          })}
+          {brand.models.length > MODEL_PREVIEW ? (
+            <li>
+              <Link
+                href={seeAllHref}
+                onClick={onClose}
+                className="text-[13px] font-semibold text-[#5A73A8]"
+              >
+                {seeAllLabel}
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+      </div>
+    );
+  }
+
+  const group = findBrandGroup(brandGroups, slug);
+  if (!group) return null;
+  const families = group.items.filter((item) => (item.children?.length ?? 0) > 0);
+  const brandRoute = catalogBrandForModelRoutes(group.brand.slug);
+
+  if (families.length === 0) {
+    const preview = group.items.slice(0, MODEL_PREVIEW);
+    return (
+      <div className="mb-3 rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
+        <ul className="space-y-2">
+          {preview.map((item) => (
+            <li key={item.slug}>
+              <Link
+                href={item.href ?? `/category/${item.slug}`}
+                onClick={onClose}
+                className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+          {group.items.length > MODEL_PREVIEW ? (
+            <li>
+              <Link
+                href={`/brand/${slug}`}
+                onClick={onClose}
+                className="text-[13px] font-semibold text-[#5A73A8]"
+              >
+                {seeAllLabel}
+              </Link>
+            </li>
+          ) : null}
+        </ul>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-3 space-y-4 rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
+      {families.map((family) => {
+        const models = family.children ?? [];
+        const preview = models.slice(0, MODEL_PREVIEW);
+        return (
+          <div key={family.slug}>
+            <div className="mb-2 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[12px] font-medium text-[#1a2b4a] dark:bg-[#1B2436] dark:text-white">
+              {family.label}
+            </div>
+            <ul className="space-y-2">
+              {preview.map((model, midx) => (
+                <li key={`${family.slug}-${midx}-${model.slug}`}>
+                  <Link
+                    href={model.href ?? `/model/${brandRoute}/${family.slug}/${model.slug}`}
+                    onClick={onClose}
+                    className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+                  >
+                    {model.label}
+                  </Link>
+                </li>
+              ))}
+              {models.length > MODEL_PREVIEW ? (
+                <li>
+                  <Link
+                    href={`/model/${brandRoute}/${family.slug}`}
+                    onClick={onClose}
+                    className="text-[13px] font-semibold text-[#5A73A8]"
+                  >
+                    {seeAllLabel}
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 const PRIMARY_BRANDS = [
   { label: "Apple", slug: "apple" },
@@ -53,6 +236,7 @@ export default function MobileNavDrawer({
   onOpenCart,
   theme,
   onToggleTheme,
+  brandGroups,
 }: {
   open: boolean;
   onClose: () => void;
@@ -62,17 +246,20 @@ export default function MobileNavDrawer({
   onOpenCart: () => void;
   theme: string;
   onToggleTheme: () => void;
+  brandGroups: NavBrandGroup[];
 }) {
   const { t, lang, setLang } = useLang();
   const { user, logout } = useAuth();
   const { clearCart } = useCart();
   const [browse, setBrowse] = useState<"brands" | "others">("brands");
   const [showMore, setShowMore] = useState(false);
+  const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
       setBrowse("brands");
       setShowMore(false);
+      setExpandedSlug(null);
       return;
     }
     const prev = document.body.style.overflow;
@@ -144,6 +331,7 @@ export default function MobileNavDrawer({
             onClick={() => {
               setBrowse("brands");
               setShowMore(false);
+              setExpandedSlug(null);
             }}
             className={cn(
               "relative h-10 rounded-lg text-[14px] font-bold",
@@ -160,6 +348,7 @@ export default function MobileNavDrawer({
             onClick={() => {
               setBrowse("others");
               setShowMore(false);
+              setExpandedSlug(null);
             }}
             className={cn(
               "relative h-10 rounded-lg text-[14px] font-bold",
@@ -174,16 +363,34 @@ export default function MobileNavDrawer({
         </div>
 
         <div className="mb-3 grid grid-cols-3 gap-2">
-          {visible.map((item) => (
-            <Link
-              key={item.slug}
-              href={`/brand/${item.slug}`}
-              onClick={onClose}
-              className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] px-1 text-center text-[12px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {visible.map((item) => {
+            const expandable = brandHasModelList(item.slug, browse, brandGroups);
+            const active = expandedSlug === item.slug;
+            const tileClass = cn(
+              "flex h-11 items-center justify-center rounded-lg border px-1 text-center text-[12px] font-semibold",
+              active
+                ? "border-brand-dark bg-brand-dark text-white"
+                : "border-black/[0.1] text-brand-dark dark:border-white/15 dark:text-white",
+            );
+            if (!expandable) {
+              return (
+                <Link key={item.slug} href={`/brand/${item.slug}`} onClick={onClose} className={tileClass}>
+                  {item.label}
+                </Link>
+              );
+            }
+            return (
+              <button
+                key={item.slug}
+                type="button"
+                aria-expanded={active}
+                onClick={() => setExpandedSlug(active ? null : item.slug)}
+                className={tileClass}
+              >
+                {item.label}
+              </button>
+            );
+          })}
           {brandItems.length > 8 && !showMore ? (
             <button
               type="button"
@@ -195,6 +402,15 @@ export default function MobileNavDrawer({
             </button>
           ) : null}
         </div>
+        {expandedSlug ? (
+          <DrawerBrandModels
+            browse={browse}
+            slug={expandedSlug}
+            brandGroups={brandGroups}
+            onClose={onClose}
+            seeAllLabel={t("nav_mega_see_all")}
+          />
+        ) : null}
 
         <Link
           href="/multi-brand"
