@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
-import { ChevronRight, GitBranch, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogImage from "@/components/CatalogImage";
 import { FilterChip, subtypeIcon } from "@/components/AccessoryFilterChip";
@@ -26,7 +26,6 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   const { t } = useLang();
   const [items, setItems] = useState<WooProduct[] | null>(null);
   const fetchGroup = page?.group ?? group;
-  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -70,7 +69,6 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
 
   const goAll = () => {
     navigate(forcedGroup === "Cards" ? "/cards" : accessoryPageHref(page?.group ?? group));
-    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const goType = (label: string) => {
@@ -120,7 +118,14 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
 
         {page && page.subtypes.length > 0 ? (
           <section className="rounded-2xl border border-black/[0.08] bg-white px-5 py-4 sm:px-6">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{copy.typesLabel}</p>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{copy.typesLabel}</p>
+              {items != null ? (
+                <p className="text-[12px] text-muted-foreground">
+                  {t("accessory_product_count", { count: visible.length })}
+                </p>
+              ) : null}
+            </div>
             <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <FilterChip active={!subtype} onClick={goAll}>
                 {t("accessory_filter_all")}
@@ -137,9 +142,11 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
               ))}
             </div>
           </section>
+        ) : items != null ? (
+          <p className="text-sm text-muted-foreground">{t("accessory_product_count", { count: visible.length })}</p>
         ) : null}
 
-        <div ref={gridRef}>
+        <div>
           {items == null ? (
             <div className="flex justify-center py-16 text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -154,20 +161,6 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
             </div>
           )}
         </div>
-
-        {visible.length > 0 ? (
-          <div className="flex justify-center pt-2 pb-6">
-            <button
-              type="button"
-              onClick={goAll}
-              className="inline-flex items-center gap-3 rounded-full border border-[#5A73A8]/25 bg-[#E8EEF7] px-6 py-3 text-sm font-semibold text-[#5A73A8] transition-colors hover:bg-[#dce6f4]"
-            >
-              <GitBranch className="h-4 w-4" strokeWidth={2} />
-              {t("accessory_explore", { group: title.toLowerCase() })}
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -310,11 +310,13 @@ export function firstCatalogImage(products: WooProduct[]): string | null {
 export async function fetchCloudProductList(
   query: Record<string, string>,
   limit = 16,
-): Promise<{ items: WooProduct[]; total: number }> {
+): Promise<{ items: WooProduct[]; total: number; hasMore: boolean }> {
   const params = new URLSearchParams({ limit: String(limit), offset: "0", ...query });
   const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/products?${params.toString()}`);
   const items = mapItems(data);
-  return { items, total: typeof data.total === "number" ? data.total : items.length };
+  const total = typeof data.total === "number" ? data.total : items.length;
+  const hasMore = Boolean(data.has_more) || (total > 0 && items.length + Number(params.get("offset") || 0) < total);
+  return { items, total, hasMore };
 }
 
 export async function searchCloudProductsPage(
@@ -436,24 +438,30 @@ export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
 
 export async function fetchCloudAllProducts(
   query: Record<string, string>,
-  maxPages = 20,
+  maxPages = 400,
 ): Promise<WooProduct[]> {
   const all: WooProduct[] = [];
-  const seen = new Set<number>();
+  const seen = new Set<string>();
   let offset = 0;
   const pageSize = 50;
+  let catalogTotal = 0;
   for (let i = 0; i < maxPages; i += 1) {
-    const { items, total } = await fetchCloudProductList(
+    const { items, total, hasMore } = await fetchCloudProductList(
       { ...query, offset: String(offset) },
       pageSize,
     );
+    if (total > 0) catalogTotal = total;
     for (const p of items) {
-      if (seen.has(p.id)) continue;
-      seen.add(p.id);
+      const key = p.cloudId || `wc:${p.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       all.push(p);
     }
     offset += pageSize;
-    if (items.length < pageSize || (total > 0 && all.length >= total)) break;
+    if (items.length === 0) break;
+    if (!hasMore && items.length < pageSize) break;
+    if (catalogTotal > 0 && all.length >= catalogTotal) break;
+    if (items.length < pageSize) break;
   }
   return all;
 }
