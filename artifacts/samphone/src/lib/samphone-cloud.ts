@@ -227,11 +227,13 @@ function mapItems(raw: unknown): WooProduct[] {
       ? (raw as ListEnvelope<CloudProduct>).items!
       : [];
   const out: WooProduct[] = [];
-  const seen = new Set<number>();
+  const seen = new Set<string>();
   for (const row of items) {
     const p = mapCloudProduct(row as CloudProduct);
-    if (!p || seen.has(p.id)) continue;
-    seen.add(p.id);
+    if (!p) continue;
+    const key = p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     out.push(p);
   }
   return out;
@@ -310,13 +312,23 @@ export function firstCatalogImage(products: WooProduct[]): string | null {
 export async function fetchCloudProductList(
   query: Record<string, string>,
   limit = 16,
-): Promise<{ items: WooProduct[]; total: number; hasMore: boolean }> {
-  const params = new URLSearchParams({ limit: String(limit), offset: "0", ...query });
+): Promise<{ items: WooProduct[]; total: number; hasMore: boolean; rawCount: number }> {
+  const offset = query.offset ?? "0";
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  params.set("offset", offset);
+  for (const [k, v] of Object.entries(query)) {
+    if (k === "limit" || k === "offset") continue;
+    if (v != null && v !== "") params.set(k, v);
+  }
   const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/products?${params.toString()}`);
+  const rawCount = Array.isArray(data.items) ? data.items.length : 0;
   const items = mapItems(data);
   const total = typeof data.total === "number" ? data.total : items.length;
-  const hasMore = Boolean(data.has_more) || (total > 0 && items.length + Number(params.get("offset") || 0) < total);
-  return { items, total, hasMore };
+  const offsetNum = Number.parseInt(offset, 10) || 0;
+  const hasMore =
+    data.has_more === true || (total > 0 && offsetNum + rawCount < total);
+  return { items, total, hasMore, rawCount };
 }
 
 export async function searchCloudProductsPage(
@@ -439,6 +451,7 @@ export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
 export async function fetchCloudAllProducts(
   query: Record<string, string>,
   maxPages = 400,
+  onProgress?: (items: WooProduct[], total: number) => void,
 ): Promise<WooProduct[]> {
   const all: WooProduct[] = [];
   const seen = new Set<string>();
@@ -446,22 +459,22 @@ export async function fetchCloudAllProducts(
   const pageSize = 50;
   let catalogTotal = 0;
   for (let i = 0; i < maxPages; i += 1) {
-    const { items, total, hasMore } = await fetchCloudProductList(
+    const { items, total, hasMore, rawCount } = await fetchCloudProductList(
       { ...query, offset: String(offset) },
       pageSize,
     );
     if (total > 0) catalogTotal = total;
     for (const p of items) {
-      const key = p.cloudId || `wc:${p.id}`;
+      const key = p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
       if (seen.has(key)) continue;
       seen.add(key);
       all.push(p);
     }
+    onProgress?.(all, catalogTotal || all.length);
+    if (rawCount === 0) break;
+    if (!hasMore) break;
+    if (catalogTotal > 0 && offset + rawCount >= catalogTotal) break;
     offset += pageSize;
-    if (items.length === 0) break;
-    if (!hasMore && items.length < pageSize) break;
-    if (catalogTotal > 0 && all.length >= catalogTotal) break;
-    if (items.length < pageSize) break;
   }
   return all;
 }

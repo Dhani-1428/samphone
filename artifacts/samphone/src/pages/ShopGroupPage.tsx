@@ -25,21 +25,34 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   const typeParam = new URLSearchParams(search).get("type") ?? "";
   const { t } = useLang();
   const [items, setItems] = useState<WooProduct[] | null>(null);
+  const [catalogTotal, setCatalogTotal] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const fetchGroup = page?.group ?? group;
 
   useEffect(() => {
     let alive = true;
     setItems(null);
+    setCatalogTotal(0);
+    setLoadingMore(true);
     if (!fetchGroup) {
       setItems([]);
+      setLoadingMore(false);
       return;
     }
-    void fetchCloudAllProducts({ category_group: fetchGroup })
+    void fetchCloudAllProducts({ category_group: fetchGroup }, 400, (list, total) => {
+      if (!alive) return;
+      setCatalogTotal(total);
+      setItems([...list]);
+    })
       .then((list) => {
-        if (alive) setItems(list);
+        if (!alive) return;
+        setItems(list);
+        setLoadingMore(false);
       })
       .catch(() => {
-        if (alive) setItems([]);
+        if (!alive) return;
+        setItems((prev) => prev ?? []);
+        setLoadingMore(false);
       });
     return () => {
       alive = false;
@@ -66,6 +79,10 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   }, [items]);
 
   const title = page?.label ?? group ?? t("home_accessories_title");
+  const countLabel =
+    !subtype && loadingMore && catalogTotal > (items?.length ?? 0)
+      ? t("accessory_product_count_of", { count: items?.length ?? 0, total: catalogTotal })
+      : t("accessory_product_count", { count: visible.length });
 
   const goAll = () => {
     navigate(forcedGroup === "Cards" ? "/cards" : accessoryPageHref(page?.group ?? group));
@@ -80,7 +97,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8]">
+    <div className="min-h-screen bg-[#F4F6F8] pb-28">
       <div className="mx-auto w-full max-w-[1600px] space-y-6 px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <section className="overflow-hidden rounded-2xl border border-black/[0.08] bg-white px-6 py-8 sm:px-10 md:px-12">
           <div className="grid items-center gap-8 md:grid-cols-[1fr_minmax(220px,38%)]">
@@ -117,16 +134,17 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
         </section>
 
         {page && page.subtypes.length > 0 ? (
-          <section className="rounded-2xl border border-black/[0.08] bg-white px-5 py-4 sm:px-6">
+          <section className="sticky top-[4.5rem] z-30 rounded-2xl border border-black/[0.08] bg-white/95 px-5 py-4 shadow-sm backdrop-blur sm:px-6 xl:top-[7.5rem]">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">{copy.typesLabel}</p>
               {items != null ? (
-                <p className="text-[12px] text-muted-foreground">
-                  {t("accessory_product_count", { count: visible.length })}
+                <p className="inline-flex items-center gap-2 text-[12px] text-muted-foreground">
+                  {countLabel}
+                  {loadingMore ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                 </p>
               ) : null}
             </div>
-            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
               <FilterChip active={!subtype} onClick={goAll}>
                 {t("accessory_filter_all")}
               </FilterChip>
@@ -143,7 +161,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
             </div>
           </section>
         ) : items != null ? (
-          <p className="text-sm text-muted-foreground">{t("accessory_product_count", { count: visible.length })}</p>
+          <p className="text-sm text-muted-foreground">{countLabel}</p>
         ) : null}
 
         <div>
@@ -154,9 +172,14 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-4">
+            <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
               {visible.map((p) => (
-                <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+                <WooProductCard
+                  key={p.cloudId || `${p.id}-${p.slug}`}
+                  product={p}
+                  priceUnavailableLabel={t("woo_price_na")}
+                  compact
+                />
               ))}
             </div>
           )}

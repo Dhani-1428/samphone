@@ -21,6 +21,8 @@ const PLACEHOLDER =
 interface WooProductCardProps {
   product: WooProduct;
   priceUnavailableLabel: string;
+  /** Tighter catalog tile used on accessory group pages. */
+  compact?: boolean;
 }
 
 function isRecent(product: WooProduct) {
@@ -33,7 +35,7 @@ function isServicePack(product: WooProduct) {
   return /\b(battery|screen|lcd|oled|digitizer|flex|housing|camera|speaker|charging)\b/i.test(product.name);
 }
 
-export default function WooProductCard({ product, priceUnavailableLabel }: WooProductCardProps) {
+export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
   const [colorIdx, setColorIdx] = useState(0);
   const { user } = useAuth();
@@ -61,7 +63,7 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
       : null;
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-black/[0.04] transition-shadow hover:shadow-md dark:ring-white/10">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-card">
       <button
         type="button"
         onClick={(e) => {
@@ -76,20 +78,28 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
         <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "")} />
       </button>
 
-      <div className="relative px-3 pt-3">
-        <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
-          {recent && (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
-              {t("badge_new")}
-            </span>
-          )}
-          {service && (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
-              {t("badge_service")}
-            </span>
-          )}
-        </div>
-        <Link href={productHref} className="block aspect-square">
+      {product.brand && compact ? (
+        <p className="absolute right-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-foreground/70">
+          {product.brand}
+        </p>
+      ) : null}
+
+      <div className={cn("relative", compact ? "px-4 pt-8" : "px-3 pt-3")}>
+        {!compact ? (
+          <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
+            {recent && (
+              <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
+                {t("badge_new")}
+              </span>
+            )}
+            {service && (
+              <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
+                {t("badge_service")}
+              </span>
+            )}
+          </div>
+        ) : null}
+        <Link href={productHref} className="block aspect-square bg-white">
           <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
@@ -127,14 +137,17 @@ export default function WooProductCard({ product, priceUnavailableLabel }: WooPr
         ) : (
           <Link
             href={loginHref}
-            className="flex h-10 items-center justify-center gap-2 rounded-md bg-[#5A73A8] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#4A6494]"
+            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#5A73A8] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#4A6494]"
           >
             {t("login_for_price")}
           </Link>
         )}
         <Link href={productHref} className="mt-auto block">
-          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">{product.name}</h3>
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-medium leading-snug text-foreground">{product.name}</h3>
         </Link>
+        {compact && product.brand ? (
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
+        ) : null}
       </div>
     </article>
   );
