@@ -1,7 +1,6 @@
 import { type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import SupportWidget from "@/components/SupportWidget";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import BackToTopButton from "@/components/BackToTopButton";
 import CartSider from "@/components/CartSider";
@@ -17,7 +16,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         <main className="flex-1">{children}</main>
         <Footer />
         <CartSider />
-        <SupportWidget />
         <WhatsAppButton />
         <BackToTopButton />
       </div>
