@@ -1726,20 +1726,7 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
 }
 
 function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
-  return (
-    <div className={`${navShell} py-6`}>
-      <AccessoryPageButtons onNavigate={onClose} />
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <Link
-          href="/group/Hoco"
-          onClick={onClose}
-          className="inline-flex h-10 min-w-[9.5rem] items-center justify-center rounded-md border border-black/[0.1] bg-white px-3.5 text-center text-[13px] font-semibold text-brand-dark hover:border-sam hover:bg-sam hover:text-white dark:border-white/15 dark:bg-[#1B2436] dark:text-white"
-        >
-          Hoco
-        </Link>
-      </div>
-    </div>
-  );
+  return <AccessoryPageButtons variant="menu" onNavigate={onClose} />;
 }
 
 export default function Navbar() {
@@ -2328,20 +2315,35 @@ export default function Navbar() {
       </div>
 
       {/* Full brand row only on wide desktops — mobile uses the hamburger */}
-      <nav className="hidden bg-brand-dark xl:block">
+      <nav className="relative z-[55] hidden overflow-visible bg-brand-dark xl:block">
         <div className={`${navShell} flex h-[46px] items-center justify-center gap-1.5`}>
-          <button
-            type="button"
-            className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold text-white transition-colors ${
-              categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
-            }`}
-            aria-expanded={categoriesActive}
-            onClick={openCategoriesMenu}
-          >
-            <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            All Accessories
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
-          </button>
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold text-white transition-colors ${
+                categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
+              }`}
+              aria-expanded={categoriesActive}
+              onClick={openCategoriesMenu}
+            >
+              <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+              All Accessories
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+            </button>
+            <AnimatePresence>
+              {categoriesActive ? (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.14 }}
+                  className="absolute left-0 top-full z-[60] mt-1 max-h-[min(70vh,28rem)] w-64 overflow-y-auto rounded-md border border-black/[0.08] bg-white py-1 shadow-[0_12px_32px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
+                >
+                  <AllCategoriesMegaPanel onClose={closeMenu} />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
           <div className="flex min-w-0 items-center">
           {(
             [
@@ -2434,7 +2436,7 @@ export default function Navbar() {
       ) : null}
 
       <AnimatePresence>
-        {menuOpen && (
+        {menuOpen && openDropdown !== "categories" ? (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2442,15 +2444,13 @@ export default function Navbar() {
             transition={{ duration: 0.16 }}
             className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
           >
-            {openDropdown === "categories" ? (
-              <AllCategoriesMegaPanel onClose={closeMenu} />
-            ) : openDropdown === "others" ? (
+            {openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} />
             ) : (
               <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
             )}
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
       <MobileNavDrawer

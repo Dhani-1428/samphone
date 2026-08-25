@@ -318,7 +318,7 @@ export default function MobileNavDrawer({
             <LayoutGrid className="h-4 w-4" />
             {t("nav_all_accessories")}
           </p>
-          <AccessoryPageButtons onNavigate={onClose} className="grid grid-cols-2 gap-2 [&>a]:min-w-0 [&>a]:w-full" />
+          <AccessoryPageButtons variant="menu" onNavigate={onClose} className="rounded-lg border border-black/[0.08] dark:border-white/15" />
         </div>
 
         <div className="mb-5 grid grid-cols-2 gap-2">
