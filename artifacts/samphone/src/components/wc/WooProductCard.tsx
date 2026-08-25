@@ -79,7 +79,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       </button>
 
       {product.brand && compact ? (
-        <p className="absolute right-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-foreground/70">
+        <p className="absolute left-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-foreground/70">
           {product.brand}
         </p>
       ) : null}
