@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import BackToTopButton from "@/components/BackToTopButton";
+import AddedToCartPopup from "@/components/AddedToCartPopup";
 import CartSider from "@/components/CartSider";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 import WholesaleStatusBanner from "@/components/WholesaleStatusBanner";
@@ -40,6 +41,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <Footer />
       <WhatsAppButton />
       <BackToTopButton />
+      <AddedToCartPopup />
     </div>
   );
 }

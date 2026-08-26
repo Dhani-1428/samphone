@@ -29,6 +29,13 @@ function loadCartFromStorage(): Record<string, number> {
   }
 }
 
+export type CartAddedNotice = {
+  cartKey: string;
+  nonce: number;
+  name?: string;
+  img?: string | null;
+};
+
 interface CartContextValue {
   items: Record<string, number>;
   getQty: (cartKey: string) => number;
@@ -44,6 +51,9 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   setCartOpen: (open: boolean) => void;
+  lastAdded: CartAddedNotice | null;
+  announceAdded: (notice: { cartKey: string; name?: string; img?: string | null }) => void;
+  dismissAdded: () => void;
 }
 
 const CartContext =
@@ -58,6 +68,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Record<string, number>>(() =>
     typeof window !== "undefined" ? loadCartFromStorage() : {},
   );
+  const [lastAdded, setLastAdded] = useState<CartAddedNotice | null>(null);
 
   useEffect(() => {
     try {
@@ -115,6 +126,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems({});
   }, []);
 
+  const announceAdded = useCallback((notice: { cartKey: string; name?: string; img?: string | null }) => {
+    setLastAdded({
+      cartKey: notice.cartKey,
+      name: notice.name,
+      img: notice.img,
+      nonce: Date.now(),
+    });
+  }, []);
+
+  const dismissAdded = useCallback(() => {
+    setLastAdded(null);
+  }, []);
+
   const totalItems = useMemo(
     () => Object.values(items).reduce((a, n) => a + n, 0),
     [items],
@@ -138,8 +162,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
       openCart,
       closeCart,
       setCartOpen,
+      lastAdded,
+      announceAdded,
+      dismissAdded,
     }),
-    [items, getQty, totalItems, railVisible, increment, decrement, removeLine, clearCart, openCart, closeCart, setCartOpen],
+    [
+      items,
+      getQty,
+      totalItems,
+      railVisible,
+      increment,
+      decrement,
+      removeLine,
+      clearCart,
+      openCart,
+      closeCart,
+      setCartOpen,
+      lastAdded,
+      announceAdded,
+      dismissAdded,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -40,7 +40,11 @@ export default function HomeNewArrivals() {
                 <div className="flex flex-1 flex-col gap-2 px-3 pb-3">
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-navy">€{card.price.toFixed(2).replace(".", ",")}</span>
-                      <ProductCartControls cartKey={card.cartKey} variant="icon-stepper" />
+                      <ProductCartControls
+                        cartKey={card.cartKey}
+                        variant="icon-stepper"
+                        preview={{ name: card.name, img: card.img }}
+                      />
                     </div>
                   <Link href={href} className="text-[13px] font-medium text-navy line-clamp-2">
                     {card.name}

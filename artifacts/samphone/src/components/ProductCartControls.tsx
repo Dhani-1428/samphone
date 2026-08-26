@@ -1,10 +1,13 @@
+import { useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { Lock, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { getStockLevel } from "@/data/inventory";
+import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md";
@@ -15,6 +18,7 @@ export default function ProductCartControls({
   size = "sm",
   variant = "default",
   minQty = 1,
+  preview,
 }: {
   cartKey: string;
   buttonClassName?: string;
@@ -25,20 +29,31 @@ export default function ProductCartControls({
    */
   variant?: "default" | "compact" | "icon-stepper";
   minQty?: number;
+  preview?: { name?: string; img?: string | null };
 }) {
   const { user } = useAuth();
   const [loc] = useLocation();
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
-  const { getQty, increment, decrement, openCart } = useCart();
+  const { getQty, increment, decrement, announceAdded } = useCart();
   const { t } = useLang();
+  const { products } = useProductCatalog();
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
   const floor = Math.max(1, minQty ?? 1);
   const atMax = qty >= maxStock;
+  const catalogPreview = useMemo(() => {
+    const line = buildCartLinePreview(cartKey, 1, buildWooProductMap(products), user);
+    return { name: line.name, img: line.img };
+  }, [cartKey, products, user]);
   const addToCart = () => {
     const next = qty < floor ? floor : 1;
     for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
-    if (loc !== "/cart") openCart();
+    if (loc === "/cart") return;
+    announceAdded({
+      cartKey,
+      name: preview?.name || catalogPreview.name,
+      img: preview?.img ?? catalogPreview.img,
+    });
   };
 
   if (!user) {

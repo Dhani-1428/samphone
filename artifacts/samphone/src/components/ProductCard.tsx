@@ -67,7 +67,7 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
         <div className="flex items-center justify-between gap-2">
           <span className="text-lg font-bold tabular-nums text-foreground">€{price.toFixed(2).replace(".", ",")}</span>
-          <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
+          <ProductCartControls cartKey={cartKey} variant="icon-stepper" preview={{ name, img }} />
         </div>
         <Link href={productHref} className="mt-auto block">
           <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">{name}</h3>

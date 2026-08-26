@@ -84,7 +84,11 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
       </Link>
       <div className="flex w-[4.5rem] shrink-0 justify-end">{price}</div>
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-        <ProductCartControls cartKey={hit.cartKey} variant="icon-stepper" />
+        <ProductCartControls
+          cartKey={hit.cartKey}
+          variant="icon-stepper"
+          preview={{ name: hit.name, img: hit.imageSrc }}
+        />
       </div>
     </li>
   );

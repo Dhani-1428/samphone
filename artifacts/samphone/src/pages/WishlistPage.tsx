@@ -90,7 +90,11 @@ export default function WishlistPage() {
                       <Link href={row.href}>{t("viewParts")}</Link>
                     </Button>
                     {user && (
-                      <ProductCartControls cartKey={row.cartKey} variant="compact" />
+                      <ProductCartControls
+                        cartKey={row.cartKey}
+                        variant="compact"
+                        preview={{ name: row.name, img: row.img }}
+                      />
                     )}
                   </div>
                 </div>

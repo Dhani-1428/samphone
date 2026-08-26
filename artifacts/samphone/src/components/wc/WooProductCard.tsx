@@ -123,7 +123,12 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           </span>
           {showPrice && canBuyDealer ? (
             <div onClick={(e) => e.stopPropagation()}>
-              <ProductCartControls cartKey={cartKey} variant="icon-stepper" minQty={product.minOrderQty} />
+              <ProductCartControls
+                cartKey={cartKey}
+                variant="icon-stepper"
+                minQty={product.minOrderQty}
+                preview={{ name: product.name, img: imageUrl }}
+              />
             </div>
           ) : product.dealerOnly ? (
             <span className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]">{t("dealer_only")}</span>
