@@ -134,14 +134,14 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2c" ? "bg-[#2B5CB8] text-white" : "bg-[#F4F6F8] text-navy"}`}
+                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2c" ? "bg-[#111111] text-white" : "bg-[#F4F6F8] text-navy"}`}
                 onClick={() => setAccountType("b2c")}
               >
                 {t("register_personal")}
               </button>
               <button
                 type="button"
-                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2b" ? "bg-[#2B5CB8] text-white" : "bg-[#F4F6F8] text-navy"}`}
+                className={`h-10 rounded-md text-sm font-semibold ${accountType === "b2b" ? "bg-[#111111] text-white" : "bg-[#F4F6F8] text-navy"}`}
                 onClick={() => setAccountType("b2b")}
               >
                 {t("register_business")}
@@ -224,14 +224,14 @@ export default function Register() {
             </>
           ) : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#2B5CB8] text-white hover:bg-[#173A78]">
+          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#111111] text-white hover:bg-[#000000]">
             {busy ? t("woo_loading") : t("auth_submit_register")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {t("auth_has_account")}{" "}
             <Link
               href={`/login${search || ""}`}
-              className="font-semibold text-[#2B5CB8] hover:underline"
+              className="font-semibold text-[#111111] hover:underline"
             >
               {t("login")}
             </Link>

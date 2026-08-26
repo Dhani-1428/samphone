@@ -25,17 +25,17 @@ export default function HomeServices() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand/40 hover:bg-muted/30"
+                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-black/30 hover:bg-muted/30"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-[#4A7AD4] to-[#1F4E9E] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-[#3A3A3A] to-[#111111] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2 font-display text-[15px] font-bold text-foreground">
                     {t(item.titleKey)}
-                    <ArrowRight className="h-4 w-4 shrink-0 text-brand opacity-0 transition-opacity group-hover:opacity-100" />
+                    <ArrowRight className="h-4 w-4 shrink-0 text-black opacity-0 transition-opacity group-hover:opacity-100" />
                   </span>
-                  <span className="mt-1 block text-sm text-muted-foreground">{t(item.subKey)}</span>
+                  <span className="mt-1 block text-sm font-semibold text-neutral-800">{t(item.subKey)}</span>
                 </span>
               </Link>
             );

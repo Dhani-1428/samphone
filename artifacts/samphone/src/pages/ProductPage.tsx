@@ -279,7 +279,7 @@ function WooProductView({
     push(
       t("woo_categories_label"),
       primaryCat.slug ? (
-        <Link href={`/category/${primaryCat.slug}`} className="text-[#2B5CB8] hover:underline">
+        <Link href={`/category/${primaryCat.slug}`} className="text-[#111111] hover:underline">
           {primaryCat.name}
         </Link>
       ) : (

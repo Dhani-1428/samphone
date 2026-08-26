@@ -44,13 +44,13 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
   const [imgOk, setImgOk] = useState(true);
 
   const price = hit.priceText ? (
-    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">{hit.priceText}</span>
+    <span className="whitespace-nowrap text-sm font-bold tabular-nums text-black">{hit.priceText}</span>
   ) : hit.priceNumber != null ? (
-    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">
+    <span className="whitespace-nowrap text-sm font-bold tabular-nums text-black">
       {formatEuroAmount(hit.priceNumber)}
     </span>
   ) : (
-    <span className="text-xs text-brand-dark/55">{t("woo_price_na")}</span>
+    <span className="text-xs font-bold text-black">{t("woo_price_na")}</span>
   );
 
   const thumb = (
@@ -65,9 +65,9 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
 
   const details = (
     <div className="min-w-0 flex-1">
-      <span className="line-clamp-2 text-sm font-medium leading-snug text-brand-dark">{hit.name}</span>
+      <span className="line-clamp-2 text-sm font-bold leading-snug text-black">{hit.name}</span>
       {hit.subtitle ? (
-        <span className="mt-0.5 block truncate text-xs text-brand/80">{hit.subtitle}</span>
+        <span className="mt-0.5 block truncate text-xs font-semibold text-neutral-700">{hit.subtitle}</span>
       ) : null}
     </div>
   );
@@ -153,7 +153,7 @@ export default function SmartSearch({
           )}
         >
           {leadingIcon ? (
-            <Search className="ml-3 h-4 w-4 shrink-0 text-brand-dark drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]" strokeWidth={2.2} />
+            <Search className="ml-3 h-4 w-4 shrink-0 text-black" strokeWidth={2.2} />
           ) : null}
           <input
             ref={inputRef}
@@ -168,7 +168,7 @@ export default function SmartSearch({
             className={cn(
               "min-w-0 flex-1 bg-transparent focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
               variant === "header"
-                ? "py-2.5 text-[15px] text-brand-dark placeholder:text-neutral-400"
+                ? "py-2.5 text-[15px] font-bold text-black placeholder:text-neutral-500"
                 : "py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
               leadingIcon ? "px-2" : "px-4",
             )}
@@ -183,7 +183,7 @@ export default function SmartSearch({
               className={cn(
                 "shrink-0 transition-colors",
                 variant === "header"
-                  ? "px-3 py-2.5 text-brand-dark hover:text-[#2F4268]"
+                  ? "px-3 py-2.5 font-bold text-black hover:text-black"
                   : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
               )}
               data-testid="button-search"
@@ -198,14 +198,14 @@ export default function SmartSearch({
       <PopoverContent
         id="search-suggestions"
         align="start"
-        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] border-black/[0.08] !bg-white p-0 !text-brand-dark shadow-[0_12px_40px_rgba(62,84,128,0.18)]"
+        className="z-[90] w-[var(--radix-popover-trigger-width)] min-w-[min(100vw-2rem,420px)] max-w-[min(100vw-2rem,560px)] border-black/[0.08] !bg-white p-0 !text-black shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
           {q.trim().length < 1 ? (
-            <p className="px-3 py-2 text-xs text-brand-dark/55">{t("search_suggestions")}</p>
+            <p className="px-3 py-2 text-xs font-bold text-black">{t("search_suggestions")}</p>
           ) : hits.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-brand-dark/55">{t("search_no_results")}</p>
+            <p className="px-3 py-2 text-sm font-bold text-black">{t("search_no_results")}</p>
           ) : (
             <ul className="text-sm">
               {hits.map((h) => (

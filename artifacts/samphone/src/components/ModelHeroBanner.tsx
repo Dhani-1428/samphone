@@ -21,7 +21,7 @@ export default function ModelHeroBanner({
               return (
                 <span key={`${c}-${i}`}>
                   {i > 0 ? <span className="mx-1.5 text-[#C48A4A]">›</span> : null}
-                  <span className={last ? "text-[#8A97AB]" : "text-[#C48A4A]"}>{c}</span>
+                  <span className={last ? "text-[#333333]" : "text-[#C48A4A]"}>{c}</span>
                 </span>
               );
             })}
@@ -31,7 +31,7 @@ export default function ModelHeroBanner({
         </div>
 
         <div className="relative mx-auto flex h-44 w-full max-w-sm items-center justify-center md:h-56">
-          <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-[#D6E4FA]/90 md:h-60 md:w-60" aria-hidden />
+          <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-[#E8E8E8]/90 md:h-60 md:w-60" aria-hidden />
           <div className="pointer-events-none absolute right-16 top-8 h-28 w-28 rounded-full bg-[#EEF3FA] md:right-20 md:h-40 md:w-40" aria-hidden />
           <div
             className="pointer-events-none absolute -right-2 top-2 h-36 w-24 opacity-[0.45] md:h-44 md:w-28"
@@ -41,7 +41,7 @@ export default function ModelHeroBanner({
             }}
             aria-hidden
           />
-          <div className="pointer-events-none absolute bottom-6 left-6 h-9 w-9 rounded-full bg-sam md:left-8 md:h-11 md:w-11" aria-hidden />
+          <div className="pointer-events-none absolute bottom-6 left-6 h-9 w-9 rounded-full bg-black md:left-8 md:h-11 md:w-11" aria-hidden />
 
           {images[0] ? (
             <CatalogImage

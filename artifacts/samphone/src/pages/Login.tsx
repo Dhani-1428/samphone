@@ -100,14 +100,14 @@ export default function Login() {
             />
           </div>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#2B5CB8] text-white hover:bg-[#173A78]">
+          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#111111] text-white hover:bg-[#000000]">
             {busy ? t("woo_loading") : t("auth_submit_login")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {t("auth_no_account")}{" "}
             <Link
               href={`/register${search || ""}`}
-              className="font-semibold text-[#2B5CB8] hover:underline"
+              className="font-semibold text-[#111111] hover:underline"
             >
               {t("auth_register_title")}
             </Link>

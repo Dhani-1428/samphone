@@ -108,7 +108,7 @@ function DrawerBrandModels({
                 <Link
                   href={`/model/${brand.slug}/models/${modelSlug}`}
                   onClick={onClose}
-                  className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+                  className="text-[14px] font-bold text-black dark:text-white"
                 >
                   {model.label}
                 </Link>
@@ -120,7 +120,7 @@ function DrawerBrandModels({
               <Link
                 href={seeAllHref}
                 onClick={onClose}
-                className="text-[13px] font-semibold text-[#2B5CB8]"
+                className="text-[14px] font-bold text-black"
               >
                 {seeAllLabel}
               </Link>
@@ -146,7 +146,7 @@ function DrawerBrandModels({
               <Link
                 href={item.href ?? `/category/${item.slug}`}
                 onClick={onClose}
-                className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+                  className="text-[14px] font-bold text-black dark:text-white"
               >
                 {item.label}
               </Link>
@@ -157,7 +157,7 @@ function DrawerBrandModels({
               <Link
                 href={`/brand/${slug}`}
                 onClick={onClose}
-                className="text-[13px] font-semibold text-[#2B5CB8]"
+                className="text-[14px] font-bold text-black"
               >
                 {seeAllLabel}
               </Link>
@@ -174,16 +174,16 @@ function DrawerBrandModels({
         const models = family.children ?? [];
         return (
           <div key={family.slug}>
-            <div className="mb-2 inline-flex rounded-full bg-[#E8F0FC] px-3 py-1 text-[12px] font-medium text-[#1a2b4a] dark:bg-[#1B2436] dark:text-white">
-              {family.label}
-            </div>
+            <p className="mb-2 text-[15px] font-extrabold uppercase tracking-wide text-black dark:text-white">
+              • {family.label}
+            </p>
             <ul className="space-y-2">
               {models.map((model, midx) => (
                 <li key={`${family.slug}-${midx}-${model.slug}`}>
                   <Link
                     href={model.href ?? `/model/${brandRoute}/${family.slug}/${model.slug}`}
                     onClick={onClose}
-                    className="text-[13px] text-[#3d4a5c] dark:text-white/80"
+                    className="text-[14px] font-bold text-black dark:text-white"
                   >
                     {model.label}
                   </Link>
@@ -271,15 +271,15 @@ export default function MobileNavDrawer({
   const visible = showMore ? brandItems : brandItems.slice(0, 8);
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex flex-col bg-white text-brand-dark dark:bg-[#12192A] dark:text-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
+    <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black dark:bg-[#12192A] dark:text-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
       <div className="flex items-center justify-between px-4 py-3">
-        <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center text-brand-dark dark:text-white" aria-label="Close">
+        <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center text-black dark:text-white" aria-label="Close">
           <X className="h-6 w-6" strokeWidth={1.8} />
         </button>
         <BrandLogo className="h-8 w-auto" onClick={onClose} />
         <button
           type="button"
-          className="relative flex h-10 w-10 items-center justify-center text-brand-dark dark:text-white"
+          className="relative flex h-10 w-10 items-center justify-center text-black dark:text-white"
           onClick={() => {
             onClose();
             onOpenCart();
@@ -303,7 +303,7 @@ export default function MobileNavDrawer({
         </div>
 
         <div className="mb-5">
-          <p className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold text-brand-dark dark:text-white">
+          <p className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold text-black dark:text-white">
             <LayoutGrid className="h-4 w-4" />
             {t("nav_all_accessories")}
           </p>
@@ -314,28 +314,28 @@ export default function MobileNavDrawer({
           <Link
             href="/phones"
             onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-black dark:border-white/15 dark:text-white"
           >
             {t("nav_smartphones")}
           </Link>
           <Link
             href="/tablets"
             onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-black dark:border-white/15 dark:text-white"
           >
             {t("nav_tablets")}
           </Link>
           <Link
             href="/tools"
             onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-black dark:border-white/15 dark:text-white"
           >
             Tools
           </Link>
           <Link
             href="/new"
             onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-black dark:border-white/15 dark:text-white"
           >
             {t("nav_new")}
           </Link>
@@ -352,12 +352,12 @@ export default function MobileNavDrawer({
             }}
             className={cn(
               "relative h-10 rounded-lg text-[14px] font-bold",
-              browse === "brands" ? "bg-brand-dark text-white" : "border border-brand-dark text-brand-dark",
+              browse === "brands" ? "bg-black text-white" : "border border-black text-black",
             )}
           >
             {t("nav_brands")}
             {browse === "brands" ? (
-              <span className="absolute -bottom-1.5 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[7px] border-x-transparent border-t-brand-dark" />
+              <span className="absolute -bottom-1.5 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[7px] border-x-transparent border-t-black" />
             ) : null}
           </button>
           <button
@@ -369,12 +369,12 @@ export default function MobileNavDrawer({
             }}
             className={cn(
               "relative h-10 rounded-lg text-[14px] font-bold",
-              browse === "others" ? "bg-brand-dark text-white" : "border border-brand-dark text-brand-dark",
+              browse === "others" ? "bg-black text-white" : "border border-black text-black",
             )}
           >
             {t("nav_bar_others")}
             {browse === "others" ? (
-              <span className="absolute -bottom-1.5 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[7px] border-x-transparent border-t-brand-dark" />
+              <span className="absolute -bottom-1.5 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[7px] border-x-transparent border-t-black" />
             ) : null}
           </button>
         </div>
@@ -386,8 +386,8 @@ export default function MobileNavDrawer({
             const tileClass = cn(
               "flex h-11 items-center justify-center rounded-lg border px-1 text-center text-[12px] font-semibold uppercase tracking-wide",
               active
-                ? "border-brand-dark bg-brand-dark text-white"
-                : "border-black/[0.1] text-brand-dark dark:border-white/15 dark:text-white",
+                ? "border-black bg-black text-white"
+                : "border-black/[0.1] text-black dark:border-white/15 dark:text-white",
             );
             if (!expandable) {
               return (
@@ -412,7 +412,7 @@ export default function MobileNavDrawer({
             <button
               type="button"
               onClick={() => setShowMore(true)}
-              className="flex h-11 items-center justify-center gap-1 rounded-lg border border-black/[0.1] text-[12px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+              className="flex h-11 items-center justify-center gap-1 rounded-lg border border-black/[0.1] text-[12px] font-semibold text-black dark:border-white/15 dark:text-white"
             >
               {t("nav_more_brands")}
               <ChevronDown className="h-3.5 w-3.5" />
@@ -432,7 +432,7 @@ export default function MobileNavDrawer({
         <Link
           href="/multi-brand"
           onClick={onClose}
-          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#E8F0FC] px-4 text-brand-dark dark:bg-[#1B2436] dark:text-white"
+          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#F3F3F3] px-4 text-black dark:bg-[#1B2436] dark:text-white"
         >
           <span className="inline-flex items-center gap-2 text-[14px] font-bold">
             <LayoutGrid className="h-4 w-4" />
@@ -441,7 +441,7 @@ export default function MobileNavDrawer({
           <ChevronRight className="h-5 w-5" />
         </Link>
 
-        <Link href="/wishlist" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+        <Link href="/wishlist" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
               <Heart className="h-5 w-5" />
@@ -451,7 +451,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
-        <Link href="/compare" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+        <Link href="/compare" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
               <Repeat2 className="h-5 w-5" />
@@ -461,7 +461,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
-        <a href="tel:+351937119295" className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+        <a href="tel:+351937119295" className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Phone className="h-5 w-5" />
             {t("phone")}
@@ -469,7 +469,7 @@ export default function MobileNavDrawer({
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </a>
 
-        <div className="flex h-12 items-center justify-between border-b border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+        <div className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             {t("nav_dark_mode")}
@@ -481,7 +481,7 @@ export default function MobileNavDrawer({
             onClick={onToggleTheme}
             className={cn(
               "relative h-6 w-11 rounded-full transition-colors",
-              theme === "dark" ? "bg-brand-dark" : "bg-slate-300",
+              theme === "dark" ? "bg-black" : "bg-slate-300",
             )}
           >
             <span
@@ -493,7 +493,7 @@ export default function MobileNavDrawer({
           </button>
         </div>
 
-        <label className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white">
+        <label className="flex h-12 w-full items-center justify-between text-black dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Globe className="h-5 w-5" />
             {LANG_OPTIONS.find((o) => o.id === lang)?.label ?? lang}
@@ -513,7 +513,7 @@ export default function MobileNavDrawer({
 
         {user ? (
           <>
-            <Link href="/account" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+            <Link href="/account" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
               <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
                 <User className="h-5 w-5" />
                 {t("auth_my_account")}
@@ -527,14 +527,14 @@ export default function MobileNavDrawer({
                 logout();
                 onClose();
               }}
-              className="flex h-12 w-full items-center justify-between text-brand-dark dark:text-white"
+              className="flex h-12 w-full items-center justify-between text-black dark:text-white"
             >
               <span className="text-[14px] font-semibold">{t("auth_logout")}</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
             </button>
           </>
         ) : (
-          <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-brand-dark dark:border-white/10 dark:text-white">
+          <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
             <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
               <User className="h-5 w-5" />
               {t("login")}
@@ -543,11 +543,11 @@ export default function MobileNavDrawer({
           </Link>
         )}
 
-        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#E8F0FC] px-4 py-3 dark:bg-[#1B2436]">
-          <ShieldCheck className="h-8 w-8 shrink-0 text-brand-dark dark:text-white" />
+        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#F3F3F3] px-4 py-3 dark:bg-[#1B2436]">
+          <ShieldCheck className="h-8 w-8 shrink-0 text-black dark:text-white" />
           <div>
-            <p className="text-[14px] font-bold text-brand-dark dark:text-white">{t("nav_secure_shopping")}</p>
-            <p className="text-[12px] text-brand-dark/70 dark:text-white/70">{t("nav_secure_shopping_sub")}</p>
+            <p className="text-[14px] font-bold text-black dark:text-white">{t("nav_secure_shopping")}</p>
+            <p className="text-[12px] text-black/70 dark:text-white/70">{t("nav_secure_shopping_sub")}</p>
           </div>
         </div>
       </div>

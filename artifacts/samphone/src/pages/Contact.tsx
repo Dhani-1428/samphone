@@ -49,7 +49,7 @@ export default function Contact() {
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">Send us a Message</h2>
             {submitted ? (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
-                <CheckCircle className="w-16 h-16 text-[#2B5CB8] mb-4" />
+                <CheckCircle className="w-16 h-16 text-[#111111] mb-4" />
                 <h3 className="text-xl font-display font-bold text-foreground mb-2">Message Sent!</h3>
                 <p className="text-muted-foreground">We'll get back to you within 24 hours.</p>
               </motion.div>

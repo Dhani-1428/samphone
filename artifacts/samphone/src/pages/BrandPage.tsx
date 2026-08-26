@@ -49,7 +49,7 @@ function FilterSection({
     <div className="border-b border-black/[0.07] pb-4">
       <button
         type="button"
-        className="flex w-full items-center justify-between py-3 text-[13px] font-bold uppercase tracking-wide text-[#1a2b4a]"
+        className="flex w-full items-center justify-between py-3 text-[13px] font-bold uppercase tracking-wide text-black"
         onClick={() => setOpen((v) => !v)}
       >
         {title}
@@ -94,10 +94,10 @@ function Sidebar({
     <aside className="w-full shrink-0 lg:w-60 xl:w-64">
       <div className="rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-[15px] font-bold text-[#1a2b4a]">Filters</span>
+          <span className="text-[15px] font-bold text-black">Filters</span>
           <button
             type="button"
-            className="text-[12px] text-[#F2B33F] hover:underline"
+            className="text-[12px] text-[#111111] hover:underline"
             onClick={() =>
               onChange({
                 minPrice: null,
@@ -118,7 +118,7 @@ function Sidebar({
               type="checkbox"
               checked={filters.inStock}
               onChange={(e) => onChange({ ...filters, inStock: e.target.checked })}
-              className="accent-[#F2B33F]"
+              className="accent-[#111111]"
             />
             In stock only
           </label>
@@ -127,7 +127,7 @@ function Sidebar({
               type="checkbox"
               checked={filters.onSale}
               onChange={(e) => onChange({ ...filters, onSale: e.target.checked })}
-              className="accent-[#F2B33F]"
+              className="accent-[#111111]"
             />
             On sale
           </label>
@@ -145,7 +145,7 @@ function Sidebar({
                   minPrice: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#F2B33F]"
+              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#111111]"
             />
             <span className="text-muted-foreground">–</span>
             <input
@@ -158,7 +158,7 @@ function Sidebar({
                   maxPrice: e.target.value ? Number(e.target.value) : null,
                 })
               }
-              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#F2B33F]"
+              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#111111]"
             />
           </div>
         </FilterSection>
@@ -176,7 +176,7 @@ function Sidebar({
                       e.target.checked ? next.add(slug) : next.delete(slug);
                       onChange({ ...filters, categories: next });
                     }}
-                    className="accent-[#F2B33F]"
+                    className="accent-[#111111]"
                   />
                   <span className="leading-tight">{name}</span>
                 </label>
@@ -204,14 +204,14 @@ function SortBar({
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground">
-        <strong className="font-semibold text-[#1a2b4a]">{total}</strong> products
+        <strong className="font-semibold text-black">{total}</strong> products
       </p>
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Sort:</span>
         <select
           value={sort}
           onChange={(e) => onSort(e.target.value as SortKey)}
-          className="rounded-md border border-black/[0.12] bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#F2B33F]"
+          className="rounded-md border border-black/[0.12] bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#111111]"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: low → high</option>
@@ -290,7 +290,7 @@ export default function BrandPage() {
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       {/* Breadcrumb + hero */}
-      <div className="bg-[#1F4E9E] py-8 text-white">
+      <div className="bg-[#111111] py-8 text-white">
         <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
           <p className="mb-1 text-sm text-white/50">
             <Link href="/" className="hover:text-white/80">Home</Link>
@@ -316,7 +316,7 @@ export default function BrandPage() {
           <SlidersHorizontal className="h-4 w-4" />
           Filters
           {activeFilterCount > 0 && (
-            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#F2B33F] text-[11px] text-white">
+            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#111111] text-[11px] text-white">
               {activeFilterCount}
             </span>
           )}
@@ -352,7 +352,7 @@ export default function BrandPage() {
 
             {loading && brandProducts.length === 0 ? (
               <div className="flex items-center justify-center py-24">
-                <Loader2 className="h-8 w-8 animate-spin text-[#F2B33F]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#111111]" />
               </div>
             ) : !woo ? (
               <p className="py-16 text-center text-muted-foreground">
@@ -363,7 +363,7 @@ export default function BrandPage() {
                 <p className="text-muted-foreground">No products match your filters.</p>
                 <button
                   type="button"
-                  className="mt-3 text-sm text-[#F2B33F] hover:underline"
+                  className="mt-3 text-sm text-[#111111] hover:underline"
                   onClick={() =>
                     setFilters({
                       minPrice: null,

@@ -58,6 +58,14 @@ export function modelSearchNames(brand: string, modelSlug: string): string[] {
     const rest = raw.replace(/^iphone\s*/i, "");
     names.add(`iPhone ${rest}`.replace(/\s+/g, " ").trim());
     names.add(raw.replace(/^iphone\b/i, "iPhone"));
+    if (/\d{2}g$/i.test(rest)) {
+      names.add(raw.replace(/g$/i, "").trim());
+      names.add(`iPhone ${rest.replace(/g$/i, "")}`.trim());
+    }
+    if (/^17 air$/i.test(rest)) {
+      names.add("iPhone Air");
+      names.add("iPhone 17 Air");
+    }
   }
   if (brand === "samsung" || /\bgalaxy\s*tab|\btab\s+[as]\d/i.test(raw)) {
     if (/\btab\b/i.test(raw)) {
@@ -112,6 +120,18 @@ function isTabletModelQuery(value: string): boolean {
 
 /** Keep iPhone 15 from matching iPhone 15 Pro / Plus / Pro Max. */
 export function productBelongsToModel(p: WooProduct, modelLabel: string): boolean {
+  const labels = [modelLabel];
+  const trimmed = modelLabel.trim();
+  if (/^iphone\s+\d{2}g$/i.test(trimmed)) {
+    labels.push(trimmed.replace(/g$/i, "").trim());
+  }
+  if (/^iphone\s+17\s*air$/i.test(trimmed)) {
+    labels.push("iPhone Air");
+  }
+  return labels.some((label) => productMatchesModelLabel(p, label));
+}
+
+function productMatchesModelLabel(p: WooProduct, modelLabel: string): boolean {
   const h = norm(
     `${p.name} ${p.modelLabel ?? ""} ${p.sku ?? ""} ${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${p.specs?.Model ?? ""} ${(p.categories ?? []).map((c) => c.name).join(" ")}`,
   );

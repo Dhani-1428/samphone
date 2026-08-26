@@ -82,12 +82,12 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         {!compact ? (
           <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
             {recent && (
-              <span className="rounded-full bg-[#D6E4FA] px-2 py-0.5 text-[10px] font-semibold text-[#2B5CB8]">
+              <span className="rounded-full bg-[#E8E8E8] px-2 py-0.5 text-[10px] font-semibold text-[#111111]">
                 {t("badge_new")}
               </span>
             )}
             {service && (
-              <span className="rounded-full bg-[#D6E4FA] px-2 py-0.5 text-[10px] font-semibold text-[#2B5CB8]">
+              <span className="rounded-full bg-[#E8E8E8] px-2 py-0.5 text-[10px] font-semibold text-[#111111]">
                 {t("badge_service")}
               </span>
             )}
@@ -126,7 +126,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               <ProductCartControls cartKey={cartKey} variant="icon-stepper" minQty={product.minOrderQty} />
             </div>
           ) : product.dealerOnly ? (
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#2B5CB8]">{t("dealer_only")}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]">{t("dealer_only")}</span>
           ) : null}
         </div>
         <Link href={productHref} className="mt-auto block">

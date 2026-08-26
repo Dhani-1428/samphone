@@ -30,7 +30,7 @@ export default function BackToTopButton() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 12 }}
           onClick={goTop}
-          className="fixed bottom-[5.75rem] right-6 z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-brand-dark text-white shadow-lg hover:bg-navy md:bottom-[6.75rem] md:right-8"
+          className="fixed bottom-[5.75rem] right-6 z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-lg hover:bg-neutral-800 md:bottom-[6.75rem] md:right-8"
           aria-label={t("back_to_top")}
           data-testid="button-back-to-top"
         >

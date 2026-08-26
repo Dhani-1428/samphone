@@ -172,7 +172,7 @@ export default function Smartphones() {
                 className={cn(
                   "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "phones"
-                    ? "border-[#2B5CB8] text-navy"
+                    ? "border-[#111111] text-navy"
                     : "border-transparent text-muted-foreground hover:text-navy",
                 )}
               >
@@ -184,7 +184,7 @@ export default function Smartphones() {
                 className={cn(
                   "border-b-2 pb-1 text-sm font-semibold transition-colors",
                   section === "tablets"
-                    ? "border-[#2B5CB8] text-navy"
+                    ? "border-[#111111] text-navy"
                     : "border-transparent text-muted-foreground hover:text-navy",
                 )}
               >
@@ -208,7 +208,7 @@ export default function Smartphones() {
                 autoComplete="off"
                 enterKeyHint="search"
                 aria-label={t("smartphones_search_brand")}
-                className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B5CB8]/30"
+                className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#111111]/30"
               />
               {searchInput ? (
                 <button

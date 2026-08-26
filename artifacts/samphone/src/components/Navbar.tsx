@@ -8,12 +8,7 @@ import { smartphonesColumns } from "@/data/categories";
 import {
   APPLE_IPHONE_MODELS,
   APPLE_WATCH_MODELS,
-  APPLE_IPAD_PRO_MODELS,
-  APPLE_IPAD_MINI_MODELS,
-  APPLE_IPAD_MODELS,
-  APPLE_IPAD_AIR_MODELS,
-  APPLE_MACBOOK_MODELS,
-  APPLE_NEW_MODELS,
+  APPLE_IPAD_NAV_MODELS,
 } from "@/data/nav-apple";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -115,10 +110,11 @@ function slugifyModelLabel(label: string): string {
     .replace(/-{2,}/g, "-");
 }
 
-function isNewNavModel(label: string) {
-  if (APPLE_NEW_MODELS.has(label)) return true;
-  if (/^(iPhone |iPad |Series |Ultra |Air |Pro |13"|12'')/i.test(label)) return false;
-  return /\b(2025|2026)\b/i.test(label);
+function appleColumnTitle(column: { slug?: string }[]): string {
+  const slug = column[0]?.slug?.toLowerCase() ?? "";
+  if (slug === "iphones") return "I PHONE";
+  if (slug === "iwatch") return "APPLE WATCH";
+  return "I PAD";
 }
 
 /** Map Woo / nav category slug (e.g. iphone-parts) to :brand segment used by ModelCatalogPage. */
@@ -1591,19 +1587,17 @@ function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
     slugs.map((slug) => bySlug.get(slug)).filter((family): family is NavFamily => Boolean(family));
-  const columns = [
+  return [
     pick("iphones"),
+    pick("ipad", "ipad-pro", "ipad-mini", "ipad-air", "ipads"),
     pick("iwatch"),
-    pick("ipad-pro", "ipad-mini"),
-    pick("ipad", "ipad-air"),
-    pick("macbook"),
   ].filter((col) => col.length > 0);
-  const used = new Set(columns.flat().map((family) => family.slug));
-  for (const leftover of families.filter((family) => !used.has(family.slug))) {
-    columns.push([leftover]);
-  }
-  return columns;
 }
+
+const megaLinkClass =
+  "block text-[14px] font-bold leading-snug text-black hover:underline dark:text-white";
+const megaHeadingClass =
+  "mb-3 text-[15px] font-extrabold uppercase tracking-wide text-black dark:text-white";
 
 function BrandMegaPanel({
   brand,
@@ -1617,58 +1611,83 @@ function BrandMegaPanel({
   const looseItems = brand.items.filter((item) => !(item.children?.length ?? 0));
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const columns = packMegaColumns(brand, families);
-  const manyCols = columns.length >= 5;
+  const apple = isAppleBrand(brand);
+  const colCount = Math.max(columns.length, 1);
 
   return (
-    <div className={`${navShell} py-6`}>
+    <div className={`${navShell} bg-white py-6 dark:bg-[#12192A]`}>
       {families.length > 0 ? (
         <div
-          className={`flex flex-wrap overflow-hidden border-x border-t border-black/[0.06] ${
-            manyCols ? "" : "justify-center"
+          className={`grid overflow-hidden bg-white dark:bg-[#12192A] ${
+            apple || colCount === 3
+              ? "grid-cols-1 sm:grid-cols-3"
+              : colCount >= 5
+                ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"
+                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
           }`}
         >
-          {columns.map((column, colIdx) => (
-            <div
-              key={`${brand.brand.slug}-col-${colIdx}-${column.map((f) => f.slug).join("-")}`}
-              className={`flex flex-col gap-8 border-b border-r border-black/[0.06] px-4 py-4 ${
-                manyCols
-                  ? "w-1/2 sm:w-1/3 xl:w-1/5"
-                  : "w-1/2 min-w-0 sm:w-1/3 xl:w-[260px] xl:flex-none"
-              }`}
-            >
-              {column.map((family) => {
-                const models = family.children ?? [];
-                return (
-                <div key={`${brand.brand.slug}-${family.slug}`}>
-                  <div className="mb-3 inline-flex rounded-full bg-[#E8F0FC] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
-                    {family.label}
-                  </div>
-                  <ul className="space-y-2">
-                    {models.map((model, midx) => (
-                      <li key={`${family.slug}-${midx}-${model.slug}`}>
-                        <Link
-                          href={
-                            model.href ??
-                            `/model/${brandRoute}/${family.slug}/${model.slug}`
-                          }
-                          onClick={onClose}
-                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
-                        >
-                          <span>{model.label}</span>
-                          {isNewNavModel(model.label) ? (
-                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2B5CB8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
-                              NEW
-                            </span>
-                          ) : null}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                );
-              })}
-            </div>
-          ))}
+          {columns.map((column, colIdx) => {
+            const heading = apple
+              ? appleColumnTitle(column)
+              : (column[0]?.label ?? "").toUpperCase();
+            return (
+              <div
+                key={`${brand.brand.slug}-col-${colIdx}-${column.map((f) => f.slug).join("-")}`}
+                className={`min-w-0 px-5 py-2 ${
+                  colIdx < columns.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
+                }`}
+              >
+                {apple ? (
+                  <>
+                    <p className={megaHeadingClass}>• {heading}</p>
+                    <ul className="space-y-1.5">
+                      {column.flatMap((family) =>
+                        (family.children ?? []).map((model, midx) => (
+                          <li key={`${family.slug}-${midx}-${model.slug}`}>
+                            <Link
+                              href={
+                                model.href ??
+                                `/model/${brandRoute}/${family.slug}/${model.slug}`
+                              }
+                              onClick={onClose}
+                              className={megaLinkClass}
+                            >
+                              {model.label}
+                            </Link>
+                          </li>
+                        )),
+                      )}
+                    </ul>
+                  </>
+                ) : (
+                  column.map((family) => {
+                    const models = family.children ?? [];
+                    return (
+                      <div key={`${brand.brand.slug}-${family.slug}`} className="mb-6 last:mb-0">
+                        <p className={megaHeadingClass}>• {family.label.toUpperCase()}</p>
+                        <ul className="space-y-1.5">
+                          {models.map((model, midx) => (
+                            <li key={`${family.slug}-${midx}-${model.slug}`}>
+                              <Link
+                                href={
+                                  model.href ??
+                                  `/model/${brandRoute}/${family.slug}/${model.slug}`
+                                }
+                                onClick={onClose}
+                                className={megaLinkClass}
+                              >
+                                {model.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -1677,7 +1696,7 @@ function BrandMegaPanel({
               key={item.slug}
               href={item.href ?? `/category/${item.slug}`}
               onClick={onClose}
-              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
+              className={megaLinkClass}
             >
               {item.label}
             </Link>
@@ -1690,17 +1709,15 @@ function BrandMegaPanel({
 
 function OthersMegaPanel({ onClose }: { onClose: () => void }) {
   return (
-    <div className={`${navShell} py-2`}>
-      <div className="grid grid-cols-2 overflow-hidden border-x border-t border-black/[0.06] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {NAV_OTHER_BRANDS.map((brand) => (
+    <div className={`${navShell} bg-white py-4 dark:bg-[#12192A]`}>
+      <div className="grid grid-cols-2 bg-white sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 dark:bg-[#12192A]">
+        {NAV_OTHER_BRANDS.map((brand, idx) => (
           <div
             key={brand.slug}
-            className="border-b border-r border-black/[0.06] px-4 py-4 last:border-r-0"
+            className={`px-5 py-3 ${idx % 5 !== 4 ? "xl:border-r xl:border-black/15" : ""}`}
           >
-            <div className="mb-3 inline-flex rounded-full bg-[#EEF1F4] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
-              {brand.name}
-            </div>
-            <ul className="space-y-2">
+            <p className={megaHeadingClass}>• {brand.name.toUpperCase()}</p>
+            <ul className="space-y-1.5">
               {brand.models.map((model) => {
                 const slug = slugifyModelLabel(model.label);
                 return (
@@ -1708,14 +1725,9 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
                     <Link
                       href={`/model/${brand.slug}/models/${slug}`}
                       onClick={onClose}
-                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
+                      className={megaLinkClass}
                     >
-                      <span>{model.label}</span>
-                      {model.isNew ? (
-                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2B5CB8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
-                          NEW
-                        </span>
-                      ) : null}
+                      {model.label}
                     </Link>
                   </li>
                 );
@@ -1776,39 +1788,19 @@ export default function Navbar() {
         items: isIphone
           ? [
               {
-                label: "iPhone",
+                label: "I PHONE",
                 slug: "iphones",
                 children: makeFamilyChildren(b.slug, "iphones", APPLE_IPHONE_MODELS),
               },
               {
-                label: "Apple Watch",
+                label: "I PAD",
+                slug: "ipad",
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_NAV_MODELS),
+              },
+              {
+                label: "APPLE WATCH",
                 slug: "iwatch",
                 children: makeFamilyChildren(b.slug, "iwatch", APPLE_WATCH_MODELS),
-              },
-              {
-                label: "iPad Pro",
-                slug: "ipad-pro",
-                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_PRO_MODELS),
-              },
-              {
-                label: "iPad mini",
-                slug: "ipad-mini",
-                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MINI_MODELS),
-              },
-              {
-                label: "iPad",
-                slug: "ipad",
-                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MODELS),
-              },
-              {
-                label: "iPad Air",
-                slug: "ipad-air",
-                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_AIR_MODELS),
-              },
-              {
-                label: "MacBook",
-                slug: "macbook",
-                children: makeFamilyChildren(b.slug, "macbook", APPLE_MACBOOK_MODELS),
               },
             ]
           : base.toLowerCase() === "samsung"
@@ -2283,7 +2275,7 @@ export default function Navbar() {
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
-                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand-dark text-white transition-colors hover:bg-navy"
+                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand-dark text-white transition-colors hover:bg-[#173A78]"
                 aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-5 w-5" strokeWidth={2.2} />

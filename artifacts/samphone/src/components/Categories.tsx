@@ -100,7 +100,7 @@ export default function Categories({
               {cardStyle === "catalog" ? (
                 <div className="border-t border-black/[0.06] px-3 py-3">
                   <h3 className="font-display text-sm font-bold leading-tight text-navy md:text-base">{page.label}</h3>
-                  <p className="mt-0.5 text-[12px] text-[#8A97AB]">{countLabel}</p>
+                  <p className="mt-0.5 text-[12px] text-[#333333]">{countLabel}</p>
                 </div>
               ) : (
                 <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">

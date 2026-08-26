@@ -48,7 +48,7 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {helpLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-white/70 transition-colors hover:text-white">
+                  <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
                     {link.label}
                   </Link>
                 </li>
@@ -62,11 +62,11 @@ export default function Footer() {
               {serviceLinks.map((link) => (
                 <li key={link.label}>
                   {link.external ? (
-                    <a href={link.href} className="text-sm text-white/70 transition-colors hover:text-white">
+                    <a href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
                       {link.label}
                     </a>
                   ) : (
-                    <Link href={link.href} className="text-sm text-white/70 transition-colors hover:text-white">
+                    <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
                       {link.label}
                     </Link>
                   )}
@@ -80,7 +80,7 @@ export default function Footer() {
             <ul className="space-y-2.5">
               {shopLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-white/70 transition-colors hover:text-white">
+                  <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
                     {link.label}
                   </Link>
                 </li>
@@ -90,7 +90,7 @@ export default function Footer() {
 
           <div>
             <h4 className="mb-4 font-display text-lg font-bold">{lang === "pt" ? "Contacte-nos" : "Contact"}</h4>
-            <div className="mb-5 space-y-2 text-sm text-white/70">
+            <div className="mb-5 space-y-2 text-sm font-semibold text-white">
               <p>Rua da Palma N.221–223<br />1100-391 Lisboa, Portugal</p>
               <a href={`tel:${STORE_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-white">
                 <Phone className="h-4 w-4" /> {STORE_PHONE}
@@ -101,7 +101,7 @@ export default function Footer() {
             </div>
             <p className="mb-2 text-sm font-semibold">{lang === "pt" ? "Newsletter" : "Newsletter"}</p>
             {subscribed ? (
-              <p className="text-sm text-[#A8B8D6]">{lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}</p>
+              <p className="text-sm font-semibold text-white">{lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}</p>
             ) : (
               <form
                 onSubmit={(e) => {
@@ -115,12 +115,12 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#2B5CB8]"
+                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm font-semibold text-white placeholder:text-white/70 outline-none ring-1 ring-white/25 focus:ring-white"
                   data-testid="input-newsletter"
                 />
                 <button
                   type="submit"
-                  className="h-10 rounded-md bg-[#2B5CB8] px-3 text-sm font-semibold hover:bg-[#173A78]"
+                  className="h-10 rounded-md bg-white px-3 text-sm font-bold text-black hover:bg-neutral-200"
                   data-testid="button-subscribe"
                 >
                   OK
@@ -130,7 +130,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/50 md:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/20 pt-6 text-xs font-semibold text-white md:flex-row">
           <p>© {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221–223, Lisboa.</p>
           <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
             <a href={LEGAL_LINKS.privacy} className="hover:text-white" target="_blank" rel="noreferrer">

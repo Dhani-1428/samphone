@@ -25,10 +25,10 @@ export default function AccessoryPageButtons({
                 href={accessoryPageHref(page.group)}
                 onClick={onNavigate}
                 className={cn(
-                  "flex w-full items-center px-4 py-2 text-left text-[13px] leading-snug transition-colors",
+                  "flex w-full items-center px-4 py-2 text-left text-[14px] font-bold leading-snug transition-colors",
                   isActive
-                    ? "bg-[#F4F7FB] font-semibold text-[#2B5CB8]"
-                    : "text-[#3d4a5c] hover:bg-[#F4F7FB] hover:text-[#2B5CB8] dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white",
+                    ? "bg-neutral-100 text-black"
+                    : "text-black hover:bg-neutral-100 dark:text-white dark:hover:bg-white/10",
                 )}
               >
                 {page.label}
@@ -51,8 +51,8 @@ export default function AccessoryPageButtons({
             className={cn(
               "inline-flex h-10 min-w-[9.5rem] items-center justify-center rounded-md border px-3.5 text-center text-[13px] font-semibold transition-colors",
               isActive
-                ? "border-sam bg-sam text-white"
-                : "border-black/[0.1] bg-white text-brand-dark hover:border-sam hover:bg-sam hover:text-white dark:border-white/15 dark:bg-[#1B2436] dark:text-white dark:hover:border-sam dark:hover:bg-sam",
+                ? "border-black bg-black text-white"
+                : "border-black/[0.15] bg-white text-black hover:border-black hover:bg-black hover:text-white dark:border-white/15 dark:bg-[#1B2436] dark:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-black",
             )}
           >
             {page.label}
