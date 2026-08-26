@@ -32,12 +32,11 @@ const BRAND_ALIASES: Record<string, string[]> = {
   apple: ["apple", "iphone"],
   samsung: ["samsung"],
   xiaomi: ["xiaomi"],
-  honor: ["honor"],
-  motorola: ["motorola"],
-  oneplus: ["oneplus", "one plus"],
-  oppo: ["oppo"],
+  "oppo-reno": ["oppo reno", "oppo-reno"],
   realme: ["realme"],
-  vivo: ["vivo"],
+  huawei: ["huawei"],
+  oneplus: ["oneplus", "one plus"],
+  motorola: ["motorola"],
 };
 
 function catalogBrandForModelRoutes(partsSlug: string): string {
@@ -106,7 +105,7 @@ function DrawerBrandModels({
             return (
               <li key={`${brand.slug}-${modelSlug}`}>
                 <Link
-                  href={`/model/${brand.slug}/models/${modelSlug}`}
+                  href={model.href ?? `/model/${brand.slug}/models/${modelSlug}`}
                   onClick={onClose}
                   className="text-[14px] font-bold text-black dark:text-white"
                 >
@@ -201,12 +200,11 @@ const PRIMARY_BRANDS = [
   { label: "APPLE", slug: "apple" },
   { label: "SAMSUNG", slug: "samsung" },
   { label: "XIAOMI", slug: "xiaomi" },
-  { label: "HONOR", slug: "honor" },
-  { label: "MOTOROLA", slug: "motorola" },
-  { label: "ONEPLUS", slug: "oneplus" },
-  { label: "OPPO", slug: "oppo" },
+  { label: "OPPO RENO", slug: "oppo-reno" },
   { label: "REALME", slug: "realme" },
-  { label: "VIVO", slug: "vivo" },
+  { label: "HUAWEI", slug: "huawei" },
+  { label: "ONE PLUS", slug: "oneplus" },
+  { label: "MOTOROLA", slug: "motorola" },
 ] as const;
 
 function CountBadge({ count }: { count: number }) {

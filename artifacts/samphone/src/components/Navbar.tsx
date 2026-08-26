@@ -34,8 +34,6 @@ type DropdownKey = "accessories" | "cards" | "brands" | "others" | "categories" 
 function displayBrandLabel(label: string): string {
   const key = label.toLowerCase();
   if (key === "iphone") return "Apple";
-  if (key === "one plus") return "OnePlus";
-  if (key === "oppo reno") return "Oppo";
   return label;
 }
 
@@ -1720,10 +1718,10 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
                 return (
                   <li key={`${brand.slug}-${slug}`}>
                     <Link
-                      href={`/model/${brand.slug}/models/${slug}`}
-                      onClick={onClose}
-                      className={megaLinkClass}
-                    >
+                                href={model.href ?? `/model/${brand.slug}/models/${slug}`}
+                                onClick={onClose}
+                                className={megaLinkClass}
+                              >
                       {model.label}
                     </Link>
                   </li>
@@ -2201,12 +2199,11 @@ export default function Navbar() {
     apple: findBrandIdx(["apple", "iphone"]),
     samsung: findBrandIdx(["samsung"]),
     xiaomi: findBrandIdx(["xiaomi"]),
-    honor: findBrandIdx(["honor"]),
-    motorola: findBrandIdx(["motorola"]),
-    oneplus: findBrandIdx(["oneplus", "one plus"]),
-    oppo: findBrandIdx(["oppo"]),
+    oppoReno: findBrandIdx(["oppo reno", "oppo-reno"]),
     realme: findBrandIdx(["realme"]),
-    vivo: findBrandIdx(["vivo"]),
+    huawei: findBrandIdx(["huawei"]),
+    oneplus: findBrandIdx(["oneplus", "one plus"]),
+    motorola: findBrandIdx(["motorola"]),
   };
 
   const othersActive = menuOpen && openDropdown === "others";
@@ -2388,12 +2385,11 @@ export default function Navbar() {
                 { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
                 { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
                 { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
-                { label: "Honor", slug: "honor", idx: primaryBrandIdx.honor },
-                { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
-                { label: "OnePlus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
-                { label: "Oppo", slug: "oppo", idx: primaryBrandIdx.oppo },
+                { label: "Oppo Reno", slug: "oppo-reno", idx: primaryBrandIdx.oppoReno },
                 { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
-                { label: "Vivo", slug: "vivo", idx: primaryBrandIdx.vivo },
+                { label: "Huawei", slug: "huawei", idx: primaryBrandIdx.huawei },
+                { label: "One Plus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
+                { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
               ] as const
             ).map((item) => {
               const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
