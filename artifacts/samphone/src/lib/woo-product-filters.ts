@@ -181,12 +181,18 @@ export function filterSmartphoneParts(products: WooProduct[]): WooProduct[] {
   return products.filter((p) => matchesSlugSet(p, SMARTPHONE_CATEGORY_SLUGS));
 }
 
+function inSmartphonesCategory(p: WooProduct): boolean {
+  return (
+    p.categories?.some((c) => c.slug === "smartphones" || /^smartphones$/i.test(c.name)) ?? false
+  );
+}
+
 export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     const name = p.name ?? "";
-    if (!isRetailDeviceCandidate(p)) return false;
     if (isTabletLikeProduct(p) || looksLikeTabletRetailName(name)) return false;
-    // Accept clearly retail-like phone rows from API.
+    if (inSmartphonesCategory(p)) return true;
+    if (!isRetailDeviceCandidate(p)) return false;
     if (hasStorageRamPattern(name) && looksLikePhoneRetailName(name)) return true;
     if (
       matchesSlugSet(p, ALL_PHONE_CATEGORY_SLUGS) &&
@@ -198,7 +204,6 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
     return looksLikeRetailSmartphoneTitle(name);
   });
   if (out.length > 0) return out;
-  // Fallback for stores with generic categories: still keep strict retail-device candidates only.
   return sortNewest(
     products.filter((p) => isRetailDeviceCandidate(p) && !isTabletLikeProduct(p) && !looksLikeTabletRetailName(p.name ?? "")),
   );
@@ -207,14 +212,10 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
   const out = products.filter((p) => {
     const name = p.name ?? "";
-    if (!isRetailDeviceCandidate(p)) return false;
-    // Accept tablet-like names/categories and common retail rows with RAM/storage notation.
-    if (looksLikeTabletRetailName(name)) return true;
-    if (isTabletLikeProduct(p) && hasStorageRamPattern(name)) return true;
-    return isTabletLikeProduct(p);
+    if (looksLikeTabletRetailName(name) || isTabletLikeProduct(p)) return true;
+    return /\b(galaxy tab|mate\s*pad|lenovo tab|xiaomi pad|huawei tablet|samsung tablet)\b/i.test(name);
   });
   if (out.length > 0) return out;
-  // Fallback for stores where tablets are in generic categories.
   return baseDeviceProducts(products).filter((p) =>
     /\b(tablet|tab|ipad|matepad|xiaomi pad|lenovo tab|galaxy tab|modio)\b/i.test(p.name),
   );

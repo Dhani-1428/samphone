@@ -1,23 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Search, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { SMARTPHONE_FETCH_QUERIES, TABLET_FETCH_QUERIES } from "@/data/device-catalog";
 import { searchProductsQuery, type WooProduct } from "@/lib/woocommerce";
+import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
 import {
   filterCatalogForSmartphonesTab,
-  filterProductsByBrandKeyword,
-  filterSmartphoneBrand,
-  filterTabletBrand,
+  sortByPrice,
 } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
-
-const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
-const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
 
 type DeviceSection = "phones" | "tablets";
 
@@ -39,24 +34,26 @@ function sectionFromPath(path: string): DeviceSection {
   return "phones";
 }
 
+function sectionQueries(section: DeviceSection): Record<string, string>[] {
+  return section === "tablets" ? TABLET_FETCH_QUERIES : SMARTPHONE_FETCH_QUERIES;
+}
+
 export default function Smartphones() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
-  const { products, loading, error, syncingMore } = useProductCatalog();
   const [location, navigate] = useLocation();
   const routeSection = sectionFromPath(location);
   const [section, setSection] = useState<DeviceSection>(routeSection);
-  const [selected, setSelected] = useState<string | null>(null);
+
+  const [items, setItems] = useState<WooProduct[] | null>(null);
+  const [catalogTotal, setCatalogTotal] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [apiRawHits, setApiRawHits] = useState<WooProduct[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSelected(null);
-  }, [section]);
 
   useEffect(() => {
     setSection(routeSection);
@@ -66,6 +63,37 @@ export default function Smartphones() {
     const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [searchInput]);
+
+  useEffect(() => {
+    if (!woo) {
+      setItems([]);
+      setLoadingMore(false);
+      return;
+    }
+    let alive = true;
+    setItems(null);
+    setCatalogTotal(0);
+    setLoadingMore(true);
+    void fetchCloudMergedProducts(sectionQueries(section), (list, total) => {
+      if (!alive) return;
+      setCatalogTotal(total);
+      setItems([...list]);
+    })
+      .then((list) => {
+        if (!alive) return;
+        setItems(list);
+        setCatalogTotal(list.length);
+        setLoadingMore(false);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setItems((prev) => prev ?? []);
+        setLoadingMore(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [woo, section]);
 
   const clearSearch = useCallback(() => {
     setSearchInput("");
@@ -107,32 +135,27 @@ export default function Smartphones() {
     };
   }, [woo, debouncedSearch, section]);
 
-  const catalogList = useMemo(
-    () =>
-      woo
-        ? section === "phones"
-          ? filterSmartphoneBrand(products, selected)
-          : filterTabletBrand(products, selected)
-        : [],
-    [woo, products, selected, section],
-  );
+  const catalogList = useMemo(() => sortByPrice(items ?? [], "asc"), [items]);
 
   const searchResultList = useMemo(() => {
     if (!woo || !debouncedSearch || apiRawHits === null) return [];
-    return filterProductsByBrandKeyword(apiRawHits, selected);
-  }, [woo, debouncedSearch, apiRawHits, selected]);
+    return sortByPrice(apiRawHits, "asc");
+  }, [woo, debouncedSearch, apiRawHits]);
 
   const displayList = debouncedSearch ? searchResultList : catalogList;
-
-  const showCatalogSpinner = woo && loading && !debouncedSearch && catalogList.length === 0;
+  const loading = items == null;
+  const showCatalogSpinner = woo && loading && !debouncedSearch;
   const showSearchSpinner = woo && Boolean(debouncedSearch) && searchLoading;
-  const showSyncBanner = woo && syncingMore && catalogList.length > 0 && !debouncedSearch;
+  const showSyncBanner = woo && loadingMore && catalogList.length > 0 && !debouncedSearch;
+
+  const countLabel =
+    !debouncedSearch && loadingMore && catalogTotal > catalogList.length
+      ? t("accessory_product_count_of", { count: catalogList.length, total: catalogTotal })
+      : t("accessory_product_count", { count: displayList.length });
 
   const productsHeading = debouncedSearch
     ? t("smartphones_search_results", { query: debouncedSearch })
-    : selected
-      ? t("smartphones_parts_heading_selected", { brand: selected })
-      : t("smartphones_parts_heading_default");
+    : t("smartphones_parts_heading_default");
 
   return (
     <div>
@@ -197,12 +220,12 @@ export default function Smartphones() {
               ) : null}
             </div>
           </div>
-          {/* Brand cards removed as requested. */}
         </div>
       </div>
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <h2 className="mb-6 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
+        <h2 className="mb-1 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
+        <p className="mb-6 text-sm text-[#5B6B86]">{countLabel}</p>
 
         {showSyncBanner && (
           <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
@@ -231,29 +254,20 @@ export default function Smartphones() {
           </div>
         )}
 
-        {woo && !loading && error && <p className="py-8 text-sm text-destructive">{error}</p>}
-
         {woo &&
           !showCatalogSpinner &&
           !showSearchSpinner &&
-          !loading &&
-          !error &&
           !searchError &&
           displayList.length === 0 && <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>}
 
         {woo && !showSearchSpinner && !showCatalogSpinner && displayList.length > 0 && (
-          <motion.ul
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
-          >
+          <ul className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6">
             {displayList.map((p) => (
-              <motion.li key={p.id} variants={itemVariants}>
+              <li key={p.cloudId || `${p.id}-${p.slug}`}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.li>
+              </li>
             ))}
-          </motion.ul>
+          </ul>
         )}
 
         {!woo && (
