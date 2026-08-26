@@ -122,3 +122,5 @@ module.exports = async function handler(req, res) {
     res.end(JSON.stringify({ detail: "Could not reach the account service. Please try again." }));
   }
 };
+
+if (typeof module.exports === 'function') module.exports.config = { maxDuration: 30 };

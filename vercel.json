@@ -4,11 +4,6 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @workspace/samphone run build && node scripts/prepare-vercel-public.mjs && node scripts/sync-vercel-api.mjs",
   "outputDirectory": "public",
-  "functions": {
-    "api/**/*.cjs": {
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     {
       "source": "/cloud-api",

@@ -9,7 +9,7 @@
     "vercel:env": "node scripts/merge-vercel-env.mjs",
     "build": "npx -y pnpm@10.33.2 run typecheck && npx -y pnpm@10.33.2 -r --if-present run build",
     "typecheck:libs": "tsc --build",
-    "typecheck:vercel-api": "node -e \"require('fs').accessSync('api/cloud.cjs')\"",
+    "typecheck:vercel-api": "node -e \"require('fs').accessSync('api/cloud.js')\"",
     "typecheck": "npx -y pnpm@10.33.2 run typecheck:libs && npx -y pnpm@10.33.2 run typecheck:vercel-api && npx -y pnpm@10.33.2 -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,

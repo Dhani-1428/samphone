@@ -147,3 +147,5 @@ module.exports = async function handler(req, res) {
     sendJson(res, 500, { error: "Function error" });
   }
 };
+
+if (typeof module.exports === 'function') module.exports.config = { maxDuration: 30 };

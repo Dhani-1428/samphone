@@ -19,3 +19,5 @@ module.exports = function handler(req, res) {
     res.end(JSON.stringify({ error: "Function error" }));
   }
 };
+
+if (typeof module.exports === 'function') module.exports.config = { maxDuration: 30 };
