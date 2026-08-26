@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Battery,
   BatteryCharging,
   Cable,
   Car,
   CreditCard,
+  Cpu,
   Fan,
   Headphones,
   Keyboard,
@@ -51,18 +53,19 @@ export function subtypeIcon(label: string): LucideIcon {
 
 export function groupIcon(group: string): LucideIcon {
   const k = group.toLowerCase();
-  if (k.includes("powerbank") || k.includes("power bank")) return BatteryCharging;
+  if (k.includes("powerbank") || k.includes("power bank")) return Zap;
   if (k.includes("charger")) return Plug;
   if (k.includes("cable")) return Cable;
   if (k.includes("headphone")) return Headphones;
   if (k.includes("speaker")) return Speaker;
   if (k.includes("watch")) return Watch;
-  if (k.includes("car")) return Car;
+  if (k.includes("car")) return Smartphone;
   if (k.includes("laptop")) return Laptop;
   if (k.includes("audio") || k.includes("mic")) return Mic;
-  if (k.includes("electronic")) return Fan;
+  if (k.includes("electronic")) return Cpu;
   if (k.includes("beauty")) return Sparkles;
-  if (k.includes("cell") || k.includes("card")) return CreditCard;
+  if (k.includes("cell")) return Battery;
+  if (k.includes("card")) return CreditCard;
   if (k.includes("tool")) return Wrench;
   if (k.includes("hoco") || k.includes("original")) return Watch;
   return subtypeIcon(group);
