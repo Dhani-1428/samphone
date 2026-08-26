@@ -40,6 +40,11 @@ export interface WooProduct {
   brand?: string;
   /** FastAPI catalog type label (e.g. "Screen / LCD Assembly"). */
   partType?: string;
+  rating?: number;
+  reviewCount?: number;
+  catalogGroup?: string;
+  subcategory?: string;
+  modelLabel?: string;
 }
 
 export type ProductColorSwatch = {

@@ -36,6 +36,8 @@ type CloudProduct = {
   description?: string;
   categories?: { wc_id?: number; id?: number; name?: string; slug?: string }[];
   category?: string;
+  subcategory?: string;
+  model?: string;
   brand?: string;
   part_type?: string;
   leaf_category?: string;
@@ -44,6 +46,9 @@ type CloudProduct = {
   in_stock?: boolean;
   on_sale?: boolean;
   specs?: Record<string, string>;
+  rating?: number;
+  reviews?: number;
+  stock_quantity?: number;
 };
 
 type ListEnvelope<T> = { items?: T[]; total?: number; has_more?: boolean };
@@ -156,6 +161,11 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     colorSwatches: parseColorSwatches(p.color_variants),
     brand: p.brand,
     partType: (p.part_type || p.leaf_category || p.specs?.Type || "").trim() || undefined,
+    rating: typeof p.rating === "number" ? p.rating : undefined,
+    reviewCount: typeof p.reviews === "number" ? p.reviews : undefined,
+    catalogGroup: typeof p.category === "string" ? p.category : undefined,
+    subcategory: typeof p.subcategory === "string" ? p.subcategory : undefined,
+    modelLabel: typeof p.model === "string" && p.model.trim() ? p.model.trim() : undefined,
   });
 }
 

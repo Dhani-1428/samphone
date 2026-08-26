@@ -1,53 +1,32 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, Star, GitCompare, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { resolveCatalogProduct } from "@/data/catalog";
-import ProductCartControls from "@/components/ProductCartControls";
-import GuestPriceGate from "@/components/GuestPriceGate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
-import { useCompare } from "@/contexts/CompareContext";
-import { useWishlist } from "@/contexts/WishlistContext";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { hasCompareSpecs } from "@/data/device-specs";
-import ProductImageGallery from "@/components/product/ProductImageGallery";
-import Product360Viewer from "@/components/product/Product360Viewer";
-import StockBadge from "@/components/StockBadge";
-import DeliveryEstimator from "@/components/DeliveryEstimator";
-import PeopleAlsoBought from "@/components/PeopleAlsoBought";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { fetchProductById, fetchRelatedProducts, getDisplayPrice, type WooProduct } from "@/lib/woocommerce";
 import { notifyStock } from "@/lib/samphone-cloud";
-import { getWooProductDescriptionHtml } from "@/lib/woo-product-html";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
+import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
-import { getStockLevel } from "@/data/inventory";
-import { cn } from "@/lib/utils";
+import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
+import PeopleAlsoBought from "@/components/PeopleAlsoBought";
+import ProductDetailLayout from "@/components/product/ProductDetailLayout";
+import type { ProductCrumb } from "@/components/product/ProductDetailLayout";
+import Product360Viewer from "@/components/product/Product360Viewer";
 
 function parseProductCartKey(pathname: string): string | null {
   const segs = pathname.split("/").filter(Boolean);
   if (segs[0] !== "product") return null;
-  if (segs[1] === "cat" && segs.length >= 4) {
-    const slug = segs[2];
-    const id = segs[3];
-    return `cat:${slug}:${id}`;
-  }
-  if (segs.length === 3) {
-    return `${segs[1]}:${segs[2]}`;
-  }
+  if (segs[1] === "cat" && segs.length >= 4) return `cat:${segs[2]}:${segs[3]}`;
+  if (segs.length === 3) return `${segs[1]}:${segs[2]}`;
   return null;
 }
-
-const badgeColors: Record<string, string> = {
-  Bestseller: "bg-amber-500 text-white",
-  New: "bg-[#5A73A8] text-white",
-  Sale: "bg-red-500 text-white",
-  Hot: "bg-orange-500 text-white",
-};
 
 function normalizePathname(location: string): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -55,13 +34,29 @@ function normalizePathname(location: string): string {
   return location.startsWith(base) ? location.slice(base.length) || "/" : location;
 }
 
+function formatEuro(value: string | number | null | undefined): string | null {
+  if (value == null || value === "") return null;
+  const n = typeof value === "number" ? value : Number.parseFloat(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(n);
+}
+
+function groupHref(group?: string | null): string | undefined {
+  const g = (group ?? "").toLowerCase();
+  if (!g) return undefined;
+  if (g.includes("accessor")) return "/accessories";
+  if (g.includes("repair") || g.includes("tool") || g.includes("ferrament")) return "/group/Repairing Tools";
+  if (g.includes("phone part") || g.includes("smartphone")) return "/smartphones";
+  if (g.includes("card")) return "/cards";
+  if (g.includes("hoco")) return "/group/Hoco";
+  return undefined;
+}
+
 export default function ProductPage() {
   const [location] = useLocation();
   const { user } = useAuth();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { recordView } = useRecentlyViewed();
-  const { toggle, has, keys: compareKeys } = useCompare();
-  const { toggle: wishToggle, has: wishHas } = useWishlist();
   const { products: wooCatalogProducts } = useProductCatalog();
 
   const cartKey = parseProductCartKey(normalizePathname(location));
@@ -69,8 +64,7 @@ export default function ProductPage() {
   const isWooProduct = cartKey?.startsWith("woo:") ?? false;
   const wooId = useMemo(() => {
     if (!isWooProduct || !cartKey) return null;
-    const raw = cartKey.split(":")[1];
-    const id = Number(raw);
+    const id = Number(cartKey.split(":")[1]);
     return Number.isFinite(id) && id > 0 ? id : null;
   }, [cartKey, isWooProduct]);
   const [wooProduct, setWooProduct] = useState<WooProduct | null>(null);
@@ -113,410 +107,281 @@ export default function ProductPage() {
   if (isWooProduct) {
     if (wooLoading) {
       return (
-        <div className="container mx-auto px-4 py-20 text-center">
-          <p className="text-muted-foreground">{t("woo_loading")}</p>
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm">{t("woo_loading")}</p>
         </div>
       );
     }
-    if (!wooProduct) {
+    if (!wooProduct || !cartKey) {
       return (
         <div className="container mx-auto px-4 py-20 text-center">
-          <p className="text-muted-foreground mb-4">{t("productNotFound")}</p>
-          <Link href="/" className="text-primary font-medium hover:underline">
+          <p className="mb-4 text-muted-foreground">{t("productNotFound")}</p>
+          <Link href="/" className="font-medium text-primary hover:underline">
             {t("backToHome")}
           </Link>
         </div>
       );
     }
-    const swatches = wooProduct.colorSwatches ?? [];
-    const preferredSrc = swatches[colorIdx]?.image || null;
-    const gallery = (wooProduct.images ?? [])
-      .map((img) => img.src)
-      .filter((src): src is string => Boolean(src));
-    if (preferredSrc && !gallery.includes(preferredSrc)) gallery.unshift(preferredSrc);
-    const displayPrice = getDisplayPrice(wooProduct);
-    const descHtml = getWooProductDescriptionHtml(wooProduct);
-    const primaryCat = wooProduct.categories?.[0];
-    const inStock = wooProduct.stock_status !== "outofstock";
-    const categoryIds = (wooProduct.categories ?? []).map((c) => c.id);
-
-    const specRows: { label: string; value: ReactNode }[] = [];
-    const attrs = (wooProduct.attributes ?? []).filter(
-      (a) => a.visible !== false && a.name && Array.isArray(a.options) && a.options.length > 0,
-    );
-    for (const a of attrs) {
-      specRows.push({ label: a.name, value: a.options.join(", ") });
-    }
-    if (wooProduct.specs) {
-      for (const [label, value] of Object.entries(wooProduct.specs)) {
-        if (!specRows.some((r) => r.label === label)) specRows.push({ label, value });
-      }
-    }
-    if (wooProduct.sku?.trim()) {
-      specRows.push({ label: t("woo_sku"), value: wooProduct.sku.trim() });
-    }
-    if (wooProduct.categories?.length) {
-      specRows.push({
-        label: t("woo_categories_label"),
-        value: (
-          <>
-            {wooProduct.categories.map((c, i) => (
-              <span key={c.id}>
-                {i > 0 ? " · " : null}
-                <Link href={`/category/${c.slug}`} className="text-primary hover:underline">
-                  {c.name}
-                </Link>
-              </span>
-            ))}
-          </>
-        ),
-      });
-    }
-    if (specRows.length === 0 && primaryCat) {
-      specRows.push({ label: t("woo_product_type"), value: primaryCat.name });
-    }
-
     return (
-      <div className="min-h-screen">
-        <div className="container mx-auto max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
-          <Link
-            href="/"
-            className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary md:mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" /> {t("backToShopping")}
-          </Link>
-
-          <div className="grid gap-8 lg:grid-cols-12 lg:gap-10 xl:gap-12">
-            {/* Gallery */}
-            <div className="lg:col-span-5">
-              {gallery.length === 0 ? (
-                <div className="flex aspect-square items-center justify-center rounded-2xl border border-border bg-muted text-sm text-muted-foreground">
-                  —
-                </div>
-              ) : (
-                <ProductImageGallery
-                  images={gallery}
-                  productName={wooProduct.name}
-                  preferredSrc={preferredSrc}
-                />
-              )}
-            </div>
-
-            {/* Details + specs */}
-            <div className="flex flex-col lg:col-span-4">
-              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-foreground md:text-3xl lg:text-4xl">
-                {wooProduct.name}
-              </h1>
-              {primaryCat && (
-                <span className="mt-3 inline-flex w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  {primaryCat.name}
-                </span>
-              )}
-              {swatches.length > 0 ? (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-medium text-foreground">
-                    {swatches[colorIdx]?.label}
-                  </p>
-                  <ColorSwatches
-                    swatches={swatches}
-                    selected={colorIdx}
-                    onSelect={setColorIdx}
-                    max={16}
-                    size="md"
-                  />
-                </div>
-              ) : null}
-
-              {cartKey && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant={has(cartKey) ? "secondary" : "outline"}
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => toggle(cartKey)}
-                  >
-                    <GitCompare className="h-4 w-4" />
-                    {has(cartKey) ? t("compare_remove") : t("compare_add")}
-                  </Button>
-                  {compareKeys.length >= 2 && (
-                    <Button type="button" size="sm" asChild>
-                      <Link href="/compare">{t("compare_view")}</Link>
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant={wishHas(cartKey) ? "secondary" : "outline"}
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => wishToggle(cartKey)}
-                  >
-                    <Heart className={`h-4 w-4 ${wishHas(cartKey) ? "fill-red-500 text-red-500" : ""}`} />
-                    {wishHas(cartKey) ? t("wishlist_remove") : t("wishlist_save")}
-                  </Button>
-                </div>
-              )}
-
-              <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-foreground/70">
-                {t("product_details_title")}
-              </h2>
-              {specRows.length > 0 && (
-                <div className="mt-3 overflow-hidden rounded-xl border border-border">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {specRows.map((row, idx) => (
-                        <tr key={`${idx}-${row.label}`} className="border-b border-border last:border-0">
-                          <th className="w-[40%] bg-muted/40 px-4 py-3 text-left font-semibold text-foreground">
-                            {row.label}
-                          </th>
-                          <td className="px-4 py-3 text-foreground/90">{row.value}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {primaryCat && (
-                <div className="mt-8">
-                  <h3 className="text-sm font-semibold text-foreground">{t("product_compatibility")}</h3>
-                  <Link
-                    href={`/category/${primaryCat.slug}`}
-                    className="mt-1 inline-block text-sm font-medium text-primary hover:underline"
-                  >
-                    {primaryCat.name}
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Purchase card */}
-            <div className="lg:col-span-3">
-              <div className="lg:sticky lg:top-24 space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
-                {user ? (
-                  displayPrice ? (
-                    <p className="font-display text-3xl font-bold tabular-nums text-foreground md:text-4xl">
-                      €{Number(displayPrice).toFixed(2)}
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground">{t("woo_price_na")}</p>
-                  )
-                ) : (
-                  <GuestPriceGate variant="hero" />
-                )}
-
-                <div
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
-                    inStock ? "bg-[#E8F0FF] text-[#5A73A8]" : "border border-amber-500/40 bg-amber-50 text-amber-800",
-                  )}
-                >
-                  <span className={cn("h-2 w-2 shrink-0 rounded-full", inStock ? "bg-[#5A73A8]" : "bg-amber-500")} />
-                  {inStock ? t("product_in_stock") : t("notify_stock")}
-                </div>
-
-                {!inStock ? (
-                  <form
-                    className="space-y-2"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const email = notifyEmail.trim() || user?.email || "";
-                      if (!email || !wooProduct.cloudId) return;
-                      void notifyStock(wooProduct.cloudId, email)
-                        .then(() => setNotifyMsg(t("notify_stock_ok")))
-                        .catch((err) => setNotifyMsg(err instanceof Error ? err.message : t("notify_stock")));
-                    }}
-                  >
-                    <input
-                      type="email"
-                      required
-                      value={notifyEmail}
-                      onChange={(e) => setNotifyEmail(e.target.value)}
-                      placeholder={user?.email || "email"}
-                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    />
-                    <Button type="submit" variant="outline" className="w-full">
-                      {t("notify_stock")}
-                    </Button>
-                    {notifyMsg ? <p className="text-xs text-muted-foreground">{notifyMsg}</p> : null}
-                  </form>
-                ) : null}
-
-                <div className="rounded-xl bg-[#F4F6F8] p-4 text-sm text-navy">
-                  <DeliveryEstimator />
-                </div>
-
-                {cartKey && inStock ? (
-                  <div className="pt-1">
-                    <ProductCartControls cartKey={cartKey} size="md" />
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          {descHtml && (
-            <section className="mt-12 border-t border-border pt-10 md:mt-16 md:pt-12" aria-labelledby="woo-desc-heading">
-              <h2 id="woo-desc-heading" className="font-display text-2xl font-bold text-foreground md:text-3xl">
-                {t("product_description_title")}
-              </h2>
-              <div
-                className="prose prose-neutral dark:prose-invert mt-6 max-w-none text-foreground/90 prose-headings:font-display prose-a:text-primary prose-img:rounded-xl"
-                dangerouslySetInnerHTML={{ __html: descHtml }}
-              />
-            </section>
-          )}
-
-          <WooRelatedAccessoriesSlider
-            currentProductId={wooProduct.id}
-            categoryIds={categoryIds}
-            products={related.length > 0 ? related : wooCatalogProducts}
-            priceUnavailableLabel={t("woo_price_na")}
-          />
-        </div>
-      </div>
+      <WooProductView
+        cartKey={cartKey}
+        wooProduct={wooProduct}
+        related={related}
+        catalog={wooCatalogProducts}
+        colorIdx={colorIdx}
+        setColorIdx={setColorIdx}
+        notifyEmail={notifyEmail}
+        setNotifyEmail={setNotifyEmail}
+        notifyMsg={notifyMsg}
+        setNotifyMsg={setNotifyMsg}
+        userEmail={user?.email}
+      />
     );
   }
 
   if (!product || !cartKey) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <p className="text-muted-foreground mb-4">{t("productNotFound")}</p>
-        <Link href="/" className="text-primary font-medium hover:underline">
+        <p className="mb-4 text-muted-foreground">{t("productNotFound")}</p>
+        <Link href="/" className="font-medium text-primary hover:underline">
           {t("backToHome")}
         </Link>
       </div>
     );
   }
 
-  const { name, subtitle, price, oldPrice, rating, reviews, img, badge } = product;
-  const gallery = buildProductGallery(img);
-  const show360 = productSupports360View(cartKey, name);
-  const canCompare = hasCompareSpecs(cartKey);
-  const badgeChipClass = badge ? badgeColors[badge] ?? "bg-gray-500 text-white" : "";
+  const copy = buildProductCopy(
+    {
+      name: product.name,
+      brand: product.brand || product.subtitle,
+      partType: product.subtitle,
+      specs: { Condition: t("pdp_new"), Brand: product.brand || product.subtitle || "" },
+      categories: product.subtitle ? [{ id: 0, name: product.subtitle, slug: "" }] : [],
+    },
+    lang === "pt" ? "pt" : "en",
+  );
+  const gallery = buildProductGallery(product.img);
+  const show360 = productSupports360View(cartKey, product.name);
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 md:px-6 py-8">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" /> {t("backToShopping")}
+    <ProductDetailLayout
+      crumbs={[
+        { label: t("breadcrumb_home"), href: "/" },
+        { label: product.subtitle || t("home_accessories_title"), href: "/accessories" },
+        { label: product.name },
+      ]}
+      badge={product.subtitle || product.badge}
+      title={product.name}
+      rating={product.rating}
+      reviewCount={product.reviews}
+      excerpt={copy.excerpt}
+      specRows={[
+        { label: t("pdp_condition"), value: t("pdp_new") },
+        ...(product.brand || product.subtitle
+          ? [{ label: t("pdp_brand"), value: product.brand || product.subtitle || "" }]
+          : []),
+      ]}
+      gallery={gallery}
+      cartKey={cartKey}
+      inStock
+      priceLabel={formatEuro(product.price)}
+      oldPriceLabel={product.oldPrice != null ? formatEuro(product.oldPrice) : null}
+      vatNote
+      descriptionHtml={copy.html}
+      below={
+        <>
+          {show360 ? (
+            <section className="mt-8 rounded-2xl border border-black/[0.08] bg-white p-5">
+              <Product360Viewer imageSrc={product.img} productName={product.name} />
+            </section>
+          ) : null}
+          <PeopleAlsoBought cartKey={cartKey} />
+        </>
+      }
+    />
+  );
+}
+
+function specLabel(
+  key: string,
+  t: (k: "pdp_condition" | "pdp_brand" | "woo_sku" | "pdp_type" | "pdp_model" | "woo_categories_label") => string,
+): string {
+  const k = key.toLowerCase();
+  if (k === "condition") return t("pdp_condition");
+  if (k === "brand") return t("pdp_brand");
+  if (k === "sku") return t("woo_sku");
+  if (k === "type" || k === "product type") return t("pdp_type");
+  if (k === "model") return t("pdp_model");
+  if (k === "category" || k === "categories") return t("woo_categories_label");
+  return key;
+}
+
+function WooProductView({
+  cartKey,
+  wooProduct,
+  related,
+  catalog,
+  colorIdx,
+  setColorIdx,
+  notifyEmail,
+  setNotifyEmail,
+  notifyMsg,
+  setNotifyMsg,
+  userEmail,
+}: {
+  cartKey: string;
+  wooProduct: WooProduct;
+  related: WooProduct[];
+  catalog: WooProduct[];
+  colorIdx: number;
+  setColorIdx: (n: number) => void;
+  notifyEmail: string;
+  setNotifyEmail: (s: string) => void;
+  notifyMsg: string | null;
+  setNotifyMsg: (s: string | null) => void;
+  userEmail?: string;
+}) {
+  const { t, lang } = useLang();
+  const { displayFormatted } = useCustomerProductPrice(wooProduct);
+  const swatches = wooProduct.colorSwatches ?? [];
+  const preferredSrc = swatches[colorIdx]?.image || null;
+  const gallery = (wooProduct.images ?? [])
+    .map((img) => img.src)
+    .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src));
+  if (preferredSrc && !gallery.includes(preferredSrc) && !/woocommerce-placeholder/i.test(preferredSrc)) {
+    gallery.unshift(preferredSrc);
+  }
+  const catalogPrice = getDisplayPrice(wooProduct);
+  const inStock = wooProduct.stock_status !== "outofstock";
+  const primaryCat = wooProduct.categories?.[0];
+  const copy = useMemo(() => buildProductCopy(wooProduct, lang === "pt" ? "pt" : "en"), [wooProduct, lang]);
+
+  const specRows: { label: string; value: ReactNode }[] = [];
+  const seen = new Set<string>();
+  const push = (label: string, value: ReactNode) => {
+    const key = label.toLowerCase();
+    if (seen.has(key) || value == null || value === "") return;
+    seen.add(key);
+    specRows.push({ label, value });
+  };
+
+  const specs = wooProduct.specs ?? {};
+  push(t("pdp_condition"), specs.Condition || specs.condition || t("pdp_new"));
+  push(t("pdp_brand"), wooProduct.brand || specs.Brand);
+  push(t("woo_sku"), wooProduct.sku || specs.SKU);
+  push(t("pdp_type"), wooProduct.partType || specs.Type || primaryCat?.name);
+  push(t("pdp_model"), wooProduct.modelLabel || specs.Model);
+  if (primaryCat) {
+    push(
+      t("woo_categories_label"),
+      primaryCat.slug ? (
+        <Link href={`/category/${primaryCat.slug}`} className="text-[#4A6FA8] hover:underline">
+          {primaryCat.name}
         </Link>
+      ) : (
+        primaryCat.name
+      ),
+    );
+  }
+  for (const [k, v] of Object.entries(specs)) {
+    if (!v) continue;
+    push(specLabel(k, t), v);
+  }
+  for (const a of wooProduct.attributes ?? []) {
+    if (a.visible === false || !a.name || !a.options?.length) continue;
+    push(a.name, a.options.join(", "));
+  }
 
-        <div className="grid md:grid-cols-2 gap-10 lg:gap-14">
-          <div>
-            {show360 ? (
-              <Tabs defaultValue="gallery" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4 h-10">
-                  <TabsTrigger value="gallery">{t("product_gallery_tab")}</TabsTrigger>
-                  <TabsTrigger value="360">{t("product360_tab")}</TabsTrigger>
-                </TabsList>
-                <TabsContent value="gallery" className="mt-0">
-                  <ProductImageGallery
-                    images={gallery}
-                    productName={name}
-                    badge={badge ?? undefined}
-                    badgeClassName={badgeChipClass}
-                  />
-                </TabsContent>
-                <TabsContent value="360" className="mt-0">
-                  <Product360Viewer imageSrc={img} productName={name} />
-                </TabsContent>
-              </Tabs>
-            ) : (
-              <ProductImageGallery
-                images={gallery}
-                productName={name}
-                badge={badge ?? undefined}
-                badgeClassName={badgeChipClass}
-              />
-            )}
+  const group = wooProduct.catalogGroup;
+  const crumbs: ProductCrumb[] = [{ label: t("breadcrumb_home"), href: "/" }];
+  if (group) crumbs.push({ label: group, href: groupHref(group) });
+  if (wooProduct.subcategory && wooProduct.subcategory !== group) {
+    crumbs.push({ label: wooProduct.subcategory });
+  }
+  if (wooProduct.partType && wooProduct.partType !== wooProduct.subcategory && wooProduct.partType !== group) {
+    crumbs.push({
+      label: wooProduct.partType,
+      href: primaryCat?.slug ? `/category/${primaryCat.slug}` : undefined,
+    });
+  }
+  crumbs.push({ label: wooProduct.name });
+
+  const compatibility: { label: string; href?: string }[] = [];
+  if (wooProduct.modelLabel) compatibility.push({ label: wooProduct.modelLabel });
+  if (wooProduct.partType && wooProduct.partType !== wooProduct.modelLabel) {
+    compatibility.push({
+      label: wooProduct.partType,
+      href: primaryCat?.slug ? `/category/${primaryCat.slug}` : groupHref(group),
+    });
+  } else if (primaryCat && primaryCat.name !== wooProduct.modelLabel) {
+    compatibility.push({
+      label: primaryCat.name,
+      href: primaryCat.slug ? `/category/${primaryCat.slug}` : groupHref(group),
+    });
+  }
+
+  const notifyForm = !inStock ? (
+    <form
+      className="space-y-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const email = notifyEmail.trim() || userEmail || "";
+        if (!email || !wooProduct.cloudId) return;
+        void notifyStock(wooProduct.cloudId, email)
+          .then(() => setNotifyMsg(t("notify_stock_ok")))
+          .catch((err) => setNotifyMsg(err instanceof Error ? err.message : t("notify_stock")));
+      }}
+    >
+      <input
+        type="email"
+        required
+        value={notifyEmail}
+        onChange={(e) => setNotifyEmail(e.target.value)}
+        placeholder={userEmail || "email"}
+        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+      />
+      <Button type="submit" variant="outline" className="w-full">
+        {t("notify_stock")}
+      </Button>
+      {notifyMsg ? <p className="text-xs text-muted-foreground">{notifyMsg}</p> : null}
+    </form>
+  ) : null;
+
+  return (
+    <ProductDetailLayout
+      crumbs={crumbs}
+      badge={wooProduct.partType || primaryCat?.name}
+      title={wooProduct.name}
+      rating={wooProduct.rating ?? 0}
+      reviewCount={wooProduct.reviewCount ?? 0}
+      excerpt={copy.excerpt}
+      specRows={specRows}
+      compatibility={compatibility}
+      gallery={gallery}
+      preferredSrc={preferredSrc}
+      cartKey={cartKey}
+      inStock={inStock}
+      priceLabel={catalogPrice ? displayFormatted : formatEuro(catalogPrice)}
+      vatNote
+      swatches={
+        swatches.length > 0 ? (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-medium text-navy">{swatches[colorIdx]?.label}</p>
+            <ColorSwatches swatches={swatches} selected={colorIdx} onSelect={setColorIdx} max={16} size="md" />
           </div>
-
-          <div className="flex flex-col">
-            {subtitle && <p className="text-sm text-muted-foreground mb-2">{subtitle}</p>}
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">{name}</h1>
-            <StockBadge cartKey={cartKey} className="mb-4" />
-
-            <div className="flex items-center gap-1 mb-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-5 h-5 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-muted"}`}
-                />
-              ))}
-              <span className="text-sm text-muted-foreground ml-2">
-                {rating} ({reviews} {t("reviewsLabel")})
-              </span>
-            </div>
-
-            {(canCompare || cartKey) && (
-              <div className="mb-6 flex flex-wrap gap-2">
-                {canCompare && (
-                  <>
-                    <Button
-                      type="button"
-                      variant={has(cartKey) ? "secondary" : "outline"}
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => toggle(cartKey)}
-                    >
-                      <GitCompare className="h-4 w-4" />
-                      {has(cartKey) ? t("compare_remove") : t("compare_add")}
-                    </Button>
-                    {compareKeys.length >= 2 && (
-                      <Button type="button" size="sm" asChild>
-                        <Link href="/compare">{t("compare_view")}</Link>
-                      </Button>
-                    )}
-                  </>
-                )}
-                <Button
-                  type="button"
-                  variant={wishHas(cartKey) ? "secondary" : "outline"}
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => wishToggle(cartKey)}
-                >
-                  <Heart className={`h-4 w-4 ${wishHas(cartKey) ? "fill-red-500 text-red-500" : ""}`} />
-                  {wishHas(cartKey) ? t("wishlist_remove") : t("wishlist_save")}
-                </Button>
-                <Button type="button" variant="outline" size="sm" asChild>
-                  <Link href="/wishlist">{t("wishlist_page_title")}</Link>
-                </Button>
-              </div>
-            )}
-
-            {user ? (
-              <>
-                <div className="flex items-baseline gap-3 mb-8">
-                  <span className="font-display font-bold text-3xl text-foreground">€{price.toFixed(2)}</span>
-                  {oldPrice != null && (
-                    <span className="text-lg text-muted-foreground line-through">€{oldPrice.toFixed(2)}</span>
-                  )}
-                </div>
-                <div className="max-w-md">
-                  <ProductCartControls cartKey={cartKey} size="md" />
-                </div>
-                <div className="mt-6 max-w-md rounded-xl border border-border bg-card/80 p-4 shadow-sm">
-                  <DeliveryEstimator />
-                </div>
-              </>
-            ) : (
-              <>
-                <GuestPriceGate variant="hero" />
-                <div className="mt-6 max-w-md rounded-xl border border-border bg-card/80 p-4 shadow-sm">
-                  <DeliveryEstimator />
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <PeopleAlsoBought cartKey={cartKey} />
-      </div>
-    </div>
+        ) : null
+      }
+      descriptionHtml={copy.html}
+      buyExtra={notifyForm}
+      below={
+        <WooRelatedAccessoriesSlider
+          currentProductId={wooProduct.id}
+          categoryIds={(wooProduct.categories ?? []).map((c) => c.id)}
+          products={related.length > 0 ? related : catalog}
+          priceUnavailableLabel={t("woo_price_na")}
+        />
+      }
+    />
   );
 }
