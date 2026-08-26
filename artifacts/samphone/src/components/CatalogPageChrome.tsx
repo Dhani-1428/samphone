@@ -9,9 +9,9 @@ export function CatalogBackLink() {
   return (
     <Link
       href="/"
-      className="mb-8 mt-6 inline-flex items-center gap-2.5 text-sm font-bold text-black transition-colors hover:underline"
+      className="mb-8 mt-6 inline-flex items-center gap-2.5 text-sm font-bold text-sam transition-colors hover:underline"
     >
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-black text-black">
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-sam text-sam">
         <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} />
       </span>
       {t("backToHome")}
@@ -30,7 +30,7 @@ export function CatalogSectionHeading({
 }) {
   return (
     <div className="mb-4 flex items-start gap-3">
-      <span className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black text-white">
+      <span className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sam text-white">
         <Icon className="h-5 w-5" strokeWidth={2.2} />
       </span>
       <div>
@@ -60,11 +60,11 @@ export function CatalogTypeChip({
       className={cn(
         "relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-lg border px-3.5 text-sm font-bold transition-colors",
         active
-          ? "border-transparent bg-black text-white"
-          : "border-black/[0.15] bg-white text-black hover:border-black/40",
+          ? "border-transparent bg-sam text-white"
+          : "border-black/[0.15] bg-white text-black hover:border-sam/50",
       )}
     >
-      {active ? <span className="absolute inset-x-0 bottom-0 h-[3px] bg-black" aria-hidden /> : null}
+      {active ? <span className="absolute inset-x-0 bottom-0 h-[3px] bg-sam" aria-hidden /> : null}
       {Icon ? <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} /> : null}
       {children}
     </button>

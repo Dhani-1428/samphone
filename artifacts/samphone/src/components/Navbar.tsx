@@ -9,6 +9,7 @@ import {
   APPLE_IPHONE_MODELS,
   APPLE_WATCH_MODELS,
   APPLE_IPAD_NAV_MODELS,
+  APPLE_MACBOOK_MODELS,
 } from "@/data/nav-apple";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -114,6 +115,7 @@ function appleColumnTitle(column: { slug?: string }[]): string {
   const slug = column[0]?.slug?.toLowerCase() ?? "";
   if (slug === "iphones") return "I PHONE";
   if (slug === "iwatch") return "APPLE WATCH";
+  if (slug === "macbook") return "MACBOOK";
   return "I PAD";
 }
 
@@ -1334,54 +1336,7 @@ const VIVO_V_SERIES_MODELS = [
   "V21 5G",
 ];
 
-const TABLET_IPADS_MODELS = [
-  "iPad Air (A3269/A3271/A3268) 13\" 2025",
-  "iPad Air (A3267/A3270/A3266) 11\" 2025",
-  "iPad Air (A2899/A2900/A2898) 13\" 2024",
-  "iPad Air (A2902/A2903/A2904) 11\" 2024",
-  "iPad Air (A2588/A2589/A2591) 10.9\" 2022",
-  "iPad Air (A2316/A2324/A2325/A2072) 10.9\" 2020",
-  "iPad Air (A2123/A2152/A2153/A2154) 10.5\" 2019",
-  "iPad Air 2 (A1566/A1567) 9.7\" 2014",
-  "iPad Air (A1474/A1475/A1476) 9.7\" 2013",
-  "iPad Air (A3354/A3355/A3356) 11\" 2025",
-  "iPad Pro 13 2024/7th(A2925,A2926)",
-  "iPad Pro 11 2024/5th(A2836,A2837)",
-  "iPad Air 13 2024(A2898,A2899)",
-  "iPad Air 11 2024(A2902,A2903)",
-  "iPad Pro 12.9 2022/6th(A2436,A2764,A2437)",
-  "iPad Pro 11 2022/4th(A2759,A2435,A2761)",
-  "iPad 2022/iPad 10th(A2777,A2757,A3162)",
-  "iPad Air 2022/Air 5(A2588,A2589,A2591)",
-  "iPad 10.2 2021/iPad 9th(A2602,A2603,A2604)",
-  "iPad Mini 2021/Mini 6(A2568)",
-  "iPad Pro 12.9 2021/5th(A2379,A2461)",
-  "iPad Pro 11 2021/3rd(A2301,A2459)",
-  "iPad 10.2 2020/iPad 8th(A2270,A2428,A2429)",
-  "iPad Air 2020/Air 4(A2316,A2324,A2072)",
-  "iPad Pro 12.9 2020/4th(A2229,A2069,A2232)",
-  "iPad Pro 11 2020/2nd(A2228,A2068,A2230)",
-  "iPad 10.2 2019/iPad 7th(A2197,A2200,A2198)",
-  "iPad Mini 2019/Mini 5(A2133,A2126,A2124)",
-  "iPad Air 2019/Air 3(A2152,A2153,A2123)",
-  "iPad Pro 11 2018/1st(A1980,A2013,A1934)",
-  "iPad Pro 12.9 2018/3rd(A1876,A2014,A1895)",
-  "iPad 9.7 2018/iPad 6th(A1893,A1954)",
-  "iPad Pro 10.5 2017(A1701,A1709)",
-  "iPad Pro 12.9 2017/2nd(A1670,A1671)",
-  "iPad 9.7 2017/iPad 5th(A1822,A1823)",
-  "iPad Pro 9.7(A1673,A1674,A1675)",
-  "iPad Pro 12.9/1st(A1584,A1652)",
-  "iPad Mini 4",
-  "iPad Mini 3",
-  "iPad Air 2",
-  "iPad Mini 2",
-  "iPad Air",
-  "iPad 4",
-  "iPad Mini 1",
-  "iPad 3",
-  "iPad 2",
-];
+const TABLET_IPADS_MODELS = APPLE_IPAD_NAV_MODELS;
 
 const TABLET_TCL_MODELS = ["TCL Tab 10 Gen2", "TCL Tab 10L"];
 const TABLET_LENOVO_MODELS = [
@@ -1591,6 +1546,7 @@ function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily
     pick("iphones"),
     pick("ipad", "ipad-pro", "ipad-mini", "ipad-air", "ipads"),
     pick("iwatch"),
+    pick("macbook"),
   ].filter((col) => col.length > 0);
 }
 
@@ -1619,8 +1575,10 @@ function BrandMegaPanel({
       {families.length > 0 ? (
         <div
           className={`grid overflow-hidden bg-white dark:bg-[#12192A] ${
-            apple || colCount === 3
-              ? "grid-cols-1 sm:grid-cols-3"
+            apple
+              ? colCount >= 4
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+                : "grid-cols-1 sm:grid-cols-3"
               : colCount >= 5
                 ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"
                 : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
@@ -1801,6 +1759,11 @@ export default function Navbar() {
                 label: "APPLE WATCH",
                 slug: "iwatch",
                 children: makeFamilyChildren(b.slug, "iwatch", APPLE_WATCH_MODELS),
+              },
+              {
+                label: "MACBOOK",
+                slug: "macbook",
+                children: makeFamilyChildren(b.slug, "macbook", APPLE_MACBOOK_MODELS),
               },
             ]
           : base.toLowerCase() === "samsung"
@@ -2455,7 +2418,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
+            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(88vh,920px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
           >
             {openDropdown === "others" ? (
               <OthersMegaPanel onClose={closeMenu} />

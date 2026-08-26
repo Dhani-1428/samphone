@@ -240,7 +240,79 @@ export function filterCatalogForSmartphonesTab(
   return [];
 }
 
-/** Narrow by brand tile keyword (same rules as the catalog brand chips). */
+/** Search text used to decide which brand a catalog product belongs to. */
+export function productSearchHaystack(p: WooProduct): string {
+  return [
+    p.name,
+    p.slug,
+    p.sku,
+    p.brand,
+    p.catalogGroup,
+    p.subcategory,
+    p.modelLabel,
+    p.partType,
+    ...(p.categories ?? []).flatMap((c) => [c.name, c.slug]),
+  ]
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
+    .join(" ")
+    .toLowerCase();
+}
+
+const APPLE_BRAND_NEEDLES = [
+  "iphone",
+  "ipad",
+  "iwatch",
+  "apple watch",
+  "macbook",
+  "airpods",
+  "airpod",
+  "ipod",
+  "imac",
+  "apple",
+];
+
+const BRAND_NEEDLES: Record<string, string[]> = {
+  apple: APPLE_BRAND_NEEDLES,
+  iphone: APPLE_BRAND_NEEDLES,
+  samsung: ["samsung", "galaxy"],
+  honor: ["honor"],
+  xiaomi: ["xiaomi", "redmi", "poco", "mi pad", "xiaomi pad"],
+  huawei: ["huawei", "matepad", "mate pad", "mediapad", "media pad"],
+  motorola: ["motorola", "moto g", "moto e", "moto edge", "razr", "thinkphone"],
+  oneplus: ["oneplus", "one plus", "nord"],
+  oppo: ["oppo"],
+  realme: ["realme"],
+  vivo: ["vivo"],
+  nokia: ["nokia"],
+  google: ["google pixel", "pixel"],
+  alcatel: ["alcatel"],
+  tcl: ["tcl"],
+  zte: ["zte"],
+};
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function haystackHasNeedle(hay: string, needle: string): boolean {
+  const n = needle.toLowerCase().trim();
+  if (!n) return false;
+  if (n.includes(" ")) return hay.includes(n);
+  return new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(n)}(?:[^a-z0-9]|$)`).test(hay);
+}
+
+export function brandKeywordNeedles(brandLabel: string): string[] {
+  const raw = brandLabel
+    .toLowerCase()
+    .replace(/\s+parts$/i, "")
+    .replace(/-/g, " ")
+    .trim();
+  if (!raw) return [];
+  const compact = raw.replace(/\s+/g, "");
+  return BRAND_NEEDLES[raw] ?? BRAND_NEEDLES[compact] ?? [raw];
+}
+
+/** Narrow by brand tile keyword. Never falls back to the full catalog. */
 export function filterProductsByBrandKeyword(
   products: WooProduct[],
   brandLabel: string | null,
@@ -248,14 +320,12 @@ export function filterProductsByBrandKeyword(
 ): WooProduct[] {
   let list = sortNewest(products);
   if (brandLabel) {
-    const kw = brandLabel.toLowerCase().replace(/\s+parts$/i, "").trim();
-    if (kw) {
-      const sub = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(kw) ||
-          (p.categories?.some((c) => c.slug.includes(kw) || c.name.toLowerCase().includes(kw)) ?? false),
-      );
-      list = sub.length ? sub : list;
+    const needles = brandKeywordNeedles(brandLabel);
+    if (needles.length) {
+      list = list.filter((p) => {
+        const hay = productSearchHaystack(p);
+        return needles.some((n) => haystackHasNeedle(hay, n));
+      });
     }
   }
   return limit != null && limit > 0 ? list.slice(0, limit) : list;

@@ -41,7 +41,7 @@ export default function ModelHeroBanner({
             }}
             aria-hidden
           />
-          <div className="pointer-events-none absolute bottom-6 left-6 h-9 w-9 rounded-full bg-black md:left-8 md:h-11 md:w-11" aria-hidden />
+          <div className="pointer-events-none absolute bottom-6 left-6 h-9 w-9 rounded-full bg-sam md:left-8 md:h-11 md:w-11" aria-hidden />
 
           {images[0] ? (
             <CatalogImage

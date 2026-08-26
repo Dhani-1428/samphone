@@ -169,7 +169,7 @@ function DrawerBrandModels({
   }
 
   return (
-    <div className="mb-3 max-h-[55vh] space-y-4 overflow-y-auto rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
+    <div className="mb-3 max-h-[70vh] space-y-4 overflow-y-auto rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
       {families.map((family) => {
         const models = family.children ?? [];
         return (
