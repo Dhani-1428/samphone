@@ -45,6 +45,7 @@ import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
+import { isClerkEnabled } from "@/lib/clerk-runtime";
 
 const queryClient = new QueryClient();
 
@@ -149,13 +150,12 @@ function Router() {
   );
 }
 
-function App() {
+function AppShell({ clerk }: { clerk: boolean }) {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <ClerkCloudBridge />
+          {clerk ? <ClerkCloudBridge /> : null}
           <ProfileLanguageSync />
           <RecentlyViewedProvider>
             <BrowseBehaviorProvider>
@@ -183,6 +183,15 @@ function App() {
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  const clerk = isClerkEnabled();
+  if (!clerk) return <AppShell clerk={false} />;
+  return (
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <AppShell clerk />
     </ClerkProvider>
   );
 }

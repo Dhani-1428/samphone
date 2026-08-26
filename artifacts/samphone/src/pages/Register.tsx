@@ -4,6 +4,7 @@ import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
+import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { cloudAuth, patchCloudProfile } from "@/lib/samphone-cloud";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const next = nextPathFromSearch(search);
+  const clerk = isClerkEnabled();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -103,21 +105,29 @@ export default function Register() {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm ring-1 ring-black/[0.04]">
         <h1 className="font-display text-2xl font-bold text-navy">{t("auth_register_title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("auth_clerk_same")}</p>
-        <div className="mt-6">
-          <SignUp
-            routing="hash"
-            forceRedirectUrl={next}
-            fallbackRedirectUrl={next}
-            appearance={{
-              elements: {
-                rootBox: "mx-auto w-full",
-                card: "shadow-none border-0 p-0 bg-transparent",
-              },
-            }}
-          />
-        </div>
-        <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("auth_or_email")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{clerk ? t("auth_clerk_same") : t("auth_email_login")}</p>
+        {clerk ? (
+          <>
+            <div className="mt-6">
+              <SignUp
+                routing="hash"
+                forceRedirectUrl={next}
+                fallbackRedirectUrl={next}
+                appearance={{
+                  elements: {
+                    rootBox: "mx-auto w-full",
+                    card: "shadow-none border-0 p-0 bg-transparent",
+                  },
+                }}
+              />
+            </div>
+            <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {t("auth_or_email")}
+            </p>
+          </>
+        ) : (
+          <div className="mt-6" />
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>{t("register_account_type")}</Label>
