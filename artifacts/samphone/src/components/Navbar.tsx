@@ -1538,14 +1538,6 @@ function isSamsungBrand(brand: NavBrandGroup) {
   return slug === "samsung-parts" || label === "samsung";
 }
 
-function samsungFamiliesInOrder(_brand: NavBrandGroup, families: NavFamily[]): NavFamily[] {
-  const bySlug = new Map(families.map((family) => [family.slug, family]));
-  const order = ["a-series", "s-series", "m-series", "j-series", "z-series", "note-series", "galaxy-tab"];
-  const listed = order.map((slug) => bySlug.get(slug)).filter((family): family is NavFamily => Boolean(family));
-  const seen = new Set(listed.map((f) => f.slug));
-  return [...listed, ...families.filter((f) => !seen.has(f.slug))];
-}
-
 function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][][] {
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
@@ -1564,12 +1556,16 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   }
 
   if (isSamsungBrand(brand)) {
-    const rows = [
-      [pick("a-series"), pick("s-series"), pick("m-series", "j-series")].filter((col) => col.length > 0),
-      [pick("z-series", "note-series")].filter((col) => col.length > 0),
-      [pick("galaxy-tab")].filter((col) => col.length > 0),
-    ].filter((row) => row.length > 0);
-    return rows.length ? rows : [families.map((family) => [family])];
+    const row = [
+      pick("a-series"),
+      pick("s-series"),
+      pick("m-series"),
+      pick("j-series"),
+      pick("z-series"),
+      pick("note-series"),
+      pick("galaxy-tab"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
   }
 
   return [families.map((family) => [family])];
@@ -1577,9 +1573,9 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
 
 function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) {
   if (samsung) {
-    if (row.length >= 3) return "grid grid-cols-1 sm:grid-cols-3";
-    if (row.length === 2) return "grid grid-cols-1 sm:grid-cols-2";
-    return "grid grid-cols-1";
+    return row.length >= 6
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7"
+      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
   }
   if (apple) {
     return row.length >= 6
@@ -1610,41 +1606,10 @@ function BrandMegaPanel({
   const rows = packMegaRows(brand, families);
   const apple = isAppleBrand(brand);
   const samsung = isSamsungBrand(brand);
-  const samsungRows = samsung ? samsungFamiliesInOrder(brand, families) : [];
 
   return (
     <div className={`${navShell} bg-white py-6 dark:bg-[#12192A]`}>
-      {samsung && samsungRows.length > 0 ? (
-        <div className="flex flex-col px-5">
-          {samsungRows.map((family) => {
-            const models = family.children ?? [];
-            return (
-              <div
-                key={`${brand.brand.slug}-${family.slug}`}
-                className="border-b border-black/10 py-4 last:border-b-0 dark:border-white/10"
-              >
-                <p className={megaHeadingClass}>• {family.label.toUpperCase()}</p>
-                <ul className="flex flex-col gap-1.5">
-                  {models.map((model, midx) => (
-                    <li key={`${family.slug}-${midx}-${model.slug}`}>
-                      <Link
-                        href={
-                          model.href ??
-                          `/model/${brandRoute}/${family.slug}/${model.slug}`
-                        }
-                        onClick={onClose}
-                        className={megaLinkClass}
-                      >
-                        {model.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-      ) : families.length > 0 ? (
+      {families.length > 0 ? (
         <div className="flex flex-col gap-8">
           {rows.map((row, rowIdx) => (
             <div key={`${brand.brand.slug}-row-${rowIdx}`} className={megaRowGridClass(row, apple, samsung)}>
@@ -1652,7 +1617,7 @@ function BrandMegaPanel({
                 <div
                   key={`${brand.brand.slug}-r${rowIdx}-c${colIdx}-${column.map((f) => f.slug).join("-")}`}
                   className={`min-w-0 px-5 py-2 ${
-                    !samsung && colIdx < row.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
+                    colIdx < row.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
                   }`}
                 >
                   {column.map((family) => {
