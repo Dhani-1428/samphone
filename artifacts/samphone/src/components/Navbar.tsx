@@ -2400,13 +2400,6 @@ export default function Navbar() {
             Tablets
           </Link>
           <Link
-            href="/group/Hoco"
-            className={brandNavClass(location.startsWith("/group/Hoco") || location.startsWith("/group/hoco"))}
-            onClick={closeMenu}
-          >
-            Hoco
-          </Link>
-          <Link
             href="/cards"
             className={brandNavClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
             onClick={closeMenu}
