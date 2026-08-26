@@ -1558,11 +1558,13 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   }
 
   if (isSamsungBrand(brand)) {
-    const rows = [
-      [pick("a-series"), pick("s-series"), pick("m-series", "j-series")].filter((col) => col.length > 0),
-      [pick("z-series", "note-series")].filter((col) => col.length > 0),
-      [pick("galaxy-tab")].filter((col) => col.length > 0),
-    ].filter((row) => row.length > 0);
+    const order = ["a-series", "s-series", "m-series", "j-series", "z-series", "note-series", "galaxy-tab"];
+    const rows = order
+      .map((slug) => {
+        const family = bySlug.get(slug);
+        return family ? [[family]] : null;
+      })
+      .filter((row): row is NavFamily[][] => Boolean(row));
     return rows.length ? rows : [families.map((family) => [family])];
   }
 
@@ -1570,7 +1572,7 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
 }
 
 function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) {
-  if (samsung) return "grid grid-cols-1 sm:grid-cols-3";
+  if (samsung) return "grid grid-cols-1";
   if (apple) {
     return row.length >= 6
       ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
@@ -1610,8 +1612,8 @@ function BrandMegaPanel({
               {row.map((column, colIdx) => (
                 <div
                   key={`${brand.brand.slug}-r${rowIdx}-c${colIdx}-${column.map((f) => f.slug).join("-")}`}
-                  className={`min-w-0 max-h-[min(58vh,36rem)] overflow-y-auto overscroll-contain px-5 py-2 ${
-                    colIdx < row.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
+                  className={`min-w-0 px-5 py-2 ${
+                    !samsung && colIdx < row.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
                   }`}
                 >
                   {column.map((family) => {
@@ -1619,7 +1621,13 @@ function BrandMegaPanel({
                     return (
                       <div key={`${brand.brand.slug}-${family.slug}`} className="mb-6 last:mb-0">
                         <p className={megaHeadingClass}>• {family.label.toUpperCase()}</p>
-                        <ul className="space-y-1.5">
+                        <ul
+                          className={
+                            samsung
+                              ? "grid grid-cols-2 gap-x-6 gap-y-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                              : "space-y-1.5"
+                          }
+                        >
                           {models.map((model, midx) => (
                             <li key={`${family.slug}-${midx}-${model.slug}`}>
                               <Link
