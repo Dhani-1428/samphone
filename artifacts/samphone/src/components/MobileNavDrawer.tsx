@@ -11,13 +11,13 @@ import {
   Phone,
   Repeat2,
   ShieldCheck,
-  ShoppingBag,
   Sun,
   User,
   X,
 } from "lucide-react";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import BrandLogo from "@/components/BrandLogo";
+import NavCartIcon from "@/components/NavCartIcon";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -286,7 +286,7 @@ export default function MobileNavDrawer({
           }}
           aria-label={t("nav_cart")}
         >
-          <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
+          <NavCartIcon className="h-8 w-8" />
           <CountBadge count={cartCount} />
         </button>
       </div>

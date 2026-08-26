@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
+import NavCartIcon from "@/components/NavCartIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import { smartphonesColumns } from "@/data/categories";
@@ -2293,8 +2294,8 @@ export default function Navbar() {
               aria-expanded={cartOpen}
               aria-controls="site-cart-rail"
             >
-              <span className="relative text-sam">
-                <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
+              <span className="relative inline-flex h-8 w-8 items-center justify-center">
+                <NavCartIcon className="h-8 w-8" />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>
             </button>
