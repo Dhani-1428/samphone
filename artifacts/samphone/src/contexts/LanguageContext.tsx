@@ -53,7 +53,7 @@ const translations = {
     nav_cards: "CARDS",
     nav_new: "NEW",
     nav_multibrand: "MULTI BRAND",
-    nav_contact: "CONTACT US",
+    nav_contact: "CONTACT",
     hero_badge: "Lisbon's #1 Tech Boutique",
     hero_line1: "Your Phone.",
     hero_line2: "Your Parts.",

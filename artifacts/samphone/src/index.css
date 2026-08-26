@@ -42,7 +42,7 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
-  --font-display: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: Arial, Helvetica, 'Segoe UI', sans-serif;
 
   --color-navy: #111111;
   --color-utopya: #111111;
@@ -89,7 +89,7 @@
 
   --radius: 0.75rem;
 
-  --app-font-sans: 'Open Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --app-font-sans: Arial, Helvetica, 'Segoe UI', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
 }
@@ -146,7 +146,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: 0.04em;
+    letter-spacing: 0;
     font-weight: 800;
   }
   .font-display {
@@ -169,4 +169,10 @@
   display: none;
   width: 0;
   height: 0;
+}
+
+.nav-bar-item {
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  font-weight: 700;
 }
