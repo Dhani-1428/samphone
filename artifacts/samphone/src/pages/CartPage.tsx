@@ -22,6 +22,7 @@ import {
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
+import EmptyCartHero from "@/components/EmptyCartHero";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -192,7 +193,9 @@ export default function CartPage() {
     })();
   }, [clearCart, t]);
 
-  return (
+  return lines.length === 0 ? (
+    <EmptyCartHero />
+  ) : (
     <div className="min-h-screen py-10">
       <div className="container mx-auto max-w-4xl px-4 md:px-6">
         <Link
@@ -221,16 +224,6 @@ export default function CartPage() {
           )}
         </div>
 
-        {lines.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
-            <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" aria-hidden />
-            <p className="mb-2 text-lg font-medium text-foreground">{t("cart_empty_title")}</p>
-            <p className="mb-8 text-sm text-muted-foreground">{t("cart_empty_body")}</p>
-            <Button asChild>
-              <Link href="/store">{t("nav_woo_store")}</Link>
-            </Button>
-          </div>
-        ) : (
           <div className="space-y-6">
             <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
               {lines.map((line) => {
@@ -438,7 +431,6 @@ export default function CartPage() {
               {t("cart_items_count", { count: totalItems })}
             </p>
           </div>
-        )}
       </div>
     </div>
   );
