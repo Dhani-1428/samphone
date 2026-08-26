@@ -18,9 +18,10 @@ function loadCartFromStorage(): Record<string, number> {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
     const out: Record<string, number> = {};
     for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
-      if (typeof k !== "string" || k.length === 0) continue;
-      const n = typeof v === "number" ? v : Number(v);
-      if (Number.isFinite(n) && n > 0) out[k] = Math.floor(n);
+      if (typeof k === "string" && k.length > 0) {
+        const n = typeof v === "number" ? v : Number(v);
+        if (Number.isFinite(n) && n > 0) out[k] = Math.floor(n);
+      }
     }
     return out;
   } catch {
@@ -32,6 +33,8 @@ interface CartContextValue {
   items: Record<string, number>;
   getQty: (cartKey: string) => number;
   totalItems: number;
+  /** Side cart is shown only when this is true. */
+  railVisible: boolean;
   /** When `maxQty` is set (e.g. stock), quantity will not exceed it. */
   increment: (cartKey: string, maxQty?: number) => void;
   decrement: (cartKey: string) => void;
@@ -55,9 +58,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Record<string, number>>(() =>
     typeof window !== "undefined" ? loadCartFromStorage() : {},
   );
-  const [isOpen, setCartOpen] = useState(false);
-  const openCart = useCallback(() => setCartOpen(true), []);
-  const closeCart = useCallback(() => setCartOpen(false), []);
 
   useEffect(() => {
     try {
@@ -119,22 +119,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => Object.values(items).reduce((a, n) => a + n, 0),
     [items],
   );
+  const railVisible = totalItems > 0;
+  const openCart = useCallback(() => {}, []);
+  const closeCart = useCallback(() => {}, []);
+  const setCartOpen = useCallback((_open: boolean) => {}, []);
 
   const value = useMemo(
     () => ({
       items,
       getQty,
       totalItems,
+      railVisible,
       increment,
       decrement,
       removeLine,
       clearCart,
-      isOpen,
+      isOpen: railVisible,
       openCart,
       closeCart,
       setCartOpen,
     }),
-    [items, getQty, totalItems, increment, decrement, removeLine, clearCart, isOpen, openCart, closeCart],
+    [items, getQty, totalItems, railVisible, increment, decrement, removeLine, clearCart, openCart, closeCart, setCartOpen],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

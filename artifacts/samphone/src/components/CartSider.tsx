@@ -10,10 +10,8 @@ import {
   Minus,
   Plus,
   ShieldCheck,
-  ShoppingBag,
   Trash2,
   Truck,
-  X,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -35,7 +33,7 @@ function formatEuro(value: number) {
 }
 
 export default function CartSider() {
-  const { items, increment, decrement, removeLine, clearCart, totalItems, isOpen, closeCart } =
+  const { items, increment, decrement, removeLine, clearCart, totalItems, railVisible } =
     useCart();
   const [location] = useLocation();
   const { t } = useLang();
@@ -68,7 +66,7 @@ export default function CartSider() {
     count: totalItems,
   });
 
-  if (!isOpen || location === "/cart") return null;
+  if (!railVisible || lines.length === 0 || location === "/cart") return null;
 
   return (
     <aside
@@ -86,66 +84,16 @@ export default function CartSider() {
           "top-[var(--site-header-h,8rem)] h-[calc(100dvh-var(--site-header-h,8rem))]",
         )}
       >
-        <header className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#111111] via-[#000000] to-[#111111] px-4 pb-5 pt-4 text-white">
-          <ShoppingBag
-            className="pointer-events-none absolute -right-3 bottom-0 h-24 w-24 rotate-12 text-white/[0.07]"
-            strokeWidth={1.1}
-            aria-hidden
-          />
-          <div className="relative flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="font-display text-[1.65rem] font-bold leading-none tracking-tight">
-                {t("cart_sider_title")}
-              </h2>
-              <p className="mt-2 text-[13px] text-white/75">
-                {countLabel.split(String(totalItems)).map((part, i, arr) => (
-                  <span key={`${part}-${i}`}>
-                    {part}
-                    {i < arr.length - 1 && (
-                      <span className="font-bold text-white">{totalItems}</span>
-                    )}
-                  </span>
-                ))}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-start gap-2">
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
-                <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-                {totalItems > 0 && (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold leading-none text-black">
-                    {totalItems > 99 ? "99+" : totalItems}
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={closeCart}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15 transition-colors hover:bg-white/20"
-                aria-label={t("cart_sider_close")}
-              >
-                <X className="h-5 w-5" strokeWidth={2} />
-              </button>
-            </div>
+        <header className="shrink-0 border-b border-black/[0.06] bg-white px-4 py-4">
+          <div className="flex items-baseline gap-2">
+            <h2 className="font-display text-[1.45rem] font-bold leading-none tracking-tight text-[#111111]">
+              {t("cart_sider_title")}
+            </h2>
+            <p className="text-[13px] font-medium text-neutral-500">{countLabel}</p>
           </div>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-white">
-          {lines.length === 0 ? (
-            <div className="flex flex-col items-center px-5 py-10 text-center">
-              <PromoArt />
-              <p className="mt-4 text-[15px] font-bold text-[#111111]">{t("cart_empty_title")}</p>
-              <p className="mt-1 text-[12px] font-semibold leading-relaxed text-neutral-700">{t("cart_empty_body")}</p>
-              <button
-                type="button"
-                onClick={closeCart}
-                className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-[#111111] hover:underline"
-              >
-                {t("cart_sider_continue")}
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <>
               <ul className="divide-y divide-slate-100">
                 {lines.map((line) => {
                   const maxStock = getStockLevel(line.cartKey).count;
@@ -220,22 +168,9 @@ export default function CartSider() {
                   );
                 })}
               </ul>
-
-              <div className="flex flex-col items-center px-5 pb-2 pt-4 text-center">
-                <PromoArt />
-                <p className="mt-3 text-[14px] font-bold leading-snug text-[#111111]">
-                  {t("cart_sider_looking_good")}
-                </p>
-                <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-                  {t("cart_sider_looking_good_sub")}
-                </p>
-              </div>
-            </>
-          )}
         </div>
 
-        {lines.length > 0 && (
-          <div className="shrink-0 bg-white">
+        <div className="shrink-0 bg-white">
             <button
               type="button"
               onClick={() => clearCart()}
@@ -284,8 +219,7 @@ export default function CartSider() {
                 </>
               )}
             </div>
-          </div>
-        )}
+        </div>
 
         <footer className="grid shrink-0 grid-cols-3 gap-1 border-t border-[#d6e8fb] bg-[#e8f3fc] px-2 py-2.5">
           <TrustBadge icon={ShieldCheck} label={t("cart_sider_secure")} />
@@ -294,19 +228,6 @@ export default function CartSider() {
         </footer>
       </div>
     </aside>
-  );
-}
-
-function PromoArt() {
-  return (
-    <div className="relative flex h-[88px] w-[88px] items-center justify-center">
-      <span className="absolute left-1 top-2 h-1.5 w-1.5 rounded-full bg-[#111111]/40" />
-      <span className="absolute right-2 top-4 h-1 w-1 rounded-full bg-[#111111]/50" />
-      <span className="absolute bottom-3 left-3 h-1 w-1 rotate-45 bg-[#111111]/30" />
-      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl bg-[#e8f1ff] ring-1 ring-[#E8E8E8]">
-        <ShoppingBag className="h-9 w-9 text-[#111111]" strokeWidth={1.5} />
-      </div>
-    </div>
   );
 }
 

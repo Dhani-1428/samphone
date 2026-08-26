@@ -4,10 +4,12 @@ import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { whatsappChatHref } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 export default function WhatsAppButton() {
   const { t } = useLang();
   const { isOpen: cartOpen } = useCart();
+  const [location] = useLocation();
   return (
     <motion.a
       href={whatsappChatHref()}
@@ -20,7 +22,7 @@ export default function WhatsAppButton() {
       whileTap={{ scale: 0.94 }}
       className={cn(
         "fixed bottom-6 z-[60] flex h-14 w-14 items-center justify-center md:bottom-8",
-        cartOpen ? "right-6 md:right-[calc(2rem+340px)]" : "right-6 md:right-8",
+        cartOpen && location !== "/cart" ? "right-6 md:right-[calc(2rem+340px)]" : "right-6 md:right-8",
       )}
       data-testid="button-whatsapp"
       aria-label={`${t("support_chat_whatsapp")} +351 937 119 295`}
