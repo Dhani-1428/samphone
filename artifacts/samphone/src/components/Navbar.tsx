@@ -2176,7 +2176,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const brandNavClass = (active: boolean) =>
-    `inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 text-[14px] font-semibold transition-colors ${
+    `inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-1 text-[13px] font-bold uppercase tracking-[0.14em] transition-colors ${
       active ? "text-sam" : "text-white hover:text-sam"
     }`;
 
@@ -2316,18 +2316,18 @@ export default function Navbar() {
 
       {/* Full brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="relative z-[55] hidden overflow-visible bg-brand-dark xl:block">
-        <div className={`${navShell} flex h-[46px] items-center justify-center gap-1.5`}>
+        <div className={`${navShell} flex h-[46px] items-center justify-start gap-x-8`}>
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold text-white transition-colors ${
+              className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold uppercase tracking-[0.08em] text-white transition-colors ${
                 categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
               }`}
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
             >
               <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              All Accessories
+              {t("nav_all_accessories")}
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
             </button>
             <AnimatePresence>
@@ -2344,7 +2344,7 @@ export default function Navbar() {
               ) : null}
             </AnimatePresence>
           </div>
-          <div className="flex min-w-0 items-center">
+          <div className="flex min-w-0 items-center gap-x-5">
           {(
             [
               { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },

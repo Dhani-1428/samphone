@@ -209,15 +209,15 @@ function DrawerBrandModels({
 }
 
 const PRIMARY_BRANDS = [
-  { label: "Apple", slug: "apple" },
-  { label: "Samsung", slug: "samsung" },
-  { label: "Xiaomi", slug: "xiaomi" },
-  { label: "Honor", slug: "honor" },
-  { label: "Motorola", slug: "motorola" },
-  { label: "OnePlus", slug: "oneplus" },
-  { label: "Oppo", slug: "oppo" },
-  { label: "Realme", slug: "realme" },
-  { label: "Vivo", slug: "vivo" },
+  { label: "APPLE", slug: "apple" },
+  { label: "SAMSUNG", slug: "samsung" },
+  { label: "XIAOMI", slug: "xiaomi" },
+  { label: "HONOR", slug: "honor" },
+  { label: "MOTOROLA", slug: "motorola" },
+  { label: "ONEPLUS", slug: "oneplus" },
+  { label: "OPPO", slug: "oppo" },
+  { label: "REALME", slug: "realme" },
+  { label: "VIVO", slug: "vivo" },
 ] as const;
 
 function CountBadge({ count }: { count: number }) {
@@ -395,7 +395,7 @@ export default function MobileNavDrawer({
             const expandable = brandHasModelList(item.slug, browse, brandGroups);
             const active = expandedSlug === item.slug;
             const tileClass = cn(
-              "flex h-11 items-center justify-center rounded-lg border px-1 text-center text-[12px] font-semibold",
+              "flex h-11 items-center justify-center rounded-lg border px-1 text-center text-[12px] font-semibold uppercase tracking-wide",
               active
                 ? "border-brand-dark bg-brand-dark text-white"
                 : "border-black/[0.1] text-brand-dark dark:border-white/15 dark:text-white",
