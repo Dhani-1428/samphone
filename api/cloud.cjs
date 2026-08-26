@@ -1,32 +1,16 @@
-import https from "node:https";
-import { Buffer } from "node:buffer";
-
-type NodeReq = {
-  method?: string;
-  url?: string;
-  headers?: Record<string, string | string[] | undefined>;
-  body?: unknown;
-  query?: { path?: string | string[] };
-};
-
-type NodeRes = {
-  statusCode: number;
-  writableEnded?: boolean;
-  setHeader: (name: string, value: string) => void;
-  end: (body?: string | Buffer) => void;
-};
+const https = require("https");
 
 const UPSTREAM = "https://samphone.cloud/api";
 const ALLOWED =
   /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
 
-function header(req: NodeReq, name: string): string {
+function header(req, name) {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
   if (Array.isArray(raw)) return raw[0] || "";
   return typeof raw === "string" ? raw : "";
 }
 
-function subPath(req: NodeReq): string {
+function subPath(req) {
   const raw = req.query?.path;
   if (Array.isArray(raw) && raw.length > 0) return raw.filter(Boolean).join("/");
   if (typeof raw === "string" && raw.length > 0) return raw.replace(/^\/+/, "");
@@ -41,7 +25,7 @@ function subPath(req: NodeReq): string {
   return "";
 }
 
-function forwardSearch(req: NodeReq): string {
+function forwardSearch(req) {
   const url = req.url || "";
   const qIndex = url.indexOf("?");
   if (qIndex < 0) return "";
@@ -51,14 +35,13 @@ function forwardSearch(req: NodeReq): string {
   return s ? `?${s}` : "";
 }
 
-async function readBody(req: NodeReq): Promise<Buffer> {
+async function readBody(req) {
   if (typeof req.body === "string") return Buffer.from(req.body);
   if (Buffer.isBuffer(req.body)) return req.body;
   if (req.body && typeof req.body === "object") return Buffer.from(JSON.stringify(req.body));
-  const chunks: Buffer[] = [];
-  const stream = req as unknown as AsyncIterable<unknown>;
+  const chunks = [];
   try {
-    for await (const chunk of stream) {
+    for await (const chunk of req) {
       if (typeof chunk === "string") chunks.push(Buffer.from(chunk));
       else if (Buffer.isBuffer(chunk)) chunks.push(chunk);
       else if (chunk instanceof Uint8Array) chunks.push(Buffer.from(chunk));
@@ -69,11 +52,7 @@ async function readBody(req: NodeReq): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
-function proxy(target: string, method: string, headers: Record<string, string>, body: Buffer): Promise<{
-  status: number;
-  contentType: string;
-  body: Buffer;
-}> {
+function proxy(target, method, headers, body) {
   return new Promise((resolve, reject) => {
     const url = new URL(target);
     const payload = method === "GET" || method === "HEAD" ? undefined : body;
@@ -89,10 +68,8 @@ function proxy(target: string, method: string, headers: Record<string, string>, 
         headers: reqHeaders,
       },
       (incoming) => {
-        const chunks: Buffer[] = [];
-        incoming.on("data", (chunk: Buffer) => {
-          chunks.push(chunk);
-        });
+        const chunks = [];
+        incoming.on("data", (chunk) => chunks.push(chunk));
         incoming.on("end", () => {
           resolve({
             status: incoming.statusCode ?? 0,
@@ -108,7 +85,7 @@ function proxy(target: string, method: string, headers: Record<string, string>, 
   });
 }
 
-export default async function handler(req: NodeReq, res: NodeRes): Promise<void> {
+module.exports = async function handler(req, res) {
   const method = (req.method || "GET").toUpperCase();
   if (method === "OPTIONS") {
     res.statusCode = 204;
@@ -127,7 +104,7 @@ export default async function handler(req: NodeReq, res: NodeRes): Promise<void>
 
   const target = `${UPSTREAM}/${path}${forwardSearch(req)}`;
   const body = method === "GET" || method === "HEAD" ? Buffer.alloc(0) : await readBody(req);
-  const headers: Record<string, string> = { Accept: header(req, "accept") || "application/json" };
+  const headers = { Accept: header(req, "accept") || "application/json" };
   const contentType = header(req, "content-type");
   if (contentType) headers["Content-Type"] = contentType;
   const auth = header(req, "authorization");
@@ -144,4 +121,4 @@ export default async function handler(req: NodeReq, res: NodeRes): Promise<void>
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.end(JSON.stringify({ detail: "Could not reach the account service. Please try again." }));
   }
-}
+};

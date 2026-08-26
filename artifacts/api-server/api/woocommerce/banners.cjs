@@ -1,12 +1,6 @@
-type ApiReq = { method?: string; url?: string; headers?: { host?: string } };
-type ApiRes = {
-  statusCode: number;
-  writableEnded?: boolean;
-  setHeader: (name: string, value: string) => void;
-  end: (body: string) => void;
-};
+const https = require("https");
 
-function sendJson(res: ApiRes, status: number, body: unknown): void {
+function sendJson(res, status, body) {
   if (res.writableEnded) return;
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -21,14 +15,11 @@ function cfg() {
   return { storeUrl, consumerKey, consumerSecret };
 }
 
-function httpGet(url: string): Promise<{ status: number; body: string }> {
-  const https = require("https") as typeof import("https");
+function httpGet(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
-      const chunks: Buffer[] = [];
-      incoming.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
+      const chunks = [];
+      incoming.on("data", (chunk) => chunks.push(chunk));
       incoming.on("end", () => {
         resolve({
           status: incoming.statusCode ?? 0,
@@ -40,7 +31,7 @@ function httpGet(url: string): Promise<{ status: number; body: string }> {
   });
 }
 
-export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== "GET" && req.method !== "HEAD") {
       sendJson(res, 405, { error: "Method not allowed" });
@@ -65,21 +56,15 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
       sendJson(res, 502, { error: "Failed to load homepage banners" });
       return;
     }
-    let data: Array<{
-      id?: number;
-      source_url?: string;
-      alt_text?: string;
-      mime_type?: string;
-      title?: { rendered?: string };
-    }> = [];
+    let data = [];
     try {
-      data = JSON.parse(upstream.body) as typeof data;
+      data = JSON.parse(upstream.body);
     } catch {
       sendJson(res, 502, { error: "Failed to load homepage banners" });
       return;
     }
-    const seen = new Set<string>();
-    const out: { id: number; src: string; alt: string }[] = [];
+    const seen = new Set();
+    const out = [];
     for (const item of Array.isArray(data) ? data : []) {
       const src = typeof item.source_url === "string" ? item.source_url.trim() : "";
       if (!src || seen.has(src)) continue;
@@ -99,4 +84,4 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
   } catch {
     sendJson(res, 500, { error: "Function error" });
   }
-}
+};

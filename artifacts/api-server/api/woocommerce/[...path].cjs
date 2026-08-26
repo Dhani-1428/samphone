@@ -1,18 +1,6 @@
-type ApiReq = {
-  method?: string;
-  url?: string;
-  headers?: { host?: string };
-  query?: { path?: string | string[] };
-};
-type ApiRes = {
-  statusCode: number;
-  writableEnded?: boolean;
-  headersSent?: boolean;
-  setHeader: (name: string, value: string) => void;
-  end: (body: string) => void;
-};
+const https = require("https");
 
-function sendJson(res: ApiRes, status: number, body: unknown, extra?: Record<string, string>): void {
+function sendJson(res, status, body, extra) {
   if (res.writableEnded) return;
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -22,10 +10,8 @@ function sendJson(res: ApiRes, status: number, body: unknown, extra?: Record<str
   res.end(JSON.stringify(body));
 }
 
-function getWooServerConfig(): { storeUrl: string; consumerKey: string; consumerSecret: string } | null {
-  const storeUrl = String(process.env.WOOCOMMERCE_STORE_URL || "")
-    .replace(/\/$/, "")
-    .trim();
+function getWooServerConfig() {
+  const storeUrl = String(process.env.WOOCOMMERCE_STORE_URL || "").replace(/\/$/, "").trim();
   const consumerKey = String(process.env.WOOCOMMERCE_CONSUMER_KEY || "").trim();
   const consumerSecret = String(process.env.WOOCOMMERCE_CONSUMER_SECRET || "").trim();
   if (!storeUrl || !consumerKey || !consumerSecret) return null;
@@ -33,7 +19,7 @@ function getWooServerConfig(): { storeUrl: string; consumerKey: string; consumer
   return { storeUrl, consumerKey, consumerSecret };
 }
 
-function requestUrl(req: ApiReq): URL {
+function requestUrl(req) {
   const host = req.headers?.host || "localhost";
   try {
     return new URL(req.url || "/", `https://${host}`);
@@ -42,7 +28,7 @@ function requestUrl(req: ApiReq): URL {
   }
 }
 
-function subPathFromRequest(req: ApiReq): string {
+function subPathFromRequest(req) {
   const url = requestUrl(req);
   const pathname = url.pathname || "";
   const marker = "/api/woocommerce/";
@@ -54,20 +40,17 @@ function subPathFromRequest(req: ApiReq): string {
   return "";
 }
 
-function isAllowedWooPath(path: string): boolean {
+function isAllowedWooPath(path) {
   const normalized = path.replace(/^\/+/, "").split("?")[0] || "";
   if (!normalized || normalized.includes("..")) return false;
   return normalized === "products" || normalized.startsWith("products/");
 }
 
-function httpGet(url: string): Promise<{ status: number; body: string; contentType: string }> {
-  const https = require("https") as typeof import("https");
+function httpGet(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
-      const chunks: Buffer[] = [];
-      incoming.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
+      const chunks = [];
+      incoming.on("data", (chunk) => chunks.push(chunk));
       incoming.on("end", () => {
         resolve({
           status: incoming.statusCode ?? 0,
@@ -80,7 +63,7 @@ function httpGet(url: string): Promise<{ status: number; body: string; contentTy
   });
 }
 
-async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; consumerSecret: string }) {
+async function fetchStoreBanners(cfg) {
   const qs = new URLSearchParams({
     search: "banner",
     per_page: "12",
@@ -92,24 +75,16 @@ async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; c
   });
   const upstream = await httpGet(`${cfg.storeUrl}/wp-json/wp/v2/media?${qs.toString()}`);
   if (upstream.status < 200 || upstream.status >= 300) throw new Error("Banner media request failed");
-  const data = JSON.parse(upstream.body) as Array<{
-    id?: number;
-    source_url?: string;
-    alt_text?: string;
-    mime_type?: string;
-    title?: { rendered?: string };
-  }>;
+  const data = JSON.parse(upstream.body);
   if (!Array.isArray(data)) return [];
-  const seen = new Set<string>();
-  const out: { id: number; src: string; alt: string }[] = [];
+  const seen = new Set();
+  const out = [];
   for (const item of data) {
     const src = typeof item.source_url === "string" ? item.source_url.trim() : "";
     if (!src || seen.has(src)) continue;
     if (item.mime_type && !String(item.mime_type).startsWith("image/")) continue;
     seen.add(src);
-    const title = String(item.title?.rendered ?? "")
-      .replace(/<[^>]+>/g, "")
-      .trim();
+    const title = String(item.title?.rendered ?? "").replace(/<[^>]+>/g, "").trim();
     out.push({
       id: typeof item.id === "number" ? item.id : out.length,
       src,
@@ -119,7 +94,7 @@ async function fetchStoreBanners(cfg: { storeUrl: string; consumerKey: string; c
   return out;
 }
 
-export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== "GET" && req.method !== "HEAD") {
       sendJson(res, 405, { error: "Method not allowed" });
@@ -171,4 +146,4 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
   } catch {
     sendJson(res, 500, { error: "Function error" });
   }
-}
+};

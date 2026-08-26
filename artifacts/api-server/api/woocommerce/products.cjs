@@ -1,12 +1,6 @@
-type ApiReq = { method?: string; url?: string; headers?: { host?: string } };
-type ApiRes = {
-  statusCode: number;
-  writableEnded?: boolean;
-  setHeader: (name: string, value: string) => void;
-  end: (body: string) => void;
-};
+const https = require("https");
 
-function sendJson(res: ApiRes, status: number, body: unknown): void {
+function sendJson(res, status, body) {
   if (res.writableEnded) return;
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -21,14 +15,11 @@ function cfg() {
   return { storeUrl, consumerKey, consumerSecret };
 }
 
-function httpGet(url: string): Promise<{ status: number; body: string; contentType: string }> {
-  const https = require("https") as typeof import("https");
+function httpGet(url) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
-      const chunks: Buffer[] = [];
-      incoming.on("data", (chunk: Buffer) => {
-        chunks.push(chunk);
-      });
+      const chunks = [];
+      incoming.on("data", (chunk) => chunks.push(chunk));
       incoming.on("end", () => {
         resolve({
           status: incoming.statusCode ?? 0,
@@ -41,7 +32,7 @@ function httpGet(url: string): Promise<{ status: number; body: string; contentTy
   });
 }
 
-export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
+module.exports = async function handler(req, res) {
   try {
     if (req.method !== "GET" && req.method !== "HEAD") {
       sendJson(res, 405, { error: "Method not allowed" });
@@ -70,4 +61,4 @@ export default async function handler(req: ApiReq, res: ApiRes): Promise<void> {
   } catch {
     sendJson(res, 500, { error: "Function error" });
   }
-}
+};

@@ -138,16 +138,22 @@
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
     font-family: var(--app-font-sans);
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
-    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-weight: 800;
   }
   .font-display {
     font-family: var(--font-display);
+    font-weight: 800;
+  }
+  button, input, select, textarea {
+    font-family: inherit;
+    font-weight: 600;
   }
 }
 
