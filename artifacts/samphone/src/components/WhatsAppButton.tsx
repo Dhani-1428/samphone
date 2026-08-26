@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
 import { SiWhatsapp } from "react-icons/si";
+import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { whatsappChatHref } from "@/lib/whatsapp";
+import { cn } from "@/lib/utils";
 
 export default function WhatsAppButton() {
   const { t } = useLang();
+  const { isOpen: cartOpen } = useCart();
   return (
     <motion.a
       href={whatsappChatHref()}
@@ -15,7 +18,10 @@ export default function WhatsAppButton() {
       transition={{ delay: 0.6, duration: 0.45, type: "spring", stiffness: 260, damping: 18 }}
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.94 }}
-      className="fixed bottom-6 right-6 z-[60] flex h-14 w-14 items-center justify-center md:bottom-8 md:right-8"
+      className={cn(
+        "fixed bottom-6 z-[60] flex h-14 w-14 items-center justify-center md:bottom-8",
+        cartOpen ? "right-6 md:right-[calc(2rem+340px)]" : "right-6 md:right-8",
+      )}
       data-testid="button-whatsapp"
       aria-label={`${t("support_chat_whatsapp")} +351 937 119 295`}
     >

@@ -1707,7 +1707,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { totalItems: cartCount, openCart } = useCart();
+  const { totalItems: cartCount, isOpen: cartOpen, openCart, closeCart } = useCart();
   const { user } = useAuth();
   const { keys: compareKeys } = useCompare();
   const { keys: wishlistKeys } = useWishlist();
@@ -2278,9 +2278,12 @@ export default function Navbar() {
               className="relative flex items-center gap-2 px-1 text-brand-dark dark:text-white lg:px-4"
               onClick={() => {
                 closeMenu();
-                openCart();
+                if (cartOpen) closeCart();
+                else openCart();
               }}
               aria-label={t("nav_cart")}
+              aria-expanded={cartOpen}
+              aria-controls="site-cart-rail"
             >
               <span className="relative text-sam">
                 <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />

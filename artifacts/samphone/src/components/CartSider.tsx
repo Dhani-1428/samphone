@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   ArrowRight,
   Check,
@@ -13,13 +13,13 @@ import {
   ShoppingBag,
   Trash2,
   Truck,
+  X,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import GuestPriceGate from "@/components/GuestPriceGate";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 import { getStockLevel, isInStock } from "@/data/inventory";
 import { cn } from "@/lib/utils";
@@ -35,8 +35,9 @@ function formatEuro(value: number) {
 }
 
 export default function CartSider() {
-  const { items, increment, decrement, removeLine, clearCart, totalItems, isOpen, setCartOpen, closeCart } =
+  const { items, increment, decrement, removeLine, clearCart, totalItems, isOpen, closeCart } =
     useCart();
+  const [location] = useLocation();
   const { t } = useLang();
   const { user } = useAuth();
   const { products: wooProducts } = useProductCatalog();
@@ -67,20 +68,24 @@ export default function CartSider() {
     count: totalItems,
   });
 
+  if (!isOpen || location === "/cart") return null;
+
   return (
-    <Sheet open={isOpen} onOpenChange={setCartOpen}>
-      <SheetContent
-        side="right"
-        overlayClassName="bg-black/15"
+    <aside
+      id="site-cart-rail"
+      aria-label={t("cart_sider_title")}
+      className={cn(
+        "z-30 w-[min(340px,92vw)] shrink-0 bg-white",
+        "max-lg:absolute max-lg:bottom-0 max-lg:right-0 max-lg:top-0 max-lg:shadow-[-12px_0_32px_rgba(15,23,42,0.16)]",
+        "lg:relative lg:shadow-none",
+      )}
+    >
+      <div
         className={cn(
-          "!inset-y-0 !right-0 !left-auto !h-dvh !w-[min(340px,85vw)] !max-w-[340px] gap-0 overflow-hidden border-0 p-0",
-          "flex flex-col shadow-[-12px_0_40px_rgba(11,23,54,0.18)]",
-          "rounded-none [&>button.absolute]:hidden",
+          "sticky flex flex-col overflow-hidden border-l border-black/[0.08] bg-white",
+          "top-[var(--site-header-h,8rem)] h-[calc(100dvh-var(--site-header-h,8rem))]",
         )}
       >
-        <SheetTitle className="sr-only">{t("cart_sider_title")}</SheetTitle>
-        <SheetDescription className="sr-only">{countLabel}</SheetDescription>
-
         <header className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#111111] via-[#000000] to-[#111111] px-4 pb-5 pt-4 text-white">
           <ShoppingBag
             className="pointer-events-none absolute -right-3 bottom-0 h-24 w-24 rotate-12 text-white/[0.07]"
@@ -103,13 +108,23 @@ export default function CartSider() {
                 ))}
               </p>
             </div>
-            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
-              <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
-              {totalItems > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold leading-none text-black">
-                  {totalItems > 99 ? "99+" : totalItems}
-                </span>
-              )}
+            <div className="flex shrink-0 items-start gap-2">
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
+                <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
+                {totalItems > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold leading-none text-black">
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={closeCart}
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15 transition-colors hover:bg-white/20"
+                aria-label={t("cart_sider_close")}
+              >
+                <X className="h-5 w-5" strokeWidth={2} />
+              </button>
             </div>
           </div>
         </header>
@@ -120,14 +135,14 @@ export default function CartSider() {
               <PromoArt />
               <p className="mt-4 text-[15px] font-bold text-[#111111]">{t("cart_empty_title")}</p>
               <p className="mt-1 text-[12px] font-semibold leading-relaxed text-neutral-700">{t("cart_empty_body")}</p>
-              <Link
-                href="/store"
+              <button
+                type="button"
                 onClick={closeCart}
                 className="mt-5 inline-flex items-center gap-1 text-[13px] font-semibold text-[#111111] hover:underline"
               >
                 {t("cart_sider_continue")}
                 <ChevronRight className="h-4 w-4" />
-              </Link>
+              </button>
             </div>
           ) : (
             <>
@@ -148,7 +163,6 @@ export default function CartSider() {
                       </button>
                       <Link
                         href={line.href}
-                        onClick={closeCart}
                         className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[#f1f5f9] ring-1 ring-slate-100"
                       >
                         <img
@@ -160,7 +174,6 @@ export default function CartSider() {
                       <div className="min-w-0 flex-1">
                         <Link
                           href={line.href}
-                          onClick={closeCart}
                           className="line-clamp-2 text-[13px] font-bold leading-snug text-[#111111] hover:text-[#111111]"
                         >
                           {line.name}
@@ -249,8 +262,7 @@ export default function CartSider() {
                 <>
                   <Link
                     href="/cart"
-                    onClick={closeCart}
-                    className="mt-3 flex h-11 w-full items-center justify-between rounded-xl bg-black px-2 text-white transition-opacity hover:opacity-90"
+                    className="mt-3 flex h-11 w-full items-center justify-between rounded-xl bg-sam px-2 text-white transition-opacity hover:opacity-90"
                   >
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
                       <Lock className="h-3.5 w-3.5" />
@@ -263,7 +275,6 @@ export default function CartSider() {
 
                   <Link
                     href="/cart"
-                    onClick={closeCart}
                     className="mt-2 flex h-10 w-full items-center justify-between rounded-xl border-2 border-[#111111] px-3 text-[#111111] transition-colors hover:bg-[#f5f5f5]"
                   >
                     <Eye className="h-4 w-4" />
@@ -281,8 +292,8 @@ export default function CartSider() {
           <TrustBadge icon={Truck} label={t("cart_sider_delivery")} hint={t("cart_sider_delivery_sub")} />
           <TrustBadge icon={Headset} label={t("cart_sider_support")} hint={t("cart_sider_support_sub")} />
         </footer>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </aside>
   );
 }
 
