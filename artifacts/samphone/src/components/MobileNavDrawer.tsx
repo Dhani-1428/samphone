@@ -312,13 +312,6 @@ export default function MobileNavDrawer({
 
         <div className="mb-5 grid grid-cols-2 gap-2">
           <Link
-            href="/"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_home")}
-          </Link>
-          <Link
             href="/phones"
             onClick={onClose}
             className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
@@ -326,11 +319,18 @@ export default function MobileNavDrawer({
             {t("nav_smartphones")}
           </Link>
           <Link
-            href="/cards"
+            href="/tablets"
             onClick={onClose}
             className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
           >
-            {t("nav_cards")}
+            {t("nav_tablets")}
+          </Link>
+          <Link
+            href="/tools"
+            onClick={onClose}
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
+          >
+            Tools
           </Link>
           <Link
             href="/new"
@@ -338,20 +338,6 @@ export default function MobileNavDrawer({
             className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
           >
             {t("nav_new")}
-          </Link>
-          <Link
-            href="/multi-brand"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_multibrand")}
-          </Link>
-          <Link
-            href="/contact"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_contact")}
           </Link>
         </div>
 

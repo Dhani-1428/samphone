@@ -4,7 +4,6 @@ import { ShoppingBag, Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, R
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
-import { ACCESSORY_NAV_PAGES } from "@/data/accessory-pages";
 import { smartphonesColumns } from "@/data/categories";
 import {
   APPLE_IPHONE_MODELS,
@@ -1745,29 +1744,6 @@ function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
   return <AccessoryPageButtons variant="menu" onNavigate={onClose} />;
 }
 
-function CardsMegaPanel({ onClose }: { onClose: () => void }) {
-  const page = ACCESSORY_NAV_PAGES.find((item) => item.group === "Cards");
-  return (
-    <div className={`${navShell} bg-white py-5 dark:bg-[#12192A]`}>
-      <p className={megaHeadingClass}>• CARDS</p>
-      <ul className="space-y-2">
-        <li>
-          <Link href="/cards" onClick={onClose} className={megaLinkClass}>
-            All Cards
-          </Link>
-        </li>
-        {(page?.subtypes ?? []).map((sub) => (
-          <li key={sub.label}>
-            <Link href={`/cards?type=${encodeURIComponent(sub.label)}`} onClick={onClose} className={megaLinkClass}>
-              {sub.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export default function Navbar() {
   const [location, navigate] = useLocation();
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
@@ -2204,26 +2180,6 @@ export default function Navbar() {
     setMenuOpen(true);
   };
 
-  const openCardsMenu = () => {
-    if (menuOpen && openDropdown === "cards") {
-      closeMenu();
-      return;
-    }
-    setOpenDropdown("cards");
-    setMenuOpen(true);
-  };
-
-  const openSmartphonesMenu = () => {
-    if (menuOpen && (openDropdown === "brands" || openDropdown === "others")) {
-      closeMenu();
-      return;
-    }
-    const apple = findBrandIdx(["apple", "iphone"]);
-    setActiveBrandIdx(apple >= 0 ? apple : 0);
-    setOpenDropdown("brands");
-    setMenuOpen(true);
-  };
-
   const primaryBrandIdx = {
     apple: findBrandIdx(["apple", "iphone"]),
     samsung: findBrandIdx(["samsung"]),
@@ -2238,17 +2194,10 @@ export default function Navbar() {
 
   const othersActive = menuOpen && openDropdown === "others";
   const categoriesActive = menuOpen && openDropdown === "categories";
-  const cardsActive = menuOpen && openDropdown === "cards";
-  const smartphonesActive = menuOpen && (openDropdown === "brands" || openDropdown === "others");
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center gap-1 whitespace-nowrap text-[15px] font-bold uppercase tracking-normal text-white ${
-      active ? "" : "hover:opacity-80"
-    }`;
-
-  const brandSwitcherClass = (active: boolean) =>
-    `inline-flex h-9 items-center whitespace-nowrap px-1 text-[14px] font-bold uppercase tracking-normal text-black ${
-      active ? "underline underline-offset-8" : "hover:opacity-70"
+    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-1 text-[15px] font-bold uppercase tracking-normal transition-colors ${
+      active ? "text-sam" : "text-white hover:text-sam"
     }`;
 
   return (
@@ -2385,22 +2334,21 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Classic store nav — wide desktops; mobile uses the hamburger */}
+      {/* Brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="relative z-[55] hidden overflow-visible bg-brand-dark xl:block">
-        <div className={`${navShell} flex h-[46px] items-center justify-evenly`}>
-          <Link href="/" className={navItemClass(location === "/")} onClick={closeMenu}>
-            {t("nav_home")}
-          </Link>
-
+        <div className={`${navShell} flex h-[46px] items-center justify-start gap-x-8`}>
           <div className="relative shrink-0">
             <button
               type="button"
-              className={navItemClass(categoriesActive)}
+              className={`nav-bar-item inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold uppercase tracking-normal text-white transition-colors ${
+                categoriesActive ? "bg-[#E09A2A]" : "bg-sam hover:bg-[#E09A2A]"
+              }`}
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
             >
-              {t("nav_accessories")}
-              <ChevronDown className={`h-3.5 w-3.5 ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+              <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+              {t("nav_all_accessories")}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
             </button>
             <AnimatePresence>
               {categoriesActive ? (
@@ -2409,49 +2357,85 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.14 }}
-                  className="absolute left-1/2 top-full z-[60] mt-0 w-64 -translate-x-1/2 overflow-y-auto rounded-b-md border border-black/[0.08] bg-white py-1 shadow-[0_12px_32px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
+                  className="absolute left-0 top-full z-[60] mt-1 max-h-[min(70vh,28rem)] w-64 overflow-y-auto rounded-md border border-black/[0.08] bg-white py-1 shadow-[0_12px_32px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
                 >
                   <AllCategoriesMegaPanel onClose={closeMenu} />
                 </motion.div>
               ) : null}
             </AnimatePresence>
           </div>
-
-          <button
-            type="button"
-            className={navItemClass(smartphonesActive)}
-            aria-expanded={smartphonesActive}
-            onClick={openSmartphonesMenu}
-          >
-            {t("nav_smartphones")}
-            <ChevronDown className={`h-3.5 w-3.5 ${smartphonesActive ? "rotate-180" : ""}`} aria-hidden />
-          </button>
-
-          <div className="relative shrink-0">
+          <div className="flex min-w-0 items-center gap-x-5">
+            {(
+              [
+                { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
+                { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
+                { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
+                { label: "Honor", slug: "honor", idx: primaryBrandIdx.honor },
+                { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
+                { label: "OnePlus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
+                { label: "Oppo", slug: "oppo", idx: primaryBrandIdx.oppo },
+                { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
+                { label: "Vivo", slug: "vivo", idx: primaryBrandIdx.vivo },
+              ] as const
+            ).map((item) => {
+              const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  title="Click to open menu · Double-click to view all products"
+                  className={navItemClass(active)}
+                  aria-expanded={active}
+                  onClick={() => openBrandMenu(item.idx)}
+                  onDoubleClick={(e) => {
+                    e.preventDefault();
+                    closeMenu();
+                    navigate(`/brand/${item.slug}`);
+                  }}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
             <button
               type="button"
-              className={navItemClass(cardsActive)}
-              aria-expanded={cardsActive}
-              onClick={openCardsMenu}
+              className={navItemClass(othersActive)}
+              aria-expanded={othersActive}
+              onClick={() => openOthersMenu()}
             >
-              {t("nav_cards")}
-              <ChevronDown className={`h-3.5 w-3.5 ${cardsActive ? "rotate-180" : ""}`} aria-hidden />
+              {t("nav_bar_others")}
             </button>
+            <Link
+              href="/phones"
+              className={navItemClass(location.startsWith("/phones") || location.startsWith("/smartphones"))}
+              onClick={closeMenu}
+            >
+              Smartphones
+            </Link>
+            <Link
+              href="/tablets"
+              className={navItemClass(location.startsWith("/tablets"))}
+              onClick={closeMenu}
+            >
+              Tablets
+            </Link>
+            <Link
+              href="/cards"
+              className={navItemClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
+              onClick={closeMenu}
+            >
+              Cards
+            </Link>
+            <Link
+              href="/tools"
+              className={navItemClass(
+                location.startsWith("/tools") || location.startsWith("/group/Repairing"),
+              )}
+              onClick={closeMenu}
+            >
+              Tools
+            </Link>
           </div>
-
-          <Link href="/new" className={navItemClass(location.startsWith("/new"))} onClick={closeMenu}>
-            {t("nav_new")}
-          </Link>
-          <Link
-            href="/multi-brand"
-            className={navItemClass(location.startsWith("/multi-brand"))}
-            onClick={closeMenu}
-          >
-            {t("nav_multibrand")}
-          </Link>
-          <Link href="/contact" className={navItemClass(location.startsWith("/contact"))} onClick={closeMenu}>
-            {t("nav_contact")}
-          </Link>
         </div>
       </nav>
 
@@ -2473,52 +2457,10 @@ export default function Navbar() {
             transition={{ duration: 0.16 }}
             className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(82vh,780px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
           >
-            {openDropdown === "cards" ? (
-              <CardsMegaPanel onClose={closeMenu} />
+            {openDropdown === "others" ? (
+              <OthersMegaPanel onClose={closeMenu} />
             ) : (
-              <>
-                <div className={`${navShell} flex flex-wrap items-center gap-x-6 gap-y-1 border-b border-black/[0.08] py-2`}>
-                  {(
-                    [
-                      { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
-                      { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
-                      { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
-                      { label: "Honor", slug: "honor", idx: primaryBrandIdx.honor },
-                      { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
-                      { label: "OnePlus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
-                      { label: "Oppo", slug: "oppo", idx: primaryBrandIdx.oppo },
-                      { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
-                      { label: "Vivo", slug: "vivo", idx: primaryBrandIdx.vivo },
-                    ] as const
-                  ).map((item) => (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className={brandSwitcherClass(openDropdown === "brands" && activeBrandIdx === item.idx)}
-                      onClick={() => openBrandMenu(item.idx, { force: true })}
-                      onDoubleClick={(e) => {
-                        e.preventDefault();
-                        closeMenu();
-                        navigate(`/brand/${item.slug}`);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className={brandSwitcherClass(othersActive)}
-                    onClick={() => openOthersMenu({ force: true })}
-                  >
-                    {t("nav_bar_others")}
-                  </button>
-                </div>
-                {openDropdown === "others" ? (
-                  <OthersMegaPanel onClose={closeMenu} />
-                ) : (
-                  <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
-                )}
-              </>
+              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
             )}
           </motion.div>
         ) : null}
