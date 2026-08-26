@@ -31,7 +31,7 @@ export default function ModelHeroBanner({
         </div>
 
         <div className="relative mx-auto flex h-44 w-full max-w-sm items-center justify-center md:h-56">
-          <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-[#D6E4FF]/90 md:h-60 md:w-60" aria-hidden />
+          <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-[#D6E4FA]/90 md:h-60 md:w-60" aria-hidden />
           <div className="pointer-events-none absolute right-16 top-8 h-28 w-28 rounded-full bg-[#EEF3FA] md:right-20 md:h-40 md:w-40" aria-hidden />
           <div
             className="pointer-events-none absolute -right-2 top-2 h-36 w-24 opacity-[0.45] md:h-44 md:w-28"

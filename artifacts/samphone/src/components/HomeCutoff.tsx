@@ -13,7 +13,7 @@ export default function HomeCutoff() {
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("cutoff_label")}</p>
             <p className="mt-3 font-display text-4xl font-bold text-foreground">{t("cutoff_time")}</p>
             <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Truck className="h-4 w-4 text-[#5A73A8]" />
+              <Truck className="h-4 w-4 text-[#2B5CB8]" />
               {t("cutoff_hint")}
             </p>
           </div>

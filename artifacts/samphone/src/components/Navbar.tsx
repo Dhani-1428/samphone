@@ -1640,7 +1640,7 @@ function BrandMegaPanel({
                 const models = family.children ?? [];
                 return (
                 <div key={`${brand.brand.slug}-${family.slug}`}>
-                  <div className="mb-3 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
+                  <div className="mb-3 inline-flex rounded-full bg-[#E8F0FC] px-3 py-1 text-[13px] font-medium text-[#1a2b4a]">
                     {family.label}
                   </div>
                   <ul className="space-y-2">
@@ -1652,11 +1652,11 @@ function BrandMegaPanel({
                             `/model/${brandRoute}/${family.slug}/${model.slug}`
                           }
                           onClick={onClose}
-                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
+                          className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
                         >
                           <span>{model.label}</span>
                           {isNewNavModel(model.label) ? (
-                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#5A73A8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                            <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2B5CB8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
                               NEW
                             </span>
                           ) : null}
@@ -1677,7 +1677,7 @@ function BrandMegaPanel({
               key={item.slug}
               href={item.href ?? `/category/${item.slug}`}
               onClick={onClose}
-              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
+              className="text-[13px] text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
             >
               {item.label}
             </Link>
@@ -1708,11 +1708,11 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
                     <Link
                       href={`/model/${brand.slug}/models/${slug}`}
                       onClick={onClose}
-                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#5A73A8]"
+                      className="flex items-start gap-2 text-[13px] leading-snug text-[#3d4a5c] transition-colors hover:text-[#2B5CB8]"
                     >
                       <span>{model.label}</span>
                       {model.isNew ? (
-                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#5A73A8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
+                        <span className="mt-0.5 shrink-0 rounded-[3px] bg-[#2B5CB8] px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">
                           NEW
                         </span>
                       ) : null}
@@ -2211,7 +2211,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
-      <div className="border-b border-black/[0.05] bg-[#F3F5F8] text-[12px] text-brand sm:text-[13px] dark:border-white/10 dark:bg-[#161E2E] dark:text-[#C5D0E8]">
+      <div className="border-b border-black/[0.05] bg-white text-[12px] text-brand sm:text-[13px] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
         <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -2279,7 +2279,7 @@ export default function Navbar() {
           <BrandLogo onClick={closeMenu} />
 
           <div className="hidden min-w-0 flex-1 lg:block">
-            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.12] bg-white dark:border-white/15 dark:bg-[#1B2436]">
+            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.08] bg-[#F3F4F6] dark:border-white/15 dark:bg-[#1B2436]">
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
@@ -2298,11 +2298,11 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("compare")}
             >
-              <span className="relative">
+              <span className="relative text-sam">
                 <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
-              <span className="text-[14px] font-semibold">{t("compare")}</span>
+              <span className="text-[14px] font-semibold text-brand-dark dark:text-white">{t("compare")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
@@ -2311,11 +2311,11 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
-              <span className="relative">
+              <span className="relative text-sam">
                 <Heart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
-              <span className="text-[14px] font-semibold">{t("wishlist")}</span>
+              <span className="text-[14px] font-semibold text-brand-dark dark:text-white">{t("wishlist")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <button
@@ -2327,7 +2327,7 @@ export default function Navbar() {
               }}
               aria-label={t("nav_cart")}
             >
-              <span className="relative">
+              <span className="relative text-sam">
                 <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>
@@ -2349,7 +2349,7 @@ export default function Navbar() {
             <button
               type="button"
               className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[13px] font-bold uppercase tracking-[0.08em] text-white transition-colors ${
-                categoriesActive ? "bg-[#E89A1C]" : "bg-sam hover:bg-[#E89A1C]"
+                categoriesActive ? "bg-[#E09A2A]" : "bg-sam hover:bg-[#E09A2A]"
               }`}
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}

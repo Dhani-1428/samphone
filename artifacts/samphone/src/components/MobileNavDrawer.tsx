@@ -120,7 +120,7 @@ function DrawerBrandModels({
               <Link
                 href={seeAllHref}
                 onClick={onClose}
-                className="text-[13px] font-semibold text-[#5A73A8]"
+                className="text-[13px] font-semibold text-[#2B5CB8]"
               >
                 {seeAllLabel}
               </Link>
@@ -157,7 +157,7 @@ function DrawerBrandModels({
               <Link
                 href={`/brand/${slug}`}
                 onClick={onClose}
-                className="text-[13px] font-semibold text-[#5A73A8]"
+                className="text-[13px] font-semibold text-[#2B5CB8]"
               >
                 {seeAllLabel}
               </Link>
@@ -174,7 +174,7 @@ function DrawerBrandModels({
         const models = family.children ?? [];
         return (
           <div key={family.slug}>
-            <div className="mb-2 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[12px] font-medium text-[#1a2b4a] dark:bg-[#1B2436] dark:text-white">
+            <div className="mb-2 inline-flex rounded-full bg-[#E8F0FC] px-3 py-1 text-[12px] font-medium text-[#1a2b4a] dark:bg-[#1B2436] dark:text-white">
               {family.label}
             </div>
             <ul className="space-y-2">
@@ -432,7 +432,7 @@ export default function MobileNavDrawer({
         <Link
           href="/multi-brand"
           onClick={onClose}
-          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#E8EEF7] px-4 text-brand-dark dark:bg-[#1B2436] dark:text-white"
+          className="mb-2 flex h-12 items-center justify-between rounded-lg bg-[#E8F0FC] px-4 text-brand-dark dark:bg-[#1B2436] dark:text-white"
         >
           <span className="inline-flex items-center gap-2 text-[14px] font-bold">
             <LayoutGrid className="h-4 w-4" />
@@ -543,7 +543,7 @@ export default function MobileNavDrawer({
           </Link>
         )}
 
-        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#E8EEF7] px-4 py-3 dark:bg-[#1B2436]">
+        <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#E8F0FC] px-4 py-3 dark:bg-[#1B2436]">
           <ShieldCheck className="h-8 w-8 shrink-0 text-brand-dark dark:text-white" />
           <div>
             <p className="text-[14px] font-bold text-brand-dark dark:text-white">{t("nav_secure_shopping")}</p>

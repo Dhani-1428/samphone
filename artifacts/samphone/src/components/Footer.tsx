@@ -115,12 +115,12 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#5A73A8]"
+                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm text-white placeholder:text-white/50 outline-none ring-1 ring-white/15 focus:ring-[#2B5CB8]"
                   data-testid="input-newsletter"
                 />
                 <button
                   type="submit"
-                  className="h-10 rounded-md bg-[#5A73A8] px-3 text-sm font-semibold hover:bg-[#4A6494]"
+                  className="h-10 rounded-md bg-[#2B5CB8] px-3 text-sm font-semibold hover:bg-[#173A78]"
                   data-testid="button-subscribe"
                 >
                   OK

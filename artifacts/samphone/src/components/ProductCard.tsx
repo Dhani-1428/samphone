@@ -55,7 +55,7 @@ export default function ProductCard({
       <div className="px-3 pt-3">
         <div className="mb-2 min-h-[1.25rem]">
           {badge ? (
-            <span className="rounded-full bg-[#D6E4FF] px-2 py-0.5 text-[10px] font-semibold text-[#5A73A8]">
+            <span className="rounded-full bg-[#D6E4FA] px-2 py-0.5 text-[10px] font-semibold text-[#2B5CB8]">
               {badge === "New" ? t("badge_new") : badge}
             </span>
           ) : null}

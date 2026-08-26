@@ -55,7 +55,7 @@ export default function ProductImageGallery({
             className={cn(
               "relative overflow-hidden rounded-lg border-2 bg-white transition-colors",
               vertical ? "h-[76px] w-[76px]" : "h-16 w-16 shrink-0",
-              i === active ? "border-[#4A6FA8]" : "border-black/[0.08] hover:border-[#4A6FA8]/50",
+              i === active ? "border-[#2B5CB8]" : "border-black/[0.08] hover:border-[#2B5CB8]/50",
             )}
           >
             <CatalogImage src={src} alt="" className="h-full w-full object-contain p-1" />
@@ -66,7 +66,7 @@ export default function ProductImageGallery({
             type="button"
             onClick={() => setZoomOpen(true)}
             className={cn(
-              "flex items-center justify-center rounded-lg border border-black/[0.08] bg-[#F4F7FB] text-[11px] font-semibold leading-tight text-[#4A6FA8]",
+              "flex items-center justify-center rounded-lg border border-black/[0.08] bg-[#F4F7FB] text-[11px] font-semibold leading-tight text-[#2B5CB8]",
               vertical ? "h-[76px] w-[76px] px-1" : "h-16 w-16 shrink-0",
             )}
           >
@@ -148,7 +148,7 @@ export default function ProductImageGallery({
                   onClick={() => setActive(i)}
                   className={cn(
                     "h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2",
-                    i === active ? "border-[#4A6FA8]" : "border-black/[0.08]",
+                    i === active ? "border-[#2B5CB8]" : "border-black/[0.08]",
                   )}
                 >
                   <CatalogImage src={src} alt="" className="h-full w-full object-contain p-1" />

@@ -9,7 +9,7 @@ export default function WholesaleStatusBanner() {
   if (!user || (user.accountType || "").toLowerCase() !== "b2b") return null;
   if (seesWholesalePrices(user)) {
     return (
-      <div className="bg-[#E8F0FF] px-4 py-2 text-center text-sm text-[#3E5480]">
+      <div className="bg-[#E8F0FC] px-4 py-2 text-center text-sm text-[#1F4E9E]">
         {t("wholesale_approved_banner", { tier: user.dealerTier || "Bronze" })}
       </div>
     );

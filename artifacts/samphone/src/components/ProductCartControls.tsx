@@ -49,7 +49,7 @@ export default function ProductCartControls({
           className={cn(
             "inline-flex shrink-0 items-center justify-center rounded-lg border-0 text-white transition-colors",
             variant === "icon-stepper" ? "h-9 w-9" : "h-10 w-10",
-            "bg-gradient-to-b from-[#6A84C0] to-[#3E5480] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#5C74B1] hover:to-[#33466C]",
+            "bg-gradient-to-b from-[#4A7AD4] to-[#1F4E9E] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#3D6BC4] hover:to-[#173A78]",
           )}
           aria-label={t("login_to_buy")}
           onClick={(e) => e.stopPropagation()}
@@ -134,7 +134,7 @@ export default function ProductCartControls({
           size="icon"
           className={cn(
             variant === "icon-stepper"
-              ? "h-9 w-9 shrink-0 rounded-md bg-gradient-to-b from-[#6A84C0] to-[#3E5480] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#5C74B1] hover:to-[#33466C]"
+              ? "h-9 w-9 shrink-0 rounded-md bg-gradient-to-b from-[#4A7AD4] to-[#1F4E9E] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#3D6BC4] hover:to-[#173A78]"
               : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
             buttonClassName,
           )}

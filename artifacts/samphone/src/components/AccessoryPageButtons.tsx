@@ -27,8 +27,8 @@ export default function AccessoryPageButtons({
                 className={cn(
                   "flex w-full items-center px-4 py-2 text-left text-[13px] leading-snug transition-colors",
                   isActive
-                    ? "bg-[#F4F7FB] font-semibold text-[#5A73A8]"
-                    : "text-[#3d4a5c] hover:bg-[#F4F7FB] hover:text-[#5A73A8] dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white",
+                    ? "bg-[#F4F7FB] font-semibold text-[#2B5CB8]"
+                    : "text-[#3d4a5c] hover:bg-[#F4F7FB] hover:text-[#2B5CB8] dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white",
                 )}
               >
                 {page.label}

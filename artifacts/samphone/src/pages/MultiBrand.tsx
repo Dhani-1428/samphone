@@ -48,7 +48,7 @@ export default function MultiBrand() {
           <button
             type="button"
             onClick={() => setSelectedBrand(null)}
-            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#2B5CB8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
           >
             All
           </button>
@@ -57,7 +57,7 @@ export default function MultiBrand() {
               key={b}
               type="button"
               onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
-              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#5A73A8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#2B5CB8] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
             >
               {b}
             </button>
