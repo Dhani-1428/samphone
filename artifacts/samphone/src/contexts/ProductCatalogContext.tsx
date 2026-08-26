@@ -18,9 +18,10 @@ import {
 } from "@/lib/woocommerce";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
+import { filterCatalogForCustomer } from "@/lib/customer-price";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
-const CACHE_KEY = "samphone-products-cache-json-v5-cloud";
+const CACHE_KEY = "samphone-products-cache-json-v6-cloud";
 const CACHE_META_KEY = "samphone-products-cache-meta-v5-cloud";
 const PER_PAGE = 100;
 const CAT_CACHE_KEY = "samphone-woo-categories-cache-v2-cloud";
@@ -64,7 +65,7 @@ function normalizeQuery(q: string): string[] {
 }
 
 export function ProductCatalogProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [products, setProducts] = useState<WooProduct[]>([]);
   const [categories, setCategories] = useState<WooCategory[]>([]);
   const [loading, setLoading] = useState(false);
@@ -243,21 +244,22 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
         }
         return s;
       };
-      return [...products]
+      return filterCatalogForCustomer(products, user)
         .map((p) => ({ p, s: score(p) }))
         .filter(({ s }) => s > 0)
         .sort((a, b) => b.s - a.s)
         .slice(0, limit)
         .map(({ p }) => p);
     },
-    [products],
+    [products, user],
   );
 
-  const hasCache = products.length > 0;
+  const visibleProducts = useMemo(() => filterCatalogForCustomer(products, user), [products, user]);
+  const hasCache = visibleProducts.length > 0;
 
   const value = useMemo<ProductCatalogValue>(
     () => ({
-      products,
+      products: visibleProducts,
       categories,
       loading,
       error,
@@ -269,7 +271,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       searchProducts,
     }),
     [
-      products,
+      visibleProducts,
       categories,
       loading,
       error,

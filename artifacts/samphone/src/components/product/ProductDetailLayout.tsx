@@ -197,7 +197,7 @@ export default function ProductDetailLayout({
 
           <aside className="lg:col-span-3">
             <div className="space-y-4 rounded-2xl border border-black/[0.08] bg-white p-5 shadow-sm lg:sticky lg:top-24">
-              {user && priceLabel ? (
+              {priceLabel ? (
                 <div>
                   <p className="font-display text-3xl font-bold tabular-nums text-[#4A6FA8]">{priceLabel}</p>
                   {oldPriceLabel ? (
@@ -220,7 +220,7 @@ export default function ProductDetailLayout({
                   <Button asChild className="h-12 w-full rounded-lg bg-[#4A6FA8] text-white hover:bg-[#3E5F92]">
                     <Link href={loginHref} className="inline-flex items-center justify-center gap-2">
                       <Lock className="h-4 w-4" />
-                      {t("pdp_login_price")}
+                      {t("login_to_buy")}
                     </Link>
                   </Button>
                   <p className="text-center text-sm text-[#5B6B86]">

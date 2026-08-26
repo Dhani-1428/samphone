@@ -1,5 +1,6 @@
 import { accessoriesColumns, cardsColumns, smartphonesColumns } from "@/data/categories";
 import type { WooProduct } from "@/lib/woocommerce";
+import { catalogUnitPrice, type PriceUser } from "@/lib/customer-price";
 
 const TABLETS_SLUG = "tablets";
 const SMARTPHONE_CATEGORY_SLUGS = new Set(smartphonesColumns.flatMap((c) => c.items.map((i) => i.slug)));
@@ -351,12 +352,12 @@ export function filterMultiBrandCatalog(products: WooProduct[], brand: string | 
   return out.slice(0, limit);
 }
 
-export function sortByPrice(products: WooProduct[], order: "asc" | "desc"): WooProduct[] {
+export function sortByPrice(products: WooProduct[], order: "asc" | "desc", user?: PriceUser): WooProduct[] {
   return [...products].sort((a, b) => {
-    const pa = Number.parseFloat(a.price ?? "NaN");
-    const pb = Number.parseFloat(b.price ?? "NaN");
-    const na = Number.isFinite(pa) ? pa : Infinity;
-    const nb = Number.isFinite(pb) ? pb : Infinity;
+    const pa = catalogUnitPrice(a, user);
+    const pb = catalogUnitPrice(b, user);
+    const na = pa ?? Infinity;
+    const nb = pb ?? Infinity;
     return order === "asc" ? na - nb : nb - na;
   });
 }

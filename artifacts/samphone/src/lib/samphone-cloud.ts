@@ -9,6 +9,7 @@ import {
 } from "@/config/samphone";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery } from "@/lib/woocommerce";
+import { parsePersonalPricing } from "@/lib/customer-price";
 
 export { catalogImageReferrerPolicy };
 
@@ -30,6 +31,15 @@ type CloudProduct = {
   price?: number | string | null;
   regularPrice?: number | string | null;
   salePrice?: number | string | null;
+  retailPrice?: number | string | null;
+  wholesalePrice?: number | string | null;
+  compareAtPrice?: number | string | null;
+  dealerOnly?: boolean | string | number | null;
+  dealer_only?: boolean | string | number | null;
+  moq?: number | string | null;
+  minOrderQty?: number | string | null;
+  min_order_qty?: number | string | null;
+  attributes?: unknown;
   image?: string | null;
   images?: string[] | { src?: string }[];
   sku?: string;
@@ -123,6 +133,40 @@ function money(v: number | string | null | undefined): string {
   return String(n);
 }
 
+function truthyFlag(v: unknown): boolean {
+  if (v === true || v === 1) return true;
+  if (typeof v === "string") return /^(1|true|yes|dealer)$/i.test(v.trim());
+  return false;
+}
+
+function positiveInt(v: unknown): number | undefined {
+  const n = typeof v === "number" ? v : Number.parseFloat(String(v ?? ""));
+  if (!Number.isFinite(n) || n <= 1) return undefined;
+  return Math.floor(n);
+}
+
+function dealerFields(p: CloudProduct): { dealerOnly?: boolean; minOrderQty?: number } {
+  const specs = p.specs && typeof p.specs === "object" ? p.specs : {};
+  const dealerOnly =
+    truthyFlag(p.dealerOnly) ||
+    truthyFlag(p.dealer_only) ||
+    truthyFlag(specs.dealerOnly) ||
+    truthyFlag(specs.dealer_only) ||
+    truthyFlag(specs["Dealer only"]) ||
+    /dealer[\s_-]*only/i.test(JSON.stringify(p));
+  const minOrderQty =
+    positiveInt(p.moq) ||
+    positiveInt(p.minOrderQty) ||
+    positiveInt(p.min_order_qty) ||
+    positiveInt(specs.MOQ) ||
+    positiveInt(specs.moq) ||
+    positiveInt(specs.min_order_qty);
+  return {
+    dealerOnly: dealerOnly || undefined,
+    minOrderQty,
+  };
+}
+
 function imageList(p: CloudProduct): WooProduct["images"] {
   const raw: string[] = [];
   if (Array.isArray(p.images)) {
@@ -164,7 +208,10 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     : p.category
       ? [{ id: 0, name: p.category, slug: "" }]
       : [];
-  const price = money(p.price) || money(p.regularPrice);
+  const retail = money(p.retailPrice) || money(p.price);
+  const wholesale = money(p.wholesalePrice) || money(p.regularPrice);
+  const price = retail || wholesale;
+  const extras = dealerFields(p);
   return normalizeProductGallery({
     id: wcId || Math.abs(hashString(uuid)),
     cloudId: uuid || undefined,
@@ -172,13 +219,18 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     slug: p.slug || "",
     permalink: p.permalink || "",
     price,
-    regular_price: money(p.regularPrice) || price,
+    regular_price: wholesale || price,
     sale_price: money(p.salePrice),
+    retailPrice: retail || undefined,
+    wholesalePrice: wholesale || undefined,
+    compareAtPrice: money(p.compareAtPrice) || undefined,
+    dealerOnly: extras.dealerOnly,
+    minOrderQty: extras.minOrderQty,
     categories: cats,
     images: imageList(p),
     sku: p.sku,
     description: p.description,
-    on_sale: Boolean(p.on_sale) || Boolean(money(p.salePrice)),
+    on_sale: Boolean(money(p.compareAtPrice)),
     stock_status: p.in_stock === false ? "outofstock" : "instock",
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
     colorVariants: colorNames(p.color_variants),
@@ -423,29 +475,46 @@ function parseAuthPayload(data: Record<string, unknown>, fallbackEmail: string, 
     (typeof data.jwt === "string" && data.jwt) ||
     null;
   const user = (data.user && typeof data.user === "object" ? data.user : data) as Record<string, unknown>;
-  const str = (k: string) => (typeof user[k] === "string" ? (user[k] as string) : "");
+  const str = (...keys: string[]) => {
+    for (const k of keys) {
+      const v = user[k];
+      if (typeof v === "string" && v.trim()) return v.trim();
+    }
+    return "";
+  };
   return {
     token,
     email: str("email") || fallbackEmail,
     name: str("name") || fallbackName || fallbackEmail.split("@")[0],
+    role: str("role") || undefined,
     isWholesale: user.isWholesale === true,
-    wholesaleStatus: str("wholesaleStatus") || undefined,
-    accountType: str("accountType") || undefined,
-    dealerTier: str("dealerTier") || undefined,
+    wholesaleStatus: str("wholesaleStatus", "wholesale_status") || undefined,
+    accountType: str("accountType", "account_type") || undefined,
+    dealerTier: str("dealerTier", "dealer_tier") || undefined,
     phone: str("phone") || undefined,
-    vatNumber: str("vatNumber") || undefined,
-    businessName: str("businessName") || undefined,
+    vatNumber: str("vatNumber", "vat_number") || undefined,
+    businessName: str("businessName", "business_name") || undefined,
+    companyAddress: str("companyAddress", "company_address") || undefined,
+    businessType: str("businessType", "business_type") || undefined,
+    address: str("address") || undefined,
+    city: str("city") || undefined,
+    postalCode: str("postal_code", "postalCode") || undefined,
+    country: str("country") || undefined,
+    language: str("language") || undefined,
+    rejectionReason: str("rejectionReason", "rejection_reason") || undefined,
+    personalPricing: parsePersonalPricing(user.personalPricing ?? user.personal_pricing),
   };
 }
 
 export async function cloudAuth(
   path: "/auth/login" | "/auth/register" | "/auth/clerk-sync",
-  body: Record<string, string | boolean | number>,
+  body: Record<string, string | boolean | number | undefined>,
 ) {
+  const cleaned = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined && v !== ""));
   const data = await cloudFetchJson<Record<string, unknown>>(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(cleaned),
   });
   const email = typeof body.email === "string" ? body.email : "";
   const name = typeof body.name === "string" ? body.name : undefined;
@@ -613,48 +682,49 @@ export async function notifyStock(productId: string, email: string): Promise<voi
 export type CloudProfile = {
   email: string;
   name: string;
+  token?: string | null;
+  role?: string;
   phone?: string;
   address?: string;
   city?: string;
+  postalCode?: string;
   postal_code?: string;
+  country?: string;
   vatNumber?: string;
   businessName?: string;
+  companyAddress?: string;
   businessType?: string;
   accountType?: string;
   isWholesale?: boolean;
   wholesaleStatus?: string;
   dealerTier?: string;
   language?: string;
+  rejectionReason?: string;
+  personalPricing?: import("@/lib/customer-price").PersonalPricingRule[];
 };
 
 export async function fetchCloudMe(): Promise<CloudProfile | null> {
   try {
     const data = await cloudFetchJson<Record<string, unknown>>("/auth/me");
     const parsed = parseAuthPayload(data, "");
-    const extra = (data.user && typeof data.user === "object" ? data.user : data) as Record<string, unknown>;
     return {
       ...parsed,
-      phone: parsed.phone,
-      address: typeof extra.address === "string" ? extra.address : undefined,
-      city: typeof extra.city === "string" ? extra.city : undefined,
-      postal_code: typeof extra.postal_code === "string" ? extra.postal_code : undefined,
-      vatNumber: parsed.vatNumber,
-      businessName: parsed.businessName,
-      businessType: typeof extra.businessType === "string" ? extra.businessType : undefined,
-      language: typeof extra.language === "string" ? extra.language : undefined,
+      postal_code: parsed.postalCode,
     };
   } catch {
     return null;
   }
 }
 
-export async function patchCloudProfile(body: Record<string, string>): Promise<CloudProfile | null> {
+export async function patchCloudProfile(body: Record<string, string | boolean | number | undefined>): Promise<CloudProfile | null> {
+  const cleaned = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined && v !== ""));
   const data = await cloudFetchJson<Record<string, unknown>>("/auth/profile", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(cleaned),
   });
-  return parseAuthPayload(data, "");
+  const parsed = parseAuthPayload(data, "");
+  return { ...parsed, postal_code: parsed.postalCode };
 }
 
 export async function exportCloudAccount(): Promise<unknown> {
@@ -738,6 +808,9 @@ export async function createCloudOrder(payload: {
   address: string;
   city: string;
   postal_code: string;
+  country?: string;
+  company_name?: string;
+  vat_number?: string;
   payment_method: string;
   shipping_method?: string;
   notes?: string;
@@ -763,6 +836,9 @@ export type CheckoutDraft = {
   address: string;
   city: string;
   postal_code: string;
+  country: string;
+  company_name?: string;
+  vat_number?: string;
   shipping_method: string;
   payment_method: string;
   notes: string;
@@ -800,6 +876,100 @@ export async function startStripeCheckout(
   const url = data.url || data.checkout_url || data.session_url;
   if (!url) throw new WooCommerceFetchError("Checkout session did not return a URL.");
   return url;
+}
+
+export type AdminWholesaleUser = {
+  id: string;
+  email: string;
+  name: string;
+  accountType?: string;
+  wholesaleStatus?: string;
+  isWholesale?: boolean;
+  dealerTier?: string;
+  businessName?: string;
+  vatNumber?: string;
+  businessType?: string;
+  phone?: string;
+};
+
+function asAdminUser(raw: unknown): AdminWholesaleUser | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const email = typeof o.email === "string" ? o.email : "";
+  const id = o.id != null ? String(o.id) : email;
+  if (!id && !email) return null;
+  return {
+    id: id || email,
+    email,
+    name: typeof o.name === "string" ? o.name : email.split("@")[0] || id,
+    accountType: typeof o.accountType === "string" ? o.accountType : typeof o.account_type === "string" ? o.account_type : undefined,
+    wholesaleStatus: typeof o.wholesaleStatus === "string" ? o.wholesaleStatus : typeof o.wholesale_status === "string" ? o.wholesale_status : undefined,
+    isWholesale: o.isWholesale === true,
+    dealerTier: typeof o.dealerTier === "string" ? o.dealerTier : typeof o.dealer_tier === "string" ? o.dealer_tier : undefined,
+    businessName: typeof o.businessName === "string" ? o.businessName : typeof o.business_name === "string" ? o.business_name : undefined,
+    vatNumber: typeof o.vatNumber === "string" ? o.vatNumber : typeof o.vat_number === "string" ? o.vat_number : undefined,
+    businessType: typeof o.businessType === "string" ? o.businessType : typeof o.business_type === "string" ? o.business_type : undefined,
+    phone: typeof o.phone === "string" ? o.phone : undefined,
+  };
+}
+
+function unwrapList(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === "object") {
+    const o = data as Record<string, unknown>;
+    if (Array.isArray(o.items)) return o.items;
+    if (Array.isArray(o.users)) return o.users;
+    if (Array.isArray(o.requests)) return o.requests;
+  }
+  return [];
+}
+
+export async function fetchAdminUsers(authToken: string): Promise<AdminWholesaleUser[]> {
+  const data = await cloudFetchJson<unknown>("/admin/users", {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+}
+
+export async function fetchAdminWholesaleRequests(authToken: string): Promise<AdminWholesaleUser[]> {
+  const data = await cloudFetchJson<unknown>("/admin/wholesale-requests", {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+}
+
+export async function patchAdminWholesaleUser(
+  authToken: string,
+  userId: string,
+  body: Record<string, string | boolean | number>,
+): Promise<void> {
+  const headers = { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" };
+  const payload = JSON.stringify(body);
+  const paths = [`/admin/users/${encodeURIComponent(userId)}`, `/admin/wholesale-requests/${encodeURIComponent(userId)}`];
+  let last: unknown = null;
+  for (const path of paths) {
+    try {
+      await cloudFetchJson(path, { method: "PATCH", headers, body: payload });
+      return;
+    } catch (e) {
+      last = e;
+      if (e instanceof WooCommerceFetchError && e.status === 404) continue;
+      throw e;
+    }
+  }
+  throw last instanceof Error ? last : new WooCommerceFetchError("Could not update wholesale account.");
+}
+
+export async function patchAdminProduct(
+  authToken: string,
+  productId: string,
+  body: Record<string, string | boolean | number | null>,
+): Promise<void> {
+  await cloudFetchJson(`/admin/products/${encodeURIComponent(productId)}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }
 
 export { cloudFetchJson };

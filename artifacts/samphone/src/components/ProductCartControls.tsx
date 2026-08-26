@@ -14,6 +14,7 @@ export default function ProductCartControls({
   buttonClassName,
   size = "sm",
   variant = "default",
+  minQty = 1,
 }: {
   cartKey: string;
   buttonClassName?: string;
@@ -23,6 +24,7 @@ export default function ProductCartControls({
    * - icon-stepper: icon-only add; after add, − / qty / + — e.g. Woo cards by price.
    */
   variant?: "default" | "compact" | "icon-stepper";
+  minQty?: number;
 }) {
   const { user } = useAuth();
   const [loc] = useLocation();
@@ -31,9 +33,11 @@ export default function ProductCartControls({
   const { t } = useLang();
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
+  const floor = Math.max(1, minQty ?? 1);
   const atMax = qty >= maxStock;
   const addToCart = () => {
-    increment(cartKey, maxStock);
+    const next = qty < floor ? floor : 1;
+    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
     if (loc !== "/cart") openCart();
   };
 
@@ -47,7 +51,7 @@ export default function ProductCartControls({
             variant === "icon-stepper" ? "h-9 w-9" : "h-10 w-10",
             "bg-gradient-to-b from-[#6A84C0] to-[#3E5480] shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] hover:from-[#5C74B1] hover:to-[#33466C]",
           )}
-          aria-label={t("loginToSeePrice")}
+          aria-label={t("login_to_buy")}
           onClick={(e) => e.stopPropagation()}
         >
           <Lock className={variant === "icon-stepper" ? "w-4 h-4" : "w-5 h-5"} />
@@ -62,7 +66,7 @@ export default function ProductCartControls({
           onClick={(e) => e.stopPropagation()}
         >
           <Lock className="w-4 h-4 shrink-0" />
-          {t("loginToSeePrice")}
+          {t("login_to_buy")}
         </Link>
       </Button>
     );

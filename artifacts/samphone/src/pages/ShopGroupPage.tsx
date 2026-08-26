@@ -5,7 +5,9 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { groupIcon, subtypeIcon } from "@/components/AccessoryFilterChip";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { filterCatalogForCustomer } from "@/lib/customer-price";
 import {
   accessoryPageCopy,
   accessoryPageHref,
@@ -36,6 +38,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   const page = findAccessoryPage(group);
   const typeParam = new URLSearchParams(search).get("type") ?? "";
   const { t } = useLang();
+  const { user } = useAuth();
   const [items, setItems] = useState<WooProduct[] | null>(null);
   const [catalogTotal, setCatalogTotal] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -76,10 +79,10 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   const copy = page ? accessoryPageCopy(page) : { blurb: t("home_accessories_sub"), typesLabel: t("home_accessories_title") };
 
   const visible = useMemo(() => {
-    const list = items ?? [];
+    const list = filterCatalogForCustomer(items ?? [], user);
     const filtered = subtype ? list.filter((p) => productMatchesSubtype(p, subtype)) : list;
-    return sortByPrice(filtered, "asc");
-  }, [items, subtype]);
+    return sortByPrice(filtered, "asc", user);
+  }, [items, subtype, user]);
 
   const heroImages = useMemo(() => {
     const urls: string[] = [];

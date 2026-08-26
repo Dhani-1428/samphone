@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
+import { seesWholesalePrices } from "@/lib/customer-price";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import ProductCartControls from "@/components/ProductCartControls";
@@ -41,26 +42,19 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { user } = useAuth();
   const { t } = useLang();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
-  const [loc] = useLocation();
-  const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
-  const catalogPrice = getDisplayPrice(product);
-  const { displayFormatted, hasCustomPrice } = useCustomerProductPrice(product);
-  const showPrice = user != null && (catalogPrice != null || hasCustomPrice);
+  const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
+  const showPrice = catalogCents > 0 || hasCustomPrice;
+  const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const variantImage = swatches[colorIdx]?.image;
   const imageUrl = variantImage || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
-  const loginHref = `/login?next=${encodeURIComponent(loc)}`;
   const recent = isRecent(product);
   const service = isServicePack(product);
 
-  const priceLabel = hasCustomPrice
-    ? displayFormatted
-    : catalogPrice != null
-      ? `${Number(catalogPrice).toFixed(2).replace(".", ",")}${currencySymbol}`
-      : null;
+  const priceLabel = showPrice ? displayFormatted : null;
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-card">
@@ -123,25 +117,18 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
-        {user ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-bold tabular-nums leading-none text-foreground">
-              {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
-            </span>
-            {showPrice && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
-              </div>
-            )}
-          </div>
-        ) : (
-          <Link
-            href={loginHref}
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-[#5A73A8] px-3 text-center text-sm font-semibold leading-tight text-white hover:bg-[#4A6494]"
-          >
-            {t("login_for_price")}
-          </Link>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-lg font-bold tabular-nums leading-none text-foreground">
+            {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
+          </span>
+          {showPrice && canBuyDealer ? (
+            <div onClick={(e) => e.stopPropagation()}>
+              <ProductCartControls cartKey={cartKey} variant="icon-stepper" minQty={product.minOrderQty} />
+            </div>
+          ) : product.dealerOnly ? (
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5A73A8]">{t("dealer_only")}</span>
+          ) : null}
+        </div>
         <Link href={productHref} className="mt-auto block">
           <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-medium leading-snug text-foreground">{product.name}</h3>
         </Link>

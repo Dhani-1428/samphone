@@ -2,6 +2,8 @@ import { Link } from "wouter";
 import { ChevronRight, Headphones } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { seesWholesalePrices } from "@/lib/customer-price";
 import AccountAddressForm from "@/components/account/AccountAddressForm";
 import AccountTurnoverChart from "@/components/account/AccountTurnoverChart";
 import type { AccountData } from "@/lib/account-store";
@@ -17,6 +19,7 @@ type Props = {
 
 export default function AccountDashboard({ data, orders, onAddressChange, onSaveAddress }: Props) {
   const { t } = useLang();
+  const { user } = useAuth();
   const currency = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
   const completion = profileCompletionPercent(data);
   const stats = computeOrderStats(orders);
@@ -26,6 +29,19 @@ export default function AccountDashboard({ data, orders, onAddressChange, onSave
 
   return (
     <div className="space-y-6">
+      {user && (user.accountType || "").toLowerCase() === "b2b" ? (
+        <section className="rounded-xl border border-border bg-card p-5 shadow-sm text-sm">
+          <p className="font-semibold text-foreground">
+            {seesWholesalePrices(user)
+              ? t("wholesale_approved_banner", { tier: user.dealerTier || "Bronze" })
+              : (user.wholesaleStatus || "").toLowerCase() === "rejected"
+                ? t("wholesale_rejected_banner")
+                : (user.wholesaleStatus || "").toLowerCase() === "suspended"
+                  ? t("wholesale_suspended_banner")
+                  : t("wholesale_pending_banner")}
+          </p>
+        </section>
+      ) : null}
       <section className="rounded-xl border border-border bg-card p-5 md:p-6 shadow-sm">
         <p className="font-display text-xl font-bold text-foreground mb-1">
           {t("account_profile_complete", { percent: String(completion) })}

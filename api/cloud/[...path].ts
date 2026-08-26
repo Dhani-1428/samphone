@@ -14,7 +14,7 @@ type NodeRes = {
 };
 
 const UPSTREAM = "https://samphone.cloud/api";
-const ALLOWED = /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands)(\/|$)/i;
+const ALLOWED = /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
 
 function header(req: NodeReq, name: string): string {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];

@@ -5,6 +5,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import BackToTopButton from "@/components/BackToTopButton";
 import CartSider from "@/components/CartSider";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
+import WholesaleStatusBanner from "@/components/WholesaleStatusBanner";
 import { CartProvider } from "@/contexts/CartContext";
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -13,6 +14,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="flex min-h-screen flex-col bg-background text-foreground">
         <BrowseRouteTracker />
         <Navbar />
+        <WholesaleStatusBanner />
         <main className="flex-1">{children}</main>
         <Footer />
         <CartSider />

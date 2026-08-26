@@ -183,11 +183,18 @@ export default function AdminPricing() {
             <h1 className="font-display text-2xl font-bold">Pricing administration</h1>
             <p className="text-sm text-muted-foreground">Portugal · EUR · Customer-specific B2B/B2C</p>
           </div>
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              View storefront
-            </Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/admin/wholesale">
+              <Button variant="outline" size="sm">
+                Wholesale admin
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                View storefront
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 

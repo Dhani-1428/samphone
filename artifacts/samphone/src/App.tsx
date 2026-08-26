@@ -38,6 +38,11 @@ import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import ShopGroupPage from "@/pages/ShopGroupPage";
 import AdminPricing from "@/pages/admin/AdminPricing";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
+import ClerkCloudBridge from "@/components/ClerkCloudBridge";
+import ProfileLanguageSync from "@/components/ProfileLanguageSync";
+import AdminWholesale from "@/pages/admin/AdminWholesale";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 
@@ -136,6 +141,9 @@ function Router() {
       <Route path="/admin/pricing">
         <AdminPricing />
       </Route>
+      <Route path="/admin/wholesale">
+        <AdminWholesale />
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -143,9 +151,12 @@ function Router() {
 
 function App() {
   return (
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
+          <ClerkCloudBridge />
+          <ProfileLanguageSync />
           <RecentlyViewedProvider>
             <BrowseBehaviorProvider>
             <CompareProvider>
@@ -172,6 +183,7 @@ function App() {
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
+    </ClerkProvider>
   );
 }
 

@@ -45,6 +45,11 @@ export interface WooProduct {
   catalogGroup?: string;
   subcategory?: string;
   modelLabel?: string;
+  retailPrice?: string;
+  wholesalePrice?: string;
+  compareAtPrice?: string;
+  dealerOnly?: boolean;
+  minOrderQty?: number;
 }
 
 export type ProductColorSwatch = {
@@ -302,7 +307,7 @@ export async function fetchHeroBanners(): Promise<{ id: number; src: string; alt
 }
 
 export function getDisplayPrice(product: WooProduct): string | null {
-  const raw = product.price?.trim() ?? "";
+  const raw = (product.retailPrice || product.price)?.trim() ?? "";
   if (!raw) return null;
   const n = Number.parseFloat(raw);
   if (Number.isNaN(n) || n <= 0) return null;

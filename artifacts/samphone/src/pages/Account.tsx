@@ -86,7 +86,8 @@ export default function Account() {
       address: accountData.address.street,
       city: accountData.address.city,
       postal_code: accountData.address.zip,
-      vatNumber: accountData.vatNumber,
+      vat_number: accountData.vatNumber,
+      business_name: accountData.address.company,
       language: lang,
     }).catch(() => {
       /* local save still applied */

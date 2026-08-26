@@ -1,8 +1,7 @@
 import { Heart } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import ProductCartControls from "@/components/ProductCartControls";
-import { useAuth } from "@/contexts/AuthContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 
@@ -31,13 +30,10 @@ export default function ProductCard({
   badge,
   testPrefix = "product",
 }: ProductCardProps) {
-  const { user } = useAuth();
   const { t } = useLang();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
-  const [loc] = useLocation();
   const wishlisted = wishHas(cartKey);
   const productHref = hrefForCartKey(cartKey);
-  const loginHref = `/login?next=${encodeURIComponent(loc)}`;
 
   return (
     <article
@@ -69,19 +65,10 @@ export default function ProductCard({
         </Link>
       </div>
       <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
-        {user ? (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-lg font-bold tabular-nums text-foreground">€{price.toFixed(2).replace(".", ",")}</span>
-            <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
-          </div>
-        ) : (
-          <Link
-            href={loginHref}
-            className="flex h-10 items-center justify-center rounded-md bg-[#5A73A8] text-sm font-semibold text-white hover:bg-[#4A6494]"
-          >
-            {t("login_for_price")}
-          </Link>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-lg font-bold tabular-nums text-foreground">€{price.toFixed(2).replace(".", ",")}</span>
+          <ProductCartControls cartKey={cartKey} variant="icon-stepper" />
+        </div>
         <Link href={productHref} className="mt-auto block">
           <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground">{name}</h3>
         </Link>

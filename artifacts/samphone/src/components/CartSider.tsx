@@ -46,12 +46,11 @@ export default function CartSider() {
     () =>
       Object.entries(items)
         .filter(([, q]) => q > 0)
-        .map(([cartKey, qty]) => buildCartLinePreview(cartKey, qty, wooById)),
-    [items, wooById],
+        .map(([cartKey, qty]) => buildCartLinePreview(cartKey, qty, wooById, user)),
+    [items, wooById, user],
   );
 
   const subtotal = useMemo(() => {
-    if (!user) return null;
     let sum = 0;
     let missing = false;
     for (const line of lines) {
@@ -62,7 +61,7 @@ export default function CartSider() {
       sum += line.unitPrice * line.qty;
     }
     return { sum, missing };
-  }, [lines, user]);
+  }, [lines]);
 
   const countLabel = t(totalItems === 1 ? "cart_sider_count_one" : "cart_sider_count_many", {
     count: totalItems,
@@ -197,7 +196,7 @@ export default function CartSider() {
                               <Plus className="h-3 w-3" strokeWidth={2.4} />
                             </button>
                           </div>
-                          {user && line.unitPrice != null && (
+                          {line.unitPrice != null && (
                             <span className="text-[14px] font-bold tabular-nums text-[#3E5480]">
                               {formatEuro(line.unitPrice * line.qty)}
                             </span>
@@ -235,18 +234,19 @@ export default function CartSider() {
             </button>
 
             <div className="px-4 pb-3 pt-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[13px] text-slate-500">{t("cart_subtotal")}</span>
+                <span className="text-[18px] font-bold tabular-nums text-[#3E5480]">
+                  {subtotal.missing ? "—" : formatEuro(subtotal.sum)}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] text-slate-400">{t("cart_sider_taxes")}</p>
               {!user ? (
-                <GuestPriceGate variant="card" />
+                <div className="mt-3">
+                  <GuestPriceGate variant="card" />
+                </div>
               ) : (
                 <>
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-[13px] text-slate-500">{t("cart_subtotal")}</span>
-                    <span className="text-[18px] font-bold tabular-nums text-[#3E5480]">
-                      {subtotal?.missing ? "—" : formatEuro(subtotal?.sum ?? 0)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] text-slate-400">{t("cart_sider_taxes")}</p>
-
                   <Link
                     href="/cart"
                     onClick={closeCart}

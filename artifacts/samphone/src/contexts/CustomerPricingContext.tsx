@@ -12,8 +12,8 @@ import {
   type ResolvedPriceApiResponse,
 } from "@/lib/pricing-api";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getDisplayPrice } from "@/lib/woocommerce";
 import { eurosToCents } from "@/lib/pricing-api";
+import { catalogUnitPrice } from "@/lib/customer-price";
 
 interface CustomerPricingContextValue {
   enabled: boolean;
@@ -36,7 +36,7 @@ export function CustomerPricingProvider({ children }: { children: ReactNode }) {
   const resolveForProduct = useCallback(
     async (product: WooProduct, quantity = 1) => {
       if (!user?.email) return null;
-      const display = getDisplayPrice(product);
+      const display = catalogUnitPrice(product, user);
       const basePriceCents = eurosToCents(display);
       const categoryIds = product.categories?.map((c) => c.slug) ?? [];
 
@@ -48,7 +48,7 @@ export function CustomerPricingProvider({ children }: { children: ReactNode }) {
         quantity,
       });
     },
-    [user?.email],
+    [user],
   );
 
   const invalidate = useCallback(() => {
@@ -85,11 +85,11 @@ export function useCustomerProductPrice(product: WooProduct | null, quantity = 1
 
   const catalogCents = useMemo(() => {
     if (!product) return 0;
-    return eurosToCents(getDisplayPrice(product));
-  }, [product]);
+    return eurosToCents(catalogUnitPrice(product, user));
+  }, [product, user]);
 
   const query = useQuery({
-    queryKey: ["customer-pricing", user?.email, product?.id, catalogCents, quantity],
+    queryKey: ["customer-pricing", user?.email, user?.isWholesale, user?.wholesaleStatus, product?.id, catalogCents, quantity],
     enabled: enabled && product != null && catalogCents > 0,
     staleTime: 60_000,
     queryFn: async () => {

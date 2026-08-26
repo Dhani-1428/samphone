@@ -1,12 +1,20 @@
 import { FormEvent, useState } from "react";
+import { SignUp } from "@clerk/clerk-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
-import { cloudAuth } from "@/lib/samphone-cloud";
+import { cloudAuth, patchCloudProfile } from "@/lib/samphone-cloud";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+const BUSINESS_TYPES = [
+  ["repair_shop", "register_type_repair"],
+  ["reseller", "register_type_reseller"],
+  ["distributor", "register_type_distributor"],
+  ["other", "register_type_other"],
+] as const;
 
 export default function Register() {
   const { t } = useLang();
@@ -19,18 +27,24 @@ export default function Register() {
   const [accountType, setAccountType] = useState<"b2c" | "b2b">("b2c");
   const [businessName, setBusinessName] = useState("");
   const [vatNumber, setVatNumber] = useState("");
-  const [businessType, setBusinessType] = useState("");
+  const [businessType, setBusinessType] = useState("repair_shop");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [postal, setPostal] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const next = nextPathFromSearch(search);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const em = email.trim();
-    if (!em || !password) {
+    if (!em || !password || !name.trim() || !phone.trim() || !address.trim()) {
       setError(t("loginForPricing"));
+      return;
+    }
+    if (accountType === "b2b" && (!businessName.trim() || !vatNumber.trim())) {
+      setError(t("register_company"));
       return;
     }
     setBusy(true);
@@ -39,34 +53,45 @@ export default function Register() {
       const result = await cloudAuth("/auth/register", {
         email: em,
         password,
-        name: name.trim() || em.split("@")[0],
-        accountType: accountType,
+        name: name.trim(),
         account_type: accountType,
+        phone: phone.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        postal_code: postal.trim(),
         ...(accountType === "b2b"
           ? {
-              businessName: businessName.trim(),
-              vatNumber: vatNumber.trim(),
-              vat: vatNumber.trim(),
+              business_name: businessName.trim(),
+              vat_number: vatNumber.trim(),
               nif: vatNumber.trim(),
-              businessType: businessType.trim() || "retailer",
-              phone: phone.trim(),
-              address: address.trim(),
-              city: city.trim(),
-              company_name: businessName.trim(),
+              vat: vatNumber.trim(),
+              business_type: businessType,
+              company_address: address.trim(),
             }
           : {}),
       });
       login({
-        email: result.email || em,
-        name: result.name,
+        ...result,
         token: result.token ?? undefined,
-        isWholesale: result.isWholesale,
-        wholesaleStatus: result.wholesaleStatus,
-        accountType: result.accountType || accountType,
-        dealerTier: result.dealerTier,
-        phone: result.phone,
+        accountType,
       });
-      setLocation(nextPathFromSearch(search));
+      await patchCloudProfile({
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        postal_code: postal.trim(),
+        account_type: accountType,
+        ...(accountType === "b2b"
+          ? {
+              business_name: businessName.trim(),
+              vat_number: vatNumber.trim(),
+              business_type: businessType,
+              company_address: address.trim(),
+            }
+          : {}),
+      }).catch(() => null);
+      setLocation(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth_submit_register"));
     } finally {
@@ -78,8 +103,22 @@ export default function Register() {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm ring-1 ring-black/[0.04]">
         <h1 className="font-display text-2xl font-bold text-navy">{t("auth_register_title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("loginForPricing")}</p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth_clerk_same")}</p>
+        <div className="mt-6">
+          <SignUp
+            routing="hash"
+            forceRedirectUrl={next}
+            fallbackRedirectUrl={next}
+            appearance={{
+              elements: {
+                rootBox: "mx-auto w-full",
+                card: "shadow-none border-0 p-0 bg-transparent",
+              },
+            }}
+          />
+        </div>
+        <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("auth_or_email")}</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>{t("register_account_type")}</Label>
             <div className="grid grid-cols-2 gap-2">
@@ -101,7 +140,7 @@ export default function Register() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-name">{t("auth_name")}</Label>
-            <Input id="reg-name" value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+            <Input id="reg-name" required value={name} onChange={(e) => setName(e.target.value)} className="h-11 bg-[#F4F6F8]" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-email">{t("auth_email")}</Label>
@@ -128,6 +167,24 @@ export default function Register() {
               className="h-11 bg-[#F4F6F8]"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-phone">{t("checkout_phone")}</Label>
+            <Input id="reg-phone" required value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reg-address">{accountType === "b2b" ? t("register_company_address") : t("checkout_address")}</Label>
+            <Input id="reg-address" required value={address} onChange={(e) => setAddress(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label htmlFor="reg-city">{t("checkout_city")}</Label>
+              <Input id="reg-city" value={city} onChange={(e) => setCity(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-postal">{t("checkout_postal")}</Label>
+              <Input id="reg-postal" value={postal} onChange={(e) => setPostal(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+            </div>
+          </div>
           {accountType === "b2b" ? (
             <>
               <div className="space-y-2">
@@ -140,19 +197,18 @@ export default function Register() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="reg-btype">{t("register_business_type")}</Label>
-                <Input id="reg-btype" value={businessType} onChange={(e) => setBusinessType(e.target.value)} placeholder="retailer" className="h-11 bg-[#F4F6F8]" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-phone">{t("checkout_phone")}</Label>
-                <Input id="reg-phone" required value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 bg-[#F4F6F8]" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-address">{t("checkout_address")}</Label>
-                <Input id="reg-address" required value={address} onChange={(e) => setAddress(e.target.value)} className="h-11 bg-[#F4F6F8]" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-city">{t("checkout_city")}</Label>
-                <Input id="reg-city" required value={city} onChange={(e) => setCity(e.target.value)} className="h-11 bg-[#F4F6F8]" />
+                <select
+                  id="reg-btype"
+                  value={businessType}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  className="h-11 w-full rounded-md border border-input bg-[#F4F6F8] px-3 text-sm"
+                >
+                  {BUSINESS_TYPES.map(([id, key]) => (
+                    <option key={id} value={id}>
+                      {t(key)}
+                    </option>
+                  ))}
+                </select>
               </div>
               <p className="text-xs text-muted-foreground">{t("register_pending_wholesale")}</p>
             </>

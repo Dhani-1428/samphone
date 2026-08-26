@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { Button } from "@/components/ui/button";
 import ProductCartControls from "@/components/ProductCartControls";
-import GuestPriceGate from "@/components/GuestPriceGate";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 
 const PLACEHOLDER =
@@ -24,8 +23,8 @@ export default function WishlistPage() {
   const wooById = useMemo(() => buildWooProductMap(products), [products]);
 
   const rows = useMemo(() => {
-    return keys.map((cartKey) => buildCartLinePreview(cartKey, 1, wooById));
-  }, [keys, wooById]);
+    return keys.map((cartKey) => buildCartLinePreview(cartKey, 1, wooById, user));
+  }, [keys, wooById, user]);
 
   return (
     <div className="min-h-screen py-10">
@@ -81,15 +80,11 @@ export default function WishlistPage() {
                   <Link href={row.href} className="font-semibold text-foreground line-clamp-2 hover:text-primary">
                     {row.name}
                   </Link>
-                  {user ? (
-                    row.unitPrice != null ? (
+                  {row.unitPrice != null ? (
                       <p className="font-display text-lg font-bold text-foreground">€{row.unitPrice.toFixed(2)}</p>
                     ) : (
                       <p className="text-sm text-muted-foreground">{t("woo_price_na")}</p>
-                    )
-                  ) : (
-                    <GuestPriceGate variant="compact" />
-                  )}
+                    )}
                   <div className="mt-auto flex flex-wrap gap-2">
                     <Button variant="outline" size="sm" asChild>
                       <Link href={row.href}>{t("viewParts")}</Link>

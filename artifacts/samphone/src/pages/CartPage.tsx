@@ -43,6 +43,9 @@ export default function CartPage() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("Lisboa");
   const [postal, setPostal] = useState("");
+  const [country, setCountry] = useState("Portugal");
+  const [companyName, setCompanyName] = useState(user?.businessName ?? "");
+  const [vatNumber, setVatNumber] = useState(user?.vatNumber ?? "");
   const [notes, setNotes] = useState("");
   const [shipping, setShipping] = useState("standard");
   const [payMethod, setPayMethod] = useState("card");
@@ -51,12 +54,11 @@ export default function CartPage() {
   const lines = useMemo(() => {
     return Object.entries(items)
       .filter(([, q]) => q > 0)
-      .map(([cartKey, qty]) => buildCartLinePreview(cartKey, qty, wooById))
+      .map(([cartKey, qty]) => buildCartLinePreview(cartKey, qty, wooById, user))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [items, wooById]);
+  }, [items, wooById, user]);
 
   const subtotal = useMemo(() => {
-    if (!user) return null;
     let sum = 0;
     let missing = false;
     for (const line of lines) {
@@ -67,7 +69,7 @@ export default function CartPage() {
       sum += line.unitPrice * line.qty;
     }
     return { sum, missing };
-  }, [lines, user]);
+  }, [lines]);
 
   const handleCheckout = async () => {
     const payload = lines
@@ -77,8 +79,22 @@ export default function CartPage() {
       setCheckoutError(t("cart_checkout_note"));
       return;
     }
-    if (!fullName.trim() || !phone.trim() || !address.trim() || !city.trim() || !postal.trim()) {
+    if (!user) {
+      setCheckoutError(t("login_to_buy"));
+      return;
+    }
+    if (!fullName.trim() || !phone.trim() || !address.trim() || !city.trim() || !postal.trim() || !country.trim()) {
       setCheckoutError(t("checkout_full_name"));
+      return;
+    }
+    const isBiz = (user.accountType || "").toLowerCase() === "b2b";
+    if (isBiz && (!companyName.trim() || !vatNumber.trim())) {
+      setCheckoutError(t("checkout_company"));
+      return;
+    }
+    const moqFail = lines.find((line) => line.minOrderQty && line.qty < line.minOrderQty);
+    if (moqFail) {
+      setCheckoutError(t("moq_error", { qty: String(moqFail.minOrderQty), name: moqFail.name }));
       return;
     }
     const tradeNote = tradeIn ? `Trade-in ${tradeIn.code} (€${tradeIn.value})` : "";
@@ -89,6 +105,9 @@ export default function CartPage() {
       address: address.trim(),
       city: city.trim(),
       postal_code: postal.trim(),
+      country: country.trim(),
+      company_name: isBiz ? companyName.trim() : undefined,
+      vat_number: isBiz ? vatNumber.trim() : undefined,
       shipping_method: shipping,
       payment_method: payMethod,
       notes: [notes.trim(), tradeNote].filter(Boolean).join("\n"),
@@ -96,20 +115,28 @@ export default function CartPage() {
     setCheckoutBusy(true);
     setCheckoutError(null);
     try {
-      const stripePay = payMethod === "card" || payMethod === "mb_way" || payMethod === "multibanco";
+      const stripePay =
+        payMethod === "card" ||
+        payMethod === "mb_way" ||
+        payMethod === "multibanco" ||
+        payMethod === "google_pay" ||
+        payMethod === "apple_pay";
       if (stripePay) {
         sessionStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
         const url = await startStripeCheckout(payload);
         window.location.assign(url);
         return;
       }
-      await createCloudOrder({
+        await createCloudOrder({
         items: payload.map((row) => ({ product_id: row.productId, quantity: row.quantity })),
         full_name: draft.full_name,
         phone: draft.phone,
         address: draft.address,
         city: draft.city,
         postal_code: draft.postal_code,
+        country: draft.country,
+        company_name: draft.company_name,
+        vat_number: draft.vat_number,
         payment_method: payMethod,
         shipping_method: shipping,
         notes: draft.notes || undefined,
@@ -147,6 +174,9 @@ export default function CartPage() {
           address: draft.address,
           city: draft.city,
           postal_code: draft.postal_code,
+          country: draft.country,
+          company_name: draft.company_name,
+          vat_number: draft.vat_number,
           payment_method: draft.payment_method,
           shipping_method: draft.shipping_method,
           notes: draft.notes || undefined,
@@ -217,7 +247,7 @@ export default function CartPage() {
                       </div>
                       <div className="min-w-0 sm:hidden">
                         <p className="font-semibold text-foreground line-clamp-2">{line.name}</p>
-                        {user && line.unitPrice != null && (
+                        {line.unitPrice != null && (
                           <p className="mt-1 text-sm text-muted-foreground">
                             €{line.unitPrice.toFixed(2)} {lang === "pt" ? "cada" : "each"}
                           </p>
@@ -228,24 +258,23 @@ export default function CartPage() {
                       <Link href={line.href} className="font-semibold text-foreground hover:text-primary line-clamp-2">
                         {line.name}
                       </Link>
-                      {user && line.unitPrice != null && (
+                      {line.unitPrice != null && (
                         <p className="mt-1 text-sm text-muted-foreground">
                           €{line.unitPrice.toFixed(2)} {lang === "pt" ? "cada" : "each"}
                         </p>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
-                      {user ? (
-                        <>
-                          <ProductCartControls cartKey={line.cartKey} variant="compact" buttonClassName="rounded-xl" />
-                          {line.unitPrice != null && (
-                            <p className="text-sm font-semibold tabular-nums text-foreground sm:min-w-[5rem] sm:text-right">
-                              €{(line.unitPrice * line.qty).toFixed(2)}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <GuestPriceGate variant="compact" />
+                      <ProductCartControls
+                        cartKey={line.cartKey}
+                        variant="compact"
+                        buttonClassName="rounded-xl"
+                        minQty={line.minOrderQty}
+                      />
+                      {line.unitPrice != null && (
+                        <p className="text-sm font-semibold tabular-nums text-foreground sm:min-w-[5rem] sm:text-right">
+                          €{(line.unitPrice * line.qty).toFixed(2)}
+                        </p>
                       )}
                       <Button
                         type="button"
@@ -269,7 +298,15 @@ export default function CartPage() {
               )}
             >
               {!user ? (
-                <GuestPriceGate variant="card" />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
+                    <span className="text-muted-foreground">{t("cart_subtotal")}</span>
+                    <span className="font-display text-2xl font-bold tabular-nums text-foreground">
+                      {subtotal.missing ? "—" : `€${subtotal.sum.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <GuestPriceGate variant="card" />
+                </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
@@ -326,6 +363,22 @@ export default function CartPage() {
                           <Label>{t("checkout_postal")}</Label>
                           <Input value={postal} onChange={(e) => setPostal(e.target.value)} />
                         </div>
+                        <div className="space-y-1.5">
+                          <Label>{t("checkout_country")}</Label>
+                          <Input value={country} onChange={(e) => setCountry(e.target.value)} />
+                        </div>
+                        {(user.accountType || "").toLowerCase() === "b2b" ? (
+                          <>
+                            <div className="space-y-1.5">
+                              <Label>{t("checkout_company")}</Label>
+                              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>{t("register_vat")}</Label>
+                              <Input value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} />
+                            </div>
+                          </>
+                        ) : null}
                         <div className="space-y-1.5 sm:col-span-2">
                           <Label>{t("checkout_notes")}</Label>
                           <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
@@ -353,6 +406,8 @@ export default function CartPage() {
                             ["card", t("checkout_pay_card")],
                             ["mb_way", t("checkout_pay_mbway")],
                             ["multibanco", t("checkout_pay_multibanco")],
+                            ["google_pay", t("checkout_pay_gpay")],
+                            ["apple_pay", t("checkout_pay_apple")],
                             ["cash_on_delivery", t("checkout_pay_cod")],
                             ["pay_in_store", t("checkout_pay_store")],
                           ] as const

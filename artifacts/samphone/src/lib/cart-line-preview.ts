@@ -1,5 +1,6 @@
 import { hrefForCartKey, resolveCatalogProduct } from "@/data/catalog";
-import { getDisplayPrice, getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
+import { catalogUnitPrice, type PriceUser } from "@/lib/customer-price";
 
 export type CartLinePreview = {
   cartKey: string;
@@ -10,6 +11,8 @@ export type CartLinePreview = {
   unitPrice: number | null;
   isWoo: boolean;
   productId: string | null;
+  minOrderQty?: number;
+  dealerOnly?: boolean;
 };
 
 export function buildWooProductMap(products: WooProduct[]): Map<number, WooProduct> {
@@ -20,21 +23,24 @@ export function buildCartLinePreview(
   cartKey: string,
   qty: number,
   wooById: Map<number, WooProduct>,
+  user?: PriceUser,
 ): CartLinePreview {
   const href = hrefForCartKey(cartKey);
   if (cartKey.startsWith("woo:")) {
     const id = Number(cartKey.slice(4));
     const w = Number.isFinite(id) ? wooById.get(id) : undefined;
-    const dp = w ? getDisplayPrice(w) : null;
+    const unit = w ? catalogUnitPrice(w, user) : null;
     return {
       cartKey,
       qty,
       name: w?.name ?? `Product #${id}`,
       img: w ? getPrimaryImageUrl(w) : null,
       href,
-      unitPrice: dp != null && dp !== "" ? Number.parseFloat(dp) : null,
+      unitPrice: unit,
       isWoo: true,
       productId: w?.cloudId || (Number.isFinite(id) ? String(id) : null),
+      minOrderQty: w?.minOrderQty,
+      dealerOnly: w?.dealerOnly,
     };
   }
   const c = resolveCatalogProduct(cartKey);

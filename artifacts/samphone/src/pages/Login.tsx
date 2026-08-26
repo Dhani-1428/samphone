@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { SignIn } from "@clerk/clerk-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -17,6 +18,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const next = nextPathFromSearch(search);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -30,16 +32,10 @@ export default function Login() {
     try {
       const result = await cloudAuth("/auth/login", { email: trimmed, password });
       login({
-        email: result.email || trimmed,
-        name: result.name,
+        ...result,
         token: result.token ?? undefined,
-        isWholesale: result.isWholesale,
-        wholesaleStatus: result.wholesaleStatus,
-        accountType: result.accountType,
-        dealerTier: result.dealerTier,
-        phone: result.phone,
       });
-      setLocation(nextPathFromSearch(search));
+      setLocation(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth_submit_login"));
     } finally {
@@ -51,8 +47,22 @@ export default function Login() {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-sm ring-1 ring-black/[0.04]">
         <h1 className="font-display text-2xl font-bold text-navy">{t("auth_login_title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("loginForPricing")}</p>
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <p className="mt-1 text-sm text-muted-foreground">{t("auth_clerk_same")}</p>
+        <div className="mt-6">
+          <SignIn
+            routing="hash"
+            forceRedirectUrl={next}
+            fallbackRedirectUrl={next}
+            appearance={{
+              elements: {
+                rootBox: "mx-auto w-full",
+                card: "shadow-none border-0 p-0 bg-transparent",
+              },
+            }}
+          />
+        </div>
+        <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("auth_or_email")}</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="login-email">{t("auth_email")}</Label>
             <Input

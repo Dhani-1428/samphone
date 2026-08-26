@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { Lock, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { searchCatalog, type SearchHit } from "@/data/search-index";
@@ -8,7 +8,8 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { getDisplayPrice, getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 import CatalogImage from "@/components/CatalogImage";
 
 const SEARCH_PLACEHOLDER =
@@ -39,22 +40,14 @@ function resolveHitHref(hit: SearchHit): string {
 }
 
 function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void }) {
-  const { user } = useAuth();
   const { t } = useLang();
   const [imgOk, setImgOk] = useState(true);
-  const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
 
-  const price = !user ? (
-    <span className="flex max-w-[5.5rem] items-center gap-1 text-[11px] leading-tight text-brand-dark/70">
-      <Lock className="h-3 w-3 shrink-0 text-brand-dark" aria-hidden />
-      <span className="line-clamp-2">{t("loginToSeePrice")}</span>
-    </span>
-  ) : hit.priceText ? (
+  const price = hit.priceText ? (
     <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">{hit.priceText}</span>
   ) : hit.priceNumber != null ? (
     <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-brand-dark">
-      {currencySymbol}
-      {hit.priceNumber.toFixed(2)}
+      {formatEuroAmount(hit.priceNumber)}
     </span>
   ) : (
     <span className="text-xs text-brand-dark/55">{t("woo_price_na")}</span>
@@ -106,12 +99,12 @@ export default function SmartSearch({
   placeholder,
 }: Props) {
   const { t } = useLang();
+  const { user } = useAuth();
   const { products, searchProducts } = useProductCatalog();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const currencySymbol = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
 
   useEffect(() => {
     if (q.trim().length < 1) {
@@ -121,14 +114,14 @@ export default function SmartSearch({
     const id = setTimeout(() => {
       if (products.length > 0) {
         const wooHits: SearchHit[] = searchProducts(q, 10).map((p) => {
-          const displayPrice = getDisplayPrice(p);
+          const unit = catalogUnitPrice(p, user);
           return {
             cartKey: `woo:${p.id}`,
             name: p.name,
             subtitle: p.categories?.[0]?.name,
             href: wooProductHref(p.id),
             imageSrc: getPrimaryImageUrl(p) ?? SEARCH_PLACEHOLDER,
-            priceText: displayPrice ? `${currencySymbol}${displayPrice}` : null,
+            priceText: unit != null ? formatEuroAmount(unit) : null,
           };
         });
         setHits(wooHits);
@@ -137,7 +130,7 @@ export default function SmartSearch({
       setHits(searchCatalog(q, 10));
     }, 120);
     return () => clearTimeout(id);
-  }, [q, products.length, searchProducts, currencySymbol]);
+  }, [q, products.length, searchProducts, user]);
 
   const closeAndClear = () => {
     setOpen(false);

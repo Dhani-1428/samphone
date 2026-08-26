@@ -34,6 +34,8 @@ import {
   typesWithCounts,
 } from "@/lib/model-catalog";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterCatalogForCustomer } from "@/lib/customer-price";
 
 function parseModelName(slug: string): string {
   if (slug === "iphones") return "iPhones";
@@ -172,6 +174,7 @@ export default function ModelCatalogPage() {
   const family = params.family ?? params.model ?? "iphones";
   const model = params.family ? params.model : undefined;
   const { t } = useLang();
+  const { user } = useAuth();
   const { products, loading: catalogLoading, error: catalogError } = useProductCatalog();
   const [remote, setRemote] = useState<WooProduct[] | null>(null);
   const [partType, setPartType] = useState<string | null>(null);
@@ -207,13 +210,16 @@ export default function ModelCatalogPage() {
   }, [brand, model]);
 
   const modelProducts = useMemo(() => {
-    if (model) return remote ?? [];
-    const familyLabel = parseModelName(family);
-    const brandLabel = displayBrandName(brand);
-    return products.filter(
-      (p) => productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`),
-    );
-  }, [model, remote, products, brand, family]);
+    const raw = (() => {
+      if (model) return remote ?? [];
+      const familyLabel = parseModelName(family);
+      const brandLabel = displayBrandName(brand);
+      return products.filter(
+        (p) => productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`),
+      );
+    })();
+    return filterCatalogForCustomer(raw, user);
+  }, [model, remote, products, brand, family, user]);
 
   const { parts, accessories } = useMemo(() => splitModelCatalog(modelProducts), [modelProducts]);
   const partChips = useMemo(() => typesWithCounts(parts, "part"), [parts]);

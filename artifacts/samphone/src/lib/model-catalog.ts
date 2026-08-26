@@ -375,7 +375,7 @@ function typeIndex(typeId: string, buckets: ModelTypeBucket[]): number {
 
 function sortByTypeThenPrice(products: WooProduct[], kind: ModelTypeKind): WooProduct[] {
   const buckets = kind === "part" ? MODEL_PART_TYPES : MODEL_ACCESSORY_TYPES;
-  const priced = sortByPrice(products, "asc");
+  const priced = sortByPrice(products, kind === "part" ? "desc" : "asc");
   return [...priced].sort((a, b) => {
     const ia = typeIndex(classifyModelProduct(a).typeId, buckets);
     const ib = typeIndex(classifyModelProduct(b).typeId, buckets);

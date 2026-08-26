@@ -8,7 +8,9 @@ import {
   type ReactNode,
 } from "react";
 import { getStoredApiJwt, setStoredApiJwt } from "@/config/samphone";
-import { fetchCloudMe } from "@/lib/samphone-cloud";
+import { fetchCloudMe, type CloudProfile } from "@/lib/samphone-cloud";
+import type { PersonalPricingRule } from "@/lib/customer-price";
+import { signOutClerkSession } from "@/lib/session-signout";
 
 const STORAGE_KEY = "samphone-auth-user";
 
@@ -16,11 +18,23 @@ export interface AuthUser {
   email: string;
   name: string;
   token?: string;
+  role?: string;
   isWholesale?: boolean;
   wholesaleStatus?: string;
   accountType?: string;
   dealerTier?: string;
   phone?: string;
+  businessName?: string;
+  vatNumber?: string;
+  companyAddress?: string;
+  businessType?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  language?: string;
+  rejectionReason?: string;
+  personalPricing?: PersonalPricingRule[];
 }
 
 interface AuthContextValue {
@@ -29,6 +43,29 @@ interface AuthContextValue {
   logout: () => void;
   isAuthenticated: boolean;
   refreshProfile: () => Promise<void>;
+}
+
+function profileFields(src: Partial<AuthUser> | CloudProfile | null | undefined): Omit<AuthUser, "email" | "name" | "token"> {
+  if (!src) return {};
+  return {
+    role: src.role,
+    isWholesale: src.isWholesale,
+    wholesaleStatus: src.wholesaleStatus,
+    accountType: src.accountType,
+    dealerTier: src.dealerTier,
+    phone: src.phone,
+    businessName: src.businessName,
+    vatNumber: src.vatNumber,
+    companyAddress: src.companyAddress,
+    businessType: src.businessType,
+    address: src.address,
+    city: src.city,
+    postalCode: src.postalCode,
+    country: src.country,
+    language: src.language,
+    rejectionReason: src.rejectionReason,
+    personalPricing: src.personalPricing,
+  };
 }
 
 function readStoredUser(): AuthUser | null {
@@ -41,11 +78,7 @@ function readStoredUser(): AuthUser | null {
         email: parsed.email,
         name: typeof parsed.name === "string" ? parsed.name : parsed.email.split("@")[0],
         token: getStoredApiJwt() ?? undefined,
-        isWholesale: parsed.isWholesale,
-        wholesaleStatus: parsed.wholesaleStatus,
-        accountType: parsed.accountType,
-        dealerTier: parsed.dealerTier,
-        phone: parsed.phone,
+        ...profileFields(parsed),
       };
     }
   } catch {
@@ -64,25 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: next.email.trim(),
       name: next.name.trim() || next.email.split("@")[0],
       token: next.token,
-      isWholesale: next.isWholesale,
-      wholesaleStatus: next.wholesaleStatus,
-      accountType: next.accountType,
-      dealerTier: next.dealerTier,
-      phone: next.phone,
+      ...profileFields(next),
     };
     setUser(normalized);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        email: normalized.email,
-        name: normalized.name,
-        isWholesale: normalized.isWholesale,
-        wholesaleStatus: normalized.wholesaleStatus,
-        accountType: normalized.accountType,
-        dealerTier: normalized.dealerTier,
-        phone: normalized.phone,
-      }),
-    );
+    const { token: _t, ...stored } = normalized;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     setStoredApiJwt(normalized.token ?? null);
   }, []);
 
@@ -90,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
     setStoredApiJwt(null);
+    void signOutClerkSession();
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -101,24 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: me.email,
         name: me.name,
         token: prev?.token ?? getStoredApiJwt() ?? undefined,
-        isWholesale: me.isWholesale,
-        wholesaleStatus: me.wholesaleStatus,
-        accountType: me.accountType,
-        dealerTier: me.dealerTier,
-        phone: me.phone,
+        ...profileFields(me),
       };
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          email: next.email,
-          name: next.name,
-          isWholesale: next.isWholesale,
-          wholesaleStatus: next.wholesaleStatus,
-          accountType: next.accountType,
-          dealerTier: next.dealerTier,
-          phone: next.phone,
-        }),
-      );
+      const { token: _t, ...stored } = next;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
       return next;
     });
   }, []);
