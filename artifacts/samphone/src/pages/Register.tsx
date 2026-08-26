@@ -1,8 +1,8 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { safeRedirectPath } from "@/lib/safeRedirect";
+import { nextPathFromSearch } from "@/lib/safeRedirect";
 import { cloudAuth } from "@/lib/samphone-cloud";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ export default function Register() {
   const { t } = useLang();
   const { login } = useAuth();
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +29,10 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const em = email.trim();
-    if (!em || !password) return;
+    if (!em || !password) {
+      setError(t("loginForPricing"));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -36,6 +40,7 @@ export default function Register() {
         email: em,
         password,
         name: name.trim() || em.split("@")[0],
+        accountType: accountType,
         account_type: accountType,
         ...(accountType === "b2b"
           ? {
@@ -52,7 +57,7 @@ export default function Register() {
           : {}),
       });
       login({
-        email: result.email,
+        email: result.email || em,
         name: result.name,
         token: result.token ?? undefined,
         isWholesale: result.isWholesale,
@@ -61,9 +66,7 @@ export default function Register() {
         dealerTier: result.dealerTier,
         phone: result.phone,
       });
-      const params = new URLSearchParams(window.location.search);
-      const next = safeRedirectPath(params.get("next"));
-      setLocation(next);
+      setLocation(nextPathFromSearch(search));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth_submit_register"));
     } finally {
@@ -156,12 +159,12 @@ export default function Register() {
           ) : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" disabled={busy} className="h-11 w-full bg-[#5A73A8] text-white hover:bg-[#4A6494]">
-            {t("auth_submit_register")}
+            {busy ? t("woo_loading") : t("auth_submit_register")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {t("auth_has_account")}{" "}
             <Link
-              href={`/login${typeof window !== "undefined" ? window.location.search : ""}`}
+              href={`/login${search || ""}`}
               className="font-semibold text-[#5A73A8] hover:underline"
             >
               {t("login")}

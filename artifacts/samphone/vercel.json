@@ -5,6 +5,9 @@
   "buildCommand": "cd ../.. && pnpm --filter @workspace/samphone run build && node scripts/prepare-vercel-public.mjs && node scripts/sync-vercel-api.mjs",
   "outputDirectory": "public",
   "functions": {
+    "api/cloud/[...path].ts": {
+      "maxDuration": 30
+    },
     "api/woocommerce/[...path].ts": {
       "maxDuration": 30
     },
@@ -15,11 +18,11 @@
   "rewrites": [
     {
       "source": "/cloud-api",
-      "destination": "https://samphone.cloud/api"
+      "destination": "/api/cloud"
     },
     {
       "source": "/cloud-api/:path*",
-      "destination": "https://samphone.cloud/api/:path*"
+      "destination": "/api/cloud/:path*"
     },
     {
       "source": "/:path*",

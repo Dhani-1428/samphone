@@ -54,8 +54,13 @@ type CloudProduct = {
 type ListEnvelope<T> = { items?: T[]; total?: number; has_more?: boolean };
 
 function formatFastApiError(text: string, status: number): string {
+  const trimmed = text.trim();
+  if (status === 429) return "Too many attempts. Please wait a minute and try again.";
+  if (/^<!doctype html/i.test(trimmed) || /^<html/i.test(trimmed)) {
+    return "The account service is temporarily unavailable. Please try again.";
+  }
   try {
-    const parsed = JSON.parse(text) as { detail?: unknown };
+    const parsed = JSON.parse(trimmed) as { detail?: unknown };
     if (typeof parsed.detail === "string" && parsed.detail.trim()) return parsed.detail;
     if (Array.isArray(parsed.detail)) {
       return parsed.detail
@@ -70,7 +75,17 @@ function formatFastApiError(text: string, status: number): string {
   } catch {
     /* not JSON */
   }
-  return text.trim() || `Request failed with status ${status}`;
+  return trimmed || `Request failed with status ${status}`;
+}
+
+function looksLikeHtml(text: string): boolean {
+  const t = text.trim();
+  return /^<!doctype html/i.test(t) || /^<html/i.test(t);
+}
+
+function isPublicAuthPath(path: string): boolean {
+  const p = path.split("?")[0];
+  return p === "/auth/login" || p === "/auth/register" || p === "/auth/clerk-sync";
 }
 
 async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -78,18 +93,27 @@ async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
   const jwt = getStoredApiJwt();
-  if (jwt && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${jwt}`);
+  if (jwt && !headers.has("Authorization") && !isPublicAuthPath(path)) {
+    headers.set("Authorization", `Bearer ${jwt}`);
+  }
   let res: Response;
   try {
     res = await fetch(url, { ...init, headers });
   } catch {
     throw new WooCommerceFetchError(`Network request failed: ${url.split("?")[0]}`);
   }
+  const text = await res.text().catch(() => "");
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
     throw new WooCommerceFetchError(formatFastApiError(text, res.status), res.status);
   }
-  return (await res.json()) as T;
+  if (looksLikeHtml(text)) {
+    throw new WooCommerceFetchError("Unexpected response from the server. Please try again.");
+  }
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new WooCommerceFetchError("Could not read the server response. Please try again.");
+  }
 }
 
 function money(v: number | string | null | undefined): string {
@@ -426,7 +450,10 @@ export async function cloudAuth(
   const email = typeof body.email === "string" ? body.email : "";
   const name = typeof body.name === "string" ? body.name : undefined;
   const parsed = parseAuthPayload(data, email, name);
-  if (parsed.token) setStoredApiJwt(parsed.token);
+  if (!parsed.token) {
+    throw new WooCommerceFetchError("Sign-in did not return a session. Please try again.");
+  }
+  setStoredApiJwt(parsed.token);
   return parsed;
 }
 

@@ -1,8 +1,8 @@
 import { FormEvent, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { safeRedirectPath } from "@/lib/safeRedirect";
+import { nextPathFromSearch } from "@/lib/safeRedirect";
 import { cloudAuth } from "@/lib/samphone-cloud";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ export default function Login() {
   const { t } = useLang();
   const { login } = useAuth();
   const [, setLocation] = useLocation();
+  const search = useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +21,16 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
-    if (!trimmed || !password) return;
+    if (!trimmed || !password) {
+      setError(t("loginForPricing"));
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const result = await cloudAuth("/auth/login", { email: trimmed, password });
       login({
-        email: result.email,
+        email: result.email || trimmed,
         name: result.name,
         token: result.token ?? undefined,
         isWholesale: result.isWholesale,
@@ -35,9 +39,7 @@ export default function Login() {
         dealerTier: result.dealerTier,
         phone: result.phone,
       });
-      const params = new URLSearchParams(window.location.search);
-      const next = safeRedirectPath(params.get("next"));
-      setLocation(next);
+      setLocation(nextPathFromSearch(search));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth_submit_login"));
     } finally {
@@ -79,12 +81,12 @@ export default function Login() {
           </div>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" disabled={busy} className="h-11 w-full bg-[#5A73A8] text-white hover:bg-[#4A6494]">
-            {t("auth_submit_login")}
+            {busy ? t("woo_loading") : t("auth_submit_login")}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {t("auth_no_account")}{" "}
             <Link
-              href={`/register${typeof window !== "undefined" ? window.location.search : ""}`}
+              href={`/register${search || ""}`}
               className="font-semibold text-[#5A73A8] hover:underline"
             >
               {t("auth_register_title")}
