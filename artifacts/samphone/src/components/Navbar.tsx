@@ -1556,9 +1556,9 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   if (isAppleBrand(brand)) {
     const row = [
       pick("iphones"),
-      pick("ipad", "ipad-pro"),
+      pick("ipad"),
       pick("ipad-air"),
-      pick("ipad-mini"),
+      pick("ipad-mini", "ipad-pro"),
       pick("iwatch"),
       pick("macbook"),
     ].filter((col) => col.length > 0);
@@ -1795,11 +1795,6 @@ export default function Navbar() {
                 children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MODELS),
               },
               {
-                label: "I PAD PRO",
-                slug: "ipad-pro",
-                children: makeFamilyChildren(b.slug, "ipad-pro", APPLE_IPAD_PRO_MODELS),
-              },
-              {
                 label: "I PAD AIR",
                 slug: "ipad-air",
                 children: makeFamilyChildren(b.slug, "ipad-air", APPLE_IPAD_AIR_MODELS),
@@ -1808,6 +1803,11 @@ export default function Navbar() {
                 label: "I PAD MINI",
                 slug: "ipad-mini",
                 children: makeFamilyChildren(b.slug, "ipad-mini", APPLE_IPAD_MINI_MODELS),
+              },
+              {
+                label: "I PAD PRO",
+                slug: "ipad-pro",
+                children: makeFamilyChildren(b.slug, "ipad-pro", APPLE_IPAD_PRO_MODELS),
               },
               {
                 label: "APPLE WATCH",

@@ -43,12 +43,6 @@ const APPLE_FAMILIES: BrandNavFamily[] = [
     models: modelsFrom(APPLE_IPAD_MODELS),
   },
   {
-    id: "ipad-pro",
-    label: "iPad Pro",
-    test: (h) => /\bipad\b/.test(h) && /\bpro\b/.test(h),
-    models: modelsFrom(APPLE_IPAD_PRO_MODELS),
-  },
-  {
     id: "ipad-air",
     label: "iPad Air",
     test: (h) => /\bipad\b/.test(h) && /\bair\b/.test(h),
@@ -59,6 +53,12 @@ const APPLE_FAMILIES: BrandNavFamily[] = [
     label: "iPad Mini",
     test: (h) => /\bipad\b/.test(h) && /\bmini\b/.test(h),
     models: modelsFrom(APPLE_IPAD_MINI_MODELS),
+  },
+  {
+    id: "ipad-pro",
+    label: "iPad Pro",
+    test: (h) => /\bipad\b/.test(h) && /\bpro\b/.test(h),
+    models: modelsFrom(APPLE_IPAD_PRO_MODELS),
   },
   {
     id: "iwatch",
