@@ -17,6 +17,7 @@ import Home from "@/pages/Home";
 import Accessories from "@/pages/Accessories";
 import Smartphones from "@/pages/Smartphones";
 import Cards from "@/pages/Cards";
+import Tools from "@/pages/Tools";
 import NewArrivals from "@/pages/NewArrivals";
 import MultiBrand from "@/pages/MultiBrand";
 import BrandPage from "@/pages/BrandPage";
@@ -65,6 +66,9 @@ function Router() {
       </Route>
       <Route path="/cards">
         <Layout><Cards /></Layout>
+      </Route>
+      <Route path="/tools">
+        <Layout><Tools /></Layout>
       </Route>
       <Route path="/new">
         <Layout><NewArrivals /></Layout>

@@ -17,6 +17,16 @@ import { getPrimaryImageUrl } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
+function shopHref(forcedGroup: string | undefined, group: string, subtype?: string): string {
+  if (forcedGroup === "Cards") {
+    return subtype ? `/cards?type=${encodeURIComponent(subtype)}` : "/cards";
+  }
+  if (forcedGroup === "Repairing Tools") {
+    return subtype ? `/tools?type=${encodeURIComponent(subtype)}` : "/tools";
+  }
+  return accessoryPageHref(group, subtype);
+}
+
 export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } = {}) {
   const params = useParams<{ group: string }>();
   const [, navigate] = useLocation();
@@ -95,15 +105,11 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
       : t("accessory_product_count", { count: visible.length });
 
   const goAll = () => {
-    navigate(forcedGroup === "Cards" ? "/cards" : accessoryPageHref(page?.group ?? group));
+    navigate(shopHref(forcedGroup, page?.group ?? group));
   };
 
   const goType = (label: string) => {
-    navigate(
-      forcedGroup === "Cards"
-        ? `/cards?type=${encodeURIComponent(label)}`
-        : accessoryPageHref(page?.group ?? group, label),
-    );
+    navigate(shopHref(forcedGroup, page?.group ?? group, label));
   };
 
   const headingHint = items == null ? t("woo_loading") : countLabel;

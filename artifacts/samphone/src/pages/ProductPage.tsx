@@ -45,7 +45,7 @@ function groupHref(group?: string | null): string | undefined {
   const g = (group ?? "").toLowerCase();
   if (!g) return undefined;
   if (g.includes("accessor")) return "/accessories";
-  if (g.includes("repair") || g.includes("tool") || g.includes("ferrament")) return "/group/Repairing Tools";
+  if (g.includes("repair") || g.includes("tool") || g.includes("ferrament")) return "/tools";
   if (g.includes("phone part") || g.includes("smartphone")) return "/smartphones";
   if (g.includes("card")) return "/cards";
   if (g.includes("hoco")) return "/group/Hoco";

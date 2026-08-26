@@ -337,6 +337,13 @@ export default function MobileNavDrawer({
             {t("nav_tablets")}
           </Link>
           <Link
+            href="/tools"
+            onClick={onClose}
+            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"
+          >
+            Tools
+          </Link>
+          <Link
             href="/new"
             onClick={onClose}
             className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-semibold text-brand-dark dark:border-white/15 dark:text-white"

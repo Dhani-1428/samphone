@@ -2407,9 +2407,9 @@ export default function Navbar() {
             Cards
           </Link>
           <Link
-            href="/book-repair"
+            href="/tools"
             className={brandNavClass(
-              location.startsWith("/book-repair") || location.startsWith("/diagnostics") || location.startsWith("/trade-in"),
+              location.startsWith("/tools") || location.startsWith("/group/Repairing"),
             )}
             onClick={closeMenu}
           >
