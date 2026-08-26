@@ -11,8 +11,9 @@ import {
   accessoryPageHref,
   findAccessoryPage,
   productMatchesSubtype,
+  shopGroupFetchQueries,
 } from "@/data/accessory-pages";
-import { fetchCloudAllProducts } from "@/lib/samphone-cloud";
+import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
 import { getPrimaryImageUrl } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -50,7 +51,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
       setLoadingMore(false);
       return;
     }
-    void fetchCloudAllProducts({ category_group: fetchGroup }, 400, (list, total) => {
+    void fetchCloudMergedProducts(shopGroupFetchQueries(fetchGroup), (list, total) => {
       if (!alive) return;
       setCatalogTotal(total);
       setItems([...list]);
@@ -58,6 +59,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
       .then((list) => {
         if (!alive) return;
         setItems(list);
+        setCatalogTotal(list.length);
         setLoadingMore(false);
       })
       .catch(() => {

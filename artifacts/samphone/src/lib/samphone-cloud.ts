@@ -458,6 +458,24 @@ export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
   };
 }
 
+function productDedupeKey(p: WooProduct): string {
+  return p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
+}
+
+function mergeWooProducts(lists: WooProduct[][]): WooProduct[] {
+  const seen = new Set<string>();
+  const out: WooProduct[] = [];
+  for (const list of lists) {
+    for (const p of list) {
+      const key = productDedupeKey(p);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(p);
+    }
+  }
+  return out;
+}
+
 export async function fetchCloudAllProducts(
   query: Record<string, string>,
   maxPages = 400,
@@ -475,7 +493,7 @@ export async function fetchCloudAllProducts(
     );
     if (total > 0) catalogTotal = total;
     for (const p of items) {
-      const key = p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
+      const key = productDedupeKey(p);
       if (seen.has(key)) continue;
       seen.add(key);
       all.push(p);
@@ -487,6 +505,41 @@ export async function fetchCloudAllProducts(
     offset += pageSize;
   }
   return all;
+}
+
+/** Load every query (category_group + Woo categories) and merge unique products. */
+export async function fetchCloudMergedProducts(
+  queries: Record<string, string>[],
+  onProgress?: (items: WooProduct[], total: number) => void,
+): Promise<WooProduct[]> {
+  const unique = queries.filter((q) => Object.keys(q).length > 0);
+  if (unique.length === 0) return [];
+  if (unique.length === 1) {
+    return fetchCloudAllProducts(unique[0], 400, onProgress);
+  }
+  const bags: WooProduct[][] = unique.map(() => []);
+  const totals = unique.map(() => 0);
+  const emit = () => {
+    const merged = mergeWooProducts(bags);
+    onProgress?.(merged, Math.max(merged.length, ...totals));
+  };
+  await Promise.all(
+    unique.map(async (query, i) => {
+      try {
+        const list = await fetchCloudAllProducts(query, 400, (items, total) => {
+          bags[i] = items;
+          totals[i] = total;
+          emit();
+        });
+        bags[i] = list;
+        totals[i] = Math.max(totals[i], list.length);
+        emit();
+      } catch {
+        emit();
+      }
+    }),
+  );
+  return mergeWooProducts(bags);
 }
 
 export async function fetchCloudProductsByGroup(group: string, limit = 48): Promise<WooProduct[]> {

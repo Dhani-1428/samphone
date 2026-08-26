@@ -10,17 +10,30 @@ export type AccessoryNavPage = {
   label: string;
   group: string;
   subtypes: AccessorySubtype[];
+  /**
+   * WooCommerce category names to merge with `category_group`.
+   * The group field is often a subset (e.g. Repairing Tools is 173, REPAIR TOOLS is 245).
+   */
+  wooCategories?: string[];
 };
 
 export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Powerbanks",
     group: "Powerbanks",
+    wooCategories: ["POWER BANKS"],
     subtypes: [{ label: "Power Banks", needles: ["power bank", "powerbank"] }],
   },
   {
     label: "Chargers",
     group: "Chargers",
+    wooCategories: [
+      "Adapters",
+      "Lightning Chargers",
+      "Type-C CHARGERS",
+      "Micro-USB Chargers",
+      "Wireless Charger",
+    ],
     subtypes: [
       { label: "Adapters", needles: ["adapter"] },
       { label: "Lightning Chargers", needles: ["lightning charger"] },
@@ -32,6 +45,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Cables",
     group: "Cables",
+    wooCategories: ["Lightning Cables", "Type-C Cable", "Micro Cable", "Internet Cable", "HDMI Cable"],
     subtypes: [
       { label: "Lightning Cables", needles: ["lightning cable"] },
       { label: "Type-C Cables", needles: ["type-c cable", "type c cable", "usb-c cable"] },
@@ -43,6 +57,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Headphones",
     group: "Headphones",
+    wooCategories: ["HEADPHONES", "Earphones", "Wireless Headset", "Wireless Headphones"],
     subtypes: [
       { label: "Headphones", needles: ["headphones"] },
       { label: "Earphones", needles: ["earphone"] },
@@ -53,11 +68,13 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Speakers",
     group: "Speakers",
+    wooCategories: ["Speakers"],
     subtypes: [{ label: "Speakers", needles: ["speaker"] }],
   },
   {
     label: "Smartwatch",
     group: "Smartwatch",
+    wooCategories: ["Smartwatches", "Smartwatch Accessories", "WATCH CHARGERS"],
     subtypes: [
       { label: "Smartwatches", needles: ["smartwatch", "smart watch"] },
       {
@@ -69,6 +86,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Mobile Car Support",
     group: "Mobile Car Support",
+    wooCategories: ["Mobile Car Support", "Car Chargers", "Car Holders"],
     subtypes: [
       { label: "Car Support", needles: ["car support", "car holder", "car mount", "in-car", "magnetic car"] },
       { label: "Car Chargers", needles: ["car charger"] },
@@ -91,6 +109,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Audio & Microphone",
     group: "Audio & Microphone",
+    wooCategories: ["Microphone", "Audio Cable"],
     subtypes: [
       { label: "Microphone", needles: ["microphone", "mic"] },
       { label: "Audio Cable", needles: ["audio cable", "aux"] },
@@ -107,6 +126,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Beautycare",
     group: "Beautycare",
+    wooCategories: ["HOCO BEAUTY CARE"],
     subtypes: [{ label: "Hoco Beauty Care", needles: ["beauty"] }],
   },
   {
@@ -119,6 +139,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Original Accessories",
     group: "Original Accessories",
+    wooCategories: ["ORIGINAL ACCESSORIES"],
     subtypes: [
       { label: "Original Accessories", needles: ["original accessor", "oem accessor", "genuine accessor"] },
     ],
@@ -126,6 +147,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Cards",
     group: "Cards",
+    wooCategories: ["MEMORY CARDS", "SIM CARDS"],
     subtypes: [
       { label: "SIM Cards", needles: ["sim card"] },
       { label: "Memory Cards", needles: ["memory card", "microsd", "micro sd", "sd card", "flash drive"] },
@@ -134,8 +156,9 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
   {
     label: "Repairing Tools",
     group: "Repairing Tools",
+    wooCategories: ["REPAIR TOOLS"],
     subtypes: [
-      { label: "Screwdrivers", needles: ["screwdriver", "phillips", "torx"] },
+      { label: "Screwdrivers", needles: ["screwdriver", "scredriver", "phillips", "torx"] },
       { label: "Openers", needles: ["opener", "spudger", "pry tool", "opening tool"] },
       { label: "Repair Kits", needles: ["repair kit", "tool kit", "toolkit"] },
     ],
@@ -146,6 +169,7 @@ export const ACCESSORY_NAV_PAGES: AccessoryNavPage[] = [
 export const HOCO_SHOP_PAGE: AccessoryNavPage = {
   label: "Hoco",
   group: "Hoco",
+  wooCategories: ["OTHER HOCO ACCESSORIES", "HOCO BEAUTY CARE"],
   subtypes: [
     { label: "Chargers", needles: ["charger", "adapter"] },
     { label: "Cables", needles: ["cable"] },
@@ -190,6 +214,26 @@ export function accessoryPageHref(group: string, subtype?: string): string {
 export function findAccessoryPage(group: string): AccessoryNavPage | undefined {
   const key = group.trim().toLowerCase();
   return ALL_SHOP_PAGES.find((p) => p.group.toLowerCase() === key || p.label.toLowerCase() === key);
+}
+
+/** Queries used to load a shop group: category_group plus matching Woo categories. */
+export function shopGroupFetchQueries(group: string): Record<string, string>[] {
+  const page = findAccessoryPage(group);
+  const g = (page?.group ?? group).trim();
+  const queries: Record<string, string>[] = [];
+  const seen = new Set<string>();
+  const add = (query: Record<string, string>) => {
+    const sig = JSON.stringify(query);
+    if (seen.has(sig)) return;
+    seen.add(sig);
+    queries.push(query);
+  };
+  if (g) add({ category_group: g });
+  for (const name of page?.wooCategories ?? []) {
+    const n = name.trim();
+    if (n) add({ category: n });
+  }
+  return queries;
 }
 
 export function isAccessoryNavGroup(group: string): boolean {
