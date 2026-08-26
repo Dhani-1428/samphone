@@ -9,6 +9,10 @@ import {
   APPLE_IPHONE_MODELS,
   APPLE_WATCH_MODELS,
   APPLE_IPAD_NAV_MODELS,
+  APPLE_IPAD_MODELS,
+  APPLE_IPAD_PRO_MODELS,
+  APPLE_IPAD_AIR_MODELS,
+  APPLE_IPAD_MINI_MODELS,
   APPLE_MACBOOK_MODELS,
 } from "@/data/nav-apple";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
@@ -109,14 +113,6 @@ function slugifyModelLabel(label: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
-}
-
-function appleColumnTitle(column: { slug?: string }[]): string {
-  const slug = column[0]?.slug?.toLowerCase() ?? "";
-  if (slug === "iphones") return "I PHONE";
-  if (slug === "iwatch") return "APPLE WATCH";
-  if (slug === "macbook") return "MACBOOK";
-  return "I PAD";
 }
 
 /** Map Woo / nav category slug (e.g. iphone-parts) to :brand segment used by ModelCatalogPage. */
@@ -1537,17 +1533,51 @@ function isAppleBrand(brand: NavBrandGroup) {
   return slug === "iphone-parts" || label === "iphone" || label === "apple";
 }
 
-function packMegaColumns(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][] {
-  if (!isAppleBrand(brand)) return families.map((family) => [family]);
+function isSamsungBrand(brand: NavBrandGroup) {
+  const slug = brand.brand.slug.toLowerCase();
+  const label = brand.brand.label.toLowerCase();
+  return slug === "samsung-parts" || label === "samsung";
+}
+
+function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][][] {
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
     slugs.map((slug) => bySlug.get(slug)).filter((family): family is NavFamily => Boolean(family));
-  return [
-    pick("iphones"),
-    pick("ipad", "ipad-pro", "ipad-mini", "ipad-air", "ipads"),
-    pick("iwatch"),
-    pick("macbook"),
-  ].filter((col) => col.length > 0);
+
+  if (isAppleBrand(brand)) {
+    const row = [
+      pick("iphones"),
+      pick("ipad", "ipad-pro"),
+      pick("ipad-air"),
+      pick("ipad-mini"),
+      pick("iwatch"),
+      pick("macbook"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
+  }
+
+  if (isSamsungBrand(brand)) {
+    const rows = [
+      [pick("a-series"), pick("s-series"), pick("m-series", "j-series")].filter((col) => col.length > 0),
+      [pick("z-series", "note-series")].filter((col) => col.length > 0),
+      [pick("galaxy-tab")].filter((col) => col.length > 0),
+    ].filter((row) => row.length > 0);
+    return rows.length ? rows : [families.map((family) => [family])];
+  }
+
+  return [families.map((family) => [family])];
+}
+
+function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) {
+  if (samsung) return "grid grid-cols-1 sm:grid-cols-3";
+  if (apple) {
+    return row.length >= 6
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+  }
+  return row.length >= 5
+    ? "grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"
+    : "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
 }
 
 const megaLinkClass =
@@ -1566,59 +1596,24 @@ function BrandMegaPanel({
   const families = brand.items.filter((item) => (item.children?.length ?? 0) > 0);
   const looseItems = brand.items.filter((item) => !(item.children?.length ?? 0));
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
-  const columns = packMegaColumns(brand, families);
+  const rows = packMegaRows(brand, families);
   const apple = isAppleBrand(brand);
-  const colCount = Math.max(columns.length, 1);
+  const samsung = isSamsungBrand(brand);
 
   return (
     <div className={`${navShell} bg-white py-6 dark:bg-[#12192A]`}>
       {families.length > 0 ? (
-        <div
-          className={`grid overflow-hidden bg-white dark:bg-[#12192A] ${
-            apple
-              ? colCount >= 4
-                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-                : "grid-cols-1 sm:grid-cols-3"
-              : colCount >= 5
-                ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-5"
-                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-          }`}
-        >
-          {columns.map((column, colIdx) => {
-            const heading = apple
-              ? appleColumnTitle(column)
-              : (column[0]?.label ?? "").toUpperCase();
-            return (
-              <div
-                key={`${brand.brand.slug}-col-${colIdx}-${column.map((f) => f.slug).join("-")}`}
-                className={`min-w-0 px-5 py-2 ${
-                  colIdx < columns.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
-                }`}
-              >
-                {apple ? (
-                  <>
-                    <p className={megaHeadingClass}>• {heading}</p>
-                    <ul className="space-y-1.5">
-                      {column.flatMap((family) =>
-                        (family.children ?? []).map((model, midx) => (
-                          <li key={`${family.slug}-${midx}-${model.slug}`}>
-                            <Link
-                              href={
-                                model.href ??
-                                `/model/${brandRoute}/${family.slug}/${model.slug}`
-                              }
-                              onClick={onClose}
-                              className={megaLinkClass}
-                            >
-                              {model.label}
-                            </Link>
-                          </li>
-                        )),
-                      )}
-                    </ul>
-                  </>
-                ) : (
-                  column.map((family) => {
+        <div className="flex flex-col gap-8">
+          {rows.map((row, rowIdx) => (
+            <div key={`${brand.brand.slug}-row-${rowIdx}`} className={megaRowGridClass(row, apple, samsung)}>
+              {row.map((column, colIdx) => (
+                <div
+                  key={`${brand.brand.slug}-r${rowIdx}-c${colIdx}-${column.map((f) => f.slug).join("-")}`}
+                  className={`min-w-0 max-h-[min(58vh,36rem)] overflow-y-auto overscroll-contain px-5 py-2 ${
+                    colIdx < row.length - 1 ? "sm:border-r sm:border-black/15 dark:sm:border-white/15" : ""
+                  }`}
+                >
+                  {column.map((family) => {
                     const models = family.children ?? [];
                     return (
                       <div key={`${brand.brand.slug}-${family.slug}`} className="mb-6 last:mb-0">
@@ -1641,11 +1636,11 @@ function BrandMegaPanel({
                         </ul>
                       </div>
                     );
-                  })
-                )}
-              </div>
-            );
-          })}
+                  })}
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -1743,7 +1738,7 @@ export default function Navbar() {
       const isIphone = base.toLowerCase() === "iphone";
       return {
         brand: { label: base, slug: b.slug },
-        items: isIphone
+            items: isIphone
           ? [
               {
                 label: "I PHONE",
@@ -1753,7 +1748,22 @@ export default function Navbar() {
               {
                 label: "I PAD",
                 slug: "ipad",
-                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_NAV_MODELS),
+                children: makeFamilyChildren(b.slug, "ipad", APPLE_IPAD_MODELS),
+              },
+              {
+                label: "I PAD PRO",
+                slug: "ipad-pro",
+                children: makeFamilyChildren(b.slug, "ipad-pro", APPLE_IPAD_PRO_MODELS),
+              },
+              {
+                label: "I PAD AIR",
+                slug: "ipad-air",
+                children: makeFamilyChildren(b.slug, "ipad-air", APPLE_IPAD_AIR_MODELS),
+              },
+              {
+                label: "I PAD MINI",
+                slug: "ipad-mini",
+                children: makeFamilyChildren(b.slug, "ipad-mini", APPLE_IPAD_MINI_MODELS),
               },
               {
                 label: "APPLE WATCH",
@@ -1779,11 +1789,6 @@ export default function Navbar() {
                   children: makeFamilyChildren(b.slug, "s-series", SAMSUNG_S_SERIES_MODELS),
                 },
                 {
-                  label: "Z series",
-                  slug: "z-series",
-                  children: makeFamilyChildren(b.slug, "z-series", SAMSUNG_Z_SERIES_MODELS),
-                },
-                {
                   label: "M series",
                   slug: "m-series",
                   children: makeFamilyChildren(b.slug, "m-series", SAMSUNG_M_SERIES_MODELS),
@@ -1792,6 +1797,11 @@ export default function Navbar() {
                   label: "J series",
                   slug: "j-series",
                   children: makeFamilyChildren(b.slug, "j-series", SAMSUNG_J_SERIES_MODELS),
+                },
+                {
+                  label: "Z series",
+                  slug: "z-series",
+                  children: makeFamilyChildren(b.slug, "z-series", SAMSUNG_Z_SERIES_MODELS),
                 },
                 {
                   label: "Note series",
@@ -2419,13 +2429,18 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.16 }}
-            className="absolute left-0 right-0 top-full z-50 hidden max-h-[min(88vh,920px)] overflow-y-auto border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
+            className="absolute left-0 right-0 top-full z-50 hidden overflow-hidden border-b border-black/[0.06] bg-white shadow-[0_16px_40px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[#12192A] xl:block"
           >
-            {openDropdown === "others" ? (
-              <OthersMegaPanel onClose={closeMenu} />
-            ) : (
-              <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
-            )}
+            <div
+              className="max-h-[calc(100dvh-var(--site-header-h,9rem))] overflow-y-auto overscroll-contain"
+              onWheel={(e) => e.stopPropagation()}
+            >
+              {openDropdown === "others" ? (
+                <OthersMegaPanel onClose={closeMenu} />
+              ) : (
+                <BrandMegaPanel brand={activeBrand} onClose={closeMenu} />
+              )}
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
