@@ -466,7 +466,7 @@ const translations = {
     model_accessories_section_hint: "Glass, jellies, MagSafe covers, and other add-ons for this model.",
     home_accessories_title: "Accessories",
     home_accessories_sub: "Open a group, then filter by subtype. Lists are sorted by price, low to high.",
-    home_accessories_items: "items",
+    home_accessories_items: "Items",
     home_accessories_shop: "Shop now",
     accessory_filter_all: "All",
     accessory_explore: "Explore all {group}",

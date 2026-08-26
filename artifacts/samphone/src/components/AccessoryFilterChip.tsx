@@ -64,7 +64,7 @@ export function groupIcon(group: string): LucideIcon {
   if (k.includes("beauty")) return Sparkles;
   if (k.includes("cell") || k.includes("card")) return CreditCard;
   if (k.includes("tool")) return Wrench;
-  if (k.includes("hoco") || k.includes("original")) return Sparkles;
+  if (k.includes("hoco") || k.includes("original")) return Watch;
   return subtypeIcon(group);
 }
 
