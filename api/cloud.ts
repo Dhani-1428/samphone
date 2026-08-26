@@ -1,3 +1,6 @@
+import https from "node:https";
+import { Buffer } from "node:buffer";
+
 type NodeReq = {
   method?: string;
   url?: string;
@@ -14,7 +17,8 @@ type NodeRes = {
 };
 
 const UPSTREAM = "https://samphone.cloud/api";
-const ALLOWED = /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
+const ALLOWED =
+  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
 
 function header(req: NodeReq, name: string): string {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
@@ -23,6 +27,10 @@ function header(req: NodeReq, name: string): string {
 }
 
 function subPath(req: NodeReq): string {
+  const raw = req.query?.path;
+  if (Array.isArray(raw) && raw.length > 0) return raw.filter(Boolean).join("/");
+  if (typeof raw === "string" && raw.length > 0) return raw.replace(/^\/+/, "");
+
   const url = req.url || "/";
   const pathname = url.split("?")[0] || "";
   for (const marker of ["/api/cloud/", "/cloud-api/"]) {
@@ -30,10 +38,17 @@ function subPath(req: NodeReq): string {
     if (at >= 0) return pathname.slice(at + marker.length).replace(/^\/+/, "");
   }
   if (pathname === "/api/cloud" || pathname === "/cloud-api") return "";
-  const raw = req.query?.path;
-  if (Array.isArray(raw)) return raw.join("/");
-  if (typeof raw === "string") return raw.replace(/^\/+/, "");
   return "";
+}
+
+function forwardSearch(req: NodeReq): string {
+  const url = req.url || "";
+  const qIndex = url.indexOf("?");
+  if (qIndex < 0) return "";
+  const qs = new URLSearchParams(url.slice(qIndex + 1));
+  qs.delete("path");
+  const s = qs.toString();
+  return s ? `?${s}` : "";
 }
 
 async function readBody(req: NodeReq): Promise<Buffer> {
@@ -54,6 +69,45 @@ async function readBody(req: NodeReq): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
+function proxy(target: string, method: string, headers: Record<string, string>, body: Buffer): Promise<{
+  status: number;
+  contentType: string;
+  body: Buffer;
+}> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(target);
+    const payload = method === "GET" || method === "HEAD" ? undefined : body;
+    const reqHeaders = { ...headers };
+    if (payload && payload.length > 0) reqHeaders["Content-Length"] = String(payload.length);
+    const upstream = https.request(
+      {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: `${url.pathname}${url.search}`,
+        method,
+        headers: reqHeaders,
+      },
+      (incoming) => {
+        const chunks: Buffer[] = [];
+        incoming.on("data", (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        incoming.on("end", () => {
+          resolve({
+            status: incoming.statusCode ?? 0,
+            contentType: String(incoming.headers["content-type"] || "application/json; charset=utf-8"),
+            body: Buffer.concat(chunks),
+          });
+        });
+      },
+    );
+    upstream.on("error", reject);
+    if (payload && payload.length > 0) upstream.write(payload);
+    upstream.end();
+  });
+}
+
 export default async function handler(req: NodeReq, res: NodeRes): Promise<void> {
   const method = (req.method || "GET").toUpperCase();
   if (method === "OPTIONS") {
@@ -71,9 +125,8 @@ export default async function handler(req: NodeReq, res: NodeRes): Promise<void>
     return;
   }
 
-  const search = (req.url || "").includes("?") ? (req.url || "").slice((req.url || "").indexOf("?")) : "";
-  const target = `${UPSTREAM}/${path}${search}`;
-  const body = method === "GET" || method === "HEAD" ? undefined : await readBody(req);
+  const target = `${UPSTREAM}/${path}${forwardSearch(req)}`;
+  const body = method === "GET" || method === "HEAD" ? Buffer.alloc(0) : await readBody(req);
   const headers: Record<string, string> = { Accept: header(req, "accept") || "application/json" };
   const contentType = header(req, "content-type");
   if (contentType) headers["Content-Type"] = contentType;
@@ -81,16 +134,11 @@ export default async function handler(req: NodeReq, res: NodeRes): Promise<void>
   if (auth) headers.Authorization = auth;
 
   try {
-    const upstream = await fetch(target, {
-      method,
-      headers,
-      body: body && body.length > 0 ? new Uint8Array(body) : undefined,
-    });
-    const buf = Buffer.from(await upstream.arrayBuffer());
+    const upstream = await proxy(target, method, headers, body);
     res.statusCode = upstream.status;
-    res.setHeader("Content-Type", upstream.headers.get("content-type") || "application/json; charset=utf-8");
+    res.setHeader("Content-Type", upstream.contentType);
     res.setHeader("Cache-Control", "no-store");
-    res.end(buf);
+    res.end(upstream.body);
   } catch {
     res.statusCode = 502;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
