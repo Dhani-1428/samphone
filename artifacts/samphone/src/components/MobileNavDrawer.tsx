@@ -51,7 +51,8 @@ function catalogBrandForModelRoutes(partsSlug: string): string {
 function slugifyModelLabel(label: string): string {
   return label
     .toLowerCase()
-    .replace(/\([^)]*\)/g, " ")
+    .replace(/[()]/g, " ")
+    .replace(/[/+,]/g, " ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
@@ -168,17 +169,16 @@ function DrawerBrandModels({
   }
 
   return (
-    <div className="mb-3 space-y-4 rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
+    <div className="mb-3 max-h-[55vh] space-y-4 overflow-y-auto rounded-lg border border-black/[0.08] px-3 py-3 dark:border-white/15">
       {families.map((family) => {
         const models = family.children ?? [];
-        const preview = models.slice(0, MODEL_PREVIEW);
         return (
           <div key={family.slug}>
             <div className="mb-2 inline-flex rounded-full bg-[#E3EFFA] px-3 py-1 text-[12px] font-medium text-[#1a2b4a] dark:bg-[#1B2436] dark:text-white">
               {family.label}
             </div>
             <ul className="space-y-2">
-              {preview.map((model, midx) => (
+              {models.map((model, midx) => (
                 <li key={`${family.slug}-${midx}-${model.slug}`}>
                   <Link
                     href={model.href ?? `/model/${brandRoute}/${family.slug}/${model.slug}`}
@@ -189,17 +189,6 @@ function DrawerBrandModels({
                   </Link>
                 </li>
               ))}
-              {models.length > MODEL_PREVIEW ? (
-                <li>
-                  <Link
-                    href={`/model/${brandRoute}/${family.slug}`}
-                    onClick={onClose}
-                    className="text-[13px] font-semibold text-[#5A73A8]"
-                  >
-                    {seeAllLabel}
-                  </Link>
-                </li>
-              ) : null}
             </ul>
           </div>
         );

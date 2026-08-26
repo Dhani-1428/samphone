@@ -108,7 +108,8 @@ const navShell =
 function slugifyModelLabel(label: string): string {
   return label
     .toLowerCase()
-    .replace(/\([^)]*\)/g, " ")
+    .replace(/[()]/g, " ")
+    .replace(/[/+,]/g, " ")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
@@ -1513,6 +1514,8 @@ const TABLET_HUAWEI_MODELS = [
   "Huawei Honor Tab 7 (AGM3-W09HN) 10.1\" (2021)",
 ];
 
+const HONOR_PAD_MODELS = TABLET_HUAWEI_MODELS.filter((label) => /honor/i.test(label));
+
 const NOKIA_SERIES_MODELS = [
   "Nokia X20",
   "Nokia X10",
@@ -1840,6 +1843,11 @@ export default function Navbar() {
                   slug: "note-series",
                   children: makeFamilyChildren(b.slug, "note-series", SAMSUNG_NOTE_SERIES_MODELS),
                 },
+                {
+                  label: "Galaxy Tab",
+                  slug: "galaxy-tab",
+                  children: makeFamilyChildren(b.slug, "galaxy-tab", TABLET_SAMSUNG_MODELS),
+                },
               ]
           : base.toLowerCase() === "xiaomi"
             ? [
@@ -1857,6 +1865,11 @@ export default function Navbar() {
                   label: "Mi series",
                   slug: "mi-series",
                   children: makeFamilyChildren(b.slug, "mi-series", XIAOMI_MI_SERIES_MODELS),
+                },
+                {
+                  label: "Xiaomi Pad",
+                  slug: "xiaomi-pad",
+                  children: makeFamilyChildren(b.slug, "xiaomi-pad", TABLET_XIAOMI_MODELS),
                 },
               ]
           : base.toLowerCase().includes("oppo")
@@ -1927,6 +1940,11 @@ export default function Navbar() {
                   slug: "autres",
                   children: makeFamilyChildren(b.slug, "autres", HONOR_AUTRES_MODELS),
                 },
+                {
+                  label: "Honor Pad",
+                  slug: "honor-pad",
+                  children: makeFamilyChildren(b.slug, "honor-pad", HONOR_PAD_MODELS),
+                },
               ]
           : base.toLowerCase() === "huawei"
             ? [
@@ -1954,6 +1972,11 @@ export default function Navbar() {
                   label: "Nova series",
                   slug: "nova-series",
                   children: makeFamilyChildren(b.slug, "nova-series", HUAWEI_NOVA_SERIES_MODELS),
+                },
+                {
+                  label: "MatePad",
+                  slug: "matepad",
+                  children: makeFamilyChildren(b.slug, "matepad", TABLET_HUAWEI_MODELS),
                 },
               ]
           : base.toLowerCase() === "one plus" || base.toLowerCase() === "oneplus"
@@ -2011,6 +2034,11 @@ export default function Navbar() {
                   label: "TCL series",
                   slug: "tcl-series",
                   children: makeFamilyChildren(b.slug, "tcl-series", TCL_SERIES_MODELS),
+                },
+                {
+                  label: "TCL Tab",
+                  slug: "tcl-tab",
+                  children: makeFamilyChildren(b.slug, "tcl-tab", TABLET_TCL_MODELS),
                 },
               ]
           : base.toLowerCase() === "zte"

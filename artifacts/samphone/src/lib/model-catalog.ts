@@ -26,19 +26,66 @@ export function displayBrandName(slug: string): string {
   return map[key] ?? slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/** Hardware IDs like A2836, X210, T510, P610, TB330. */
+export function extractHardwareCodes(value: string): string[] {
+  const text = value.toLowerCase().replace(/-/g, " ");
+  const codes = new Set<string>();
+  for (const match of text.matchAll(/\b([a-z]{1,3}\d{3,4}[a-z]{0,2})\b/g)) {
+    const token = match[1];
+    if (token && token.length >= 4) codes.add(token);
+  }
+  return [...codes];
+}
+
+function hasToken(hay: string, token: string): boolean {
+  const t = token.trim();
+  if (!t) return false;
+  return ` ${hay} `.includes(` ${t} `);
+}
+
 export function modelSearchNames(brand: string, modelSlug: string): string[] {
   const raw = modelSlug.replace(/-/g, " ").replace(/\s+/g, " ").trim();
   if (!raw) return [];
   const titled = raw.replace(/\b([a-z])/g, (c) => c.toUpperCase());
   const names = new Set<string>([raw, titled]);
-  if (brand === "iphone" || /^iphone\b/i.test(raw)) {
+  for (const code of extractHardwareCodes(raw)) names.add(code.toUpperCase());
+
+  if (/^ipad\b/i.test(raw) || ((brand === "iphone" || brand === "apple") && /ipad/i.test(raw))) {
+    const rest = raw.replace(/^ipad\s*/i, "");
+    names.add(`iPad ${rest}`.replace(/\s+/g, " ").trim());
+    names.add(raw.replace(/^ipad\b/i, "iPad"));
+  } else if (brand === "iphone" || /^iphone\b/i.test(raw)) {
     const rest = raw.replace(/^iphone\s*/i, "");
     names.add(`iPhone ${rest}`.replace(/\s+/g, " ").trim());
     names.add(raw.replace(/^iphone\b/i, "iPhone"));
   }
-  if (brand === "samsung" && !/^samsung\b/i.test(raw)) {
-    names.add(`Samsung ${titled}`);
-    names.add(`Galaxy ${titled}`);
+  if (brand === "samsung" || /\bgalaxy\s*tab|\btab\s+[as]\d/i.test(raw)) {
+    if (/\btab\b/i.test(raw)) {
+      const rest = raw
+        .replace(/^samsung\s*/i, "")
+        .replace(/^galaxy\s*/i, "")
+        .replace(/^tab\s*/i, "")
+        .trim();
+      names.add(`Galaxy Tab ${rest}`.replace(/\s+/g, " ").trim());
+      names.add(`Samsung Galaxy Tab ${rest}`.replace(/\s+/g, " ").trim());
+    } else if (brand === "samsung" && !/^samsung\b/i.test(raw)) {
+      names.add(`Samsung ${titled}`);
+      names.add(`Galaxy ${titled}`);
+    }
+  }
+  if (brand === "huawei" || /mate\s*pad|matepad|mediapad/i.test(raw)) {
+    const rest = raw.replace(/^huawei\s*/i, "").replace(/^mate\s*pad\s*/i, "").replace(/^matepad\s*/i, "").trim();
+    if (/mate\s*pad|matepad|mediapad/i.test(raw)) {
+      names.add(`MatePad ${rest}`.replace(/\s+/g, " ").trim());
+      names.add(`Huawei MatePad ${rest}`.replace(/\s+/g, " ").trim());
+    }
+  }
+  if (brand === "xiaomi" || /xiaomi\s*pad|redmi\s*pad/i.test(raw)) {
+    if (/pad/i.test(raw)) {
+      const rest = raw.replace(/^xiaomi\s*/i, "").replace(/^redmi\s*/i, "").replace(/^pad\s*/i, "").trim();
+      names.add(`Xiaomi Pad ${rest}`.replace(/\s+/g, " ").trim());
+      names.add(`Redmi Pad ${rest}`.replace(/\s+/g, " ").trim());
+    }
   }
   if (brand === "google-pixel" || brand === "google") {
     const rest = titled.replace(/^pixel\s*/i, "").trim();
@@ -50,19 +97,34 @@ export function modelSearchNames(brand: string, modelSlug: string): string[] {
     names.add(`LG ${rest}`);
     names.add(rest);
   }
-  return [...names];
+  return [...names].filter((n) => n.length >= 3);
 }
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
+function isTabletModelQuery(value: string): boolean {
+  return /\b(ipad|galaxy tab|matepad|mate pad|mediapad|xiaomi pad|redmi pad|lenovo tab|honor pad|tcl tab|tablet)\b/i.test(
+    value,
+  );
+}
+
 /** Keep iPhone 15 from matching iPhone 15 Pro / Plus / Pro Max. */
 export function productBelongsToModel(p: WooProduct, modelLabel: string): boolean {
-  const h = norm(`${p.name} ${(p.categories ?? []).map((c) => c.name).join(" ")}`);
+  const h = norm(
+    `${p.name} ${p.modelLabel ?? ""} ${p.sku ?? ""} ${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${p.specs?.Model ?? ""} ${(p.categories ?? []).map((c) => c.name).join(" ")}`,
+  );
   const m = norm(modelLabel);
-  if (!m || !h.includes(m)) return false;
-  const extras = ["pro max", "pro", "plus", "ultra", "mini", "air"];
+  if (!m) return false;
+
+  const codes = extractHardwareCodes(modelLabel);
+  if (codes.some((code) => hasToken(h, code))) return true;
+
+  if (!h.includes(m) && !hasToken(h, m)) return false;
+
+  const tablet = isTabletModelQuery(modelLabel) || isTabletModelQuery(h);
+  const extras = tablet ? ["pro max", "plus", "ultra"] : ["pro max", "pro", "plus", "ultra", "mini", "air"];
   for (const extra of extras) {
     if (m.endsWith(` ${extra}`) || m.includes(` ${extra} `)) continue;
     if (h.includes(`${m} ${extra}`)) return false;

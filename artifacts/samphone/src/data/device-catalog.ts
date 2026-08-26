@@ -4,11 +4,12 @@ export const SMARTPHONE_FETCH_QUERIES: Record<string, string>[] = [{ category: "
 
 export const TABLET_FETCH_QUERIES: Record<string, string>[] = [
   { category_group: "Tablet" },
-  { category_group: "Tab" },
   { category_group: "iPad" },
   { category: "iPad" },
   { category_group: "Galaxy Tab" },
   { category_group: "Mate Pad" },
   { category_group: "Xiaomi Pad" },
+  { category_group: "Redmi Pad" },
   { category_group: "Lenovo Tab" },
+  { category_group: "Honor Pad" },
 ];

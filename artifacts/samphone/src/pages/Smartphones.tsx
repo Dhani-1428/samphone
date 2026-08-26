@@ -74,15 +74,17 @@ export default function Smartphones() {
     setItems(null);
     setCatalogTotal(0);
     setLoadingMore(true);
-    void fetchCloudMergedProducts(sectionQueries(section), (list, total) => {
+    void fetchCloudMergedProducts(sectionQueries(section), (list) => {
       if (!alive) return;
-      setCatalogTotal(total);
-      setItems([...list]);
+      const filtered = filterCatalogForSmartphonesTab(list, section);
+      setCatalogTotal(filtered.length);
+      setItems([...filtered]);
     })
       .then((list) => {
         if (!alive) return;
-        setItems(list);
-        setCatalogTotal(list.length);
+        const filtered = filterCatalogForSmartphonesTab(list, section);
+        setItems(filtered);
+        setCatalogTotal(filtered.length);
         setLoadingMore(false);
       })
       .catch(() => {

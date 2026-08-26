@@ -94,8 +94,16 @@ function hasStorageRamPattern(name: string): boolean {
   );
 }
 
+const TABLET_DEVICE_RE =
+  /\b(tablet|ipad|galaxy\s*tab|matepad|mate\s*pad|mediapad|media\s*pad|lenovo\s*tab|xiaomi\s*pad|redmi\s*pad|honor\s*pad|honor\s*tab|tcl\s*tab|modio)\b/i;
+
 function looksLikeTabletRetailName(name: string): boolean {
-  return /\b(tablet|ipad|galaxy tab|matepad|lenovo tab|xiaomi pad|modio)\b/i.test(name);
+  return TABLET_DEVICE_RE.test(name);
+}
+
+function looksLikePhoneNotTablet(name: string): boolean {
+  if (looksLikeTabletRetailName(name)) return false;
+  return /\b(iphone|galaxy\s+[asmzn]\d|galaxy\s+z\s|redmi\s+note|pixel\s?\d|oneplus|motorola)\b/i.test(name);
 }
 
 function looksLikePhoneRetailName(name: string): boolean {
@@ -149,7 +157,7 @@ function categorySlugLooksTablet(slug: string): boolean {
   for (const x of EXTRA_TABLET_SLUGS) {
     if (s === x) return true;
   }
-  if (/tablet|ipad|galaxy-tab|galaxytab|mate-?pad|surface-go|tab-/i.test(s)) return true;
+  if (/tablet|ipad|galaxy-?tab|galaxytab|mate-?pad|xiaomi-?pad|redmi-?pad|lenovo-?tab|honor-?pad|tcl-?tab|mediapad/i.test(s)) return true;
   return false;
 }
 
@@ -211,15 +219,14 @@ export function filterPhoneParts(products: WooProduct[]): WooProduct[] {
 }
 
 export function filterTabletParts(products: WooProduct[]): WooProduct[] {
-  const out = products.filter((p) => {
+  return products.filter((p) => {
     const name = p.name ?? "";
-    if (looksLikeTabletRetailName(name) || isTabletLikeProduct(p)) return true;
-    return /\b(galaxy tab|mate\s*pad|lenovo tab|xiaomi pad|huawei tablet|samsung tablet)\b/i.test(name);
+    const group = `${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${p.modelLabel ?? ""}`;
+    if (looksLikePhoneNotTablet(name) && !looksLikeTabletRetailName(group)) return false;
+    if (looksLikeTabletRetailName(name) || looksLikeTabletRetailName(group)) return true;
+    if (isTabletLikeProduct(p) && !looksLikePhoneNotTablet(name)) return true;
+    return false;
   });
-  if (out.length > 0) return out;
-  return baseDeviceProducts(products).filter((p) =>
-    /\b(tablet|tab|ipad|matepad|xiaomi pad|lenovo tab|galaxy tab|modio)\b/i.test(p.name),
-  );
 }
 
 /** Keep only products that belong on the Smartphones page tab (phones vs tablets). */

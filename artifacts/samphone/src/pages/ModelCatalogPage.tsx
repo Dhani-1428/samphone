@@ -51,6 +51,7 @@ function parseModelName(slug: string): string {
     .replace(/\bIpad\b/g, "iPad")
     .replace(/\bIwatch\b/g, "Apple Watch")
     .replace(/\bMacbook\b/g, "MacBook")
+    .replace(/\bMatepad\b/g, "MatePad")
     .replace(/\bSe\b/g, "SE")
     .replace(/\bLg\b/g, "LG")
     .replace(/\bTcl\b/g, "TCL");

@@ -649,19 +649,23 @@ export async function fetchCloudProductsByGroup(group: string, limit = 48): Prom
 }
 
 export async function fetchCloudProductsForModel(names: string[]): Promise<WooProduct[]> {
-  for (const name of names) {
-    const q = name.trim();
-    if (!q) continue;
-    const byModel = await fetchCloudAllProducts({ model: q });
-    if (byModel.length > 0) return byModel;
-  }
-  for (const name of names) {
-    const q = name.trim();
-    if (!q) continue;
-    const byQuery = await fetchCloudAllProducts({ q });
-    if (byQuery.length > 0) return byQuery;
-  }
-  return [];
+  const unique = [...new Set(names.map((n) => n.trim()).filter((n) => n.length >= 3))].slice(0, 8);
+  if (unique.length === 0) return [];
+  const byModel = await Promise.all(
+    unique.map(async (q) => {
+      const page = await fetchCloudProductList({ model: q }, 80);
+      return page.items;
+    }),
+  );
+  const merged = mergeWooProducts(byModel);
+  if (merged.length > 0) return merged;
+  const byQuery = await Promise.all(
+    unique.slice(0, 4).map(async (q) => {
+      const page = await fetchCloudProductList({ q }, 80);
+      return page.items;
+    }),
+  );
+  return mergeWooProducts(byQuery);
 }
 
 export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {
