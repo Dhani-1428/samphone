@@ -1556,16 +1556,11 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   }
 
   if (isSamsungBrand(brand)) {
-    const row = [
-      pick("a-series"),
-      pick("s-series"),
-      pick("m-series"),
-      pick("j-series"),
-      pick("z-series"),
-      pick("note-series"),
-      pick("galaxy-tab"),
-    ].filter((col) => col.length > 0);
-    return row.length ? [row] : [families.map((family) => [family])];
+    const rows = [
+      [pick("a-series"), pick("s-series"), pick("m-series"), pick("galaxy-tab")].filter((col) => col.length > 0),
+      [pick("j-series"), pick("z-series"), pick("note-series")].filter((col) => col.length > 0),
+    ].filter((row) => row.length > 0);
+    return rows.length ? rows : [families.map((family) => [family])];
   }
 
   return [families.map((family) => [family])];
@@ -1573,9 +1568,7 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
 
 function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) {
   if (samsung) {
-    return row.length >= 6
-      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7"
-      : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+    return "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
   }
   if (apple) {
     return row.length >= 6
