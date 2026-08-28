@@ -85,10 +85,10 @@ const SAMSUNG_FAMILIES: BrandNavFamily[] = [
 ];
 
 const XIAOMI_FAMILIES: BrandNavFamily[] = [
-  { id: "redmi-series", label: "Redmi", test: (h) => /\bredmi\b/.test(h) && !/\bnote\b/.test(h) && !/\bpad\b/.test(h), models: [] },
+  { id: "redmi-series", label: "Redmi", test: (h) => /\bredmi\b/.test(h) && !/\bnote\b/.test(h) && !/\bpad\b/.test(h) && !/\bpoco\b/.test(h), models: [] },
+  { id: "poco-series", label: "Poco", test: (h) => /\bpoco\b/.test(h), models: [] },
   { id: "redmi-note-series", label: "Redmi Note", test: (h) => /\bredmi\s*note\b/.test(h), models: [] },
-  { id: "mi-series", label: "Mi series", test: (h) => /\b(\bmi\s+\d|xiaomi\s+mi)\b/.test(h) && !/\bredmi\b/.test(h), models: [] },
-  { id: "xiaomi-pad", label: "Xiaomi Pad", test: (h) => /\b(xiaomi\s*pad|redmi\s*pad)\b/.test(h), models: [] },
+  { id: "mi-series", label: "Mi series", test: (h) => /\b(\bmi\s+\d|xiaomi\s+\d|xiaomi\s+mi)\b/.test(h) && !/\bredmi\b/.test(h) && !/\bpoco\b/.test(h), models: [] },
 ];
 
 const HONOR_FAMILIES: BrandNavFamily[] = [
