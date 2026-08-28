@@ -280,11 +280,13 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   }
 
   if (isSamsungBrand(brand)) {
-    const rows = [
-      [pick("a-series"), pick("s-series"), pick("z-series"), pick("m-series")].filter((col) => col.length > 0),
-      [pick("j-series"), pick("note-series")].filter((col) => col.length > 0),
-    ].filter((row) => row.length > 0);
-    return rows.length ? rows : [families.map((family) => [family])];
+    const row = [
+      pick("a-series"),
+      pick("s-series"),
+      pick("z-series", "j-series"),
+      pick("m-series", "note-series"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
   }
 
   return [families.map((family) => [family])];
@@ -416,7 +418,7 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
 }
 
 function AllCategoriesMegaPanel({ onClose }: { onClose: () => void }) {
-  return <AccessoryPageButtons variant="menu" onNavigate={onClose} />;
+  return <AccessoryPageButtons variant="mega" onNavigate={onClose} />;
 }
 
 export default function Navbar() {
@@ -973,8 +975,10 @@ export default function Navbar() {
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-bar-item inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-[15px] font-bold uppercase tracking-normal text-white transition-colors ${
-                categoriesActive ? "bg-[#E09A2A]" : "bg-sam hover:bg-[#E09A2A]"
+              className={`nav-bar-item inline-flex h-9 shrink-0 items-center gap-2 px-3.5 text-[15px] font-bold uppercase tracking-normal text-white transition-colors ${
+                categoriesActive
+                  ? "rounded-t-md bg-[#E09A2A]"
+                  : "rounded-md bg-sam hover:bg-[#E09A2A]"
               }`}
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
@@ -990,7 +994,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.14 }}
-                  className="absolute left-0 top-full z-[60] mt-1 max-h-[min(70vh,28rem)] w-64 overflow-y-auto rounded-md border border-black/[0.08] bg-white py-1 shadow-[0_12px_32px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
+                  className="absolute left-0 top-full z-[60] overflow-hidden rounded-b-2xl rounded-tr-2xl border border-black/[0.06] bg-white shadow-[0_22px_55px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
                 >
                   <AllCategoriesMegaPanel onClose={closeMenu} />
                 </motion.div>
