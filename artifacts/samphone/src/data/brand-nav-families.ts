@@ -1,11 +1,7 @@
 import {
   APPLE_IPHONE_MODELS,
   APPLE_IPAD_MODELS,
-  APPLE_IPAD_PRO_MODELS,
-  APPLE_IPAD_AIR_MODELS,
-  APPLE_IPAD_MINI_MODELS,
   APPLE_WATCH_MODELS,
-  APPLE_MACBOOK_MODELS,
 } from "@/data/nav-apple";
 
 export type BrandNavModel = { id: string; label: string };
@@ -39,26 +35,8 @@ const APPLE_FAMILIES: BrandNavFamily[] = [
   {
     id: "ipad",
     label: "iPad",
-    test: (h) => /\bipad\b/.test(h) && !/\b(pro|air|mini)\b/.test(h),
+    test: (h) => /\bipad\b/.test(h),
     models: modelsFrom(APPLE_IPAD_MODELS),
-  },
-  {
-    id: "ipad-air",
-    label: "iPad Air",
-    test: (h) => /\bipad\b/.test(h) && /\bair\b/.test(h),
-    models: modelsFrom(APPLE_IPAD_AIR_MODELS),
-  },
-  {
-    id: "ipad-mini",
-    label: "iPad Mini",
-    test: (h) => /\bipad\b/.test(h) && /\bmini\b/.test(h),
-    models: modelsFrom(APPLE_IPAD_MINI_MODELS),
-  },
-  {
-    id: "ipad-pro",
-    label: "iPad Pro",
-    test: (h) => /\bipad\b/.test(h) && /\bpro\b/.test(h),
-    models: modelsFrom(APPLE_IPAD_PRO_MODELS),
   },
   {
     id: "iwatch",
@@ -66,22 +44,15 @@ const APPLE_FAMILIES: BrandNavFamily[] = [
     test: (h) => /\b(iwatch|apple watch|watch series|watch se|watch ultra)\b/.test(h),
     models: modelsFrom(APPLE_WATCH_MODELS),
   },
-  {
-    id: "macbook",
-    label: "MacBook",
-    test: (h) => /\bmacbook\b/.test(h),
-    models: modelsFrom(APPLE_MACBOOK_MODELS),
-  },
 ];
 
 const SAMSUNG_FAMILIES: BrandNavFamily[] = [
   { id: "a-series", label: "A series", test: (h) => /\b(galaxy|samsung)\s*a\d/.test(h), models: [] },
   { id: "s-series", label: "S series", test: (h) => /\b(galaxy|samsung)\s*s\d/.test(h), models: [] },
+  { id: "z-series", label: "Z series", test: (h) => /\bgalaxy\s*z|\bz\s*(fold|flip)/.test(h), models: [] },
   { id: "m-series", label: "M series", test: (h) => /\b(galaxy|samsung)\s*m\d/.test(h), models: [] },
   { id: "j-series", label: "J series", test: (h) => /\b(galaxy|samsung)\s*j\d/.test(h), models: [] },
-  { id: "z-series", label: "Z series", test: (h) => /\bgalaxy\s*z|\bz\s*(fold|flip)/.test(h), models: [] },
   { id: "note-series", label: "Note", test: (h) => /\b(galaxy\s*)?note\s*\d/.test(h), models: [] },
-  { id: "galaxy-tab", label: "Galaxy Tab", test: (h) => /\bgalaxy\s*tab|\btab\s*[as]\d/.test(h), models: [] },
 ];
 
 const XIAOMI_FAMILIES: BrandNavFamily[] = [
@@ -99,11 +70,7 @@ const HONOR_FAMILIES: BrandNavFamily[] = [
 ];
 
 const MOTOROLA_FAMILIES: BrandNavFamily[] = [
-  { id: "razr", label: "Razr", test: (h) => /\brazr\b/.test(h), models: [] },
-  { id: "edge", label: "Edge", test: (h) => /\bmoto\s*edge|\bedge\s*\d/.test(h), models: [] },
-  { id: "moto-g", label: "Moto G", test: (h) => /\bmoto\s*g\d|\bmoto\s*g\b/.test(h), models: [] },
-  { id: "moto-e", label: "Moto E", test: (h) => /\bmoto\s*e\d|\bmoto\s*e\b/.test(h), models: [] },
-  { id: "thinkphone", label: "ThinkPhone", test: (h) => /\bthinkphone\b/.test(h), models: [] },
+  { id: "motorola-series", label: "Motorola", test: (h) => /\b(motorola|moto)\b/.test(h), models: [] },
 ];
 
 const ONEPLUS_FAMILIES: BrandNavFamily[] = [
@@ -112,22 +79,20 @@ const ONEPLUS_FAMILIES: BrandNavFamily[] = [
 ];
 
 const OPPO_FAMILIES: BrandNavFamily[] = [
-  { id: "find-x-series", label: "Find X", test: (h) => /\bfind\s*x/.test(h), models: [] },
   { id: "reno-series", label: "Reno", test: (h) => /\breno\b/.test(h), models: [] },
   { id: "a-series", label: "A series", test: (h) => /\boppo\s*a\d|\ba\d{2,3}\b/.test(h) && !/\bfind\b/.test(h) && !/\breno\b/.test(h), models: [] },
+  { id: "f-series", label: "F series", test: (h) => /\boppo\s*f\d|\bf\d{1,2}\b/.test(h) && !/\bfind\b/.test(h), models: [] },
+  { id: "find-x-series", label: "Find X", test: (h) => /\bfind\s*x/.test(h), models: [] },
 ];
 
 const REALME_FAMILIES: BrandNavFamily[] = [
   { id: "c-series", label: "C series", test: (h) => /\brealme\s*c\d|\bc\d{2}\b/.test(h), models: [] },
-  { id: "gt-series", label: "GT series", test: (h) => /\brealme\s*gt|\bgt\s*\d/.test(h), models: [] },
-  { id: "p-series", label: "P series", test: (h) => /\brealme\s*p\d/.test(h), models: [] },
-  { id: "series", label: "Number series", test: (h) => /\brealme\s*\d/.test(h) && !/\b(c|gt|p)\d/.test(h), models: [] },
+  { id: "series", label: "Series", test: (h) => /\brealme\s*\d/.test(h) && !/\b(c|narzo)\d/.test(h), models: [] },
+  { id: "narzo-series", label: "Narzo", test: (h) => /\bnarzo\b/.test(h), models: [] },
 ];
 
 const VIVO_FAMILIES: BrandNavFamily[] = [
-  { id: "x-series", label: "X series", test: (h) => /\bvivo\s*x\d/.test(h), models: [] },
-  { id: "y-series", label: "Y series", test: (h) => /\bvivo\s*y\d/.test(h), models: [] },
-  { id: "v-series", label: "V series", test: (h) => /\bvivo\s*v\d/.test(h), models: [] },
+  { id: "vivo-series", label: "Vivo", test: (h) => /\bvivo\b/.test(h), models: [] },
 ];
 
 const BY_SLUG: Record<string, BrandNavFamily[]> = {
