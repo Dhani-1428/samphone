@@ -1,10 +1,124 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "wouter";
-import { Mail, Phone } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Award,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  Headphones,
+  Headset,
+  LayoutGrid,
+  Lock,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Package,
+  Phone,
+  Receipt,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Smartphone,
+  Star,
+  Tablet,
+  Truck,
+  User,
+  UserPlus,
+  Wrench,
+} from "lucide-react";
+import { FaCcAmex, FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
+import { SiFacebook, SiInstagram, SiWhatsapp } from "react-icons/si";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { LEGAL_LINKS, STORE_EMAIL, STORE_PHONE } from "@/config/samphone";
+import {
+  LEGAL_LINKS,
+  STORE_ADDRESS,
+  STORE_EMAIL,
+  STORE_PHONE,
+  STORE_SOCIAL,
+} from "@/config/samphone";
 import BrandLogo from "@/components/BrandLogo";
+import { whatsappChatHref } from "@/lib/whatsapp";
+
+function SectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <div className="mb-5">
+      <h4 className="font-display text-[17px] font-bold text-[#121826] dark:text-white">{children}</h4>
+      <span className="mt-1.5 block h-[3px] w-10 rounded-full bg-[#E09A2A]" />
+    </div>
+  );
+}
+
+function FooterLink({
+  href,
+  label,
+  Icon,
+  external,
+}: {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+  external?: boolean;
+}) {
+  const className =
+    "group flex items-center gap-2.5 py-[7px] text-[13.5px] font-semibold text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]";
+  const inner = (
+    <>
+      <Icon className="h-4 w-4 shrink-0 text-[#2B5CB8] dark:text-[#8CB4FF]" strokeWidth={1.9} />
+      <span className="min-w-0 flex-1">{label}</span>
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#C9CED6] transition-transform group-hover:translate-x-0.5" />
+    </>
+  );
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} className={className}>
+      {inner}
+    </Link>
+  );
+}
+
+function TrustRow({ Icon, title, sub }: { Icon: LucideIcon; title: string; sub: string }) {
+  return (
+    <li className="flex items-start gap-3">
+      <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#2B5CB8] dark:text-[#8CB4FF]" strokeWidth={1.8} />
+      <span>
+        <span className="block text-[13.5px] font-bold leading-tight text-[#121826] dark:text-white">{title}</span>
+        <span className="mt-0.5 block text-[12px] leading-snug text-[#8B93A3]">{sub}</span>
+      </span>
+    </li>
+  );
+}
+
+function SocialButton({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E4E8EE] bg-[#F4F6F9] text-[#3A4456] transition-colors hover:border-[#2B5CB8]/30 hover:text-[#2B5CB8] dark:border-white/10 dark:bg-white/10 dark:text-white"
+    >
+      {children}
+    </a>
+  );
+}
 
 export default function Footer() {
   const { lang, t } = useLang();
@@ -12,156 +126,201 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
-  const helpLinks = [
-    { href: user ? "/account" : "/register", label: t("footer_onboarding") },
-    { href: "/account", label: t("footer_account_mgmt") },
-    { href: "/track", label: t("footer_orders_payments") },
-    { href: "/diagnostics", label: t("nav_diagnostics") },
-    { href: "/track", label: t("footer_shipping") },
-    { href: "/contact", label: t("footer_warranty") },
-  ];
-
   const serviceLinks = [
-    { href: "mailto:hello@samphone.pt", label: t("footer_email_support"), external: true },
-    { href: "/contact", label: t("footer_helpdesk") },
-    { href: "/book-repair", label: t("nav_book_repair") },
-    { href: "/trade-in", label: t("nav_trade_in") },
+    { href: `mailto:${STORE_EMAIL}`, label: t("footer_email_support"), Icon: Mail, external: true },
+    { href: "/contact", label: t("footer_helpdesk"), Icon: Headset },
+    { href: "/book-repair", label: t("nav_book_repair"), Icon: Wrench },
+    { href: "/trade-in", label: t("nav_trade_in"), Icon: RefreshCw },
+    { href: "/track", label: t("footer_orders_payments"), Icon: Receipt },
+    { href: "/account", label: t("footer_account_mgmt"), Icon: User },
+    { href: "/track", label: t("footer_shipping"), Icon: Truck },
+    { href: "/contact", label: t("footer_warranty"), Icon: ShieldCheck },
+    { href: "/diagnostics", label: t("nav_diagnostics"), Icon: Search },
+    { href: user ? "/account" : "/register", label: t("footer_onboarding"), Icon: UserPlus },
   ];
 
   const shopLinks = [
-    { href: "/accessories", label: t("nav_accessories") },
-    { href: "/smartphones", label: t("nav_smartphones") },
-    { href: "/tablets", label: t("nav_tablets") },
-    { href: "/group/Hoco", label: t("nav_hoco") },
-    { href: "/cards", label: t("nav_cards") },
-    { href: "/new", label: t("nav_new") },
-    { href: "/multi-brand", label: t("nav_multibrand") },
+    { href: "/accessories", label: t("footer_shop_accessories"), Icon: ShoppingBag },
+    { href: "/smartphones", label: t("footer_shop_smartphones"), Icon: Smartphone },
+    { href: "/tablets", label: t("footer_shop_tablets"), Icon: Tablet },
+    { href: "/group/Hoco", label: t("nav_hoco"), Icon: Headphones },
+    { href: "/cards", label: t("footer_shop_cards"), Icon: CreditCard },
+    { href: "/new", label: t("footer_shop_new"), Icon: Star },
+    { href: "/multi-brand", label: t("footer_shop_multibrand"), Icon: LayoutGrid },
   ];
 
   const policyLinks = [
-    { href: LEGAL_LINKS.terms, label: t("footer_terms") },
-    { href: LEGAL_LINKS.refunds, label: t("footer_refunds") },
-    { href: LEGAL_LINKS.shipping, label: t("footer_shipping_policy") },
-    { href: LEGAL_LINKS.privacy, label: t("footer_privacy") },
+    { href: LEGAL_LINKS.terms, label: t("footer_terms"), Icon: FileText },
+    { href: LEGAL_LINKS.refunds, label: t("footer_refunds"), Icon: RotateCcw },
+    { href: LEGAL_LINKS.shipping, label: t("footer_shipping_policy"), Icon: Truck },
+    { href: LEGAL_LINKS.privacy, label: t("footer_privacy"), Icon: ShieldCheck },
+  ];
+
+  const benefits = [
+    { Icon: Package, title: t("footer_bar_pack"), sub: t("footer_bar_pack_sub") },
+    { Icon: Lock, title: t("footer_bar_pay"), sub: t("footer_bar_pay_sub") },
+    { Icon: RefreshCw, title: t("footer_bar_returns"), sub: t("footer_bar_returns_sub") },
+    { Icon: MessageCircle, title: t("footer_need_help"), sub: t("footer_bar_help_sub"), href: whatsappChatHref() },
   ];
 
   return (
-    <footer id="footer" className="bg-navy text-white">
+    <footer id="footer" className="bg-white text-[#121826] dark:bg-[#12192A] dark:text-white">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div>
-            <BrandLogo className="mb-5 h-8 w-auto" />
-            <h4 className="mb-4 font-display text-lg font-bold">{t("footer_need_help")}</h4>
-            <ul className="space-y-2.5">
-              {helpLinks.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+            <BrandLogo className="mb-4 h-8 w-auto" />
+            <p className="mb-5 max-w-[16.5rem] text-[13px] leading-relaxed text-[#8B93A3]">{t("footer_tagline")}</p>
+            <ul className="space-y-3.5">
+              <TrustRow Icon={ShieldCheck} title={t("footer_trust_original")} sub={t("footer_trust_original_sub")} />
+              <TrustRow Icon={Award} title={t("footer_trust_price")} sub={t("footer_trust_price_sub")} />
+              <TrustRow Icon={Truck} title={t("footer_trust_delivery")} sub={t("footer_trust_delivery_sub")} />
+              <TrustRow Icon={Headphones} title={t("footer_trust_support")} sub={t("footer_trust_support_sub")} />
             </ul>
+            <div className="mt-6 flex items-center gap-2.5">
+              <SocialButton href={STORE_SOCIAL.facebook} label="Facebook">
+                <SiFacebook className="h-3.5 w-3.5" />
+              </SocialButton>
+              <SocialButton href={STORE_SOCIAL.instagram} label="Instagram">
+                <SiInstagram className="h-3.5 w-3.5" />
+              </SocialButton>
+              <SocialButton href={whatsappChatHref()} label="WhatsApp">
+                <SiWhatsapp className="h-3.5 w-3.5" />
+              </SocialButton>
+              <SocialButton href={`mailto:${STORE_EMAIL}`} label="Email">
+                <Mail className="h-3.5 w-3.5" />
+              </SocialButton>
+            </div>
           </div>
 
           <div>
-            <h4 className="mb-4 font-display text-lg font-bold">{t("footer_customer_service")}</h4>
-            <ul className="space-y-2.5">
+            <SectionTitle>{t("footer_customer_service")}</SectionTitle>
+            <ul>
               {serviceLinks.map((link) => (
-                <li key={link.label}>
-                  {link.external ? (
-                    <a href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
-                      {link.label}
-                    </Link>
-                  )}
+                <li key={`${link.href}-${link.label}`}>
+                  <FooterLink {...link} />
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-display text-lg font-bold">{lang === "pt" ? "Loja" : "Shop"}</h4>
-            <ul className="space-y-2.5">
+            <SectionTitle>{t("footer_shop")}</SectionTitle>
+            <ul>
               {shopLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
-                    {link.label}
-                  </Link>
+                  <FooterLink {...link} />
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-display text-lg font-bold">{t("footer_policies")}</h4>
-            <ul className="space-y-2.5">
+            <SectionTitle>{t("footer_policies")}</SectionTitle>
+            <ul>
               {policyLinks.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm font-semibold text-white transition-colors hover:underline"
-                  >
-                    {link.label}
-                  </a>
+                  <FooterLink {...link} external />
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="mb-4 font-display text-lg font-bold">{lang === "pt" ? "Contacte-nos" : "Contact"}</h4>
-            <div className="mb-5 space-y-2 text-sm font-semibold text-white">
-              <p>Rua da Palma N.221–223<br />1100-391 Lisboa, Portugal</p>
-              <a href={`tel:${STORE_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-white">
-                <Phone className="h-4 w-4" /> {STORE_PHONE}
+            <SectionTitle>{t("footer_contact")}</SectionTitle>
+            <div className="space-y-3 text-[13.5px] font-semibold text-[#1B2436] dark:text-white">
+              <p className="flex items-start gap-2.5">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} />
+                <span className="leading-snug">{STORE_ADDRESS}</span>
+              </p>
+              <a href={`tel:${STORE_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2.5 hover:text-[#2B5CB8]">
+                <Phone className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_PHONE}
               </a>
-              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2 hover:text-white">
-                <Mail className="h-4 w-4" /> {STORE_EMAIL}
+              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 hover:text-[#2B5CB8]">
+                <Mail className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_EMAIL}
               </a>
             </div>
-            <p className="mb-2 text-sm font-semibold">{lang === "pt" ? "Newsletter" : "Newsletter"}</p>
-            {subscribed ? (
-              <p className="text-sm font-semibold text-white">{lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}</p>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (email) setSubscribed(true);
-                }}
-                className="flex gap-2"
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                  className="h-10 min-w-0 flex-1 rounded-md bg-white/10 px-3 text-sm font-semibold text-white placeholder:text-white/70 outline-none ring-1 ring-white/25 focus:ring-white"
-                  data-testid="input-newsletter"
-                />
-                <button
-                  type="submit"
-                  className="h-10 rounded-md bg-white px-3 text-sm font-bold text-black hover:bg-neutral-200"
-                  data-testid="button-subscribe"
+            <div className="mt-5 border-t border-[#E8ECF2] pt-5 dark:border-white/10">
+              <p className="mb-1.5 text-[15px] font-bold text-[#121826] dark:text-white">Newsletter</p>
+              <p className="mb-3 text-[12.5px] leading-snug text-[#8B93A3]">{t("footer_newsletter_sub")}</p>
+              {subscribed ? (
+                <p className="text-sm font-semibold text-[#2B5CB8]">
+                  {lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}
+                </p>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (email) setSubscribed(true);
+                  }}
+                  className="flex overflow-hidden rounded-full border border-[#E4E8EE] bg-white dark:border-white/15 dark:bg-[#1B2436]"
                 >
-                  OK
-                </button>
-              </form>
-            )}
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={lang === "pt" ? "O seu email" : "Your email"}
+                    className="h-11 min-w-0 flex-1 bg-transparent px-4 text-sm font-semibold text-[#121826] outline-none placeholder:text-[#8B93A3] dark:text-white"
+                    data-testid="input-newsletter"
+                  />
+                  <button
+                    type="submit"
+                    className="m-1 h-9 rounded-full bg-[#E09A2A] px-4 text-sm font-bold text-white hover:bg-[#d08c22]"
+                    data-testid="button-subscribe"
+                  >
+                    OK
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/20 pt-6 text-xs font-semibold text-white md:flex-row">
-          <p>© {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221–223, Lisboa.</p>
+      <div className="border-t border-[#E8ECF2] bg-[#F7F8FA] dark:border-white/10 dark:bg-[#0F1524]">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-3 px-5 py-4 sm:px-8 md:flex-row md:px-10 lg:px-14 xl:px-16">
+          <p className="text-center text-[12px] font-semibold text-[#6B7382] md:text-left">
+            © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-[#1B2436] dark:text-white">
+            <FaCcVisa className="h-7 w-10" title="Visa" />
+            <FaCcMastercard className="h-7 w-10" title="Mastercard" />
+            <FaCcAmex className="h-7 w-10" title="American Express" />
+            <FaCcPaypal className="h-7 w-10" title="PayPal" />
+            <FaCcApplePay className="h-7 w-10" title="Apple Pay" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-[#163A86] text-white">
+        <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
+          {benefits.map((item) => {
+            const body = (
+              <>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/35">
+                  <item.Icon className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                <span>
+                  <span className="block text-[13.5px] font-bold leading-tight">{item.title}</span>
+                  <span className="mt-0.5 block text-[12px] text-white/75">{item.sub}</span>
+                </span>
+              </>
+            );
+            return item.href ? (
+              <a key={item.title} href={item.href} target="_blank" rel="noreferrer" className="flex items-center gap-3">
+                {body}
+              </a>
+            ) : (
+              <div key={item.title} className="flex items-center gap-3">
+                {body}
+              </div>
+            );
+          })}
+        </div>
+        <div className="border-t border-white/15 px-5 py-3 text-center text-[12px] font-semibold text-white/80">
           <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
             {t("footer_livro")}
           </a>
-        </div>
-        <p className="mt-4 text-center text-xs font-semibold text-white/80">
+          <span className="mx-2 text-white/30">·</span>
           {t("footer_developed_by")}{" "}
           <a
             href="https://bonusitsolutions.com/"
@@ -171,7 +330,7 @@ export default function Footer() {
           >
             Bonus IT Solutions
           </a>
-        </p>
+        </div>
       </div>
     </footer>
   );

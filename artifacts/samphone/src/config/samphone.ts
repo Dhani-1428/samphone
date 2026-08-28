@@ -25,7 +25,11 @@ export const LEGAL_LINKS = {
 
 export const STORE_PHONE = "+351 937 119 295";
 export const STORE_EMAIL = "samphone.pt@gmail.com";
-export const STORE_ADDRESS = "R. da Palma N.221 223, 1100-391 Lisboa, Portugal";
+export const STORE_ADDRESS = "Rua da Palma N.221-223, 1100-391 Lisboa, Portugal";
+export const STORE_SOCIAL = {
+  facebook: "https://www.facebook.com/",
+  instagram: "https://www.instagram.com/samphone.pt",
+} as const;
 
 export const JWT_STORAGE_KEY = "samphone-api-jwt";
 
