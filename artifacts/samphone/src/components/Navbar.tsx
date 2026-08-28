@@ -994,7 +994,7 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.14 }}
-                  className="absolute left-0 top-full z-[60] overflow-hidden rounded-b-2xl rounded-tr-2xl border border-black/[0.06] bg-white shadow-[0_22px_55px_rgba(15,23,42,0.16)] dark:border-white/10 dark:bg-[#12192A]"
+                  className="absolute left-0 top-full z-[60] overflow-hidden rounded-b-2xl rounded-tr-2xl border border-black/[0.06] bg-white shadow-[0_22px_55px_rgba(15,23,42,0.16)]"
                 >
                   <AllCategoriesMegaPanel onClose={closeMenu} />
                 </motion.div>
