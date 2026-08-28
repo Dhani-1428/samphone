@@ -307,7 +307,7 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) 
 const megaLinkClass =
   "block text-[14px] font-bold leading-snug text-black hover:underline dark:text-white";
 const megaHeadingClass =
-  "mb-3 text-[15px] font-extrabold uppercase tracking-normal text-black dark:text-white";
+  "mb-3 w-full rounded-md bg-[#E8F0FC] px-3 py-2 text-[16px] font-extrabold uppercase tracking-wide text-[#163A86] dark:bg-[#2B5CB8] dark:text-white";
 
 function BrandMegaPanel({
   brand,
@@ -341,7 +341,7 @@ function BrandMegaPanel({
                     const models = family.children ?? [];
                     return (
                       <div key={`${brand.brand.slug}-${family.slug}`} className="mb-6 last:mb-0">
-                        <p className={megaHeadingClass}>• {family.label.toUpperCase()}</p>
+                        <p className={megaHeadingClass}>{family.label.toUpperCase()}</p>
                         <ul className="space-y-1.5">
                           {models.map((model, midx) => (
                             <li key={`${family.slug}-${midx}-${model.slug}`}>
@@ -393,7 +393,7 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
             key={brand.slug}
             className={`px-5 py-3 ${idx % 5 !== 4 ? "xl:border-r xl:border-black/15" : ""}`}
           >
-            <p className={megaHeadingClass}>• {brand.name.toUpperCase()}</p>
+            <p className={megaHeadingClass}>{brand.name.toUpperCase()}</p>
             <ul className="space-y-1.5">
               {brand.models.map((model) => {
                 const slug = slugifyModelLabel(model.label);

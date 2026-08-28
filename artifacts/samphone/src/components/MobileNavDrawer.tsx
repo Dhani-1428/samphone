@@ -173,8 +173,8 @@ function DrawerBrandModels({
         const models = family.children ?? [];
         return (
           <div key={family.slug}>
-            <p className="mb-2 text-[15px] font-extrabold uppercase tracking-wide text-black dark:text-white">
-              • {family.label}
+            <p className="mb-2 w-full rounded-md bg-[#EEF3FB] px-3 py-2 text-[16px] font-extrabold uppercase tracking-wide text-[#163A86] dark:bg-white/10 dark:text-[#8CB4FF]">
+              {family.label}
             </p>
             <ul className="space-y-2">
               {models.map((model, midx) => (
