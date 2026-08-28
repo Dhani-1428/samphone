@@ -38,10 +38,17 @@ export default function Footer() {
     { href: "/multi-brand", label: t("nav_multibrand") },
   ];
 
+  const policyLinks = [
+    { href: LEGAL_LINKS.terms, label: t("footer_terms") },
+    { href: LEGAL_LINKS.refunds, label: t("footer_refunds") },
+    { href: LEGAL_LINKS.shipping, label: t("footer_shipping_policy") },
+    { href: LEGAL_LINKS.privacy, label: t("footer_privacy") },
+  ];
+
   return (
     <footer id="footer" className="bg-navy text-white">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div>
             <BrandLogo className="mb-5 h-8 w-auto" />
             <h4 className="mb-4 font-display text-lg font-bold">{t("footer_need_help")}</h4>
@@ -83,6 +90,24 @@ export default function Footer() {
                   <Link href={link.href} className="text-sm font-semibold text-white transition-colors hover:underline">
                     {link.label}
                   </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-4 font-display text-lg font-bold">{t("footer_policies")}</h4>
+            <ul className="space-y-2.5">
+              {policyLinks.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-semibold text-white transition-colors hover:underline"
+                  >
+                    {link.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -132,24 +157,21 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/20 pt-6 text-xs font-semibold text-white md:flex-row">
           <p>© {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221–223, Lisboa.</p>
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
-            <a href={LEGAL_LINKS.privacy} className="hover:text-white" target="_blank" rel="noreferrer">
-              {t("footer_privacy")}
-            </a>
-            <a href={LEGAL_LINKS.terms} className="hover:text-white" target="_blank" rel="noreferrer">
-              {t("footer_terms")}
-            </a>
-            <a href={LEGAL_LINKS.refunds} className="hover:text-white" target="_blank" rel="noreferrer">
-              {t("footer_refunds")}
-            </a>
-            <a href={LEGAL_LINKS.shipping} className="hover:text-white" target="_blank" rel="noreferrer">
-              {t("footer_shipping_policy")}
-            </a>
-            <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
-              {t("footer_livro")}
-            </a>
-          </div>
+          <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
+            {t("footer_livro")}
+          </a>
         </div>
+        <p className="mt-4 text-center text-xs font-semibold text-white/80">
+          {t("footer_developed_by")}{" "}
+          <a
+            href="https://bonusitsolutions.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+          >
+            Bonus IT Solutions
+          </a>
+        </p>
       </div>
     </footer>
   );
