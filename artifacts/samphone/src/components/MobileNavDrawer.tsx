@@ -173,7 +173,7 @@ function DrawerBrandModels({
         const models = family.children ?? [];
         return (
           <div key={family.slug}>
-            <p className="mb-2 w-full rounded-md bg-[#EEF3FB] px-3 py-2 text-[16px] font-extrabold uppercase tracking-wide text-[#163A86] dark:bg-white/10 dark:text-[#8CB4FF]">
+            <p className="mb-2 w-full rounded-md bg-[#E8F0FC] px-3 py-2 text-[16px] font-extrabold uppercase tracking-wide text-[#163A86] dark:bg-[#2B5CB8] dark:text-white">
               {family.label}
             </p>
             <ul className="space-y-2">
@@ -307,6 +307,14 @@ export default function MobileNavDrawer({
           </p>
           <AccessoryPageButtons variant="menu" onNavigate={onClose} className="rounded-lg border border-black/[0.08] dark:border-white/15" />
         </div>
+
+        <Link
+          href="/"
+          onClick={onClose}
+          className="mb-5 flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
+        >
+          {t("nav_home")}
+        </Link>
 
         <div className="mb-5 grid grid-cols-2 gap-2">
           <Link

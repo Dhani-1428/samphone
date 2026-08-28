@@ -1001,6 +1001,9 @@ export default function Navbar() {
               ) : null}
             </AnimatePresence>
           </div>
+          <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
+            {t("nav_home")}
+          </Link>
           <div className="flex min-w-0 items-center gap-x-5">
             {(
               [

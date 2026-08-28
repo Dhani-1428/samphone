@@ -16,7 +16,6 @@ import {
   shopGroupFetchQueries,
 } from "@/data/accessory-pages";
 import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
-import { getPrimaryImageUrl } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
@@ -84,25 +83,6 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
     return sortByPrice(filtered, "asc", user);
   }, [items, subtype, user]);
 
-  const heroImages = useMemo(() => {
-    const urls: string[] = [];
-    const list = items ?? [];
-    if (page) {
-      for (const s of page.subtypes) {
-        const match = list.find((p) => productMatchesSubtype(p, s));
-        const src = match ? getPrimaryImageUrl(match) : null;
-        if (src && !urls.includes(src)) urls.push(src);
-        if (urls.length >= 2) return urls;
-      }
-    }
-    for (const p of list) {
-      const src = getPrimaryImageUrl(p);
-      if (src && !urls.includes(src)) urls.push(src);
-      if (urls.length >= 2) break;
-    }
-    return urls;
-  }, [items, page]);
-
   const title = page?.label ?? group ?? t("home_accessories_title");
   const countLabel =
     !subtype && loadingMore && catalogTotal > (items?.length ?? 0)
@@ -126,7 +106,6 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
           crumbs={[t("accessory_breadcrumb_home"), t("home_accessories_title"), title]}
           title={title}
           description={copy.blurb}
-          images={heroImages}
         />
 
         <CatalogBackLink />

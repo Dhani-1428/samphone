@@ -14,7 +14,6 @@ import {
   fetchCategoryBySlug,
   fetchProductsByCategory,
   WooCommerceFetchError,
-  getPrimaryImageUrl,
   type WooProduct,
 } from "@/lib/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
@@ -158,17 +157,6 @@ export default function CategoryPage() {
     configured && !wooLoading && !catalogError && wooList.length === 0;
   const showNotFound = !configured && !staticMeta && !wooLoading;
 
-  const heroImages = useMemo(() => {
-    const urls: string[] = [];
-    for (const p of wooList) {
-      const src = getPrimaryImageUrl(p);
-      if (src && !urls.includes(src)) urls.push(src);
-      if (urls.length >= 2) break;
-    }
-    if (urls.length === 0 && mockProducts[0]?.img) urls.push(mockProducts[0].img);
-    return urls;
-  }, [wooList, mockProducts]);
-
   const heroDescription = showWooGrid
     ? `${wooList.length} products`
     : useMock
@@ -182,7 +170,6 @@ export default function CategoryPage() {
           crumbs={[t("breadcrumb_home"), parent, label]}
           title={label}
           description={heroDescription}
-          images={heroImages}
         />
         <CatalogBackLink />
 

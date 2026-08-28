@@ -28,7 +28,6 @@ import {
   classifyModelProduct,
   displayBrandName,
   modelSearchNames,
-  pickModelHeroImages,
   productBelongsToModel,
   splitModelCatalog,
   typesWithCounts,
@@ -225,7 +224,6 @@ export default function ModelCatalogPage() {
   const { parts, accessories } = useMemo(() => splitModelCatalog(modelProducts), [modelProducts]);
   const partChips = useMemo(() => typesWithCounts(parts, "part"), [parts]);
   const accChips = useMemo(() => typesWithCounts(accessories, "accessory"), [accessories]);
-  const heroImages = useMemo(() => pickModelHeroImages(modelProducts), [modelProducts]);
 
   const visibleParts = useMemo(
     () => (partType ? parts.filter((p) => classifyModelProduct(p).typeId === partType) : parts),
@@ -252,7 +250,6 @@ export default function ModelCatalogPage() {
           crumbs={[t("breadcrumb_home"), crumbBrand, title]}
           title={title}
           description={model ? t("model_page_hint") : t("model_accessories_hint")}
-          images={heroImages}
         />
 
         <CatalogBackLink />
