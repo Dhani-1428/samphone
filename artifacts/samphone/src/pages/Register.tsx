@@ -252,14 +252,14 @@ export default function Register() {
               type="submit"
               disabled={busy}
               className={cn(
-                "h-12 w-full rounded-md bg-[#1F4E9E] text-sm font-extrabold uppercase tracking-wide text-white hover:bg-[#1A4286] disabled:opacity-60",
+                "h-12 w-full rounded-md bg-brand text-sm font-extrabold uppercase tracking-wide text-white hover:bg-brand-dark disabled:opacity-60",
               )}
             >
               {busy ? t("woo_loading") : t("auth_submit_register")}
             </button>
             <p className="text-center text-sm text-muted-foreground">
               {t("auth_has_account")}{" "}
-              <Link href={`/login${search || ""}`} className="font-semibold text-[#1F4E9E] hover:underline">
+              <Link href={`/login${search || ""}`} className="font-semibold text-brand hover:underline">
                 {t("login")}
               </Link>
             </p>

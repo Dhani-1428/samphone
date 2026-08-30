@@ -101,7 +101,7 @@ export default function Login() {
             />
           </div>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#111111] typo-btn-login text-white hover:bg-[#000000]">
+          <Button type="submit" disabled={busy} className="h-11 w-full bg-brand typo-btn-login text-white hover:bg-brand-dark">
             {busy ? t("woo_loading") : t("auth_submit_login")}
           </Button>
           <div className="flex items-center justify-between typo-form-meta text-muted-foreground">
@@ -109,7 +109,7 @@ export default function Login() {
               <input type="checkbox" className="h-3.5 w-3.5 accent-[#111111]" />
               {t("auth_remember")}
             </label>
-            <a href={`mailto:${STORE_EMAIL}`} className="hover:underline">
+            <a href={`mailto:${STORE_EMAIL}`} className="text-brand hover:underline">
               {t("auth_lost_password")}
             </a>
           </div>
@@ -117,7 +117,7 @@ export default function Login() {
             {t("auth_no_account")}{" "}
             <Link
               href={`/register${search || ""}`}
-              className="font-semibold text-[#111111] hover:underline"
+              className="font-semibold text-brand hover:underline"
             >
               {t("auth_register_title")}
             </Link>

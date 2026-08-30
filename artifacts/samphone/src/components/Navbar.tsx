@@ -337,9 +337,9 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 }
 
 const megaLinkClass =
-  "block text-[14px] font-bold leading-snug text-black hover:underline dark:text-white";
+  "block text-[13px] font-normal leading-5 text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
-  "mb-3 w-full rounded-md bg-[#E8F0FC] px-3 py-2 text-[16px] font-extrabold uppercase tracking-wide text-[#163A86] dark:bg-[#2B5CB8] dark:text-white";
+  "mb-3 text-[14px] font-bold uppercase leading-5 text-[#111111] dark:text-white";
 
 function BrandMegaPanel({
   brand,
@@ -877,14 +877,14 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-1 uppercase tracking-normal transition-colors ${
-      active ? "text-sam" : "text-white hover:text-sam"
+    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase tracking-normal transition-colors ${
+      active ? "bg-sam text-white" : "text-white hover:bg-sam hover:text-white"
     }`;
 
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
-      <div className="border-b border-black/[0.05] bg-white typo-topbar text-brand dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
+      <div className="border-b border-black/[0.05] bg-[#F5F5F5] typo-topbar text-[#555555] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
         <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -892,7 +892,7 @@ export default function Navbar() {
               {t("welcome")}
             </span>
             <span className="hidden h-3.5 w-px bg-brand/25 sm:block" aria-hidden />
-            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand-dark dark:hover:text-white">
+            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand dark:hover:text-white">
               <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("phone")}
             </a>
@@ -915,7 +915,7 @@ export default function Navbar() {
             )}
             <ThemeToggle />
             <div className="relative">
-              <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 typo-topbar text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
+              <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 typo-topbar text-[#555555] dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
                 <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
                 <select
                   className="max-w-[7.5rem] bg-transparent typo-topbar outline-none"
@@ -956,7 +956,7 @@ export default function Navbar() {
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
-                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand-dark text-white transition-colors hover:bg-[#173A78]"
+                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand text-white transition-colors hover:bg-brand-dark"
                 aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-4 w-4" strokeWidth={2} />
@@ -971,7 +971,7 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("compare")}
             >
-              <span className="relative text-sam">
+              <span className="relative text-[#333333] dark:text-white">
                 <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
@@ -984,7 +984,7 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
-              <span className="relative text-sam">
+              <span className="relative text-[#333333] dark:text-white">
                 <Heart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
@@ -1014,15 +1014,15 @@ export default function Navbar() {
       </div>
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
-      <nav className="relative z-[55] hidden overflow-visible bg-brand-dark xl:block">
+      <nav className="relative z-[55] hidden overflow-visible bg-brand xl:block">
         <div className={`${navShell} flex h-[46px] items-center justify-start gap-x-8`}>
           <div className="relative shrink-0">
             <button
               type="button"
               className={`nav-all-categories inline-flex h-9 shrink-0 items-center gap-2 px-3.5 uppercase tracking-normal text-white transition-colors ${
                 categoriesActive
-                  ? "rounded-t-md bg-[#E09A2A]"
-                  : "rounded-md bg-sam hover:bg-[#E09A2A]"
+                  ? "rounded-t-md bg-sam-dark"
+                  : "rounded-md bg-sam hover:bg-sam-dark"
               }`}
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}

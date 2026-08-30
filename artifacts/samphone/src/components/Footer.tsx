@@ -47,7 +47,7 @@ function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <div className="mb-5">
       <h4 className="typo-footer-heading text-[#121826] dark:text-white">{children}</h4>
-      <span className="mt-1.5 block h-[3px] w-10 rounded-full bg-[#E09A2A]" />
+      <span className="mt-1.5 block h-[3px] w-10 rounded-full bg-sam" />
     </div>
   );
 }
@@ -66,11 +66,11 @@ function FooterLink({
   compact?: boolean;
 }) {
   const className = compact
-    ? "group flex items-center gap-2.5 py-[7px] typo-policy-link text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]"
-    : "group flex items-center gap-2.5 py-[7px] typo-footer-link text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]";
+    ? "group flex items-center gap-2.5 py-[7px] typo-policy-link text-[#333333] transition-colors hover:text-brand dark:text-white dark:hover:text-[#8CB4FF]"
+    : "group flex items-center gap-2.5 py-[7px] typo-footer-link text-[#333333] transition-colors hover:text-brand dark:text-white dark:hover:text-[#8CB4FF]";
   const inner = (
     <>
-      <Icon className="h-4 w-4 shrink-0 text-[#2B5CB8] dark:text-[#8CB4FF]" strokeWidth={1.9} />
+      <Icon className="h-4 w-4 shrink-0 text-brand dark:text-[#8CB4FF]" strokeWidth={1.9} />
       <span className="min-w-0 flex-1">{label}</span>
       <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#C9CED6] transition-transform group-hover:translate-x-0.5" />
     </>
@@ -92,7 +92,7 @@ function FooterLink({
 function TrustRow({ Icon, title, sub }: { Icon: LucideIcon; title: string; sub: string }) {
   return (
     <li className="flex items-start gap-3">
-      <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-[#2B5CB8] dark:text-[#8CB4FF]" strokeWidth={1.8} />
+      <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-brand dark:text-[#8CB4FF]" strokeWidth={1.8} />
       <span>
         <span className="block text-[13.5px] font-bold leading-tight text-[#121826] dark:text-white">{title}</span>
         <span className="mt-0.5 block text-[12px] leading-snug text-[#8B93A3]">{sub}</span>
@@ -116,7 +116,7 @@ function SocialButton({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E4E8EE] bg-[#F4F6F9] text-[#3A4456] transition-colors hover:border-[#2B5CB8]/30 hover:text-[#2B5CB8] dark:border-white/10 dark:bg-white/10 dark:text-white"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E4E8EE] bg-[#F4F6F9] text-[#3A4456] transition-colors hover:border-brand/30 hover:text-brand dark:border-white/10 dark:bg-white/10 dark:text-white"
     >
       {children}
     </a>
@@ -232,24 +232,24 @@ export default function Footer() {
             <SectionTitle>{t("footer_contact")}</SectionTitle>
             <div className="space-y-3 typo-footer-contact text-[#1B2436] dark:text-white">
               <p className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} />
                 <span>{STORE_ADDRESS}</span>
               </p>
               <a
                 href={`tel:${STORE_PHONE.replace(/\s/g, "")}`}
-                className="flex items-center gap-2.5 typo-footer-phone hover:text-[#2B5CB8]"
+                className="flex items-center gap-2.5 typo-footer-phone hover:text-brand"
               >
-                <Phone className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_PHONE}
+                <Phone className="h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} /> {STORE_PHONE}
               </a>
-              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 font-bold hover:text-[#2B5CB8]">
-                <Mail className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_EMAIL}
+              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 font-bold hover:text-brand">
+                <Mail className="h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} /> {STORE_EMAIL}
               </a>
             </div>
-            <div className="mt-5 border-t border-[#E8ECF2] pt-5 dark:border-white/10">
-              <p className="mb-1.5 typo-newsletter-title text-[#121826] dark:text-white">Newsletter</p>
-              <p className="mb-3 text-[13px] leading-5 text-[#8B93A3]">{t("footer_newsletter_sub")}</p>
+            <div className="mt-5 bg-sam p-4 dark:bg-sam">
+              <p className="mb-1.5 typo-newsletter-title text-[#111111]">Newsletter</p>
+              <p className="mb-3 text-[13px] leading-5 text-[#333333]">{t("footer_newsletter_sub")}</p>
               {subscribed ? (
-                <p className="text-[13px] font-normal leading-5 text-[#2B5CB8]">
+                <p className="text-[13px] font-normal leading-5 text-brand-dark">
                   {lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}
                 </p>
               ) : (
@@ -258,19 +258,19 @@ export default function Footer() {
                     e.preventDefault();
                     if (email) setSubscribed(true);
                   }}
-                  className="flex overflow-hidden rounded-full border border-[#E4E8EE] bg-white dark:border-white/15 dark:bg-[#1B2436]"
+                  className="flex overflow-hidden rounded-md bg-white"
                 >
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                    className="h-11 min-w-0 flex-1 bg-transparent px-4 typo-input text-[#121826] outline-none placeholder:text-[#8B93A3] dark:text-white"
+                    className="h-11 min-w-0 flex-1 bg-transparent px-4 typo-input text-[#333333] outline-none placeholder:text-[#8B93A3]"
                     data-testid="input-newsletter"
                   />
                   <button
                     type="submit"
-                    className="m-1 h-9 rounded-full bg-[#E09A2A] px-4 typo-subscribe text-white hover:bg-[#d08c22]"
+                    className="h-11 bg-brand px-4 typo-subscribe uppercase text-white hover:bg-brand-dark"
                     data-testid="button-subscribe"
                   >
                     {t("footer_subscribe")}
@@ -297,7 +297,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-[#163A86] text-white">
+      <div className="bg-brand text-white">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
           {benefits.map((item) => {
             const body = (

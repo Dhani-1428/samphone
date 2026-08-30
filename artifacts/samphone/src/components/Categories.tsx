@@ -85,7 +85,7 @@ export default function Categories({
       <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         {showHeading ? (
           <div className="mb-10 md:mb-14">
-            <h2 className="font-display text-[2.35rem] font-extrabold leading-none tracking-tight text-[#1F4E9E] md:text-[2.85rem]">
+            <h2 className="font-display text-[2.35rem] font-extrabold leading-none tracking-tight text-brand md:text-[2.85rem]">
               {t("home_accessories_title")}
             </h2>
             <p className="mt-3 max-w-2xl text-[15px] font-medium text-neutral-500">
@@ -100,7 +100,7 @@ export default function Categories({
             const countLabel =
               data && data.count > 0 ? `${data.count} ${t("home_accessories_items")}` : "\u00a0";
             const Icon = groupIcon(page.group);
-            const iconBg = GROUP_ICON_BG[page.group] ?? "bg-[#1F4E9E]";
+            const iconBg = GROUP_ICON_BG[page.group] ?? "bg-brand";
             return (
               <Link
                 key={page.group}
