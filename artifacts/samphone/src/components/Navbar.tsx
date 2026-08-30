@@ -271,6 +271,12 @@ function isXiaomiBrand(brand: NavBrandGroup) {
   return slug === "xiaomi-parts" || label === "xiaomi";
 }
 
+function isHuaweiBrand(brand: NavBrandGroup) {
+  const slug = brand.brand.slug.toLowerCase();
+  const label = brand.brand.label.toLowerCase();
+  return slug === "huawei-parts" || label === "huawei";
+}
+
 function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][][] {
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
@@ -301,6 +307,17 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
       pick("redmi-note-series"),
       pick("mi-series"),
       pick("xiaomi-redmi-tablets", "poco-series"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
+  }
+
+  if (isHuaweiBrand(brand)) {
+    const row = [
+      pick("p-series"),
+      pick("y-series", "mate-series"),
+      pick("honor-series"),
+      pick("nova-series"),
+      pick("huawei-tablets"),
     ].filter((col) => col.length > 0);
     return row.length ? [row] : [families.map((family) => [family])];
   }
@@ -657,6 +674,11 @@ export default function Navbar() {
                   label: "Nova series",
                   slug: "nova-series",
                   children: makeFamilyChildren(b.slug, "nova-series", HUAWEI_NOVA_SERIES_MODELS),
+                },
+                {
+                  label: "Huawei Tablets",
+                  slug: "huawei-tablets",
+                  children: makeFamilyChildren(b.slug, "huawei-tablets", TABLET_HUAWEI_MODELS),
                 },
               ]
           : base.toLowerCase() === "one plus" || base.toLowerCase() === "oneplus"
