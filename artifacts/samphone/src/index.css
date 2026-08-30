@@ -147,7 +147,7 @@
   body {
     @apply bg-background text-foreground antialiased overflow-x-hidden;
     font-family: "Open Sans", sans-serif;
-    font-weight: 400;
+    font-weight: 500;
     font-size: 14px;
     color: #4A4A4A;
     -webkit-font-smoothing: antialiased;
@@ -215,14 +215,14 @@
 
 .typo-topbar {
   font-family: "Open Sans", sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 14px;
   line-height: 25px;
 }
 
 .typo-phone {
   font-family: Roboto, sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 15px;
   line-height: 27px;
 }
@@ -236,7 +236,7 @@
 
 .typo-header-action {
   font-family: Roboto, sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 16px;
   line-height: 29px;
   color: #333333;
@@ -253,6 +253,7 @@
 .dropdown-type * {
   font-family: "Lato", Arial, Helvetica, sans-serif;
   letter-spacing: 0;
+  font-weight: 600;
 }
 
 .dropdown-type .font-medium {
@@ -270,7 +271,7 @@
 .typo-input,
 .typo-form-meta {
   font-family: "Open Sans", sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 13px;
   line-height: 20px;
 }
@@ -306,7 +307,7 @@
 
 .typo-footer-contact {
   font-family: "Open Sans", sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-size: 14px;
   line-height: 22px;
 }

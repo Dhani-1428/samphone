@@ -337,7 +337,7 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 }
 
 const megaLinkClass =
-  "block text-[13px] font-normal leading-5 text-[#333333] hover:text-brand dark:text-white";
+  "block text-[13px] leading-5 text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
   "mb-3 text-[14px] font-bold uppercase leading-5 text-[#111111] dark:text-white";
 
