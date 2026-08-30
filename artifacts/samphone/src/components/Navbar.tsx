@@ -337,9 +337,9 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 }
 
 const megaLinkClass =
-  "block text-[13px] font-normal leading-5 text-[#333333] hover:text-brand dark:text-white";
+  "typo-mega-link block text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
-  "mb-3 text-[14px] font-bold uppercase leading-5 text-[#111111] dark:text-white";
+  "typo-mega-heading mb-3 uppercase text-black dark:text-white";
 
 function BrandMegaPanel({
   brand,
@@ -884,7 +884,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
-      <div className="border-b border-black/[0.05] bg-[#F5F5F5] typo-topbar text-[#555555] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
+      <div className="border-b border-black/[0.05] bg-[#F5F5F5] typo-topbar text-[#4A4A4A] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
         <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -892,7 +892,7 @@ export default function Navbar() {
               {t("welcome")}
             </span>
             <span className="hidden h-3.5 w-px bg-brand/25 sm:block" aria-hidden />
-            <a href="tel:+351937119295" className="inline-flex items-center gap-1.5 hover:text-brand dark:hover:text-white">
+            <a href="tel:+351937119295" className="typo-phone inline-flex items-center gap-1.5 text-[#333333] hover:text-brand dark:hover:text-white">
               <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("phone")}
             </a>

@@ -62,7 +62,7 @@ function MegaRow({
         <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold leading-tight text-[#121826]">{group}</span>
+        <span className="block typo-accessory-item text-black">{group}</span>
         <span className="mt-0.5 block text-[12.5px] leading-snug text-[#8B93A3]">{blurb}</span>
       </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-[#C9CED6] transition-transform group-hover:translate-x-0.5" strokeWidth={2.2} />
@@ -155,7 +155,7 @@ export default function AccessoryPageButtons({
                 href={accessoryPageHref(page.group)}
                 onClick={onNavigate}
                 className={cn(
-                  "flex w-full items-center px-4 py-2 text-left text-[14px] font-bold leading-snug transition-colors",
+                  "flex w-full items-center px-4 py-2 text-left typo-accessory-item transition-colors",
                   isActive
                     ? "bg-neutral-100 text-black"
                     : "text-black hover:bg-neutral-100 dark:text-white dark:hover:bg-white/10",

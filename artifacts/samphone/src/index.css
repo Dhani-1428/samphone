@@ -42,11 +42,11 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-sans);
   --font-mono: var(--app-font-sans);
-  --font-display: "Lato", Arial, Helvetica, sans-serif;
-  --font-weight-medium: 400;
-  --font-weight-semibold: 700;
-  --font-weight-extrabold: 700;
-  --font-weight-black: 700;
+  --font-display: "Open Sans", sans-serif;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
 
   --color-navy: #2D4FA0;
   --color-utopya: #2D4FA0;
@@ -94,9 +94,9 @@
 
   --radius: 0.75rem;
 
-  --app-font-sans: "Lato", Arial, Helvetica, sans-serif;
-  --app-font-serif: "Lato", Arial, Helvetica, sans-serif;
-  --app-font-mono: "Lato", Arial, Helvetica, sans-serif;
+  --app-font-sans: "Open Sans", sans-serif;
+  --app-font-serif: "Open Sans", sans-serif;
+  --app-font-mono: "Open Sans", sans-serif;
 }
 
 .dark {
@@ -135,25 +135,26 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: "Lato", Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", sans-serif;
     letter-spacing: 0;
   }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     font-size: 16px;
-    font-family: "Lato", Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", sans-serif;
   }
   body {
     @apply bg-background text-foreground antialiased overflow-x-hidden;
-    font-family: "Lato", Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", sans-serif;
     font-weight: 400;
-    color: #333333;
+    font-size: 14px;
+    color: #4A4A4A;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Lato", Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", sans-serif;
     letter-spacing: 0;
     font-weight: 700;
   }
@@ -161,7 +162,7 @@
   .font-sans,
   .font-serif,
   .font-mono {
-    font-family: "Lato", Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", sans-serif;
   }
   button, input, select, textarea, a, p, span, li, label, td, th {
     font-family: inherit;
@@ -181,64 +182,98 @@
 }
 
 .font-medium {
-  font-weight: 400;
+  font-weight: 500;
 }
 
-.font-semibold,
-.font-extrabold,
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-extrabold {
+  font-weight: 800;
+}
+
 .font-black {
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .nav-bar-item {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
   font-weight: 700;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 12px;
+  line-height: 22px;
 }
 
 .nav-all-categories {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 18px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 25px;
 }
 
 .typo-topbar {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 25px;
+}
+
+.typo-phone {
+  font-family: Roboto, sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 27px;
 }
 
 .typo-search {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 27px;
 }
 
 .typo-header-action {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: Roboto, sans-serif;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 29px;
   color: #333333;
 }
 
 .typo-cart-count {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 18px;
+}
+
+.typo-mega-heading {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 13px;
+}
+
+.typo-mega-link {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.typo-accessory-item {
+  font-family: Roboto, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 16px;
 }
 
 .typo-form-label,
 .typo-input,
 .typo-form-meta {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
   font-size: 13px;
   line-height: 20px;
@@ -246,49 +281,49 @@
 
 .typo-btn-login,
 .typo-subscribe {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 13px;
   line-height: 20px;
 }
 
 .typo-newsletter-title {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 16px;
   line-height: 22px;
 }
 
 .typo-footer-heading {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 18px;
   line-height: 24px;
 }
 
 .typo-footer-link {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 15px;
   line-height: 24px;
 }
 
 .typo-footer-contact {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 22px;
 }
 
 .typo-footer-phone {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 18px;
   line-height: 24px;
 }
 
 .typo-policy-link {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   font-weight: 700;
   font-size: 14px;
   line-height: 22px;
