@@ -34,7 +34,7 @@ export function CatalogSectionHeading({
         <Icon className="h-5 w-5" strokeWidth={2.2} />
       </span>
       <div>
-        <h2 className="font-display text-2xl font-bold tracking-tight text-black">{title}</h2>
+        <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-black">{title}</h2>
         {hint ? <p className="mt-0.5 text-sm font-semibold text-neutral-700">{hint}</p> : null}
       </div>
     </div>

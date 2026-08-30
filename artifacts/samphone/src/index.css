@@ -156,13 +156,16 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: "Open Sans", sans-serif;
     letter-spacing: 0;
-    font-weight: 700;
+    font-weight: 800;
   }
   .font-display,
   .font-sans,
   .font-serif,
   .font-mono {
     font-family: "Open Sans", sans-serif;
+  }
+  .font-display {
+    font-weight: 800;
   }
   button, input, select, textarea, a, p, span, li, label, td, th {
     font-family: inherit;
@@ -264,7 +267,7 @@
 .dropdown-type .font-bold,
 .dropdown-type .font-extrabold,
 .dropdown-type .font-black {
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .typo-form-label,
@@ -286,16 +289,16 @@
 
 .typo-newsletter-title {
   font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 22px;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 24px;
 }
 
 .typo-footer-heading {
   font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 24px;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 26px;
 }
 
 .typo-footer-link {

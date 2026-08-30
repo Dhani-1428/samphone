@@ -53,7 +53,7 @@ export default function HomeProductRail({
       <div className={navInset}>
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-[2rem]">{title}</h2>
+            <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-foreground md:text-[2.15rem]">{title}</h2>
             {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
           </div>
           <div className="flex shrink-0 items-center gap-4">

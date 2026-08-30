@@ -62,7 +62,7 @@ function MegaRow({
         <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold leading-tight text-[#121826]">{group}</span>
+        <span className="block text-[17px] font-bold leading-tight text-[#121826]">{group}</span>
         <span className="mt-0.5 block text-[12.5px] leading-snug text-[#8B93A3]">{blurb}</span>
       </span>
       <ChevronRight className="h-4 w-4 shrink-0 text-[#C9CED6] transition-transform group-hover:translate-x-0.5" strokeWidth={2.2} />
@@ -105,7 +105,7 @@ export function AllAccessoriesMegaMenu({ onNavigate }: { onNavigate?: () => void
         <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2B5CB8]">
           Premium quality
         </p>
-        <p className="mt-1.5 text-[20px] font-extrabold leading-snug text-[#121826]">
+        <p className="mt-1.5 text-[22px] font-extrabold leading-snug text-[#121826]">
           Top Accessories for Your Devices
         </p>
         <p className="mt-2 text-[13px] leading-snug text-[#8B93A3]">
@@ -155,7 +155,7 @@ export default function AccessoryPageButtons({
                 href={accessoryPageHref(page.group)}
                 onClick={onNavigate}
                 className={cn(
-                  "flex w-full items-center px-4 py-2 text-left text-[14px] font-bold leading-snug transition-colors",
+                  "flex w-full items-center px-4 py-2 text-left text-[16px] font-bold leading-snug transition-colors",
                   isActive
                     ? "bg-neutral-100 text-black"
                     : "text-black hover:bg-neutral-100 dark:text-white dark:hover:bg-white/10",

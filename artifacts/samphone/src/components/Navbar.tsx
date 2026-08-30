@@ -339,7 +339,7 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 const megaLinkClass =
   "block text-[13px] leading-5 text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
-  "mb-3 text-[14px] font-bold uppercase leading-5 text-[#111111] dark:text-white";
+  "mb-3 text-[16px] font-bold uppercase leading-6 text-[#111111] dark:text-white";
 
 function BrandMegaPanel({
   brand,
