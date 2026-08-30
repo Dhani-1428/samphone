@@ -13,7 +13,7 @@ const REGISTER_BOY_VIDEO = "/video/register-boy.mp4";
 
 function RequiredLabel({ htmlFor, children }: { htmlFor: string; children: string }) {
   return (
-    <Label htmlFor={htmlFor} className="text-[13px] font-semibold text-[#111111]">
+    <Label htmlFor={htmlFor} className="typo-form-label text-[#111111]">
       {children} <span className="text-red-500">*</span>
     </Label>
   );

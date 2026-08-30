@@ -42,7 +42,7 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
-  --font-display: Arial, Helvetica, 'Segoe UI', sans-serif;
+  --font-display: "Lato", Arial, Helvetica, sans-serif;
 
   --color-navy: #111111;
   --color-utopya: #111111;
@@ -89,7 +89,7 @@
 
   --radius: 0.75rem;
 
-  --app-font-sans: Arial, Helvetica, 'Segoe UI', sans-serif;
+  --app-font-sans: "Lato", Arial, Helvetica, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
 }
@@ -134,12 +134,12 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    font-size: 16.5px;
+    font-size: 16px;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
     font-family: var(--app-font-sans);
-    font-weight: 700;
+    font-weight: 400;
     color: #111111;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -147,15 +147,14 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 0;
-    font-weight: 800;
+    font-weight: 700;
   }
   .font-display {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
   }
   button, input, select, textarea {
     font-family: inherit;
-    font-weight: 700;
   }
 }
 
@@ -172,7 +171,104 @@
 }
 
 .nav-bar-item {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Lato", Arial, Helvetica, sans-serif;
   letter-spacing: 0;
   font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.nav-all-categories {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.typo-topbar {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.typo-search {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.typo-header-action {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.typo-cart-count {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.typo-form-label,
+.typo-input,
+.typo-form-meta {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.typo-btn-login,
+.typo-subscribe {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.typo-newsletter-title {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.typo-footer-heading {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.typo-footer-link {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.typo-footer-contact {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.typo-footer-phone {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.typo-policy-link {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 22px;
 }

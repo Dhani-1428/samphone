@@ -46,7 +46,7 @@ import { whatsappChatHref } from "@/lib/whatsapp";
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <div className="mb-5">
-      <h4 className="font-display text-[17px] font-bold text-[#121826] dark:text-white">{children}</h4>
+      <h4 className="typo-footer-heading text-[#121826] dark:text-white">{children}</h4>
       <span className="mt-1.5 block h-[3px] w-10 rounded-full bg-[#E09A2A]" />
     </div>
   );
@@ -57,14 +57,17 @@ function FooterLink({
   label,
   Icon,
   external,
+  compact,
 }: {
   href: string;
   label: string;
   Icon: LucideIcon;
   external?: boolean;
+  compact?: boolean;
 }) {
-  const className =
-    "group flex items-center gap-2.5 py-[7px] text-[13.5px] font-semibold text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]";
+  const className = compact
+    ? "group flex items-center gap-2.5 py-[7px] typo-policy-link text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]"
+    : "group flex items-center gap-2.5 py-[7px] typo-footer-link text-[#1B2436] transition-colors hover:text-[#2B5CB8] dark:text-white dark:hover:text-[#8CB4FF]";
   const inner = (
     <>
       <Icon className="h-4 w-4 shrink-0 text-[#2B5CB8] dark:text-[#8CB4FF]" strokeWidth={1.9} />
@@ -219,7 +222,7 @@ export default function Footer() {
             <ul>
               {policyLinks.map((link) => (
                 <li key={link.href}>
-                  <FooterLink {...link} external />
+                  <FooterLink {...link} external compact />
                 </li>
               ))}
             </ul>
@@ -227,23 +230,26 @@ export default function Footer() {
 
           <div>
             <SectionTitle>{t("footer_contact")}</SectionTitle>
-            <div className="space-y-3 text-[13.5px] font-semibold text-[#1B2436] dark:text-white">
+            <div className="space-y-3 typo-footer-contact text-[#1B2436] dark:text-white">
               <p className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} />
-                <span className="leading-snug">{STORE_ADDRESS}</span>
+                <span>{STORE_ADDRESS}</span>
               </p>
-              <a href={`tel:${STORE_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2.5 hover:text-[#2B5CB8]">
+              <a
+                href={`tel:${STORE_PHONE.replace(/\s/g, "")}`}
+                className="flex items-center gap-2.5 typo-footer-phone hover:text-[#2B5CB8]"
+              >
                 <Phone className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_PHONE}
               </a>
-              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 hover:text-[#2B5CB8]">
+              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 font-bold hover:text-[#2B5CB8]">
                 <Mail className="h-4 w-4 shrink-0 text-[#2B5CB8]" strokeWidth={1.9} /> {STORE_EMAIL}
               </a>
             </div>
             <div className="mt-5 border-t border-[#E8ECF2] pt-5 dark:border-white/10">
-              <p className="mb-1.5 text-[15px] font-bold text-[#121826] dark:text-white">Newsletter</p>
-              <p className="mb-3 text-[12.5px] leading-snug text-[#8B93A3]">{t("footer_newsletter_sub")}</p>
+              <p className="mb-1.5 typo-newsletter-title text-[#121826] dark:text-white">Newsletter</p>
+              <p className="mb-3 text-[13px] leading-5 text-[#8B93A3]">{t("footer_newsletter_sub")}</p>
               {subscribed ? (
-                <p className="text-sm font-semibold text-[#2B5CB8]">
+                <p className="text-[13px] font-normal leading-5 text-[#2B5CB8]">
                   {lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}
                 </p>
               ) : (
@@ -259,15 +265,15 @@ export default function Footer() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={lang === "pt" ? "O seu email" : "Your email"}
-                    className="h-11 min-w-0 flex-1 bg-transparent px-4 text-sm font-semibold text-[#121826] outline-none placeholder:text-[#8B93A3] dark:text-white"
+                    className="h-11 min-w-0 flex-1 bg-transparent px-4 typo-input text-[#121826] outline-none placeholder:text-[#8B93A3] dark:text-white"
                     data-testid="input-newsletter"
                   />
                   <button
                     type="submit"
-                    className="m-1 h-9 rounded-full bg-[#E09A2A] px-4 text-sm font-bold text-white hover:bg-[#d08c22]"
+                    className="m-1 h-9 rounded-full bg-[#E09A2A] px-4 typo-subscribe text-white hover:bg-[#d08c22]"
                     data-testid="button-subscribe"
                   >
-                    OK
+                    {t("footer_subscribe")}
                   </button>
                 </form>
               )}

@@ -157,7 +157,7 @@ export default function SmartSearch({
           )}
         >
           {leadingIcon ? (
-            <Search className="ml-3 h-4 w-4 shrink-0 text-black" strokeWidth={2.2} />
+            <Search className="ml-3 h-4 w-4 shrink-0 text-black" strokeWidth={2} />
           ) : null}
           <input
             ref={inputRef}
@@ -172,7 +172,7 @@ export default function SmartSearch({
             className={cn(
               "min-w-0 flex-1 bg-transparent focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
               variant === "header"
-                ? "py-2.5 text-[15px] font-bold text-black placeholder:text-neutral-500"
+                ? "py-2.5 typo-search text-black placeholder:text-neutral-500"
                 : "py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
               leadingIcon ? "px-2" : "px-4",
             )}
@@ -194,7 +194,7 @@ export default function SmartSearch({
               onClick={() => inputRef.current?.focus()}
               aria-label={t("searchPlaceholder")}
             >
-              {variant === "header" ? <Search className="h-5 w-5" /> : <Search className="h-4 w-4" />}
+              {variant === "header" ? <Search className="h-4 w-4" /> : <Search className="h-4 w-4" />}
             </button>
           )}
         </div>

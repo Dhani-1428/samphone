@@ -6,6 +6,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { cloudAuth } from "@/lib/samphone-cloud";
+import { STORE_EMAIL } from "@/config/samphone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,10 +101,19 @@ export default function Login() {
             />
           </div>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#111111] text-white hover:bg-[#000000]">
+          <Button type="submit" disabled={busy} className="h-11 w-full bg-[#111111] typo-btn-login text-white hover:bg-[#000000]">
             {busy ? t("woo_loading") : t("auth_submit_login")}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <div className="flex items-center justify-between typo-form-meta text-muted-foreground">
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" className="h-3.5 w-3.5 accent-[#111111]" />
+              {t("auth_remember")}
+            </label>
+            <a href={`mailto:${STORE_EMAIL}`} className="hover:underline">
+              {t("auth_lost_password")}
+            </a>
+          </div>
+          <p className="text-center text-[13px] font-normal leading-5 text-muted-foreground">
             {t("auth_no_account")}{" "}
             <Link
               href={`/register${search || ""}`}

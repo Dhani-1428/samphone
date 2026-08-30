@@ -124,7 +124,7 @@ function CountBadge({
   if (!showZero && count <= 0) return null;
   return (
     <span
-      className={`absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] font-bold ${
+      className={`absolute -right-2 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-0.5 typo-cart-count ${
         tone === "danger" ? "bg-sam text-white" : "bg-brand text-white"
       }`}
     >
@@ -830,14 +830,14 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-1 text-[15px] font-bold uppercase tracking-normal transition-colors ${
+    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-1 uppercase tracking-normal transition-colors ${
       active ? "text-sam" : "text-white hover:text-sam"
     }`;
 
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
-      <div className="border-b border-black/[0.05] bg-white text-[12px] text-brand sm:text-[13px] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
+      <div className="border-b border-black/[0.05] bg-white typo-topbar text-brand dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
         <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -868,10 +868,10 @@ export default function Navbar() {
             )}
             <ThemeToggle />
             <div className="relative">
-              <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 text-[12px] font-medium text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
+              <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 typo-topbar text-brand dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
                 <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
                 <select
-                  className="max-w-[7.5rem] bg-transparent text-[12px] font-medium outline-none"
+                  className="max-w-[7.5rem] bg-transparent typo-topbar outline-none"
                   value={lang}
                   aria-label="Language"
                   onChange={(e) => setLang(e.target.value as (typeof LANG_OPTIONS)[number]["id"])}
@@ -912,7 +912,7 @@ export default function Navbar() {
                 className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand-dark text-white transition-colors hover:bg-[#173A78]"
                 aria-label={t("searchPlaceholder")}
               >
-                <Search className="h-5 w-5" strokeWidth={2.2} />
+                <Search className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -928,7 +928,7 @@ export default function Navbar() {
                 <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
-              <span className="text-[14px] font-semibold text-brand-dark dark:text-white">{t("compare")}</span>
+              <span className="typo-header-action text-brand-dark dark:text-white">{t("compare")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
@@ -941,7 +941,7 @@ export default function Navbar() {
                 <Heart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
-              <span className="text-[14px] font-semibold text-brand-dark dark:text-white">{t("wishlist")}</span>
+              <span className="typo-header-action text-brand-dark dark:text-white">{t("wishlist")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <button
@@ -975,7 +975,7 @@ export default function Navbar() {
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-bar-item inline-flex h-9 shrink-0 items-center gap-2 px-3.5 text-[15px] font-bold uppercase tracking-normal text-white transition-colors ${
+              className={`nav-all-categories inline-flex h-9 shrink-0 items-center gap-2 px-3.5 uppercase tracking-normal text-white transition-colors ${
                 categoriesActive
                   ? "rounded-t-md bg-[#E09A2A]"
                   : "rounded-md bg-sam hover:bg-[#E09A2A]"
