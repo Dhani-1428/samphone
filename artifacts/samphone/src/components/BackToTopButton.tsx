@@ -36,7 +36,7 @@ export default function BackToTopButton() {
           exit={{ opacity: 0, y: 12 }}
           onClick={goTop}
           className={cn(
-            "fixed bottom-[5.75rem] z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg hover:bg-brand-dark md:bottom-[6.75rem]",
+            "fixed bottom-[5.75rem] z-[60] flex h-11 w-11 items-center justify-center rounded-full bg-[#163A86] text-white shadow-lg hover:bg-[#122F6C] md:bottom-[6.75rem]",
             cartOpen && location !== "/cart" ? "right-6 md:right-[calc(2rem+340px)]" : "right-6 md:right-8",
           )}
           aria-label={t("back_to_top")}
