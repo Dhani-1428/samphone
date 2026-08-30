@@ -282,9 +282,9 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
   if (isSamsungBrand(brand)) {
     const row = [
       pick("a-series"),
-      pick("s-series"),
-      pick("z-series", "j-series"),
-      pick("m-series", "note-series"),
+      pick("s-series", "j-series"),
+      pick("z-series", "m-series"),
+      pick("samsung-tablets", "note-series"),
     ].filter((col) => col.length > 0);
     return row.length ? [row] : [families.map((family) => [family])];
   }
@@ -506,6 +506,11 @@ export default function Navbar() {
                   label: "J series",
                   slug: "j-series",
                   children: makeFamilyChildren(b.slug, "j-series", SAMSUNG_J_SERIES_MODELS),
+                },
+                {
+                  label: "Samsung Tablets",
+                  slug: "samsung-tablets",
+                  children: makeFamilyChildren(b.slug, "samsung-tablets", TABLET_SAMSUNG_MODELS),
                 },
                 {
                   label: "Note series",
