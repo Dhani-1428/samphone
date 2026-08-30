@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2 } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2, ShoppingCart } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
-import NavCartIcon from "@/components/NavCartIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import { smartphonesColumns } from "@/data/categories";
@@ -459,7 +458,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<DropdownKey>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { totalItems: cartCount, isOpen: cartOpen, openCart } = useCart();
+  const { totalItems: cartCount } = useCart();
   const { user } = useAuth();
   const { keys: compareKeys } = useCompare();
   const { keys: wishlistKeys } = useWishlist();
@@ -992,21 +991,18 @@ export default function Navbar() {
               <span className="typo-header-action text-brand-dark dark:text-white">{t("wishlist")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
-            <button
-              type="button"
-              className="relative flex items-center gap-2 px-1 text-brand-dark dark:text-white lg:px-4"
-              onClick={() => {
-                closeMenu();
-              }}
+            <Link
+              href="/cart"
+              className="flex items-center gap-2 px-1 text-brand-dark dark:text-white lg:px-4"
+              onClick={closeMenu}
               aria-label={t("nav_cart")}
-              aria-expanded={cartOpen}
-              aria-controls="site-cart-rail"
             >
-              <span className="relative inline-flex h-8 w-8 items-center justify-center">
-                <NavCartIcon className="h-8 w-8" />
+              <span className="relative text-sam">
+                <ShoppingCart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>
-            </button>
+              <span className="typo-header-action text-brand-dark dark:text-white">{t("nav_cart")}</span>
+            </Link>
           </div>
         </div>
 
@@ -1164,7 +1160,6 @@ export default function Navbar() {
         cartCount={cartCount}
         wishlistCount={wishlistKeys.length}
         compareCount={compareKeys.length}
-        onOpenCart={openCart}
         theme={theme}
         onToggleTheme={toggleTheme}
         brandGroups={brandGroups}

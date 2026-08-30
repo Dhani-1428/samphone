@@ -11,13 +11,13 @@ import {
   Phone,
   Repeat2,
   ShieldCheck,
+  ShoppingCart,
   Sun,
   User,
   X,
 } from "lucide-react";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import BrandLogo from "@/components/BrandLogo";
-import NavCartIcon from "@/components/NavCartIcon";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -221,7 +221,6 @@ export default function MobileNavDrawer({
   cartCount,
   wishlistCount,
   compareCount,
-  onOpenCart,
   theme,
   onToggleTheme,
   brandGroups,
@@ -231,7 +230,6 @@ export default function MobileNavDrawer({
   cartCount: number;
   wishlistCount: number;
   compareCount: number;
-  onOpenCart: () => void;
   theme: string;
   onToggleTheme: () => void;
   brandGroups: NavBrandGroup[];
@@ -275,18 +273,18 @@ export default function MobileNavDrawer({
           <X className="h-6 w-6" strokeWidth={1.8} />
         </button>
         <BrandLogo className="h-8 w-auto" onClick={onClose} />
-        <button
-          type="button"
-          className="relative flex h-10 w-10 items-center justify-center text-black dark:text-white"
-          onClick={() => {
-            onClose();
-            onOpenCart();
-          }}
+        <Link
+          href="/cart"
+          className="relative flex items-center gap-1.5 text-black dark:text-white"
+          onClick={onClose}
           aria-label={t("nav_cart")}
         >
-          <NavCartIcon className="h-8 w-8" />
-          <CountBadge count={cartCount} />
-        </button>
+          <span className="relative text-sam">
+            <ShoppingCart className="h-6 w-6" strokeWidth={1.7} />
+            <CountBadge count={cartCount} />
+          </span>
+          <span className="typo-header-action">{t("nav_cart")}</span>
+        </Link>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
