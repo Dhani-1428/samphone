@@ -265,6 +265,12 @@ function isSamsungBrand(brand: NavBrandGroup) {
   return slug === "samsung-parts" || label === "samsung";
 }
 
+function isXiaomiBrand(brand: NavBrandGroup) {
+  const slug = brand.brand.slug.toLowerCase();
+  const label = brand.brand.label.toLowerCase();
+  return slug === "xiaomi-parts" || label === "xiaomi";
+}
+
 function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][][] {
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
@@ -289,11 +295,21 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
     return row.length ? [row] : [families.map((family) => [family])];
   }
 
+  if (isXiaomiBrand(brand)) {
+    const row = [
+      pick("redmi-series"),
+      pick("redmi-note-series"),
+      pick("mi-series"),
+      pick("xiaomi-redmi-tablets", "poco-series"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
+  }
+
   return [families.map((family) => [family])];
 }
 
-function megaRowGridClass(row: NavFamily[][], apple: boolean, samsung: boolean) {
-  if (samsung) {
+function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) {
+  if (fourCol) {
     return "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
   }
   if (apple) {
@@ -322,14 +338,14 @@ function BrandMegaPanel({
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const rows = packMegaRows(brand, families);
   const apple = isAppleBrand(brand);
-  const samsung = isSamsungBrand(brand);
+  const fourCol = isSamsungBrand(brand) || isXiaomiBrand(brand);
 
   return (
     <div className={`${navShell} bg-white py-6 dark:bg-[#12192A]`}>
       {families.length > 0 ? (
         <div className="flex flex-col gap-8">
           {rows.map((row, rowIdx) => (
-            <div key={`${brand.brand.slug}-row-${rowIdx}`} className={megaRowGridClass(row, apple, samsung)}>
+            <div key={`${brand.brand.slug}-row-${rowIdx}`} className={megaRowGridClass(row, apple, fourCol)}>
               {row.map((column, colIdx) => (
                 <div
                   key={`${brand.brand.slug}-r${rowIdx}-c${colIdx}-${column.map((f) => f.slug).join("-")}`}
@@ -526,11 +542,6 @@ export default function Navbar() {
                   children: makeFamilyChildren(b.slug, "redmi-series", XIAOMI_REDMI_SERIES_MODELS),
                 },
                 {
-                  label: "Poco series",
-                  slug: "poco-series",
-                  children: makeFamilyChildren(b.slug, "poco-series", XIAOMI_POCO_SERIES_MODELS),
-                },
-                {
                   label: "Redmi Note series",
                   slug: "redmi-note-series",
                   children: makeFamilyChildren(b.slug, "redmi-note-series", XIAOMI_REDMI_NOTE_SERIES_MODELS),
@@ -539,6 +550,16 @@ export default function Navbar() {
                   label: "Mi series",
                   slug: "mi-series",
                   children: makeFamilyChildren(b.slug, "mi-series", XIAOMI_MI_SERIES_MODELS),
+                },
+                {
+                  label: "Xiaomi + Redmi",
+                  slug: "xiaomi-redmi-tablets",
+                  children: makeFamilyChildren(b.slug, "xiaomi-redmi-tablets", TABLET_XIAOMI_MODELS),
+                },
+                {
+                  label: "Poco series",
+                  slug: "poco-series",
+                  children: makeFamilyChildren(b.slug, "poco-series", XIAOMI_POCO_SERIES_MODELS),
                 },
               ]
           : base.toLowerCase().includes("oppo")
