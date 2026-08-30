@@ -249,25 +249,21 @@
   line-height: 18px;
 }
 
-.typo-mega-heading {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 13px;
+.dropdown-type,
+.dropdown-type * {
+  font-family: "Lato", Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
 }
 
-.typo-mega-link {
-  font-family: "Open Sans", sans-serif;
+.dropdown-type .font-medium {
   font-weight: 400;
-  font-size: 13px;
-  line-height: 20px;
 }
 
-.typo-accessory-item {
-  font-family: Roboto, sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 16px;
+.dropdown-type .font-semibold,
+.dropdown-type .font-bold,
+.dropdown-type .font-extrabold,
+.dropdown-type .font-black {
+  font-weight: 700;
 }
 
 .typo-form-label,

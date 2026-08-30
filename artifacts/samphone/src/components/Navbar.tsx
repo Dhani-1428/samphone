@@ -337,9 +337,9 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 }
 
 const megaLinkClass =
-  "typo-mega-link block text-[#333333] hover:text-brand dark:text-white";
+  "block text-[13px] font-normal leading-5 text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
-  "typo-mega-heading mb-3 uppercase text-black dark:text-white";
+  "mb-3 text-[14px] font-bold uppercase leading-5 text-[#111111] dark:text-white";
 
 function BrandMegaPanel({
   brand,
@@ -357,7 +357,7 @@ function BrandMegaPanel({
   const fourCol = isSamsungBrand(brand) || isXiaomiBrand(brand);
 
   return (
-    <div className={`${navShell} bg-white py-6 dark:bg-[#12192A]`}>
+    <div className={`${navShell} dropdown-type bg-white py-6 dark:bg-[#12192A]`}>
       {families.length > 0 ? (
         <div className="flex flex-col gap-8">
           {rows.map((row, rowIdx) => (
@@ -418,7 +418,7 @@ function BrandMegaPanel({
 
 function OthersMegaPanel({ onClose }: { onClose: () => void }) {
   return (
-    <div className={`${navShell} bg-white py-4 dark:bg-[#12192A]`}>
+    <div className={`${navShell} dropdown-type bg-white py-4 dark:bg-[#12192A]`}>
       <div className="grid grid-cols-2 bg-white sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 dark:bg-[#12192A]">
         {NAV_OTHER_BRANDS.map((brand, idx) => (
           <div
