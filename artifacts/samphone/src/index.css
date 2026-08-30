@@ -40,9 +40,13 @@
   --color-destructive-border: var(--destructive-border);
 
   --font-sans: var(--app-font-sans);
-  --font-serif: var(--app-font-serif);
-  --font-mono: var(--app-font-mono);
+  --font-serif: var(--app-font-sans);
+  --font-mono: var(--app-font-sans);
   --font-display: "Lato", Arial, Helvetica, sans-serif;
+  --font-weight-medium: 400;
+  --font-weight-semibold: 700;
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
 
   --color-navy: #111111;
   --color-utopya: #111111;
@@ -90,8 +94,8 @@
   --radius: 0.75rem;
 
   --app-font-sans: "Lato", Arial, Helvetica, sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
+  --app-font-serif: "Lato", Arial, Helvetica, sans-serif;
+  --app-font-mono: "Lato", Arial, Helvetica, sans-serif;
 }
 
 .dark {
@@ -130,30 +134,35 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: "Lato", Arial, Helvetica, sans-serif;
+    letter-spacing: 0;
   }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     font-size: 16px;
+    font-family: "Lato", Arial, Helvetica, sans-serif;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
-    font-family: var(--app-font-sans);
+    @apply bg-background text-foreground antialiased overflow-x-hidden;
+    font-family: "Lato", Arial, Helvetica, sans-serif;
     font-weight: 400;
     color: #111111;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: "Lato", Arial, Helvetica, sans-serif;
     letter-spacing: 0;
     font-weight: 700;
   }
-  .font-display {
-    font-family: var(--font-display);
-    font-weight: 700;
+  .font-display,
+  .font-sans,
+  .font-serif,
+  .font-mono {
+    font-family: "Lato", Arial, Helvetica, sans-serif;
   }
-  button, input, select, textarea {
+  button, input, select, textarea, a, p, span, li, label, td, th {
     font-family: inherit;
   }
 }
