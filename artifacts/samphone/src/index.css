@@ -179,7 +179,15 @@
   height: 0;
 }
 
-.nav-bar-item {
+.font-medium {
+  font-weight: 400;
+}
+
+.font-semibold,
+.font-extrabold,
+.font-black {
+  font-weight: 700;
+}
   font-family: "Lato", Arial, Helvetica, sans-serif;
   letter-spacing: 0;
   font-weight: 700;
@@ -214,6 +222,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
+  color: #111111;
 }
 
 .typo-cart-count {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2, ShoppingCart } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2, ShoppingBag } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -967,7 +967,7 @@ export default function Navbar() {
           <div className="ml-auto flex items-center lg:ml-0">
             <Link
               href="/compare"
-              className="hidden items-center gap-2 px-4 text-brand-dark dark:text-white lg:flex"
+              className="hidden items-center gap-2.5 px-4 lg:flex"
               onClick={closeMenu}
               aria-label={t("compare")}
             >
@@ -975,12 +975,12 @@ export default function Navbar() {
                 <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
-              <span className="typo-header-action text-brand-dark dark:text-white">{t("compare")}</span>
+              <span className="typo-header-action dark:text-white">{t("compare")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
               href="/wishlist"
-              className="hidden items-center gap-2 px-4 text-brand-dark dark:text-white lg:flex"
+              className="hidden items-center gap-2.5 px-4 lg:flex"
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
@@ -988,20 +988,20 @@ export default function Navbar() {
                 <Heart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
-              <span className="typo-header-action text-brand-dark dark:text-white">{t("wishlist")}</span>
+              <span className="typo-header-action dark:text-white">{t("wishlist")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
               href="/cart"
-              className="flex items-center gap-2 px-1 text-brand-dark dark:text-white lg:px-4"
+              className="flex items-center gap-2.5 px-4"
               onClick={closeMenu}
               aria-label={t("nav_cart")}
             >
               <span className="relative text-sam">
-                <ShoppingCart className="h-6 w-6" strokeWidth={1.7} />
+                <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>
-              <span className="typo-header-action text-brand-dark dark:text-white">{t("nav_cart")}</span>
+              <span className="typo-header-action dark:text-white">{t("nav_cart")}</span>
             </Link>
           </div>
         </div>

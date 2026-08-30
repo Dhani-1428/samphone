@@ -11,7 +11,7 @@ import {
   Phone,
   Repeat2,
   ShieldCheck,
-  ShoppingCart,
+  ShoppingBag,
   Sun,
   User,
   X,
@@ -280,7 +280,7 @@ export default function MobileNavDrawer({
           aria-label={t("nav_cart")}
         >
           <span className="relative text-sam">
-            <ShoppingCart className="h-6 w-6" strokeWidth={1.7} />
+            <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
             <CountBadge count={cartCount} />
           </span>
           <span className="typo-header-action">{t("nav_cart")}</span>
