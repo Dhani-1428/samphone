@@ -552,7 +552,7 @@ export default function Navbar() {
                   children: makeFamilyChildren(b.slug, "mi-series", XIAOMI_MI_SERIES_MODELS),
                 },
                 {
-                  label: "Xiaomi + Redmi",
+                  label: "Xiaomi+Redmi Tablets",
                   slug: "xiaomi-redmi-tablets",
                   children: makeFamilyChildren(b.slug, "xiaomi-redmi-tablets", TABLET_XIAOMI_MODELS),
                 },
@@ -735,7 +735,7 @@ export default function Navbar() {
                   children: makeFamilyChildren(b.slug, "samsung-tablets", TABLET_SAMSUNG_MODELS),
                 },
                 {
-                  label: "Xiaomi + Redmi",
+                  label: "Xiaomi+Redmi Tablets",
                   slug: "xiaomi-redmi-tablets",
                   children: makeFamilyChildren(b.slug, "xiaomi-redmi-tablets", TABLET_XIAOMI_MODELS),
                 },
