@@ -48,12 +48,12 @@
   --font-weight-extrabold: 700;
   --font-weight-black: 700;
 
-  --color-navy: #2D4FA0;
-  --color-utopya: #2D4FA0;
-  --color-sam: #F3B431;
-  --color-sam-dark: #E5A322;
-  --color-brand: #2D4FA0;
-  --color-brand-dark: #244184;
+  --color-navy: #3474EA;
+  --color-utopya: #3474EA;
+  --color-sam: #FFD24A;
+  --color-sam-dark: #F0B81E;
+  --color-brand: #3474EA;
+  --color-brand-dark: #1F5CD6;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -148,7 +148,7 @@
     @apply bg-background text-foreground antialiased overflow-x-hidden;
     font-family: "Lato", Arial, Helvetica, sans-serif;
     font-weight: 400;
-    color: #333333;
+    color: #111111;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -194,7 +194,7 @@
   font-family: "Lato", Arial, Helvetica, sans-serif;
   letter-spacing: 0;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 18px;
 }
 
@@ -225,7 +225,7 @@
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
-  color: #333333;
+  color: #111111;
 }
 
 .typo-cart-count {
@@ -292,4 +292,13 @@
   font-weight: 700;
   font-size: 14px;
   line-height: 22px;
+}
+
+.bg-sam {
+  background-image: linear-gradient(180deg, #ffe98a 0%, #ffd24a 42%, #f0b81e 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.bg-sam-dark {
+  background-image: linear-gradient(180deg, #ffd24a 0%, #f0b81e 50%, #e2aa14 100%);
 }

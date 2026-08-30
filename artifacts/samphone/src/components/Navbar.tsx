@@ -971,7 +971,7 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("compare")}
             >
-              <span className="relative text-[#333333] dark:text-white">
+              <span className="relative text-sam [filter:drop-shadow(0_0_4px_rgba(255,210,74,0.55))] dark:text-sam">
                 <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
@@ -984,7 +984,7 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
-              <span className="relative text-[#333333] dark:text-white">
+              <span className="relative text-sam [filter:drop-shadow(0_0_4px_rgba(255,210,74,0.55))] dark:text-sam">
                 <Heart className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
@@ -997,7 +997,7 @@ export default function Navbar() {
               onClick={closeMenu}
               aria-label={t("nav_cart")}
             >
-              <span className="relative text-sam">
+              <span className="relative text-sam [filter:drop-shadow(0_0_4px_rgba(255,210,74,0.55))]">
                 <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>

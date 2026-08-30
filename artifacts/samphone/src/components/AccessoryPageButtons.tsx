@@ -58,7 +58,7 @@ function MegaRow({
       onClick={onNavigate}
       className="group flex items-center gap-3.5 border-b border-[#E8ECF2] px-5 py-3.5 last:border-b-0 hover:bg-[#F7F9FC]"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E4E8EE] bg-[#F4F7FB] text-[#2B5CB8]">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E4E8EE] bg-[#F4F7FB] text-brand">
         <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} />
       </span>
       <span className="min-w-0 flex-1">
@@ -73,7 +73,7 @@ function MegaRow({
 function Benefit({ Icon, label }: { Icon: LucideIcon; label: string }) {
   return (
     <li className="flex items-center gap-2.5 text-[13px] font-semibold text-[#1B2436]">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#2B5CB8]/40 text-[#2B5CB8]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-brand/40 text-brand">
         <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />
       </span>
       {label}
@@ -102,7 +102,7 @@ export function AllAccessoriesMegaMenu({ onNavigate }: { onNavigate?: () => void
             className="h-44 w-full object-cover object-center"
           />
         </div>
-        <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2B5CB8]">
+        <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
           Premium quality
         </p>
         <p className="mt-1.5 text-[20px] font-extrabold leading-snug text-[#121826]">
@@ -119,7 +119,7 @@ export function AllAccessoriesMegaMenu({ onNavigate }: { onNavigate?: () => void
         <Link
           href="/accessories"
           onClick={onNavigate}
-          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#163A86] text-[13px] font-bold uppercase tracking-[0.08em] text-white hover:bg-[#122F6C]"
+          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand text-[13px] font-bold uppercase tracking-[0.08em] text-white hover:bg-brand-dark"
         >
           Shop now
           <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
