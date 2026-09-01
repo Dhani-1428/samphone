@@ -61,12 +61,12 @@ export default function Categories({
   }, []);
 
   return (
-    <section id="categories" className="bg-[#F4F6F8] py-10 md:py-14">
+    <section id="categories" className="bg-[#F5F5F5] py-10 md:py-14">
       <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         {showHeading ? (
           <div className="mb-7 flex flex-wrap items-end justify-between gap-4 md:mb-9">
             <div>
-              <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-[#1A2B48] md:text-[2.15rem]">
+              <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand md:text-[2.15rem]">
                 {t("home_accessories_title")}
               </h2>
               <span className="mt-2 block h-[4px] w-12 rounded-full bg-sam" />
@@ -76,7 +76,7 @@ export default function Categories({
             </div>
             <Link
               href="/accessories"
-              className="inline-flex items-center gap-1.5 text-[13px] font-extrabold uppercase tracking-wide text-brand hover:text-brand-dark"
+              className="inline-flex items-center gap-1.5 rounded-md bg-sam px-3.5 py-2 text-[13px] font-extrabold uppercase tracking-wide text-white hover:bg-sam-dark"
             >
               {t("home_accessories_shop")}
               <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} />
@@ -94,7 +94,7 @@ export default function Categories({
               <Link
                 key={page.group}
                 href={accessoryPageHref(page.group)}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-[#E6EAF0] bg-white shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-[0_12px_28px_rgba(26,43,72,0.1)]"
+                className="group flex flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-[0_4px_14px_rgba(45,79,160,0.06)] transition-all hover:-translate-y-0.5 hover:border-sam hover:shadow-[0_12px_28px_rgba(45,79,160,0.12)]"
                 data-testid={`card-category-${i}`}
               >
                 <span className="relative flex aspect-square items-center justify-center bg-[#F7F8FA] p-4">
@@ -106,13 +106,13 @@ export default function Categories({
                       loading="lazy"
                     />
                   ) : (
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-sam text-[#1A2B48]">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full bg-sam text-white">
                       <Icon className="h-7 w-7" strokeWidth={1.8} />
                     </span>
                   )}
                 </span>
                 <span className="flex flex-1 flex-col px-3 pb-3.5 pt-3">
-                  <h3 className="text-[14px] font-extrabold leading-tight text-[#1A2B48] sm:text-[15px]">
+                  <h3 className="text-[14px] font-extrabold leading-tight text-brand sm:text-[15px]">
                     {page.label}
                   </h3>
                   <p className="mt-1 text-[12px] font-medium text-[#8B93A3]">{countLabel}</p>

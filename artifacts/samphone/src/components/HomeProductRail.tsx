@@ -53,14 +53,15 @@ export default function HomeProductRail({
       <div className={navInset}>
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-foreground md:text-[2.15rem]">{title}</h2>
-            {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+            <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand md:text-[2.15rem]">{title}</h2>
+            <span className="mt-2 block h-[4px] w-12 rounded-full bg-sam" />
+            {subtitle ? <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p> : null}
           </div>
           <div className="flex shrink-0 items-center gap-4">
             <span className="hidden text-sm tabular-nums text-muted-foreground sm:inline">
               {t("newArrivals_page")} {pageIndex} {t("newArrivals_of")} {pageTotal}
             </span>
-            <Link href={seeAllHref} className="text-sm font-semibold text-[#111111] hover:underline">
+            <Link href={seeAllHref} className="text-sm font-extrabold uppercase tracking-wide text-brand hover:text-sam-dark">
               {t("newArrivals_see_all")}
             </Link>
           </div>
@@ -75,8 +76,8 @@ export default function HomeProductRail({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white dark:bg-card dark:text-foreground" />
-            <CarouselNext className="right-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-white text-navy shadow-md hover:bg-white dark:bg-card dark:text-foreground" />
+            <CarouselPrevious className="left-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
+            <CarouselNext className="right-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
           </Carousel>
         </div>
       </div>

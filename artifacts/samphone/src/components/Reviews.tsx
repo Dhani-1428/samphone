@@ -35,15 +35,15 @@ export default function Reviews() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+          <span className="inline-block px-3 py-1 rounded-full bg-sam/20 text-brand text-sm font-medium mb-4">
             Customer Reviews
           </span>
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-brand mb-4">
             What Our Customers Say
           </h2>
           <div className="flex items-center justify-center gap-2 mb-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
+              <Star key={i} className="w-6 h-6 fill-sam text-sam" />
             ))}
             <span className="text-2xl font-display font-bold text-foreground ml-1">4.9/5</span>
           </div>
@@ -68,13 +68,13 @@ export default function Reviews() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-semibold text-foreground text-sm truncate">{review.name}</p>
-                    <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
+                    <BadgeCheck className="w-4 h-4 text-brand shrink-0" />
                   </div>
                   <p className="text-xs text-muted-foreground">{review.date}</p>
                 </div>
                 <div className="flex gap-0.5 shrink-0">
                   {Array.from({ length: review.rating }).map((_, j) => (
-                    <Star key={j} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <Star key={j} className="w-3.5 h-3.5 fill-sam text-sam" />
                   ))}
                 </div>
               </div>

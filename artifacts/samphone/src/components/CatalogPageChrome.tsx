@@ -34,7 +34,7 @@ export function CatalogSectionHeading({
         <Icon className="h-5 w-5" strokeWidth={2.2} />
       </span>
       <div>
-        <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-black">{title}</h2>
+        <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand">{title}</h2>
         {hint ? <p className="mt-0.5 text-sm font-semibold text-neutral-700">{hint}</p> : null}
       </div>
     </div>
@@ -61,7 +61,7 @@ export function CatalogTypeChip({
         "relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-lg border px-3.5 text-sm font-bold transition-colors",
         active
           ? "border-transparent bg-sam text-white"
-          : "border-black/[0.15] bg-white text-black hover:border-sam/50",
+          : "border-brand/20 bg-white text-brand hover:border-sam",
       )}
     >
       {active ? <span className="absolute inset-x-0 bottom-0 h-[3px] bg-sam" aria-hidden /> : null}

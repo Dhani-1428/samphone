@@ -61,12 +61,12 @@ export default function Hero() {
         <Carousel
           setApi={setApi}
           opts={{ loop: true, align: "start" }}
-          className="w-full overflow-hidden rounded-2xl bg-neutral-950 shadow-[0_8px_24px_rgba(15,23,42,0.08)]"
+          className="w-full overflow-hidden rounded-2xl bg-brand shadow-[0_8px_24px_rgba(45,79,160,0.16)]"
         >
           <CarouselContent className="-ml-0">
             {slides.map((slide, i) => (
               <CarouselItem key={slide.key} className="pl-0">
-                <div className="relative aspect-[5/2] w-full overflow-hidden bg-neutral-950">
+                <div className="relative aspect-[5/2] w-full overflow-hidden bg-brand">
                   <CatalogImage
                     src={slide.src}
                     alt={slide.alt}

@@ -17,10 +17,10 @@ export default function About() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-5">
+            <span className="inline-block px-3 py-1 rounded-full bg-sam/20 text-brand text-sm font-medium mb-5">
               About Us
             </span>
-            <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-brand mb-6 leading-tight">
               Lisbon's Most Trusted <br /> Mobile Accessories Store
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed mb-6">
@@ -32,7 +32,7 @@ export default function About() {
 
             <div className="flex flex-col gap-4 mb-8">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                <div className="w-10 h-10 rounded-xl bg-sam flex items-center justify-center text-brand shrink-0 mt-0.5">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -41,7 +41,7 @@ export default function About() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                <div className="w-10 h-10 rounded-xl bg-sam flex items-center justify-center text-brand shrink-0 mt-0.5">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
@@ -50,7 +50,7 @@ export default function About() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                <div className="w-10 h-10 rounded-xl bg-sam flex items-center justify-center text-brand shrink-0 mt-0.5">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
@@ -61,7 +61,7 @@ export default function About() {
             </div>
 
             <a href="https://maps.google.com/?q=Rua+da+Palma+221+Lisboa+Portugal" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="gap-2 border-border hover:bg-muted" data-testid="button-get-directions">
+              <Button variant="outline" className="gap-2 border-brand/30 text-brand hover:bg-brand hover:text-white" data-testid="button-get-directions">
                 <MapPin className="w-4 h-4" /> Get Directions <ExternalLink className="w-3.5 h-3.5" />
               </Button>
             </a>

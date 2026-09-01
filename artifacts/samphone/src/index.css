@@ -62,35 +62,38 @@
 
 :root {
   color-scheme: light;
-  --background: 0 0% 98%;
-  --foreground: 0 0% 7%;
+  --background: 220 33% 97%;
+  --foreground: 222 45% 18%;
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 7%;
-  --card-border: 0 0% 88%;
+  --card-foreground: 222 45% 18%;
+  --card-border: 214 20% 88%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 7%;
-  --popover-border: 0 0% 88%;
+  --popover-foreground: 222 45% 18%;
+  --popover-border: 214 20% 88%;
 
-  --primary: 0 0% 7%;
+  --primary: 222 56% 40%;
   --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(222 56% 34%);
 
-  --secondary: 0 0% 94%;
-  --secondary-foreground: 0 0% 7%;
+  --secondary: 222 40% 95%;
+  --secondary-foreground: 222 56% 28%;
+  --secondary-border: hsl(222 30% 88%);
 
-  --muted: 0 0% 94%;
-  --muted-foreground: 0 0% 22%;
+  --muted: 220 25% 94%;
+  --muted-foreground: 222 12% 38%;
 
-  --accent: 0 0% 12%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 41 89% 57%;
+  --accent-foreground: 222 56% 22%;
+  --accent-border: hsl(41 80% 48%);
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
   --border: 214 20% 88%;
   --input: 214 20% 88%;
-  --ring: 0 0% 7%;
+  --ring: 222 56% 40%;
 
   --radius: 0.75rem;
 
@@ -112,24 +115,27 @@
   --popover-foreground: 210 30% 96%;
   --popover-border: 222 18% 22%;
 
-  --primary: 0 0% 96%;
-  --primary-foreground: 0 0% 7%;
+  --primary: 222 56% 48%;
+  --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(222 56% 40%);
 
   --secondary: 222 20% 16%;
   --secondary-foreground: 210 30% 96%;
+  --secondary-border: hsl(222 18% 24%);
 
   --muted: 222 20% 16%;
   --muted-foreground: 0 0% 82%;
 
-  --accent: 0 0% 92%;
-  --accent-foreground: 0 0% 7%;
+  --accent: 41 89% 57%;
+  --accent-foreground: 222 45% 12%;
+  --accent-border: hsl(41 80% 48%);
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
 
   --border: 222 16% 22%;
   --input: 222 16% 22%;
-  --ring: 0 0% 90%;
+  --ring: 41 89% 57%;
 }
 
 @layer base {
@@ -157,6 +163,7 @@
     font-family: "Open Sans", sans-serif;
     letter-spacing: 0;
     font-weight: 800;
+    color: #2D4FA0;
   }
   .font-display,
   .font-sans,

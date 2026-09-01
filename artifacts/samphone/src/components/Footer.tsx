@@ -116,7 +116,7 @@ function SocialButton({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-colors hover:border-sam hover:bg-sam hover:text-[#1A2B48]"
+      className="flex h-9 w-9 items-center justify-center rounded-full bg-sam text-white transition-colors hover:bg-sam-dark"
     >
       {children}
     </a>
@@ -168,7 +168,8 @@ export default function Footer() {
   ];
 
   return (
-    <footer id="footer" className="bg-[#1A2B48] text-white">
+    <footer id="footer" className="bg-brand text-white">
+      <div className="h-1.5 w-full bg-sam" />
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div>
@@ -285,7 +286,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 bg-[#15203A]">
+      <div className="border-t border-white/10 bg-brand-dark">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-3 px-5 py-4 sm:px-8 md:flex-row md:px-10 lg:px-14 xl:px-16">
           <p className="text-center text-[12px] font-semibold text-white/65 md:text-left">
             © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
@@ -300,17 +301,17 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-sam text-[#1A2B48]">
+      <div className="bg-sam text-brand">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
           {benefits.map((item) => {
             const body = (
               <>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#1A2B48]/25">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-white">
                   <item.Icon className="h-4 w-4" strokeWidth={1.8} />
                 </span>
                 <span>
                   <span className="block text-[13.5px] font-bold leading-tight">{item.title}</span>
-                  <span className="mt-0.5 block text-[12px] text-[#1A2B48]/70">{item.sub}</span>
+                  <span className="mt-0.5 block text-[12px] text-brand/75">{item.sub}</span>
                 </span>
               </>
             );
@@ -325,17 +326,17 @@ export default function Footer() {
             );
           })}
         </div>
-        <div className="border-t border-[#1A2B48]/15 px-5 py-3 text-center text-[12px] font-semibold text-[#1A2B48]/80">
-          <a href={LEGAL_LINKS.livro} className="hover:text-[#1A2B48]" target="_blank" rel="noreferrer">
+        <div className="border-t border-brand/20 px-5 py-3 text-center text-[12px] font-semibold text-brand/80">
+          <a href={LEGAL_LINKS.livro} className="hover:text-brand-dark" target="_blank" rel="noreferrer">
             {t("footer_livro")}
           </a>
-          <span className="mx-2 text-[#1A2B48]/30">·</span>
+          <span className="mx-2 text-brand/30">·</span>
           {t("footer_developed_by")}{" "}
           <a
             href="https://bonusitsolutions.com/"
             target="_blank"
             rel="noreferrer"
-            className="text-[#1A2B48] underline decoration-[#1A2B48]/40 underline-offset-2 hover:decoration-[#1A2B48]"
+            className="text-brand underline decoration-brand/40 underline-offset-2 hover:decoration-brand-dark"
           >
             Bonus IT Solutions
           </a>

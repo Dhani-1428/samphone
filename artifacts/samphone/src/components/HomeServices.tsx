@@ -15,9 +15,10 @@ export default function HomeServices() {
   return (
     <section className="py-8 md:py-10">
       <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <h2 className="mb-5 font-display text-2xl font-bold tracking-tight text-foreground md:text-[2rem]">
+        <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand md:text-[2.15rem]">
           {t("home_services_title")}
         </h2>
+        <span className="mb-5 mt-2 block h-[4px] w-12 rounded-full bg-sam" />
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {services.map((item) => {
             const Icon = item.icon;
@@ -25,17 +26,17 @@ export default function HomeServices() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-black/30 hover:bg-muted/30"
+                className="group flex items-start gap-3 rounded-xl border border-brand/15 bg-white p-4 shadow-sm transition-colors hover:border-sam hover:bg-brand/[0.04]"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-[#3A3A3A] to-[#111111] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sam text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-center justify-between gap-2 font-display text-[15px] font-bold text-foreground">
+                  <span className="flex items-center justify-between gap-2 font-display text-[15px] font-bold text-brand">
                     {t(item.titleKey)}
-                    <ArrowRight className="h-4 w-4 shrink-0 text-black opacity-0 transition-opacity group-hover:opacity-100" />
+                    <ArrowRight className="h-4 w-4 shrink-0 text-sam opacity-0 transition-opacity group-hover:opacity-100" />
                   </span>
-                  <span className="mt-1 block text-sm font-semibold text-neutral-800">{t(item.subKey)}</span>
+                  <span className="mt-1 block text-sm font-semibold text-[#5A6578]">{t(item.subKey)}</span>
                 </span>
               </Link>
             );
