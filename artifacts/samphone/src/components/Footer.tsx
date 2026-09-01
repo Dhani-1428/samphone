@@ -46,7 +46,7 @@ import { whatsappChatHref } from "@/lib/whatsapp";
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <div className="mb-5">
-      <h4 className="typo-footer-heading text-[#121826] dark:text-white">{children}</h4>
+      <h4 className="typo-footer-heading text-white">{children}</h4>
       <span className="mt-1.5 block h-[3px] w-10 rounded-full bg-sam" />
     </div>
   );
@@ -66,13 +66,13 @@ function FooterLink({
   compact?: boolean;
 }) {
   const className = compact
-    ? "group flex items-center gap-2.5 py-[7px] typo-policy-link text-[#333333] transition-colors hover:text-brand dark:text-white dark:hover:text-[#8CB4FF]"
-    : "group flex items-center gap-2.5 py-[7px] typo-footer-link text-[#333333] transition-colors hover:text-brand dark:text-white dark:hover:text-[#8CB4FF]";
+    ? "group flex items-center gap-2.5 py-[7px] typo-policy-link text-white/85 transition-colors hover:text-sam"
+    : "group flex items-center gap-2.5 py-[7px] typo-footer-link text-white/85 transition-colors hover:text-sam";
   const inner = (
     <>
-      <Icon className="h-4 w-4 shrink-0 text-brand dark:text-[#8CB4FF]" strokeWidth={1.9} />
+      <Icon className="h-4 w-4 shrink-0 text-sam" strokeWidth={1.9} />
       <span className="min-w-0 flex-1">{label}</span>
-      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#C9CED6] transition-transform group-hover:translate-x-0.5" />
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/35 transition-transform group-hover:translate-x-0.5 group-hover:text-sam" />
     </>
   );
   if (external) {
@@ -92,10 +92,10 @@ function FooterLink({
 function TrustRow({ Icon, title, sub }: { Icon: LucideIcon; title: string; sub: string }) {
   return (
     <li className="flex items-start gap-3">
-      <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-brand dark:text-[#8CB4FF]" strokeWidth={1.8} />
+      <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-sam" strokeWidth={1.8} />
       <span>
-        <span className="block text-[13.5px] font-bold leading-tight text-[#121826] dark:text-white">{title}</span>
-        <span className="mt-0.5 block text-[12px] leading-snug text-[#8B93A3]">{sub}</span>
+        <span className="block text-[13.5px] font-bold leading-tight text-white">{title}</span>
+        <span className="mt-0.5 block text-[12px] leading-snug text-white/65">{sub}</span>
       </span>
     </li>
   );
@@ -116,7 +116,7 @@ function SocialButton({
       target="_blank"
       rel="noreferrer"
       aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E4E8EE] bg-[#F4F6F9] text-[#3A4456] transition-colors hover:border-brand/30 hover:text-brand dark:border-white/10 dark:bg-white/10 dark:text-white"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-colors hover:border-sam hover:bg-sam hover:text-[#1A2B48]"
     >
       {children}
     </a>
@@ -168,12 +168,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer id="footer" className="bg-white text-[#121826] dark:bg-[#12192A] dark:text-white">
+    <footer id="footer" className="bg-[#1A2B48] text-white">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div>
-            <BrandLogo className="mb-4 h-8 w-auto" />
-            <p className="mb-5 max-w-[16.5rem] text-[13px] leading-relaxed text-[#8B93A3]">{t("footer_tagline")}</p>
+            <span className="mb-4 inline-flex rounded-md bg-white px-2.5 py-1.5">
+              <BrandLogo className="h-8 w-auto" />
+            </span>
+            <p className="mb-5 max-w-[16.5rem] text-[13px] leading-relaxed text-white/70">{t("footer_tagline")}</p>
             <ul className="space-y-3.5">
               <TrustRow Icon={ShieldCheck} title={t("footer_trust_original")} sub={t("footer_trust_original_sub")} />
               <TrustRow Icon={Award} title={t("footer_trust_price")} sub={t("footer_trust_price_sub")} />
@@ -231,22 +233,22 @@ export default function Footer() {
 
           <div>
             <SectionTitle>{t("footer_contact")}</SectionTitle>
-            <div className="space-y-3 typo-footer-contact text-[#1B2436] dark:text-white">
+            <div className="space-y-3 typo-footer-contact text-white/85">
               <p className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sam" strokeWidth={1.9} />
                 <span>{STORE_ADDRESS}</span>
               </p>
               <a
                 href={`tel:${STORE_PHONE.replace(/\s/g, "")}`}
-                className="flex items-center gap-2.5 typo-footer-phone hover:text-brand"
+                className="flex items-center gap-2.5 typo-footer-phone text-white hover:text-sam"
               >
-                <Phone className="h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} /> {STORE_PHONE}
+                <Phone className="h-4 w-4 shrink-0 text-sam" strokeWidth={1.9} /> {STORE_PHONE}
               </a>
-              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 font-bold hover:text-brand">
-                <Mail className="h-4 w-4 shrink-0 text-brand" strokeWidth={1.9} /> {STORE_EMAIL}
+              <a href={`mailto:${STORE_EMAIL}`} className="flex items-center gap-2.5 font-bold text-white hover:text-sam">
+                <Mail className="h-4 w-4 shrink-0 text-sam" strokeWidth={1.9} /> {STORE_EMAIL}
               </a>
             </div>
-            <div className="mt-5 bg-sam p-4 dark:bg-sam">
+            <div className="mt-5 bg-sam p-4">
               <p className="mb-1.5 typo-newsletter-title text-[#111111]">Newsletter</p>
               <p className="mb-3 text-[13px] leading-5 text-[#333333]">{t("footer_newsletter_sub")}</p>
               {subscribed ? (
@@ -283,12 +285,12 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-[#E8ECF2] bg-[#F7F8FA] dark:border-white/10 dark:bg-[#0F1524]">
+      <div className="border-t border-white/10 bg-[#15203A]">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-3 px-5 py-4 sm:px-8 md:flex-row md:px-10 lg:px-14 xl:px-16">
-          <p className="text-center text-[12px] font-semibold text-[#6B7382] md:text-left">
+          <p className="text-center text-[12px] font-semibold text-white/65 md:text-left">
             © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-[#1B2436] dark:text-white">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-white">
             <FaCcVisa className="h-7 w-10" title="Visa" />
             <FaCcMastercard className="h-7 w-10" title="Mastercard" />
             <FaCcAmex className="h-7 w-10" title="American Express" />
@@ -298,17 +300,17 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-brand text-white">
+      <div className="bg-sam text-[#1A2B48]">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
           {benefits.map((item) => {
             const body = (
               <>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/35">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#1A2B48]/25">
                   <item.Icon className="h-4 w-4" strokeWidth={1.8} />
                 </span>
                 <span>
                   <span className="block text-[13.5px] font-bold leading-tight">{item.title}</span>
-                  <span className="mt-0.5 block text-[12px] text-white/75">{item.sub}</span>
+                  <span className="mt-0.5 block text-[12px] text-[#1A2B48]/70">{item.sub}</span>
                 </span>
               </>
             );
@@ -323,17 +325,17 @@ export default function Footer() {
             );
           })}
         </div>
-        <div className="border-t border-white/15 px-5 py-3 text-center text-[12px] font-semibold text-white/80">
-          <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
+        <div className="border-t border-[#1A2B48]/15 px-5 py-3 text-center text-[12px] font-semibold text-[#1A2B48]/80">
+          <a href={LEGAL_LINKS.livro} className="hover:text-[#1A2B48]" target="_blank" rel="noreferrer">
             {t("footer_livro")}
           </a>
-          <span className="mx-2 text-white/30">·</span>
+          <span className="mx-2 text-[#1A2B48]/30">·</span>
           {t("footer_developed_by")}{" "}
           <a
             href="https://bonusitsolutions.com/"
             target="_blank"
             rel="noreferrer"
-            className="text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+            className="text-[#1A2B48] underline decoration-[#1A2B48]/40 underline-offset-2 hover:decoration-[#1A2B48]"
           >
             Bonus IT Solutions
           </a>
