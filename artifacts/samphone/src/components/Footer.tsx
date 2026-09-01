@@ -132,6 +132,7 @@ export default function Footer() {
   const serviceLinks = [
     { href: `mailto:${STORE_EMAIL}`, label: t("footer_email_support"), Icon: Mail, external: true },
     { href: "/contact", label: t("footer_helpdesk"), Icon: Headset },
+    { href: "/app", label: t("footer_app_features"), Icon: Smartphone },
     { href: "/book-repair", label: t("nav_book_repair"), Icon: Wrench },
     { href: "/trade-in", label: t("nav_trade_in"), Icon: RefreshCw },
     { href: "/track", label: t("footer_orders_payments"), Icon: Receipt },

@@ -22,6 +22,7 @@ import NewArrivals from "@/pages/NewArrivals";
 import MultiBrand from "@/pages/MultiBrand";
 import BrandPage from "@/pages/BrandPage";
 import Contact from "@/pages/Contact";
+import AppFeatures from "@/pages/AppFeatures";
 import CategoryPage from "@/pages/CategoryPage";
 import ProductPage from "@/pages/ProductPage";
 import Login from "@/pages/Login";
@@ -87,6 +88,9 @@ function Router() {
       </Route>
       <Route path="/contact">
         <Layout><Contact /></Layout>
+      </Route>
+      <Route path="/app">
+        <Layout><AppFeatures /></Layout>
       </Route>
       <Route path="/login">
         <Layout><Login /></Layout>
