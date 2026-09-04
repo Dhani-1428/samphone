@@ -10,10 +10,26 @@ export type PersonalPricingRule = {
 export type PriceUser = {
   isWholesale?: boolean;
   wholesaleStatus?: string;
+  dealerTier?: string;
   personalPricing?: PersonalPricingRule[];
 } | null | undefined;
 
 const BLOCKED_WHOLESALE = new Set(["pending", "rejected", "suspended", "denied", "blocked", "inactive"]);
+
+/** Extra % off wholesale for approved B2B dealer tiers (matches samphone.cloud). */
+export const DEALER_TIER_DISCOUNT_PERCENT: Record<string, number> = {
+  bronze: 10,
+  standard: 12,
+  silver: 15,
+  gold: 18,
+  platinum: 22,
+};
+
+export function dealerTierDiscountPercent(tier: string | null | undefined): number {
+  if (!tier) return DEALER_TIER_DISCOUNT_PERCENT.bronze;
+  const key = tier.trim().toLowerCase();
+  return DEALER_TIER_DISCOUNT_PERCENT[key] ?? DEALER_TIER_DISCOUNT_PERCENT.bronze;
+}
 
 export function seesWholesalePrices(user: PriceUser): boolean {
   if (!user?.isWholesale) return false;
@@ -41,9 +57,18 @@ function wholesaleAmount(product: WooProduct): number | null {
   return parseMoney(product.wholesalePrice) ?? parseMoney(product.regular_price) ?? retailAmount(product);
 }
 
+function applyDealerTier(unit: number | null, user: PriceUser): number | null {
+  if (unit == null || !seesWholesalePrices(user)) return unit;
+  const pct = dealerTierDiscountPercent(user?.dealerTier);
+  if (pct <= 0) return unit;
+  const next = unit * (1 - pct / 100);
+  return next > 0 ? next : unit;
+}
+
 export function catalogUnitPrice(product: WooProduct, user: PriceUser): number | null {
-  const unit = seesWholesalePrices(user) ? wholesaleAmount(product) : retailAmount(product);
-  return applyPersonalPricing(unit, product, user);
+  const base = seesWholesalePrices(user) ? wholesaleAmount(product) : retailAmount(product);
+  const withTier = applyDealerTier(base, user);
+  return applyPersonalPricing(withTier, product, user);
 }
 
 export function catalogCompareAtPrice(product: WooProduct, user: PriceUser): number | null {

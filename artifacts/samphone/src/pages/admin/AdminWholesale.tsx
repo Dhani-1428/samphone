@@ -12,6 +12,7 @@ import {
   patchAdminWholesaleUser,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
+import { DEALER_TIER_DISCOUNT_PERCENT } from "@/lib/customer-price";
 
 const TIERS = ["bronze", "standard", "silver", "gold", "platinum"] as const;
 
@@ -205,7 +206,7 @@ export default function AdminWholesale() {
                       >
                         {TIERS.map((tier) => (
                           <option key={tier} value={tier}>
-                            {tier}
+                            {tier} (−{DEALER_TIER_DISCOUNT_PERCENT[tier]}%)
                           </option>
                         ))}
                       </select>

@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 
 const REGISTER_BOY_VIDEO = "/video/register-boy.mp4";
 
+type AccountMode = "b2c" | "b2b";
+
 function RequiredLabel({ htmlFor, children }: { htmlFor: string; children: string }) {
   return (
     <Label htmlFor={htmlFor} className="typo-form-label text-[#111111]">
@@ -65,12 +67,15 @@ export default function Register() {
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const search = useSearch();
+  const [mode, setMode] = useState<AccountMode>("b2c");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [phone, setPhone] = useState("");
   const [vatNumber, setVatNumber] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [businessType, setBusinessType] = useState("repair_shop");
   const [address, setAddress] = useState("");
   const [postal, setPostal] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +87,13 @@ export default function Register() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const em = email.trim();
-    if (!em || !password || !phone.trim() || !vatNumber.trim() || !businessName.trim() || !address.trim() || !postal.trim()) {
+    const displayName = mode === "b2b" ? businessName.trim() : name.trim();
+
+    if (!em || !password || !phone.trim() || !displayName) {
+      setError(t("loginForPricing"));
+      return;
+    }
+    if (mode === "b2b" && (!vatNumber.trim() || !address.trim() || !postal.trim())) {
       setError(t("loginForPricing"));
       return;
     }
@@ -93,37 +104,60 @@ export default function Register() {
     setBusy(true);
     setError(null);
     try {
-      const result = await cloudAuth("/auth/register", {
-        email: em,
-        password,
-        name: businessName.trim(),
-        account_type: "b2b",
-        phone: phone.trim(),
-        address: address.trim(),
-        postal_code: postal.trim(),
-        business_name: businessName.trim(),
-        vat_number: vatNumber.trim(),
-        nif: vatNumber.trim(),
-        vat: vatNumber.trim(),
-        business_type: "repair_shop",
-        company_address: address.trim(),
-      });
+      const body: Record<string, string> =
+        mode === "b2c"
+          ? {
+              email: em,
+              password,
+              name: displayName,
+              account_type: "b2c",
+              phone: phone.trim(),
+            }
+          : {
+              email: em,
+              password,
+              name: displayName,
+              account_type: "b2b",
+              phone: phone.trim(),
+              address: address.trim(),
+              postal_code: postal.trim(),
+              business_name: businessName.trim(),
+              vat_number: vatNumber.trim(),
+              nif: vatNumber.trim(),
+              vat: vatNumber.trim(),
+              business_type: businessType,
+              company_address: address.trim(),
+            };
+
+      const result = await cloudAuth("/auth/register", body);
       login({
         ...result,
         token: result.token ?? undefined,
-        accountType: "b2b",
+        accountType: mode,
+        wholesaleStatus: mode === "b2b" ? result.wholesaleStatus || "pending" : result.wholesaleStatus,
+        isWholesale: mode === "b2b" ? Boolean(result.isWholesale) : false,
       });
-      await patchCloudProfile({
-        name: businessName.trim(),
-        phone: phone.trim(),
-        address: address.trim(),
-        postal_code: postal.trim(),
-        account_type: "b2b",
-        business_name: businessName.trim(),
-        vat_number: vatNumber.trim(),
-        business_type: "repair_shop",
-        company_address: address.trim(),
-      }).catch(() => null);
+
+      if (mode === "b2b") {
+        await patchCloudProfile({
+          name: displayName,
+          phone: phone.trim(),
+          address: address.trim(),
+          postal_code: postal.trim(),
+          account_type: "b2b",
+          business_name: businessName.trim(),
+          vat_number: vatNumber.trim(),
+          business_type: businessType,
+          company_address: address.trim(),
+        }).catch(() => null);
+      } else {
+        await patchCloudProfile({
+          name: displayName,
+          phone: phone.trim(),
+          account_type: "b2c",
+        }).catch(() => null);
+      }
+
       setLocation(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("auth_submit_register"));
@@ -168,6 +202,50 @@ export default function Register() {
 
         <div className="flex items-start justify-center px-5 py-10 sm:px-10 lg:px-14 lg:py-12">
           <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+            <div className="space-y-2">
+              <p className="typo-form-label text-[#111111]">{t("register_account_type")}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMode("b2c")}
+                  className={cn(
+                    "h-11 rounded-md border text-sm font-bold transition-colors",
+                    mode === "b2c"
+                      ? "border-brand bg-brand text-white"
+                      : "border-black/[0.14] bg-white text-navy hover:border-brand",
+                  )}
+                >
+                  {t("register_personal")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("b2b")}
+                  className={cn(
+                    "h-11 rounded-md border text-sm font-bold transition-colors",
+                    mode === "b2b"
+                      ? "border-brand bg-brand text-white"
+                      : "border-black/[0.14] bg-white text-navy hover:border-brand",
+                  )}
+                >
+                  {t("register_business")}
+                </button>
+              </div>
+            </div>
+
+            {mode === "b2c" ? (
+              <div className="space-y-1.5">
+                <RequiredLabel htmlFor="reg-name">{t("checkout_full_name")}</RequiredLabel>
+                <Input
+                  id="reg-name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  className={fieldClass}
+                />
+              </div>
+            ) : null}
+
             <div className="space-y-1.5">
               <RequiredLabel htmlFor="reg-email">{t("reg_user_email")}</RequiredLabel>
               <Input
@@ -205,49 +283,73 @@ export default function Register() {
                 className={fieldClass}
               />
             </div>
-            <div className="space-y-1.5">
-              <RequiredLabel htmlFor="reg-nif">{t("reg_nif")}</RequiredLabel>
-              <Input
-                id="reg-nif"
-                required
-                value={vatNumber}
-                onChange={(e) => setVatNumber(e.target.value)}
-                className={fieldClass}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <RequiredLabel htmlFor="reg-company">{t("reg_company_shop")}</RequiredLabel>
-              <Input
-                id="reg-company"
-                required
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder={t("reg_company_placeholder")}
-                className={fieldClass}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <RequiredLabel htmlFor="reg-address">{t("reg_shop_address")}</RequiredLabel>
-              <Input
-                id="reg-address"
-                required
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder={t("reg_address_placeholder")}
-                className={fieldClass}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <RequiredLabel htmlFor="reg-postal">{t("reg_postal")}</RequiredLabel>
-              <Input
-                id="reg-postal"
-                required
-                value={postal}
-                onChange={(e) => setPostal(e.target.value)}
-                className={fieldClass}
-              />
-            </div>
+
+            {mode === "b2b" ? (
+              <>
+                <div className="space-y-1.5">
+                  <RequiredLabel htmlFor="reg-nif">{t("reg_nif")}</RequiredLabel>
+                  <Input
+                    id="reg-nif"
+                    required
+                    value={vatNumber}
+                    onChange={(e) => setVatNumber(e.target.value)}
+                    className={fieldClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <RequiredLabel htmlFor="reg-company">{t("reg_company_shop")}</RequiredLabel>
+                  <Input
+                    id="reg-company"
+                    required
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder={t("reg_company_placeholder")}
+                    className={fieldClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <RequiredLabel htmlFor="reg-biz-type">{t("register_business_type")}</RequiredLabel>
+                  <select
+                    id="reg-biz-type"
+                    value={businessType}
+                    onChange={(e) => setBusinessType(e.target.value)}
+                    className={cn(fieldClass, "w-full px-3")}
+                  >
+                    <option value="repair_shop">{t("register_type_repair")}</option>
+                    <option value="reseller">{t("register_type_reseller")}</option>
+                    <option value="distributor">{t("register_type_distributor")}</option>
+                    <option value="other">{t("register_type_other")}</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <RequiredLabel htmlFor="reg-address">{t("reg_shop_address")}</RequiredLabel>
+                  <Input
+                    id="reg-address"
+                    required
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder={t("reg_address_placeholder")}
+                    className={fieldClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <RequiredLabel htmlFor="reg-postal">{t("reg_postal")}</RequiredLabel>
+                  <Input
+                    id="reg-postal"
+                    required
+                    value={postal}
+                    onChange={(e) => setPostal(e.target.value)}
+                    className={fieldClass}
+                  />
+                </div>
+              </>
+            ) : null}
+
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            {mode === "b2b" ? (
+              <p className="text-sm text-muted-foreground">{t("register_pending_wholesale")}</p>
+            ) : null}
+
             <button
               type="submit"
               disabled={busy}

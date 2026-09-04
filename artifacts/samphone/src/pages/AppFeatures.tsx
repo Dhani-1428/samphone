@@ -79,10 +79,11 @@ const COPY = {
       {
         title: "Business (B2B / wholesale)",
         items: [
-          "Apply with company name, VAT / NIF, address, and business type",
-          "Status: pending, approved, rejected, or suspended",
-          "Approved accounts see wholesale prices",
-          "Dealer levels: Bronze, Standard, Silver, Gold, Platinum",
+          "Apply with company name, VAT / NIF, address, and business type (Personal B2C accounts are ready immediately with retail prices)",
+          "Status: pending, approved, rejected, or suspended — pending/rejected/suspended stay on public prices",
+          "Approve in Admin → Wholesale; emails go out from samphone.cloud (not WordPress)",
+          "Approved accounts see wholesale / API prices; public retail is still stored for admin toggle",
+          "Dealer tiers (extra % off wholesale): Bronze 10%, Standard 12%, Silver 15%, Gold 18%, Platinum 22%",
           "Extra customer-specific discounts when assigned by Samphone",
           "Personal shoppers see normal retail prices",
         ],
@@ -196,10 +197,11 @@ const COPY = {
       {
         title: "Empresas (B2B / grossista)",
         items: [
-          "Candidatura com nome da empresa, NIF/IVA, morada e tipo de negócio",
-          "Estado: pendente, aprovada, rejeitada ou suspensa",
-          "Contas aprovadas veem preços grossista",
-          "Níveis: Bronze, Standard, Silver, Gold, Platinum",
+          "Candidatura com nome da empresa, NIF/IVA, morada e tipo de negócio (contas particulares B2C ficam prontas de imediato com preços de retalho)",
+          "Estado: pendente, aprovada, rejeitada ou suspensa — pendente/rejeitada/suspensa mantêm preços públicos",
+          "Aprovar em Admin → Wholesale; emails saem de samphone.cloud (não do WordPress)",
+          "Contas aprovadas veem preços grossista / API; o retalho público fica guardado para o admin",
+          "Níveis (extra % sobre o grossista): Bronze 10%, Standard 12%, Silver 15%, Gold 18%, Platinum 22%",
           "Descontos extra atribuídos pela Samphone",
           "Clientes particulares veem preços de retalho",
         ],
