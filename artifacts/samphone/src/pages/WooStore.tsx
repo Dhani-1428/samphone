@@ -1,5 +1,6 @@
-import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
+import CatalogLoading from "@/components/CatalogLoading";
 import PageVideoHero from "@/components/PageVideoHero";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
@@ -52,12 +53,7 @@ export default function WooStore() {
           </p>
         )}
 
-        {showBlockingLoader && (
-          <div className="flex flex-col items-center justify-center gap-4 py-24 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("woo_loading")}</p>
-          </div>
-        )}
+        {showBlockingLoader ? <CatalogLoading /> : null}
 
         {!showBlockingLoader && error && (
           <div

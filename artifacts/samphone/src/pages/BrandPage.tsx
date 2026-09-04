@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { motion } from "framer-motion";
-import { Loader2, SlidersHorizontal, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, ChevronUp, Search } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
+import CatalogLoading from "@/components/CatalogLoading";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -530,9 +531,7 @@ export default function BrandPage() {
             <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
 
             {waiting ? (
-              <div className="flex items-center justify-center py-24">
-                <Loader2 className="h-8 w-8 animate-spin text-sam" />
-              </div>
+              <CatalogLoading />
             ) : !woo ? (
               <p className="py-16 text-center text-muted-foreground">
                 No store connected yet.

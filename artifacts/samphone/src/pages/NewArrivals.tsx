@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import CatalogLoading from "@/components/CatalogLoading";
 import CatalogListFilters, {
   applyCatalogListFilters,
   catalogListFilterCount,
@@ -78,11 +78,7 @@ export default function NewArrivals() {
 
   const grid = (
     <>
-      {busy ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden />
-        </div>
-      ) : null}
+      {busy ? <CatalogLoading /> : null}
 
       {woo && !busy && error && rawList.length === 0 ? (
         <p className="py-8 text-center text-sm text-destructive">{error}</p>

@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import CatalogLoading from "@/components/CatalogLoading";
 import {
   CatalogFilterAside,
   CatalogFilterLayout,
@@ -77,11 +77,7 @@ export default function MultiBrand() {
             {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
           </h2>
 
-          {woo && loading && visibleWoo.length === 0 && (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            </div>
-          )}
+          {woo && loading && visibleWoo.length === 0 ? <CatalogLoading /> : null}
 
           {woo && !loading && error && <p className="text-sm text-destructive py-8">{error}</p>}
 

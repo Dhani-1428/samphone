@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
-import { LayoutGrid, Loader2 } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
+import CatalogLoading from "@/components/CatalogLoading";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import {
   CatalogFilterAside,
@@ -147,10 +148,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
             }
           >
             {items == null ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm font-medium">{t("woo_loading")}</p>
-              </div>
+              <CatalogLoading />
             ) : visible.length === 0 ? (
               <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
             ) : (
@@ -169,10 +167,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
         ) : (
           <div>
             {items == null ? (
-              <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm font-medium">{t("woo_loading")}</p>
-              </div>
+              <CatalogLoading />
             ) : visible.length === 0 ? (
               <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
             ) : (

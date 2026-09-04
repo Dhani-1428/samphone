@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import CatalogLoading from "@/components/CatalogLoading";
 import { resolveCatalogProduct } from "@/data/catalog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -107,12 +107,7 @@ export default function ProductPage() {
 
   if (isWooProduct) {
     if (wooLoading) {
-      return (
-        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm">{t("woo_loading")}</p>
-        </div>
-      );
+      return <CatalogLoading />;
     }
     if (!wooProduct || !cartKey) {
       return (

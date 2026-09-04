@@ -9,7 +9,6 @@ import {
   CreditCard,
   Fingerprint,
   LayoutGrid,
-  Loader2,
   Radio,
   Shield,
   Smartphone,
@@ -22,6 +21,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
+import CatalogLoading from "@/components/CatalogLoading";
 import {
   CatalogFilterAside,
   CatalogFilterLayout,
@@ -259,12 +259,7 @@ export default function ModelCatalogPage() {
 
         <CatalogBackLink />
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("woo_loading")}</p>
-          </div>
-        ) : null}
+        {loading ? <CatalogLoading /> : null}
 
         {error && !loading ? <p className="py-8 text-sm text-destructive">{error}</p> : null}
 

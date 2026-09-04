@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import { useLang } from "@/contexts/LanguageContext";
 import { useBrowseBehavior } from "@/contexts/BrowseBehaviorContext";
@@ -22,21 +23,24 @@ export default function RecommendedSection() {
   }, [woo, products]);
   const mockSlice = recommendedProducts.slice(0, 14);
 
+  if (woo && loading && wooSlice.length === 0) {
+    return (
+      <HomeProductRail
+        title={t("favorite_section_title")}
+        subtitle={t("favorite_section_sub")}
+        seeAllHref="/wishlist"
+      >
+        <CatalogLoading compact />
+      </HomeProductRail>
+    );
+  }
+
   const cards =
     woo && wooSlice.length > 0
       ? wooSlice.map((p) => (
           <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
         ))
-      : woo && loading
-        ? [
-            <div
-              key="loading"
-              className="flex h-64 items-center justify-center rounded-xl bg-card text-sm text-muted-foreground"
-            >
-              {t("woo_loading")}
-            </div>,
-          ]
-        : mockSlice.map((p) => <ProductCard key={p.cartKey} {...p} testPrefix="rec" />);
+      : mockSlice.map((p) => <ProductCard key={p.cartKey} {...p} testPrefix="rec" />);
 
   if (!woo && mockSlice.length === 0) return null;
 

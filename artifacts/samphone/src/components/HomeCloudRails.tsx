@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
@@ -15,7 +16,7 @@ const EXTRA_GROUPS = [
 export default function HomeCloudRails() {
   const { t } = useLang();
   const [rails, setRails] = useState<CloudHomeRails | null>(null);
-  const [extra, setExtra] = useState<{ key: string; title: string; group: string; items: WooProduct[] }[]>([]);
+  const [extra, setExtra] = useState<{ key: string; title: string; group: string; items: WooProduct[] }[] | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -47,14 +48,18 @@ export default function HomeCloudRails() {
   const cards = (items: WooProduct[]) =>
     items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
 
+  if (rails == null || extra == null) {
+    return <CatalogLoading compact className="bg-[#F4F6F8]" />;
+  }
+
   return (
     <>
-      {rails && rails.best.length > 0 ? (
+      {rails.best.length > 0 ? (
         <HomeProductRail title={t("home_best_sellers")} seeAllHref="/store">
           {cards(rails.best)}
         </HomeProductRail>
       ) : null}
-      {rails?.sections.map((s) =>
+      {rails.sections.map((s) =>
         s.items.length > 0 ? (
           <HomeProductRail
             key={s.key}

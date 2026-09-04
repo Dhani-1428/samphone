@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import ProductCard from "@/components/ProductCard";
@@ -19,21 +20,22 @@ export default function Products() {
     return pickHomeFeatured(products, 14, 0, excludeNewArrivals);
   }, [woo, products]);
 
+  if (woo && loading && featured.length === 0) {
+    return (
+      <div id="products">
+        <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
+          <CatalogLoading compact />
+        </HomeProductRail>
+      </div>
+    );
+  }
+
   const cards =
     woo && featured.length > 0
       ? featured.map((p) => (
           <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
         ))
-      : woo && loading
-        ? [
-            <div
-              key="loading"
-              className="flex h-64 items-center justify-center rounded-xl bg-card text-sm text-muted-foreground"
-            >
-              {t("woo_loading")}
-            </div>,
-          ]
-        : HOME_PRODUCTS.map((product) => <ProductCard key={product.id} {...product} testPrefix="home" />);
+      : HOME_PRODUCTS.map((product) => <ProductCard key={product.id} {...product} testPrefix="home" />);
 
   return (
     <div id="products">

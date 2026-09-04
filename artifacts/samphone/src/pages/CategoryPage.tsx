@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useParams } from "wouter";
 import { allSlugs } from "@/data/categories";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
+import CatalogLoading from "@/components/CatalogLoading";
 import CatalogListFilters, {
   applyCatalogListFilters,
   catalogListFilterCount,
@@ -202,12 +203,7 @@ export default function CategoryPage() {
           </div>
         )}
 
-        {wooLoading && (
-          <div className="flex flex-col items-center justify-center gap-3 py-20 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("woo_loading")}</p>
-          </div>
-        )}
+        {wooLoading ? <CatalogLoading /> : null}
 
         {!wooLoading && configured && wooList.length > 0 ? (
           <CatalogFilterLayout

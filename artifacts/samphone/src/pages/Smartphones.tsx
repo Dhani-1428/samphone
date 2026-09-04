@@ -3,6 +3,7 @@ import { Search, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import CatalogLoading from "@/components/CatalogLoading";
 import {
   CatalogFilterAside,
   CatalogFilterLayout,
@@ -238,19 +239,9 @@ export default function Smartphones() {
             </p>
           ) : null}
 
-          {showSearchSpinner ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-              <p className="text-sm font-medium">{t("smartphones_search_loading")}</p>
-            </div>
-          ) : null}
+          {showSearchSpinner ? <CatalogLoading label={t("smartphones_search_loading")} /> : null}
 
-          {showCatalogSpinner ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-              <p className="text-sm font-medium">{t("woo_loading")}</p>
-            </div>
-          ) : null}
+          {showCatalogSpinner ? <CatalogLoading /> : null}
 
           {woo &&
           !showCatalogSpinner &&
