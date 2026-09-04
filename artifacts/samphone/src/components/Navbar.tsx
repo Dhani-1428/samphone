@@ -907,12 +907,30 @@ export default function Navbar() {
     motorola: findBrandIdx(["motorola"]),
   };
 
-  const othersActive = menuOpen && openDropdown === "others";
+  const othersActive =
+    (menuOpen && openDropdown === "others") ||
+    location.startsWith("/multi-brand");
   const categoriesActive = menuOpen && openDropdown === "categories";
 
+  const brandRouteActive = (slug: string) => {
+    const path = location.toLowerCase();
+    const s = slug.toLowerCase();
+    if (path.startsWith(`/brand/${s}`)) return true;
+    if (s === "apple") {
+      return path.startsWith("/model/iphone") || path.startsWith("/model/apple") || path.startsWith("/brand/iphone");
+    }
+    if (s === "oppo-reno") {
+      return path.startsWith("/brand/oppo") || path.startsWith("/model/oppo");
+    }
+    if (s === "oneplus") {
+      return path.startsWith("/brand/oneplus") || path.startsWith("/model/oneplus") || path.startsWith("/brand/one-plus");
+    }
+    return path.startsWith(`/model/${s}`);
+  };
+
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase text-white no-underline transition-[background-color] ${
-      active ? "bg-sam" : "bg-transparent hover:bg-sam"
+    `nav-bar-item inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-sm px-2.5 uppercase text-white no-underline transition-[background-color] ${
+      active ? "bg-sam" : "bg-transparent hover:bg-sam/90"
     }`;
 
   return (
@@ -1052,7 +1070,7 @@ export default function Navbar() {
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-all-categories inline-flex h-full shrink-0 items-center gap-2 px-3 text-white transition-[background-color] ${
+              className={`nav-all-categories inline-flex h-8 shrink-0 items-center gap-2 self-center rounded-sm px-3 text-white transition-[background-color] ${
                 categoriesActive
                   ? "bg-sam-dark"
                   : "bg-sam hover:bg-sam-dark"
@@ -1102,14 +1120,17 @@ export default function Navbar() {
                   { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
                 ] as const
               ).map((item) => {
-                const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
+                const active =
+                  (menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx) ||
+                  brandRouteActive(item.slug);
                 return (
                   <button
                     key={item.label}
                     type="button"
                     title="Click to open menu · Double-click to view all products"
                     className={navItemClass(active)}
-                    aria-expanded={active}
+                    aria-expanded={menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx}
+                    aria-current={brandRouteActive(item.slug) ? "page" : undefined}
                     onClick={() => openBrandMenu(item.idx)}
                     onDoubleClick={(e) => {
                       e.preventDefault();
