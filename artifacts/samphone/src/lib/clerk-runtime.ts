@@ -1,9 +1,9 @@
 import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 
 /**
- * Live Clerk keys only work on samphone.cloud (and its subdomains).
- * Test keys (`pk_test_`) can run on localhost. Anywhere else, skip Clerk
- * so the storefront still loads with email/password login.
+ * Live Clerk (`pk_live_` / clerk.samphone.cloud) is allowed on the same hosts
+ * as the Expo app + website CORS list. Test keys (`pk_test_`) work on localhost.
+ * Elsewhere, skip Clerk so the storefront still loads with email/password login.
  */
 export function isClerkEnabled(): boolean {
   const key = CLERK_PUBLISHABLE_KEY.trim();
@@ -11,5 +11,8 @@ export function isClerkEnabled(): boolean {
   if (key.startsWith("pk_test_")) return true;
   if (typeof window === "undefined") return false;
   const host = window.location.hostname.toLowerCase();
-  return host === "samphone.cloud" || host.endsWith(".samphone.cloud");
+  if (host === "localhost" || host === "127.0.0.1") return false;
+  if (host === "samphone.cloud" || host.endsWith(".samphone.cloud")) return true;
+  if (host === "samphone.pt" || host.endsWith(".samphone.pt")) return true;
+  return false;
 }
