@@ -48,12 +48,12 @@
   --font-weight-extrabold: 800;
   --font-weight-black: 900;
 
-  --color-navy: #2D4FA0;
-  --color-utopya: #2D4FA0;
-  --color-sam: #F3B431;
-  --color-sam-dark: #E5A322;
-  --color-brand: #2D4FA0;
-  --color-brand-dark: #244184;
+  --color-navy: #243F9F;
+  --color-utopya: #243F9F;
+  --color-sam: #F2AA3E;
+  --color-sam-dark: #E59A2E;
+  --color-brand: #243F9F;
+  --color-brand-dark: #1D3485;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -209,10 +209,10 @@
 
 .nav-bar-item {
   font-family: "Open Sans", sans-serif;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
   font-weight: 700;
-  font-size: 12px;
-  line-height: 22px;
+  font-size: 13px;
+  line-height: 20px;
   color: #ffffff;
 }
 
@@ -225,9 +225,9 @@
 .nav-all-categories {
   font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
-  line-height: 25px;
+  line-height: 20px;
 }
 
 .typo-topbar {

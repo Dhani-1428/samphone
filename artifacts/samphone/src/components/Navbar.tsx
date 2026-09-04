@@ -997,7 +997,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase tracking-normal text-white no-underline transition-[background-color] ${
+    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-4 uppercase text-white no-underline transition-[background-color] ${
       active ? "bg-sam" : "bg-transparent hover:bg-sam"
     }`;
 
@@ -1133,12 +1133,12 @@ export default function Navbar() {
       </div>
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
-      <nav className="relative z-[55] hidden overflow-visible bg-brand xl:block">
-        <div className={`${navShell} flex h-[46px] items-stretch justify-start gap-x-1`}>
+      <nav className="relative z-[55] hidden w-full overflow-visible bg-brand xl:block">
+        <div className={`${navShell} flex h-[50px] w-full items-stretch justify-start gap-x-1`}>
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-all-categories inline-flex h-full shrink-0 items-center gap-2 px-3.5 uppercase tracking-normal text-white transition-colors ${
+              className={`nav-all-categories inline-flex h-full min-w-[11.5rem] shrink-0 items-center gap-2.5 px-4 text-white transition-[background-color] ${
                 categoriesActive
                   ? "bg-sam-dark"
                   : "bg-sam hover:bg-sam-dark"
@@ -1146,9 +1146,9 @@ export default function Navbar() {
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
             >
-              <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-              {t("nav_all_accessories")}
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+              <Menu className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+              <span className="flex-1 text-left">{t("nav_all_accessories")}</span>
+              <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
             </button>
             <AnimatePresence>
               {categoriesActive ? (
@@ -1169,7 +1169,7 @@ export default function Navbar() {
               ) : null}
             </AnimatePresence>
           </div>
-          <div className="flex min-w-0 flex-1 items-center gap-x-0.5 overflow-x-auto hide-dropdown-scrollbar">
+          <div className="flex min-w-0 flex-1 items-center gap-x-1 overflow-x-auto hide-dropdown-scrollbar">
             <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
               {t("nav_home")}
             </Link>
