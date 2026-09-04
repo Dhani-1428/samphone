@@ -1,6 +1,6 @@
 # Vercel deployment
 
-The storefront on Vercel is a **static SPA** plus **serverless API routes** in `/api` that proxy WooCommerce (same security model as `artifacts/api-server` locally).
+The storefront on Vercel is a **static SPA** plus optional **serverless API routes** in `/api` (legacy Woo proxy). Production catalog, banners, checkout, and auth go through **https://samphone.cloud** (rewritten as `/cloud-api` → `/api`) — same stack as the Expo app. See **`docs/STACK.md`**.
 
 ## Vercel project settings
 
@@ -47,14 +47,19 @@ In **Vercel → Project → Settings → Environment Variables**, add (Productio
 | `WOOCOMMERCE_CONSUMER_KEY` | `ck_...` | Read-only REST key |
 | `WOOCOMMERCE_CONSUMER_SECRET` | `cs_...` | Server-side only |
 
-Optional (storefront display — also set as `VITE_*` if needed at build time):
+Required public `VITE_*` (must match Expo `EXPO_PUBLIC_*` — see `vercel.env.example` / `docs/STACK.md`):
 
 | Variable | Example |
 |----------|---------|
+| `VITE_SAMPHONE_CLOUD_ORIGIN` | `https://samphone.cloud` |
+| `VITE_SAMPHONE_API_URL` | `/cloud-api` |
+| `VITE_CLERK_PUBLISHABLE_KEY` | `pk_live_…` (clerk.samphone.cloud) |
+| `VITE_CLERK_FRONTEND_API` | `https://clerk.samphone.cloud` |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_live_51TsRh0…` |
 | `VITE_WOOCOMMERCE_STORE_URL` | `https://www.samphone.pt` |
 | `VITE_WOOCOMMERCE_CURRENCY_SYMBOL` | `€` |
 
-**Never** set `VITE_WOOCOMMERCE_CONSUMER_KEY` or `VITE_WOOCOMMERCE_CONSUMER_SECRET`.
+**Never** set `VITE_WOOCOMMERCE_CONSUMER_KEY`, `VITE_WOOCOMMERCE_CONSUMER_SECRET`, Clerk/Stripe secrets, JWT, MySQL, SMTP, or DPD on Vercel.
 
 ## How it works
 
