@@ -468,94 +468,8 @@ function OthersMegaPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function AllCategoriesMegaPanel({
-  onClose,
-  onOpenBrand,
-  onOpenOthers,
-  brandIdx,
-}: {
-  onClose: () => void;
-  onOpenBrand: (idx: number) => void;
-  onOpenOthers: () => void;
-  brandIdx: {
-    apple: number;
-    samsung: number;
-    xiaomi: number;
-    oppoReno: number;
-    realme: number;
-    huawei: number;
-    oneplus: number;
-    motorola: number;
-  };
-}) {
-  const { t } = useLang();
-  const rowClass =
-    "flex w-full items-center justify-between gap-3 border-b border-[#E8ECF2] px-4 py-2.5 text-left text-[14px] font-bold uppercase tracking-normal text-[#121826] transition-colors last:border-b-0 hover:bg-[#F7F9FC]";
-
-  const brandTabs = [
-    { label: "Apple", slug: "apple", idx: brandIdx.apple },
-    { label: "Samsung", slug: "samsung", idx: brandIdx.samsung },
-    { label: "Xiaomi", slug: "xiaomi", idx: brandIdx.xiaomi },
-    { label: "Oppo Reno", slug: "oppo-reno", idx: brandIdx.oppoReno },
-    { label: "Realme", slug: "realme", idx: brandIdx.realme },
-    { label: "Huawei", slug: "huawei", idx: brandIdx.huawei },
-    { label: "One Plus", slug: "oneplus", idx: brandIdx.oneplus },
-    { label: "Motorola", slug: "motorola", idx: brandIdx.motorola },
-  ] as const;
-
-  return (
-    <div className="dropdown-type flex max-h-[min(75vh,36rem)] w-[min(22rem,calc(100vw-2rem))] flex-col overflow-hidden bg-white">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <p className="bg-[#F5F5F5] px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-[#6B7280]">
-          {t("nav_browse_by")}
-        </p>
-        <Link href="/" onClick={onClose} className={rowClass}>
-          {t("nav_home")}
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        <Link href="/new" onClick={onClose} className={rowClass}>
-          {t("nav_new")}
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        {brandTabs.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            className={rowClass}
-            onClick={() => onOpenBrand(item.idx)}
-          >
-            {item.label}
-            <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-          </button>
-        ))}
-        <button type="button" className={rowClass} onClick={onOpenOthers}>
-          {t("nav_bar_others")}
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </button>
-        <Link href="/phones" onClick={onClose} className={rowClass}>
-          Smartphones
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        <Link href="/tablets" onClick={onClose} className={rowClass}>
-          Tablets
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        <Link href="/cards" onClick={onClose} className={rowClass}>
-          Cards
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        <Link href="/tools" onClick={onClose} className={rowClass}>
-          Tools
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-
-        <p className="bg-[#F5F5F5] px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-[#6B7280]">
-          {t("nav_bar_accessories")}
-        </p>
-        <AccessoryPageButtons variant="menu" onNavigate={onClose} />
-      </div>
-    </div>
-  );
+function AllAccessoriesMegaPanel({ onClose }: { onClose: () => void }) {
+  return <AccessoryPageButtons variant="mega" onNavigate={onClose} />;
 }
 
 export default function Navbar() {
@@ -1159,17 +1073,12 @@ export default function Navbar() {
                   transition={{ duration: 0.14 }}
                   className="absolute left-0 top-full z-[60] overflow-hidden rounded-b-2xl rounded-tr-2xl border border-black/[0.06] bg-white shadow-[0_22px_55px_rgba(15,23,42,0.16)]"
                 >
-                  <AllCategoriesMegaPanel
-                    onClose={closeMenu}
-                    brandIdx={primaryBrandIdx}
-                    onOpenBrand={(idx) => openBrandMenu(idx, { force: true })}
-                    onOpenOthers={() => openOthersMenu({ force: true })}
-                  />
+                  <AllAccessoriesMegaPanel onClose={closeMenu} />
                 </motion.div>
               ) : null}
             </AnimatePresence>
           </div>
-          <div className="flex min-w-0 flex-1 items-center justify-between gap-x-0 overflow-x-auto hide-dropdown-scrollbar pl-1">
+          <div className="ml-5 flex min-w-0 flex-1 items-center overflow-x-auto hide-dropdown-scrollbar sm:ml-6 md:ml-8">
             <div className="flex min-w-0 items-center">
               <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
                 {t("nav_home")}
