@@ -4,6 +4,12 @@ import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import {
+  CatalogFilterAside,
+  CatalogFilterLayout,
+  FilterSection,
+} from "@/components/CatalogListFilters";
+import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { MULTI_BRAND_FEATURED } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -40,85 +46,89 @@ export default function MultiBrand() {
   const visibleMock = MULTI_BRAND_FEATURED.filter((p) => !selectedBrand || p.brand === selectedBrand);
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#F4F6F8]">
       <MultiBrandHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
-          <button
-            type="button"
-            onClick={() => setSelectedBrand(null)}
-            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
-          >
-            All
-          </button>
-          {brandCards.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
-              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+        <CatalogFilterLayout
+          activeCount={selectedBrand ? 1 : 0}
+          sidebar={
+            <CatalogFilterAside onClear={selectedBrand ? () => setSelectedBrand(null) : undefined}>
+              <FilterSection title="Brand">
+                <div className="flex flex-col gap-2">
+                  <CatalogTypeChip active={selectedBrand === null} onClick={() => setSelectedBrand(null)}>
+                    All
+                  </CatalogTypeChip>
+                  {brandCards.map((b) => (
+                    <CatalogTypeChip
+                      key={b}
+                      active={selectedBrand === b}
+                      onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
+                    >
+                      {b}
+                    </CatalogTypeChip>
+                  ))}
+                </div>
+              </FilterSection>
+            </CatalogFilterAside>
+          }
+        >
+          <h2 className="mb-5 font-display text-xl font-bold text-navy">
+            {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
+          </h2>
+
+          {woo && loading && visibleWoo.length === 0 && (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+            </div>
+          )}
+
+          {woo && !loading && error && <p className="text-sm text-destructive py-8">{error}</p>}
+
+          {woo && !loading && !error && visibleWoo.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg">{selectedBrand ? `No products matched ${selectedBrand} yet.` : t("woo_empty")}</p>
+            </div>
+          )}
+
+          {woo && visibleWoo.length > 0 && (
+            <motion.ul
+              ref={ref}
+              variants={containerVariants}
+              initial="hidden"
+              animate={isInView ? "visible" : "hidden"}
+              className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 p-0"
             >
-              {b}
-            </button>
-          ))}
-        </div>
+              {visibleWoo.map((p) => (
+                <motion.li key={p.id} variants={itemVariants}>
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
 
-        <h2 className="mb-5 font-display text-xl font-bold text-navy">
-          {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
-        </h2>
+          {!woo && (
+            <motion.div
+              ref={ref}
+              variants={containerVariants}
+              initial="hidden"
+              animate={isInView ? "visible" : "hidden"}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
+            >
+              {visibleMock.map((p) => (
+                <motion.div key={p.cartKey} variants={itemVariants}>
+                  <ProductCard {...p} testPrefix="multi" />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
-        {woo && loading && visibleWoo.length === 0 && (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-          </div>
-        )}
-
-        {woo && !loading && error && <p className="text-sm text-destructive py-8">{error}</p>}
-
-        {woo && !loading && !error && visibleWoo.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg">{selectedBrand ? `No products matched ${selectedBrand} yet.` : t("woo_empty")}</p>
-          </div>
-        )}
-
-        {woo && visibleWoo.length > 0 && (
-          <motion.ul
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 p-0"
-          >
-            {visibleWoo.map((p) => (
-              <motion.li key={p.id} variants={itemVariants}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.li>
-            ))}
-          </motion.ul>
-        )}
-
-        {!woo && (
-          <motion.div
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
-          >
-            {visibleMock.map((p) => (
-              <motion.div key={p.cartKey} variants={itemVariants}>
-                <ProductCard {...p} testPrefix="multi" />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {!woo && selectedBrand && visibleMock.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg">No featured products for {selectedBrand} yet.</p>
-          </div>
-        )}
+          {!woo && selectedBrand && visibleMock.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              <p className="text-lg">No featured products for {selectedBrand} yet.</p>
+            </div>
+          )}
+        </CatalogFilterLayout>
       </div>
     </div>
   );

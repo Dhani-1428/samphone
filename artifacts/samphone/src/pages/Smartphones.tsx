@@ -3,6 +3,12 @@ import { Search, Loader2, X } from "lucide-react";
 import { useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import {
+  CatalogFilterAside,
+  CatalogFilterLayout,
+  FilterSection,
+} from "@/components/CatalogListFilters";
+import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
 import { SMARTPHONE_FETCH_QUERIES, TABLET_FETCH_QUERIES } from "@/data/device-catalog";
@@ -12,7 +18,6 @@ import {
   filterCatalogForSmartphonesTab,
   sortByPrice,
 } from "@/lib/woo-product-filters";
-import { cn } from "@/lib/utils";
 
 type DeviceSection = "phones" | "tablets";
 
@@ -60,8 +65,8 @@ export default function Smartphones() {
   }, [routeSection]);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
   }, [searchInput]);
 
   useEffect(() => {
@@ -159,122 +164,116 @@ export default function Smartphones() {
     ? t("smartphones_search_results", { query: debouncedSearch })
     : t("smartphones_parts_heading_default");
 
-  return (
-    <div>
-      <section>
-        <SmartphonesHeader section={section} />
-        <div className="border-t border-black/[0.06]">
-          <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-5 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:px-8 md:px-10 lg:px-14">
-            <div className="flex flex-wrap items-center gap-5">
-              <button
-                type="button"
-                onClick={() => navigate("/phones")}
-                className={cn(
-                  "border-b-2 pb-1 text-sm font-semibold transition-colors",
-                  section === "phones"
-                    ? "border-[#111111] text-navy"
-                    : "border-transparent text-muted-foreground hover:text-navy",
-                )}
-              >
-                {t("smartphones_tab_phones")}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/tablets")}
-                className={cn(
-                  "border-b-2 pb-1 text-sm font-semibold transition-colors",
-                  section === "tablets"
-                    ? "border-[#111111] text-navy"
-                    : "border-transparent text-muted-foreground hover:text-navy",
-                )}
-              >
-                {t("smartphones_tab_tablets")}
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+  const activeCount = (debouncedSearch ? 1 : 0) + (section === "tablets" ? 1 : 0);
 
-      <div className="py-8">
-        <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={t("smartphones_search_brand")}
-                autoComplete="off"
-                enterKeyHint="search"
-                aria-label={t("smartphones_search_brand")}
-                className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#111111]/30"
-              />
-              {searchInput ? (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label={t("smartphones_search_clear")}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </div>
+  return (
+    <div className="min-h-screen bg-[#F4F6F8]">
+      <SmartphonesHeader section={section} />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <h2 className="mb-1 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
-        <p className="mb-6 text-sm text-[#5B6B86]">{countLabel}</p>
+        <CatalogFilterLayout
+          activeCount={activeCount}
+          sidebar={
+            <CatalogFilterAside
+              onClear={
+                debouncedSearch || section === "tablets"
+                  ? () => {
+                      clearSearch();
+                      navigate("/phones");
+                    }
+                  : undefined
+              }
+            >
+              <FilterSection title="Device">
+                <div className="flex flex-col gap-2">
+                  <CatalogTypeChip active={section === "phones"} onClick={() => navigate("/phones")}>
+                    {t("smartphones_tab_phones")}
+                  </CatalogTypeChip>
+                  <CatalogTypeChip active={section === "tablets"} onClick={() => navigate("/tablets")}>
+                    {t("smartphones_tab_tablets")}
+                  </CatalogTypeChip>
+                </div>
+              </FilterSection>
+              <FilterSection title="Search">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="search"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder={t("smartphones_search_brand")}
+                    autoComplete="off"
+                    enterKeyHint="search"
+                    aria-label={t("smartphones_search_brand")}
+                    className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
+                  />
+                  {searchInput ? (
+                    <button
+                      type="button"
+                      onClick={clearSearch}
+                      className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+                      aria-label={t("smartphones_search_clear")}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+              </FilterSection>
+            </CatalogFilterAside>
+          }
+        >
+          <h2 className="mb-1 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
+          <p className="mb-6 text-sm text-[#5B6B86]">{countLabel}</p>
 
-        {showSyncBanner && (
-          <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" aria-hidden />
-            {t("woo_syncing_more")}
-          </p>
-        )}
+          {showSyncBanner ? (
+            <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" aria-hidden />
+              {t("woo_syncing_more")}
+            </p>
+          ) : null}
 
-        {searchError && (
-          <p className="mb-4 text-sm text-destructive" role="alert">
-            {searchError}
-          </p>
-        )}
+          {searchError ? (
+            <p className="mb-4 text-sm text-destructive" role="alert">
+              {searchError}
+            </p>
+          ) : null}
 
-        {showSearchSpinner && (
-          <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("smartphones_search_loading")}</p>
-          </div>
-        )}
+          {showSearchSpinner ? (
+            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+              <p className="text-sm font-medium">{t("smartphones_search_loading")}</p>
+            </div>
+          ) : null}
 
-        {showCatalogSpinner && (
-          <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
-            <p className="text-sm font-medium">{t("woo_loading")}</p>
-          </div>
-        )}
+          {showCatalogSpinner ? (
+            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+              <p className="text-sm font-medium">{t("woo_loading")}</p>
+            </div>
+          ) : null}
 
-        {woo &&
+          {woo &&
           !showCatalogSpinner &&
           !showSearchSpinner &&
           !searchError &&
-          displayList.length === 0 && <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>}
+          displayList.length === 0 ? (
+            <p className="py-16 text-sm text-muted-foreground">{t("woo_empty")}</p>
+          ) : null}
 
-        {woo && !showSearchSpinner && !showCatalogSpinner && displayList.length > 0 && (
-          <ul className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6">
-            {displayList.map((p) => (
-              <li key={p.cloudId || `${p.id}-${p.slug}`}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </li>
-            ))}
-          </ul>
-        )}
+          {woo && !showSearchSpinner && !showCatalogSpinner && displayList.length > 0 ? (
+            <ul className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+              {displayList.map((p) => (
+                <li key={p.cloudId || `${p.id}-${p.slug}`}>
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
-        {!woo && (
-          <p className="py-16 text-sm text-muted-foreground">{t("smartphones_tablets_catalog_hint")}</p>
-        )}
+          {!woo ? (
+            <p className="py-16 text-sm text-muted-foreground">{t("smartphones_tablets_catalog_hint")}</p>
+          ) : null}
+        </CatalogFilterLayout>
       </div>
     </div>
   );

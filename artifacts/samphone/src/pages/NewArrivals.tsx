@@ -6,6 +6,8 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogListFilters, {
   applyCatalogListFilters,
+  catalogListFilterCount,
+  CatalogFilterLayout,
   EMPTY_CATALOG_LIST_FILTERS,
   type CatalogListFilterState,
 } from "@/components/CatalogListFilters";
@@ -72,73 +74,87 @@ export default function NewArrivals() {
   const list = useMemo(() => applyCatalogListFilters(rawList, filters), [rawList, filters]);
 
   const busy = (cloudLoading && rawList.length === 0) || (woo && loading && rawList.length === 0);
+  const showFilters = !busy && rawList.length > 0;
+
+  const grid = (
+    <>
+      {busy ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden />
+        </div>
+      ) : null}
+
+      {woo && !busy && error && rawList.length === 0 ? (
+        <p className="py-8 text-center text-sm text-destructive">{error}</p>
+      ) : null}
+
+      {!busy && rawList.length === 0 && woo ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
+      ) : null}
+
+      {!busy && rawList.length > 0 && list.length === 0 ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
+      ) : null}
+
+      {list.length > 0 ? (
+        <motion.ul
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-4 xl:grid-cols-5"
+        >
+          {list.map((p) => (
+            <motion.li key={p.id} variants={itemVariants}>
+              <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+            </motion.li>
+          ))}
+        </motion.ul>
+      ) : null}
+
+      {!woo && !busy && rawList.length === 0 ? (
+        <motion.div
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
+        >
+          {NEW_ARRIVALS_PRODUCTS.map((p) => {
+            const { daysAgo: _daysAgo, ...card } = p;
+            return (
+              <motion.div key={p.cartKey} variants={itemVariants}>
+                <ProductCard {...card} testPrefix="new" />
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      ) : null}
+    </>
+  );
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#F4F6F8]">
       <NewArrivalsHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        {!busy && rawList.length > 0 ? (
-          <CatalogListFilters
-            filters={filters}
-            onChange={setFilters}
-            resultCount={list.length}
-            searchPlaceholder="Search new arrivals…"
-          />
-        ) : null}
-
-        {busy ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden />
-          </div>
-        ) : null}
-
-        {woo && !busy && error && rawList.length === 0 ? (
-          <p className="py-8 text-center text-sm text-destructive">{error}</p>
-        ) : null}
-
-        {!busy && rawList.length === 0 && woo ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
-        ) : null}
-
-        {!busy && rawList.length > 0 && list.length === 0 ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
-        ) : null}
-
-        {list.length > 0 ? (
-          <motion.ul
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
+        {showFilters ? (
+          <CatalogFilterLayout
+            activeCount={catalogListFilterCount(filters)}
+            sidebar={
+              <CatalogListFilters
+                filters={filters}
+                onChange={setFilters}
+                resultCount={list.length}
+                searchPlaceholder="Search new arrivals…"
+              />
+            }
           >
-            {list.map((p) => (
-              <motion.li key={p.id} variants={itemVariants}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.li>
-            ))}
-          </motion.ul>
-        ) : null}
-
-        {!woo && !busy && rawList.length === 0 ? (
-          <motion.div
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
-          >
-            {NEW_ARRIVALS_PRODUCTS.map((p) => {
-              const { daysAgo: _daysAgo, ...card } = p;
-              return (
-                <motion.div key={p.cartKey} variants={itemVariants}>
-                  <ProductCard {...card} testPrefix="new" />
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        ) : null}
+            {grid}
+          </CatalogFilterLayout>
+        ) : (
+          grid
+        )}
       </div>
     </div>
   );

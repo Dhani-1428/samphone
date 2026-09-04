@@ -3,6 +3,11 @@ import { Link } from "wouter";
 import { ArrowRight, Search, X } from "lucide-react";
 import CatalogImage from "@/components/CatalogImage";
 import { CatalogTypeChip } from "@/components/CatalogPageChrome";
+import {
+  CatalogFilterAside,
+  CatalogFilterLayout,
+  FilterSection,
+} from "@/components/CatalogListFilters";
 import { groupIcon } from "@/components/AccessoryFilterChip";
 import { useLang } from "@/contexts/LanguageContext";
 import {
@@ -73,6 +78,8 @@ export default function Categories({
     });
   }, [query, activeGroup]);
 
+  const activeCount = (query.trim() ? 1 : 0) + (activeGroup ? 1 : 0);
+
   return (
     <section id="categories" className="bg-[#F5F5F5] py-10 md:py-14">
       <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
@@ -97,97 +104,110 @@ export default function Categories({
           </div>
         ) : null}
 
-        <div className="mb-6 rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
-          <div className="relative w-full md:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search accessories…"
-              autoComplete="off"
-              className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sam/30"
-              aria-label="Search accessories"
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <CatalogTypeChip
-              active={activeGroup == null}
-              onClick={() => setActiveGroup(null)}
+        <CatalogFilterLayout
+          activeCount={activeCount}
+          sidebar={
+            <CatalogFilterAside
+              onClear={
+                activeCount > 0
+                  ? () => {
+                      setQuery("");
+                      setActiveGroup(null);
+                    }
+                  : undefined
+              }
             >
-              All
-            </CatalogTypeChip>
-            {ACCESSORY_NAV_PAGES.map((page) => (
-              <CatalogTypeChip
-                key={page.group}
-                active={activeGroup === page.group}
-                onClick={() =>
-                  setActiveGroup(activeGroup === page.group ? null : page.group)
-                }
-                icon={groupIcon(page.group)}
-              >
-                {page.label}
-              </CatalogTypeChip>
-            ))}
-          </div>
-
-          <p className="mt-3 text-sm text-muted-foreground">
-            {visiblePages.length} {t("home_accessories_items")}
-          </p>
-        </div>
-
-        {visiblePages.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">No categories match your filters.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {visiblePages.map((page, i) => {
-              const data = tiles[page.group];
-              const countLabel =
-                data && data.count > 0 ? `${data.count} ${t("home_accessories_items")}` : "\u00a0";
-              const Icon = groupIcon(page.group);
-              return (
-                <Link
-                  key={page.group}
-                  href={accessoryPageHref(page.group)}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-[0_4px_14px_rgba(45,79,160,0.06)] transition-all hover:-translate-y-0.5 hover:border-sam hover:shadow-[0_12px_28px_rgba(45,79,160,0.12)]"
-                  data-testid={`card-category-${i}`}
-                >
-                  <span className="relative flex aspect-square items-center justify-center bg-[#F7F8FA] p-4">
-                    {data?.img ? (
-                      <CatalogImage
-                        src={data.img}
-                        alt={page.label}
-                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-sam text-white">
-                        <Icon className="h-7 w-7" strokeWidth={1.8} />
-                      </span>
-                    )}
-                  </span>
-                  <span className="flex flex-1 flex-col px-3 pb-3.5 pt-3">
-                    <h3 className="text-[14px] font-extrabold leading-tight text-brand sm:text-[15px]">
+              <FilterSection title="Search">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search accessories…"
+                    autoComplete="off"
+                    className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
+                    aria-label="Search accessories"
+                  />
+                  {query ? (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {visiblePages.length} {t("home_accessories_items")}
+                </p>
+              </FilterSection>
+              <FilterSection title="Category">
+                <div className="flex max-h-80 flex-col gap-2 overflow-y-auto pr-1">
+                  <CatalogTypeChip active={activeGroup == null} onClick={() => setActiveGroup(null)}>
+                    All
+                  </CatalogTypeChip>
+                  {ACCESSORY_NAV_PAGES.map((page) => (
+                    <CatalogTypeChip
+                      key={page.group}
+                      active={activeGroup === page.group}
+                      onClick={() =>
+                        setActiveGroup(activeGroup === page.group ? null : page.group)
+                      }
+                      icon={groupIcon(page.group)}
+                    >
                       {page.label}
-                    </h3>
-                    <p className="mt-1 text-[12px] font-medium text-[#8B93A3]">{countLabel}</p>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+                    </CatalogTypeChip>
+                  ))}
+                </div>
+              </FilterSection>
+            </CatalogFilterAside>
+          }
+        >
+          {visiblePages.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No categories match your filters.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {visiblePages.map((page, i) => {
+                const data = tiles[page.group];
+                const countLabel =
+                  data && data.count > 0 ? `${data.count} ${t("home_accessories_items")}` : "\u00a0";
+                const Icon = groupIcon(page.group);
+                return (
+                  <Link
+                    key={page.group}
+                    href={accessoryPageHref(page.group)}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-[0_4px_14px_rgba(45,79,160,0.06)] transition-all hover:-translate-y-0.5 hover:border-sam hover:shadow-[0_12px_28px_rgba(45,79,160,0.12)]"
+                    data-testid={`card-category-${i}`}
+                  >
+                    <span className="relative flex aspect-square items-center justify-center bg-[#F7F8FA] p-4">
+                      {data?.img ? (
+                        <CatalogImage
+                          src={data.img}
+                          alt={page.label}
+                          className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-sam text-white">
+                          <Icon className="h-7 w-7" strokeWidth={1.8} />
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex flex-1 flex-col px-3 pb-3.5 pt-3">
+                      <h3 className="text-[14px] font-extrabold leading-tight text-brand sm:text-[15px]">
+                        {page.label}
+                      </h3>
+                      <p className="mt-1 text-[12px] font-medium text-[#8B93A3]">{countLabel}</p>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </CatalogFilterLayout>
       </div>
     </section>
   );

@@ -4,6 +4,11 @@ import { LayoutGrid, Loader2 } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
+import {
+  CatalogFilterAside,
+  CatalogFilterLayout,
+  FilterSection,
+} from "@/components/CatalogListFilters";
 import { groupIcon, subtypeIcon } from "@/components/AccessoryFilterChip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -110,52 +115,80 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
 
         <CatalogBackLink />
 
-        <section>
-          <CatalogSectionHeading
-            icon={groupIcon(page?.group ?? title)}
-            title={page && page.subtypes.length > 0 ? copy.typesLabel : title}
-            hint={headingHint}
-          />
-          {page && page.subtypes.length > 0 ? (
-            <div className="mb-6 flex flex-wrap gap-2">
-              <CatalogTypeChip active={!subtype} onClick={goAll} icon={LayoutGrid}>
-                {t("model_filter_all")}
-              </CatalogTypeChip>
-              {page.subtypes.map((s) => (
-                <CatalogTypeChip
-                  key={s.label}
-                  active={subtype?.label === s.label}
-                  onClick={() => goType(s.label)}
-                  icon={subtypeIcon(s.label)}
-                >
-                  {s.label}
-                </CatalogTypeChip>
-              ))}
-            </div>
-          ) : null}
-        </section>
+        <CatalogSectionHeading
+          icon={groupIcon(page?.group ?? title)}
+          title={page && page.subtypes.length > 0 ? copy.typesLabel : title}
+          hint={headingHint}
+        />
 
-        <div>
-          {items == null ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-sm font-medium">{t("woo_loading")}</p>
-            </div>
-          ) : visible.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
-          ) : (
-            <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
-              {visible.map((p) => (
-                <WooProductCard
-                  key={p.cloudId || `${p.id}-${p.slug}`}
-                  product={p}
-                  priceUnavailableLabel={t("woo_price_na")}
-                  compact
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {page && page.subtypes.length > 0 ? (
+          <CatalogFilterLayout
+            activeCount={subtype ? 1 : 0}
+            sidebar={
+              <CatalogFilterAside onClear={subtype ? goAll : undefined}>
+                <FilterSection title={copy.typesLabel}>
+                  <div className="flex flex-col gap-2">
+                    <CatalogTypeChip active={!subtype} onClick={goAll} icon={LayoutGrid}>
+                      {t("model_filter_all")}
+                    </CatalogTypeChip>
+                    {page.subtypes.map((s) => (
+                      <CatalogTypeChip
+                        key={s.label}
+                        active={subtype?.label === s.label}
+                        onClick={() => goType(s.label)}
+                        icon={subtypeIcon(s.label)}
+                      >
+                        {s.label}
+                      </CatalogTypeChip>
+                    ))}
+                  </div>
+                </FilterSection>
+              </CatalogFilterAside>
+            }
+          >
+            {items == null ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm font-medium">{t("woo_loading")}</p>
+              </div>
+            ) : visible.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
+            ) : (
+              <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+                {visible.map((p) => (
+                  <WooProductCard
+                    key={p.cloudId || `${p.id}-${p.slug}`}
+                    product={p}
+                    priceUnavailableLabel={t("woo_price_na")}
+                    compact
+                  />
+                ))}
+              </div>
+            )}
+          </CatalogFilterLayout>
+        ) : (
+          <div>
+            {items == null ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm font-medium">{t("woo_loading")}</p>
+              </div>
+            ) : visible.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
+            ) : (
+              <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+                {visible.map((p) => (
+                  <WooProductCard
+                    key={p.cloudId || `${p.id}-${p.slug}`}
+                    product={p}
+                    priceUnavailableLabel={t("woo_price_na")}
+                    compact
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

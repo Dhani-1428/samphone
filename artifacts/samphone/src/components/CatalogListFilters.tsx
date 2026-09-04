@@ -1,4 +1,5 @@
-import { Search, X } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from "lucide-react";
 import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { productSearchHaystack } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
@@ -66,12 +67,103 @@ export function catalogListFilterCount(filters: CatalogListFilterState): number 
   );
 }
 
+export function FilterSection({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border-b border-black/[0.07] pb-4">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between py-3 text-[13px] font-bold uppercase tracking-wide text-black"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {title}
+        {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+      {open ? <div className="mt-1 space-y-2">{children}</div> : null}
+    </div>
+  );
+}
+
+/** Brand-page style: mobile toggle + sticky left sidebar + main column. */
+export function CatalogFilterLayout({
+  activeCount,
+  sidebar,
+  children,
+}: {
+  activeCount: number;
+  sidebar: ReactNode;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className="mb-4 flex w-full items-center gap-2 rounded-lg border border-black/[0.12] bg-white px-4 py-2 text-sm font-semibold lg:hidden"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <SlidersHorizontal className="h-4 w-4" />
+        Filters
+        {activeCount > 0 ? (
+          <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-sam text-[11px] text-white">
+            {activeCount}
+          </span>
+        ) : null}
+        {open ? <ChevronUp className="ml-auto h-4 w-4" /> : <ChevronDown className="ml-auto h-4 w-4" />}
+      </button>
+
+      {open ? <div className="mb-4 lg:hidden">{sidebar}</div> : null}
+
+      <div className="flex gap-6">
+        <div className="hidden shrink-0 lg:block">{sidebar}</div>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </>
+  );
+}
+
+export function CatalogFilterAside({
+  children,
+  onClear,
+  title = "Filters",
+}: {
+  children: ReactNode;
+  onClear?: () => void;
+  title?: string;
+}) {
+  return (
+    <aside className="w-full shrink-0 lg:w-60 xl:w-64">
+      <div className="rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm lg:sticky lg:top-24">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[15px] font-bold text-black">{title}</span>
+          {onClear ? (
+            <button type="button" className="text-[12px] text-sam hover:underline" onClick={onClear}>
+              Clear all
+            </button>
+          ) : null}
+        </div>
+        {children}
+      </div>
+    </aside>
+  );
+}
+
 type Props = {
   filters: CatalogListFilterState;
   onChange: (next: CatalogListFilterState) => void;
   resultCount?: number;
   searchPlaceholder?: string;
   className?: string;
+  /** Extra sections (e.g. brand / type chips) rendered above the common filters. */
+  extraSections?: ReactNode;
 };
 
 export default function CatalogListFilters({
@@ -80,119 +172,120 @@ export default function CatalogListFilters({
   resultCount,
   searchPlaceholder = "Search products…",
   className,
+  extraSections,
 }: Props) {
   const active = catalogListFilterCount(filters);
 
   return (
-    <div
-      className={cn(
-        "mb-6 rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm",
-        className,
-      )}
+    <CatalogFilterAside
+      onClear={active > 0 ? () => onChange({ ...EMPTY_CATALOG_LIST_FILTERS }) : undefined}
     >
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:max-w-md">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={filters.query}
-            onChange={(e) => onChange({ ...filters, query: e.target.value })}
-            placeholder={searchPlaceholder}
-            autoComplete="off"
-            className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sam/30"
-            aria-label={searchPlaceholder}
-          />
-          {filters.query ? (
-            <button
-              type="button"
-              onClick={() => onChange({ ...filters, query: "" })}
-              className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-              aria-label="Clear search"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
+      <div className={cn(className)}>
+        {extraSections}
 
-        <div className="flex flex-wrap items-center gap-2">
+        <FilterSection title="Search">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
+            <input
+              type="search"
+              value={filters.query}
+              onChange={(e) => onChange({ ...filters, query: e.target.value })}
+              placeholder={searchPlaceholder}
+              autoComplete="off"
+              className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
+              aria-label={searchPlaceholder}
+            />
+            {filters.query ? (
+              <button
+                type="button"
+                onClick={() => onChange({ ...filters, query: "" })}
+                className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </div>
           {typeof resultCount === "number" ? (
-            <span className="text-sm text-muted-foreground">{resultCount} results</span>
+            <p className="text-xs text-muted-foreground">{resultCount} results</p>
           ) : null}
-          {active > 0 ? (
-            <button
-              type="button"
-              className="text-sm font-semibold text-sam hover:underline"
-              onClick={() => onChange({ ...EMPTY_CATALOG_LIST_FILTERS })}
-            >
-              Clear filters
-            </button>
-          ) : null}
-        </div>
+        </FilterSection>
+
+        <FilterSection title="Availability">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={filters.inStock}
+              onChange={(e) => onChange({ ...filters, inStock: e.target.checked })}
+              className="accent-sam"
+            />
+            In stock only
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={filters.onSale}
+              onChange={(e) => onChange({ ...filters, onSale: e.target.checked })}
+              className="accent-sam"
+            />
+            On sale
+          </label>
+        </FilterSection>
+
+        <FilterSection title="Price range">
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              step={1}
+              placeholder="Min"
+              value={filters.minPrice ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...filters,
+                  minPrice: e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
+            />
+            <span className="text-muted-foreground">–</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              placeholder="Max"
+              value={filters.maxPrice ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...filters,
+                  maxPrice: e.target.value === "" ? null : Number(e.target.value),
+                })
+              }
+              className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
+            />
+          </div>
+        </FilterSection>
+
+        <FilterSection title="Sort" defaultOpen={false}>
+          <div className="flex flex-col gap-2">
+            {(
+              [
+                ["newest", "Newest"],
+                ["price-asc", "Price: low to high"],
+                ["price-desc", "Price: high to low"],
+              ] as const
+            ).map(([value, label]) => (
+              <CatalogTypeChip
+                key={value}
+                active={filters.sort === value}
+                onClick={() => onChange({ ...filters, sort: value })}
+              >
+                {label}
+              </CatalogTypeChip>
+            ))}
+          </div>
+        </FilterSection>
       </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <CatalogTypeChip
-          active={filters.inStock}
-          onClick={() => onChange({ ...filters, inStock: !filters.inStock })}
-        >
-          In stock
-        </CatalogTypeChip>
-        <CatalogTypeChip
-          active={filters.onSale}
-          onClick={() => onChange({ ...filters, onSale: !filters.onSale })}
-        >
-          On sale
-        </CatalogTypeChip>
-
-        <label className="inline-flex items-center gap-1.5 text-sm text-navy">
-          <span className="text-muted-foreground">Min €</span>
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={filters.minPrice ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...filters,
-                minPrice: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
-            className="w-20 rounded-md border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
-          />
-        </label>
-        <label className="inline-flex items-center gap-1.5 text-sm text-navy">
-          <span className="text-muted-foreground">Max €</span>
-          <input
-            type="number"
-            min={0}
-            step={1}
-            value={filters.maxPrice ?? ""}
-            onChange={(e) =>
-              onChange({
-                ...filters,
-                maxPrice: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
-            className="w-20 rounded-md border border-border px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
-          />
-        </label>
-
-        <select
-          value={filters.sort}
-          onChange={(e) =>
-            onChange({
-              ...filters,
-              sort: e.target.value as CatalogListFilterState["sort"],
-            })
-          }
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-navy focus:outline-none focus:ring-2 focus:ring-sam/30"
-          aria-label="Sort products"
-        >
-          <option value="newest">Newest</option>
-          <option value="price-asc">Price: low to high</option>
-          <option value="price-desc">Price: high to low</option>
-        </select>
-      </div>
-    </div>
+    </CatalogFilterAside>
   );
 }
