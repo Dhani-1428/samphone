@@ -36,7 +36,10 @@ import {
   HUAWEI_NOVA_SERIES_MODELS,
   ONEPLUS_SERIES_MODELS,
   ONEPLUS_NORD_SERIES_MODELS,
-  MOTOROLA_SERIES_MODELS,
+  MOTOROLA_G_SERIES_MODELS,
+  MOTOROLA_EDGE_SERIES_MODELS,
+  MOTOROLA_E_SERIES_MODELS,
+  MOTOROLA_ONE_SERIES_MODELS,
   ALCATEL_SERIES_MODELS,
   TCL_SERIES_MODELS,
   ZTE_SERIES_MODELS,
@@ -276,6 +279,12 @@ function isHuaweiBrand(brand: NavBrandGroup) {
   return slug === "huawei-parts" || label === "huawei";
 }
 
+function isMotorolaBrand(brand: NavBrandGroup) {
+  const slug = brand.brand.slug.toLowerCase();
+  const label = brand.brand.label.toLowerCase();
+  return slug === "motorola-parts" || slug.includes("motorola") || label === "motorola";
+}
+
 function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][][] {
   const bySlug = new Map(families.map((family) => [family.slug, family]));
   const pick = (...slugs: string[]) =>
@@ -321,6 +330,16 @@ function packMegaRows(brand: NavBrandGroup, families: NavFamily[]): NavFamily[][
     return row.length ? [row] : [families.map((family) => [family])];
   }
 
+  if (isMotorolaBrand(brand)) {
+    const row = [
+      pick("g-series"),
+      pick("edge-series"),
+      pick("e-series"),
+      pick("one-series"),
+    ].filter((col) => col.length > 0);
+    return row.length ? [row] : [families.map((family) => [family])];
+  }
+
   return [families.map((family) => [family])];
 }
 
@@ -354,7 +373,7 @@ function BrandMegaPanel({
   const brandRoute = catalogBrandForModelRoutes(brand.brand.slug);
   const rows = packMegaRows(brand, families);
   const apple = isAppleBrand(brand);
-  const fourCol = isSamsungBrand(brand) || isXiaomiBrand(brand);
+  const fourCol = isSamsungBrand(brand) || isXiaomiBrand(brand) || isMotorolaBrand(brand);
 
   return (
     <div className={`${navShell} dropdown-type bg-white py-6 dark:bg-[#12192A]`}>
@@ -782,9 +801,24 @@ export default function Navbar() {
           : base.toLowerCase() === "motorola"
             ? [
                 {
-                  label: "Motorola",
-                  slug: "motorola-series",
-                  children: makeFamilyChildren(b.slug, "motorola-series", MOTOROLA_SERIES_MODELS),
+                  label: "G series",
+                  slug: "g-series",
+                  children: makeFamilyChildren(b.slug, "g-series", MOTOROLA_G_SERIES_MODELS),
+                },
+                {
+                  label: "Edge series",
+                  slug: "edge-series",
+                  children: makeFamilyChildren(b.slug, "edge-series", MOTOROLA_EDGE_SERIES_MODELS),
+                },
+                {
+                  label: "E series",
+                  slug: "e-series",
+                  children: makeFamilyChildren(b.slug, "e-series", MOTOROLA_E_SERIES_MODELS),
+                },
+                {
+                  label: "One series",
+                  slug: "one-series",
+                  children: makeFamilyChildren(b.slug, "one-series", MOTOROLA_ONE_SERIES_MODELS),
                 },
               ]
           : base.toLowerCase() === "alcatel"

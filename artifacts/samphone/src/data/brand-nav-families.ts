@@ -70,7 +70,10 @@ const HONOR_FAMILIES: BrandNavFamily[] = [
 ];
 
 const MOTOROLA_FAMILIES: BrandNavFamily[] = [
-  { id: "motorola-series", label: "Motorola", test: (h) => /\b(motorola|moto)\b/.test(h), models: [] },
+  { id: "g-series", label: "G series", test: (h) => /\b(moto\s*)?g\s*\d|\bg\s*(play|power|plus|5g)\b/.test(h) && !/\bedge\b/.test(h), models: [] },
+  { id: "edge-series", label: "Edge series", test: (h) => /\bedge\b/.test(h), models: [] },
+  { id: "e-series", label: "E series", test: (h) => /\b(moto\s*)?e\s*\d/.test(h) && !/\bedge\b/.test(h), models: [] },
+  { id: "one-series", label: "One series", test: (h) => /\b(moto\s*)?one\b/.test(h), models: [] },
 ];
 
 const ONEPLUS_FAMILIES: BrandNavFamily[] = [

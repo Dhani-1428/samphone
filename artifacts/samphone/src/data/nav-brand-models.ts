@@ -1053,7 +1053,7 @@ export const ONEPLUS_NORD_SERIES_MODELS = [
   "OnePlus Nord",
 ];
 
-export const MOTOROLA_SERIES_MODELS = [
+export const MOTOROLA_G_SERIES_MODELS = [
   "Motorola G 5G",
   "Motorola G 5G PLUS",
   "Motorola G PLAY 2021 XT2093",
@@ -1075,37 +1075,12 @@ export const MOTOROLA_SERIES_MODELS = [
   "Motorola G13",
   "Motorola G14 / G54",
   "Motorola G20 XT2128-1 / XT2128-2",
-  "Motorola E32 / E32S",
-  "Motorola E30 (XT2158-6 XT2159-2)",
-  "Motorola ONE / P30 PLAY / XT1941",
-  "Motorola ONE FUSION",
-  "Motorola ONE FUSION PLUS",
-  "Motorola MOTO ONE ACTION",
-  "Motorola EDGE 20 / EDGE 20 PRO",
-  "Motorola EDGE 30 FUSION",
-  "Motorola EDGE 20 LITE",
-  "Motorola ONE HYPER XT2027-1",
-  "Motorola EDGE 50",
-  "Motorola EDGE 50 NEO",
-  "Motorola EDGE 50 PRO",
-  "Motorola EDGE 50 FUSION",
-  "Motorola EDGE 50 ULTRA",
   "Motorola G53 5G",
   "Motorola G51 5G / G60 / G60S XT2133-2",
   "Motorola G50 4G XT2137-1 / XT2137-2",
   "Motorola G34 5G XT2363-2",
   "Motorola G31 / G41 / G71 5G",
   "Motorola MOTO G23",
-  "Motorola MOTO E22 / E22i (XT2239)",
-  "Motorola E20 (XT-2155 / XT2155-3)",
-  "Motorola E15",
-  "Motorola E14 (2024)",
-  "Motorola E13 4G (2023)",
-  "Motorola E7 PLUS / G9 PLAY",
-  "Motorola E7 POWER",
-  "Motorola E7 / E7 2020",
-  "Motorola E6 PLUS",
-  "Motorola E5",
   "Motorola G200 5G",
   "Motorola G100",
   "Motorola G85 5G",
@@ -1118,6 +1093,48 @@ export const MOTOROLA_SERIES_MODELS = [
   "Motorola G32",
   "Motorola G30 XT2129-1 / XT2129-2",
   "Motorola G22 / E32S / E32",
+];
+
+export const MOTOROLA_EDGE_SERIES_MODELS = [
+  "Motorola EDGE 20 / EDGE 20 PRO",
+  "Motorola EDGE 20 LITE",
+  "Motorola EDGE 30 FUSION",
+  "Motorola EDGE 50",
+  "Motorola EDGE 50 NEO",
+  "Motorola EDGE 50 PRO",
+  "Motorola EDGE 50 FUSION",
+  "Motorola EDGE 50 ULTRA",
+];
+
+export const MOTOROLA_E_SERIES_MODELS = [
+  "Motorola E32 / E32S",
+  "Motorola E30 (XT2158-6 XT2159-2)",
+  "Motorola MOTO E22 / E22i (XT2239)",
+  "Motorola E20 (XT-2155 / XT2155-3)",
+  "Motorola E15",
+  "Motorola E14 (2024)",
+  "Motorola E13 4G (2023)",
+  "Motorola E7 PLUS / G9 PLAY",
+  "Motorola E7 POWER",
+  "Motorola E7 / E7 2020",
+  "Motorola E6 PLUS",
+  "Motorola E5",
+];
+
+export const MOTOROLA_ONE_SERIES_MODELS = [
+  "Motorola ONE / P30 PLAY / XT1941",
+  "Motorola ONE FUSION",
+  "Motorola ONE FUSION PLUS",
+  "Motorola MOTO ONE ACTION",
+  "Motorola ONE HYPER XT2027-1",
+];
+
+/** @deprecated Prefer series-specific Motorola lists */
+export const MOTOROLA_SERIES_MODELS = [
+  ...MOTOROLA_G_SERIES_MODELS,
+  ...MOTOROLA_EDGE_SERIES_MODELS,
+  ...MOTOROLA_E_SERIES_MODELS,
+  ...MOTOROLA_ONE_SERIES_MODELS,
 ];
 
 export const ALCATEL_SERIES_MODELS = [
