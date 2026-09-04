@@ -513,6 +513,10 @@ function AllCategoriesMegaPanel({
           {t("nav_home")}
           <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
         </Link>
+        <Link href="/new" onClick={onClose} className={rowClass}>
+          {t("nav_new")}
+          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
+        </Link>
         {brandTabs.map((item) => (
           <button
             key={item.label}
@@ -542,10 +546,6 @@ function AllCategoriesMegaPanel({
         </Link>
         <Link href="/tools" onClick={onClose} className={rowClass}>
           Tools
-          <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
-        </Link>
-        <Link href="/new" onClick={onClose} className={rowClass}>
-          {t("nav_new")}
           <ChevronDown className="h-3.5 w-3.5 -rotate-90 text-[#C9CED6]" aria-hidden />
         </Link>
 
@@ -1174,6 +1174,13 @@ export default function Navbar() {
               <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
                 {t("nav_home")}
               </Link>
+              <Link
+                href="/new"
+                className={navItemClass(location.startsWith("/new"))}
+                onClick={closeMenu}
+              >
+                {t("nav_new")}
+              </Link>
               {(
                 [
                   { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
@@ -1234,8 +1241,6 @@ export default function Navbar() {
               >
                 Cards
               </Link>
-            </div>
-            <div className="flex shrink-0 items-center">
               <Link
                 href="/tools"
                 className={navItemClass(
@@ -1244,13 +1249,6 @@ export default function Navbar() {
                 onClick={closeMenu}
               >
                 Tools
-              </Link>
-              <Link
-                href="/new"
-                className={navItemClass(location.startsWith("/new"))}
-                onClick={closeMenu}
-              >
-                {t("nav_new")}
               </Link>
             </div>
           </div>

@@ -306,6 +306,7 @@ export default function MobileNavDrawer({
             {(
               [
                 { href: "/", label: t("nav_home") },
+                { href: "/new", label: t("nav_new") },
                 { href: "/brand/apple", label: "Apple" },
                 { href: "/brand/samsung", label: "Samsung" },
                 { href: "/brand/xiaomi", label: "Xiaomi" },
@@ -319,7 +320,6 @@ export default function MobileNavDrawer({
                 { href: "/tablets", label: t("nav_tablets") },
                 { href: "/cards", label: "Cards" },
                 { href: "/tools", label: "Tools" },
-                { href: "/new", label: t("nav_new") },
               ] as const
             ).map((item) => (
               <li key={item.href} className="border-b border-black/[0.06] last:border-b-0 dark:border-white/10">
