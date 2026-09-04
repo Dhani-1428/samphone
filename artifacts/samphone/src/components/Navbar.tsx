@@ -877,7 +877,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase tracking-normal transition-colors ${
+    `nav-bar-item inline-flex h-[36px] shrink-0 items-center whitespace-nowrap px-1.5 uppercase tracking-normal transition-colors ${
       active ? "bg-sam text-white" : "text-white hover:bg-sam hover:text-white"
     }`;
 
@@ -885,7 +885,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full">
       {/* ── Light utility bar (phones, tablets, and desktops) ── */}
       <div className="border-b border-black/[0.05] bg-[#F5F5F5] typo-topbar text-[#4A4A4A] dark:border-white/10 dark:bg-[#12192A] dark:text-[#C5D0E8]">
-        <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 py-2 lg:h-9 lg:py-0`}>
+        <div className={`${navShell} flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5 lg:h-7 lg:py-0`}>
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex min-w-0 items-center gap-1.5">
               <Gift className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
@@ -937,26 +937,26 @@ export default function Navbar() {
 
       {/* ── White logo / search / actions ── */}
       <div className="border-b border-black/[0.06] bg-white dark:border-white/10 dark:bg-[#12192A]">
-        <div className={`${navShell} flex items-center gap-4 py-3 lg:py-3.5`}>
+        <div className={`${navShell} flex items-center gap-3 py-2 lg:py-2`}>
           <button
             type="button"
-            className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-dark dark:text-white xl:hidden"
+            className="flex h-8 w-8 shrink-0 items-center justify-center text-brand-dark dark:text-white xl:hidden"
             aria-expanded={drawerOpen}
             aria-label={t("header_menu")}
             data-testid="button-nav-menu"
             onClick={() => setDrawerOpen((open) => !open)}
           >
-            {drawerOpen ? <X className="h-7 w-7" strokeWidth={1.75} /> : <Menu className="h-7 w-7" strokeWidth={1.75} />}
+            {drawerOpen ? <X className="h-6 w-6" strokeWidth={1.75} /> : <Menu className="h-6 w-6" strokeWidth={1.75} />}
           </button>
 
-          <BrandLogo onClick={closeMenu} />
+          <BrandLogo className="h-6 w-auto sm:h-7" onClick={closeMenu} />
 
           <div className="hidden min-w-0 flex-1 lg:block">
             <div className="flex items-center overflow-hidden rounded-md border border-black/[0.08] bg-[#F3F4F6] dark:border-white/15 dark:bg-[#1B2436]">
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
-                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand text-white transition-colors hover:bg-brand-dark"
+                className="flex h-9 w-10 shrink-0 items-center justify-center bg-brand text-white transition-colors hover:bg-brand-dark"
                 aria-label={t("searchPlaceholder")}
               >
                 <Search className="h-4 w-4" strokeWidth={2} />
@@ -967,38 +967,38 @@ export default function Navbar() {
           <div className="ml-auto flex items-center lg:ml-0">
             <Link
               href="/compare"
-              className="hidden items-center gap-2.5 px-4 lg:flex"
+              className="hidden items-center gap-2 px-3 lg:flex"
               onClick={closeMenu}
               aria-label={t("compare")}
             >
               <span className="relative text-[#333333] dark:text-white">
-                <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
+                <Repeat2 className="h-5 w-5" strokeWidth={1.7} />
                 <CountBadge count={compareKeys.length} />
               </span>
               <span className="typo-header-action dark:text-white">{t("compare")}</span>
             </Link>
-            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
+            <span className="hidden h-6 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
               href="/wishlist"
-              className="hidden items-center gap-2.5 px-4 lg:flex"
+              className="hidden items-center gap-2 px-3 lg:flex"
               onClick={closeMenu}
               aria-label={t("wishlist")}
             >
               <span className="relative text-[#333333] dark:text-white">
-                <Heart className="h-6 w-6" strokeWidth={1.7} />
+                <Heart className="h-5 w-5" strokeWidth={1.7} />
                 <CountBadge count={wishlistKeys.length} tone="danger" />
               </span>
               <span className="typo-header-action dark:text-white">{t("wishlist")}</span>
             </Link>
-            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
+            <span className="hidden h-6 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             <Link
               href="/cart"
-              className="flex items-center gap-2.5 px-4"
+              className="flex items-center gap-2 px-3"
               onClick={closeMenu}
               aria-label={t("nav_cart")}
             >
               <span className="relative text-sam">
-                <ShoppingBag className="h-6 w-6" strokeWidth={1.7} />
+                <ShoppingBag className="h-5 w-5" strokeWidth={1.7} />
                 <CountBadge count={cartCount} tone="danger" showZero />
               </span>
               <span className="typo-header-action dark:text-white">{t("nav_cart")}</span>
@@ -1006,7 +1006,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className={`${navShell} pb-3 lg:hidden`}>
+        <div className={`${navShell} pb-2 lg:hidden`}>
           <div className="overflow-hidden rounded-md border border-black/[0.12] dark:border-white/15">
             <SmartSearch variant="header" />
           </div>
@@ -1015,11 +1015,11 @@ export default function Navbar() {
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="relative z-[55] hidden overflow-visible bg-brand xl:block">
-        <div className={`${navShell} flex h-[46px] items-center justify-start gap-x-8`}>
+        <div className={`${navShell} flex h-[36px] items-center justify-start gap-x-2`}>
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-all-categories inline-flex h-9 shrink-0 items-center gap-2 px-3.5 uppercase tracking-normal text-white transition-colors ${
+              className={`nav-all-categories inline-flex h-7 shrink-0 items-center gap-1.5 px-2.5 uppercase tracking-normal text-white transition-colors ${
                 categoriesActive
                   ? "rounded-t-md bg-sam-dark"
                   : "rounded-md bg-sam hover:bg-sam-dark"
@@ -1027,9 +1027,9 @@ export default function Navbar() {
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
             >
-              <Menu className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+              <Menu className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
               {t("nav_all_accessories")}
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
+              <ChevronDown className={`h-3 w-3 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
             </button>
             <AnimatePresence>
               {categoriesActive ? (
@@ -1045,10 +1045,10 @@ export default function Navbar() {
               ) : null}
             </AnimatePresence>
           </div>
-          <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
-            {t("nav_home")}
-          </Link>
-          <div className="flex min-w-0 items-center gap-x-5">
+          <div className="flex min-w-0 flex-1 items-center gap-x-0.5 overflow-x-auto hide-dropdown-scrollbar">
+            <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
+              {t("nav_home")}
+            </Link>
             {(
               [
                 { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
@@ -1117,6 +1117,13 @@ export default function Navbar() {
               onClick={closeMenu}
             >
               Tools
+            </Link>
+            <Link
+              href="/new"
+              className={navItemClass(location.startsWith("/new"))}
+              onClick={closeMenu}
+            >
+              {t("nav_new")}
             </Link>
           </div>
         </div>

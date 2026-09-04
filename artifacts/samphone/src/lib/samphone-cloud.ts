@@ -331,6 +331,11 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
   return mapItems(data);
 }
 
+export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${limit}`);
+  return mapItems(data);
+}
+
 export async function fetchCloudHomeSeed(limit = 24): Promise<WooProduct[]> {
   const [featured, news, rails] = await Promise.allSettled([
     cloudFetchJson<ListEnvelope<CloudProduct>>(`/featured?limit=${limit}`),

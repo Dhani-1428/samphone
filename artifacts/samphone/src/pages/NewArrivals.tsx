@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
@@ -9,16 +9,19 @@ import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { sortNewest } from "@/lib/woo-product-filters";
+import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
+import type { WooProduct } from "@/lib/woocommerce";
 
-const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
-const itemVariants = { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const itemVariants = { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.35 } } };
 
 function NewArrivalsHeader() {
+  const { t } = useLang();
   return (
     <PageVideoHero
-      eyebrow="Just Arrived"
-      title="New Arrivals"
-      description="The freshest stock - newly added this week."
+      eyebrow={t("newArrivals_section_title")}
+      title={t("newArrivals_section_title")}
+      description={t("newArrivals_section_sub")}
     />
   );
 }
@@ -29,33 +32,62 @@ export default function NewArrivals() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
-  const list = useMemo(() => (woo ? sortNewest(products).slice(0, 24) : []), [woo, products]);
+  const [cloudItems, setCloudItems] = useState<WooProduct[] | null>(null);
+  const [cloudLoading, setCloudLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setCloudLoading(true);
+    void fetchCloudNewArrivals(120)
+      .then((items) => {
+        if (alive) setCloudItems(items);
+      })
+      .catch(() => {
+        if (alive) setCloudItems([]);
+      })
+      .finally(() => {
+        if (alive) setCloudLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const catalogNewest = useMemo(() => (woo ? sortNewest(products) : []), [woo, products]);
+
+  const list = useMemo(() => {
+    if (cloudItems && cloudItems.length > 0) return cloudItems;
+    return catalogNewest;
+  }, [cloudItems, catalogNewest]);
+
+  const busy = (cloudLoading && list.length === 0) || (woo && loading && list.length === 0);
 
   return (
     <div>
       <NewArrivalsHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-
-        {woo && loading && list.length === 0 && (
+        {busy ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+            <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden />
           </div>
-        )}
+        ) : null}
 
-        {woo && !loading && error && <p className="text-center text-sm text-destructive py-8">{error}</p>}
+        {woo && !busy && error && list.length === 0 ? (
+          <p className="py-8 text-center text-sm text-destructive">{error}</p>
+        ) : null}
 
-        {woo && !loading && !error && list.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground py-16">{t("woo_empty")}</p>
-        )}
+        {!busy && list.length === 0 && woo ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
+        ) : null}
 
-        {woo && list.length > 0 && (
+        {list.length > 0 ? (
           <motion.ul
             ref={ref}
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
-            className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 p-0"
+            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
           >
             {list.map((p) => (
               <motion.li key={p.id} variants={itemVariants}>
@@ -63,10 +95,16 @@ export default function NewArrivals() {
               </motion.li>
             ))}
           </motion.ul>
-        )}
+        ) : null}
 
-        {!woo && (
-          <motion.div ref={ref} variants={containerVariants} initial="hidden" animate={isInView ? "visible" : "hidden"} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+        {!woo && !busy && list.length === 0 ? (
+          <motion.div
+            ref={ref}
+            variants={containerVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
+          >
             {NEW_ARRIVALS_PRODUCTS.map((p) => {
               const { daysAgo: _daysAgo, ...card } = p;
               return (
@@ -76,7 +114,7 @@ export default function NewArrivals() {
               );
             })}
           </motion.div>
-        )}
+        ) : null}
       </div>
     </div>
   );

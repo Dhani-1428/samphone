@@ -51,7 +51,7 @@ const translations = {
     nav_tablets: "TABLETS",
     nav_hoco: "Hoco",
     nav_cards: "CARDS",
-    nav_new: "NEW",
+    nav_new: "NEW ARRIVALS",
     nav_multibrand: "MULTI BRAND",
     nav_contact: "CONTACT",
     hero_badge: "Lisbon's #1 Tech Boutique",
