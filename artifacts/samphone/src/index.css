@@ -342,3 +342,13 @@
   font-size: 14px;
   line-height: 22px;
 }
+
+@keyframes catalog-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.catalog-loading__spinner {
+  animation: catalog-spin 0.7s linear infinite;
+}

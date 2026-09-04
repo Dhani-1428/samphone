@@ -149,7 +149,8 @@ export default function CategoryPage() {
   const filteredWooList = useMemo(() => applyCatalogListFilters(wooList, filters), [wooList, filters]);
 
   const wooLoading =
-    configured && (catalogLoading || (fromCatalog.length === 0 && remote.loading && remote.items === null));
+    configured &&
+    (catalogLoading || (!synthetic && fromCatalog.length === 0 && remote.items === null));
 
   const wooMeta = categories.find((c) => c.slug === slug);
   const staticMeta = allSlugs[slug];

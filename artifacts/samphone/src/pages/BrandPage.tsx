@@ -495,8 +495,8 @@ export default function BrandPage() {
     (filters.model ? 1 : 0);
 
   const waiting =
+    brandLoading ||
     modelLoading ||
-    (brandLoading && filteredProducts.length === 0) ||
     (loading && catalogBrandProducts.length === 0 && remoteBrand.length === 0);
 
   return (

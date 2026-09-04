@@ -69,7 +69,7 @@ export default function ProductPage() {
     return Number.isFinite(id) && id > 0 ? id : null;
   }, [cartKey, isWooProduct]);
   const [wooProduct, setWooProduct] = useState<WooProduct | null>(null);
-  const [wooLoading, setWooLoading] = useState(false);
+  const [wooLoading, setWooLoading] = useState(() => Boolean(isWooProduct));
   const [related, setRelated] = useState<WooProduct[]>([]);
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifyMsg, setNotifyMsg] = useState<string | null>(null);
@@ -82,10 +82,12 @@ export default function ProductPage() {
   useEffect(() => {
     if (!wooId) {
       setWooProduct(null);
+      setWooLoading(false);
       return;
     }
     let alive = true;
     setWooLoading(true);
+    setWooProduct(null);
     void fetchProductById(wooId)
       .then((p) => {
         if (!alive) return;

@@ -73,7 +73,7 @@ export default function NewArrivals() {
 
   const list = useMemo(() => applyCatalogListFilters(rawList, filters), [rawList, filters]);
 
-  const busy = (cloudLoading && rawList.length === 0) || (woo && loading && rawList.length === 0);
+  const busy = cloudLoading || (woo && loading && rawList.length === 0);
   const showFilters = !busy && rawList.length > 0;
 
   const grid = (

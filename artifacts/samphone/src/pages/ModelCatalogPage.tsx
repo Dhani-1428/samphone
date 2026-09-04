@@ -252,7 +252,7 @@ export default function ModelCatalogPage() {
     brand === "iphone" && /^(ipad|iwatch|macbook)/i.test(family) ? "Apple" : brandName;
   const loading = model
     ? modelFetching || remote == null
-    : catalogLoading && modelProducts.length === 0;
+    : catalogLoading || (modelProducts.length === 0 && products.length === 0);
   const error = model ? null : catalogError;
   const priceLabel = t("woo_price_na");
 

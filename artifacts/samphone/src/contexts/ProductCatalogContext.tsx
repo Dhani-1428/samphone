@@ -68,7 +68,8 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [products, setProducts] = useState<WooProduct[]>([]);
   const [categories, setCategories] = useState<WooCategory[]>([]);
-  const [loading, setLoading] = useState(false);
+  /** True until first catalog paint when Woo is configured (avoids empty flash before effect). */
+  const [loading, setLoading] = useState(() => hasWooCommerceConfig());
   const [error, setError] = useState<string | null>(null);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -221,7 +222,14 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mounted.current = true;
     const cached = readCache();
-    if (cached?.length) setProducts(cached);
+    if (cached?.length) {
+      setProducts(cached);
+      setLoading(false);
+    } else if (hasWooCommerceConfig()) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
     const catCached = readCategoryCache();
     if (catCached?.length) setCategories(catCached);
     if (hasWooCommerceConfig()) void refreshNow({ silent: Boolean(cached?.length) });
