@@ -997,7 +997,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-2 uppercase text-white no-underline transition-[background-color] ${
+    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-1.5 uppercase text-white no-underline transition-[background-color] ${
       active ? "bg-sam" : "bg-transparent hover:bg-sam"
     }`;
 
