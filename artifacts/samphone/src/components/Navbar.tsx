@@ -911,7 +911,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-1.5 uppercase text-white no-underline transition-[background-color] ${
+    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase text-white no-underline transition-[background-color] ${
       active ? "bg-sam" : "bg-transparent hover:bg-sam"
     }`;
 
@@ -1079,7 +1079,7 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
           <div className="ml-5 flex min-w-0 flex-1 items-center overflow-x-auto hide-dropdown-scrollbar sm:ml-6 md:ml-8">
-            <div className="flex min-w-0 items-center">
+            <div className="flex min-w-0 items-center gap-x-1">
               <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
                 {t("nav_home")}
               </Link>
