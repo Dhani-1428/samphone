@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { motion } from "framer-motion";
-import { Loader2, SlidersHorizontal, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Loader2, SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -135,13 +135,6 @@ function Sidebar({
   families: BrandNavFamily[];
   models: BrandNavModel[];
 }) {
-  const [modelQuery, setModelQuery] = useState("");
-  const visibleModels = useMemo(() => {
-    const q = modelQuery.trim().toLowerCase();
-    if (!q) return models;
-    return models.filter((m) => m.label.toLowerCase().includes(q));
-  }, [models, modelQuery]);
-
   return (
     <aside className="w-full shrink-0 lg:w-60 xl:w-64">
       <div className="rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
@@ -186,16 +179,6 @@ function Sidebar({
 
         {models.length > 0 && (
           <FilterSection title="Model" defaultOpen>
-            <label className="relative mb-2 block">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-              <input
-                type="search"
-                value={modelQuery}
-                onChange={(e) => setModelQuery(e.target.value)}
-                placeholder="Search models"
-                className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
-              />
-            </label>
             <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
               <label className="flex cursor-pointer items-center gap-2 text-sm">
                 <input
@@ -207,7 +190,7 @@ function Sidebar({
                 />
                 <span>All models</span>
               </label>
-              {visibleModels.map((m) => (
+              {models.map((m) => (
                 <label key={m.id} className="flex cursor-pointer items-start gap-2 text-sm">
                   <input
                     type="radio"
