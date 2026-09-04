@@ -4,6 +4,11 @@ import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
+import CatalogListFilters, {
+  applyCatalogListFilters,
+  EMPTY_CATALOG_LIST_FILTERS,
+  type CatalogListFilterState,
+} from "@/components/CatalogListFilters";
 import { NEW_ARRIVALS_PRODUCTS } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -34,6 +39,10 @@ export default function NewArrivals() {
   const { products, loading, error } = useProductCatalog();
   const [cloudItems, setCloudItems] = useState<WooProduct[] | null>(null);
   const [cloudLoading, setCloudLoading] = useState(true);
+  const [filters, setFilters] = useState<CatalogListFilterState>({
+    ...EMPTY_CATALOG_LIST_FILTERS,
+    sort: "newest",
+  });
 
   useEffect(() => {
     let alive = true;
@@ -55,30 +64,45 @@ export default function NewArrivals() {
 
   const catalogNewest = useMemo(() => (woo ? sortNewest(products) : []), [woo, products]);
 
-  const list = useMemo(() => {
+  const rawList = useMemo(() => {
     if (cloudItems && cloudItems.length > 0) return cloudItems;
     return catalogNewest;
   }, [cloudItems, catalogNewest]);
 
-  const busy = (cloudLoading && list.length === 0) || (woo && loading && list.length === 0);
+  const list = useMemo(() => applyCatalogListFilters(rawList, filters), [rawList, filters]);
+
+  const busy = (cloudLoading && rawList.length === 0) || (woo && loading && rawList.length === 0);
 
   return (
     <div>
       <NewArrivalsHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        {!busy && rawList.length > 0 ? (
+          <CatalogListFilters
+            filters={filters}
+            onChange={setFilters}
+            resultCount={list.length}
+            searchPlaceholder="Search new arrivals…"
+          />
+        ) : null}
+
         {busy ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-10 w-10 animate-spin text-brand" aria-hidden />
           </div>
         ) : null}
 
-        {woo && !busy && error && list.length === 0 ? (
+        {woo && !busy && error && rawList.length === 0 ? (
           <p className="py-8 text-center text-sm text-destructive">{error}</p>
         ) : null}
 
-        {!busy && list.length === 0 && woo ? (
+        {!busy && rawList.length === 0 && woo ? (
           <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
+        ) : null}
+
+        {!busy && rawList.length > 0 && list.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
         ) : null}
 
         {list.length > 0 ? (
@@ -97,7 +121,7 @@ export default function NewArrivals() {
           </motion.ul>
         ) : null}
 
-        {!woo && !busy && list.length === 0 ? (
+        {!woo && !busy && rawList.length === 0 ? (
           <motion.div
             ref={ref}
             variants={containerVariants}

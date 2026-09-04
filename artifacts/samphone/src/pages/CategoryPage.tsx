@@ -5,6 +5,11 @@ import { useParams } from "wouter";
 import { allSlugs } from "@/data/categories";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
+import CatalogListFilters, {
+  applyCatalogListFilters,
+  EMPTY_CATALOG_LIST_FILTERS,
+  type CatalogListFilterState,
+} from "@/components/CatalogListFilters";
 import productCase from "@/assets/product-case.png";
 import productCharger from "@/assets/product-charger.png";
 import productScreen from "@/assets/product-screen.png";
@@ -93,9 +98,14 @@ export default function CategoryPage() {
     loading: false,
     items: null,
   });
+  const [filters, setFilters] = useState<CatalogListFilterState>({
+    ...EMPTY_CATALOG_LIST_FILTERS,
+    sort: "price-asc",
+  });
 
   useEffect(() => {
     setRemote({ loading: false, items: null });
+    setFilters({ ...EMPTY_CATALOG_LIST_FILTERS, sort: "price-asc" });
   }, [slug]);
 
   useEffect(() => {
@@ -133,6 +143,8 @@ export default function CategoryPage() {
   }, [configured, catalogLoading, slug, fromCatalog.length, synthetic]);
 
   const wooList: WooProduct[] = fromCatalog.length > 0 ? fromCatalog : remote.items ?? [];
+  const filteredWooList = useMemo(() => applyCatalogListFilters(wooList, filters), [wooList, filters]);
+
   const wooLoading =
     configured && (catalogLoading || (fromCatalog.length === 0 && remote.loading && remote.items === null));
 
@@ -152,13 +164,15 @@ export default function CategoryPage() {
   const useMock = !configured && Boolean(staticMeta);
   const mockProducts = useMock ? generateProducts(slug, label) : [];
 
-  const showWooGrid = configured && wooList.length > 0;
+  const showWooGrid = configured && filteredWooList.length > 0;
   const showWooEmpty =
     configured && !wooLoading && !catalogError && wooList.length === 0;
+  const showFilteredEmpty =
+    configured && !wooLoading && wooList.length > 0 && filteredWooList.length === 0;
   const showNotFound = !configured && !staticMeta && !wooLoading;
 
-  const heroDescription = showWooGrid
-    ? `${wooList.length} products`
+  const heroDescription = configured && wooList.length > 0
+    ? `${filteredWooList.length} products`
     : useMock
       ? `${mockProducts.length} products available`
       : "";
@@ -193,6 +207,15 @@ export default function CategoryPage() {
           </div>
         )}
 
+        {!wooLoading && configured && wooList.length > 0 && (
+          <CatalogListFilters
+            filters={filters}
+            onChange={setFilters}
+            resultCount={filteredWooList.length}
+            searchPlaceholder={`Search in ${label}…`}
+          />
+        )}
+
         {!wooLoading && showWooGrid && (
           <motion.ul
             variants={containerVariants}
@@ -200,12 +223,16 @@ export default function CategoryPage() {
             animate="visible"
             className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5"
           >
-            {wooList.map((p) => (
+            {filteredWooList.map((p) => (
               <motion.li key={p.id} variants={cardVariants}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
               </motion.li>
             ))}
           </motion.ul>
+        )}
+
+        {!wooLoading && showFilteredEmpty && (
+          <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
         )}
 
         {!wooLoading && showWooEmpty && (
