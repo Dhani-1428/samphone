@@ -536,13 +536,23 @@ export default function MobileNavDrawer({
             </button>
           </>
         ) : (
-          <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
-            <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
-              <User className="h-5 w-5" />
-              {t("login")}
-            </span>
-            <ChevronRight className="h-4 w-4 text-slate-400" />
-          </Link>
+          <>
+            <Link href="/login" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
+              <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
+                <User className="h-5 w-5" />
+                {t("login")}
+              </span>
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            </Link>
+            <Link href="/register" onClick={onClose} className="flex h-12 items-center justify-between text-black dark:text-white">
+              <span className="text-[14px] font-semibold">{t("registration")}</span>
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            </Link>
+            <Link href="/register/business" onClick={onClose} className="flex h-12 items-center justify-between text-brand">
+              <span className="text-[14px] font-semibold">{t("reg_for_business")}</span>
+              <ChevronRight className="h-4 w-4 text-slate-400" />
+            </Link>
+          </>
         )}
 
         <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#F3F3F3] px-4 py-3 dark:bg-[#1B2436]">

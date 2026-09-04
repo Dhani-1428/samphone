@@ -1,6 +1,11 @@
 # B2C vs B2B on Samphone
 
-Same shop (`samphone.pt` + app + `https://samphone.cloud/api`). The difference is who they are, what prices they see, and which emails go out. Website registration: `/register` (Personal B2C or Business B2B). Admin: `/admin/wholesale`.
+## Website registration
+
+- Header: **Registration** → `/register` (B2C personal). **For business** → `/register/business` (B2B).
+- Personal form: full name, email, mobile (E.164), password, confirm, Apple/Google/Mobile OTP, terms → OTP → live retail.
+- Business form: country, NIF/VAT, business name, business email, mobile, category, street, postal, city, passwords, social OTP, terms → OTP → pending wholesale.
+
 
 ## Public / B2C (personal)
 

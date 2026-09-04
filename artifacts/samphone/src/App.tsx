@@ -27,6 +27,7 @@ import CategoryPage from "@/pages/CategoryPage";
 import ProductPage from "@/pages/ProductPage";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import RegisterBusiness from "@/pages/RegisterBusiness";
 import Account from "@/pages/Account";
 import Compare from "@/pages/Compare";
 import CartPage from "@/pages/CartPage";
@@ -94,6 +95,9 @@ function Router() {
       </Route>
       <Route path="/login">
         <Layout><Login /></Layout>
+      </Route>
+      <Route path="/register/business">
+        <Layout><RegisterBusiness /></Layout>
       </Route>
       <Route path="/register">
         <Layout><Register /></Layout>

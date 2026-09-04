@@ -962,6 +962,10 @@ export default function Navbar() {
                 <Link href="/register" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
                   {t("registration")}
                 </Link>
+                <span className="text-brand/40">|</span>
+                <Link href="/register/business" className="font-semibold text-brand hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
+                  {t("reg_for_business")}
+                </Link>
               </span>
             )}
             <ThemeToggle />
