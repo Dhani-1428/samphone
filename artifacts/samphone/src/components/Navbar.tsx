@@ -1066,11 +1066,11 @@ export default function Navbar() {
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="relative z-[55] hidden w-full overflow-visible bg-brand xl:block">
-        <div className="mx-auto flex h-[50px] w-full max-w-[1600px] items-stretch justify-start px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
-          <div className="relative shrink-0">
+        <div className="mx-auto flex h-[50px] w-full max-w-[1600px] items-center justify-start px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
+          <div className="relative shrink-0 self-stretch">
             <button
               type="button"
-              className={`nav-all-categories inline-flex h-8 shrink-0 items-center gap-2 self-center rounded-sm px-3 text-white transition-[background-color] ${
+              className={`nav-all-categories inline-flex h-full shrink-0 items-center gap-2 px-3 text-white transition-[background-color] ${
                 categoriesActive
                   ? "bg-sam-dark"
                   : "bg-sam hover:bg-sam-dark"
