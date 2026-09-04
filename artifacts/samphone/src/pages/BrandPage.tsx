@@ -325,6 +325,7 @@ export default function BrandPage() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [remoteBrand, setRemoteBrand] = useState<WooProduct[]>([]);
+  const [brandLoading, setBrandLoading] = useState(true);
   const [remoteModel, setRemoteModel] = useState<WooProduct[] | null>(null);
   const [modelLoading, setModelLoading] = useState(false);
 
@@ -340,12 +341,17 @@ export default function BrandPage() {
     setSort("newest");
     setRemoteBrand([]);
     setRemoteModel(null);
+    setBrandLoading(true);
   }, [brandSlug]);
 
   useEffect(() => {
     let alive = true;
     const needles = brandKeywordNeedles(brandSlug || brandLabel).slice(0, 5);
-    if (!needles.length) return;
+    if (!needles.length) {
+      setBrandLoading(false);
+      return;
+    }
+    setBrandLoading(true);
     void Promise.all(
       needles.map(async (q) => {
         try {
@@ -355,10 +361,14 @@ export default function BrandPage() {
           return [] as WooProduct[];
         }
       }),
-    ).then((lists) => {
-      if (!alive) return;
-      setRemoteBrand(filterProductsByBrandKeyword(mergeProducts(...lists), brandSlug || brandLabel));
-    });
+    )
+      .then((lists) => {
+        if (!alive) return;
+        setRemoteBrand(filterProductsByBrandKeyword(mergeProducts(...lists), brandSlug || brandLabel));
+      })
+      .finally(() => {
+        if (alive) setBrandLoading(false);
+      });
     return () => {
       alive = false;
     };
@@ -485,8 +495,9 @@ export default function BrandPage() {
     (filters.model ? 1 : 0);
 
   const waiting =
-    (loading && catalogBrandProducts.length === 0 && remoteBrand.length === 0) ||
-    (Boolean(selectedModel) && modelLoading && filteredProducts.length === 0);
+    modelLoading ||
+    (brandLoading && filteredProducts.length === 0) ||
+    (loading && catalogBrandProducts.length === 0 && remoteBrand.length === 0);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -531,7 +542,7 @@ export default function BrandPage() {
             <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
 
             {waiting ? (
-              <CatalogLoading />
+              <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
             ) : !woo ? (
               <p className="py-16 text-center text-muted-foreground">
                 No store connected yet.

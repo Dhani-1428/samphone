@@ -182,6 +182,7 @@ export default function ModelCatalogPage() {
   const { user } = useAuth();
   const { products, loading: catalogLoading, error: catalogError } = useProductCatalog();
   const [remote, setRemote] = useState<WooProduct[] | null>(null);
+  const [modelFetching, setModelFetching] = useState(() => Boolean(params.family && params.model));
   const [partType, setPartType] = useState<string | null>(null);
   const [accType, setAccType] = useState<string | null>(null);
 
@@ -195,10 +196,12 @@ export default function ModelCatalogPage() {
   useEffect(() => {
     if (!model) {
       setRemote(null);
+      setModelFetching(false);
       return;
     }
     let alive = true;
     setRemote(null);
+    setModelFetching(true);
     const names = modelSearchNames(brand, model);
     void fetchCloudProductsForModel(names)
       .then((list) => {
@@ -208,6 +211,9 @@ export default function ModelCatalogPage() {
       })
       .catch(() => {
         if (alive) setRemote([]);
+      })
+      .finally(() => {
+        if (alive) setModelFetching(false);
       });
     return () => {
       alive = false;
@@ -244,7 +250,9 @@ export default function ModelCatalogPage() {
   const title = modelLabel ?? `${brandName} ${familyName}`;
   const crumbBrand =
     brand === "iphone" && /^(ipad|iwatch|macbook)/i.test(family) ? "Apple" : brandName;
-  const loading = model ? remote == null : catalogLoading;
+  const loading = model
+    ? modelFetching || remote == null
+    : catalogLoading && modelProducts.length === 0;
   const error = model ? null : catalogError;
   const priceLabel = t("woo_price_na");
 
@@ -259,7 +267,9 @@ export default function ModelCatalogPage() {
 
         <CatalogBackLink />
 
-        {loading ? <CatalogLoading /> : null}
+        {loading ? (
+          <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
+        ) : null}
 
         {error && !loading ? <p className="py-8 text-sm text-destructive">{error}</p> : null}
 
