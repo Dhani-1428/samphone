@@ -1,16 +1,29 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
+import PageVideoHero from "@/components/PageVideoHero";
 import { MULTI_BRAND_FEATURED } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { filterMultiBrandCatalog } from "@/lib/woo-product-filters";
 
+const brandCards = ["Hoco", "Baseus", "Anker", "Ugreen", "Joyroom", "WK Design"];
+
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.09 } } };
 const itemVariants = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45 } } };
+
+function MultiBrandHeader() {
+  return (
+    <PageVideoHero
+      eyebrow="Premium Brands Collection"
+      title="Multi Brand Store"
+      description="Top international brands, all in one place."
+    />
+  );
+}
 
 export default function MultiBrand() {
   const ref = useRef(null);
@@ -18,14 +31,42 @@ export default function MultiBrand() {
   const { t } = useLang();
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
 
-  const visibleWoo = useMemo(() => filterMultiBrandCatalog(products, null, 48), [products]);
-  const visibleMock = MULTI_BRAND_FEATURED;
+  const visibleWoo = useMemo(
+    () => filterMultiBrandCatalog(products, selectedBrand, 48),
+    [products, selectedBrand],
+  );
+  const visibleMock = MULTI_BRAND_FEATURED.filter((p) => !selectedBrand || p.brand === selectedBrand);
 
   return (
-    <div className="min-h-screen bg-[#F4F6F8]">
+    <div>
+      <MultiBrandHeader />
+
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <h1 className="mb-5 font-display text-xl font-bold text-navy">Featured Products</h1>
+        <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
+          <button
+            type="button"
+            onClick={() => setSelectedBrand(null)}
+            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+          >
+            All
+          </button>
+          {brandCards.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
+              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+
+        <h2 className="mb-5 font-display text-xl font-bold text-navy">
+          {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
+        </h2>
 
         {woo && loading && visibleWoo.length === 0 && (
           <div className="flex justify-center py-16">
@@ -37,7 +78,7 @@ export default function MultiBrand() {
 
         {woo && !loading && !error && visibleWoo.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg">{t("woo_empty")}</p>
+            <p className="text-lg">{selectedBrand ? `No products matched ${selectedBrand} yet.` : t("woo_empty")}</p>
           </div>
         )}
 
@@ -71,6 +112,12 @@ export default function MultiBrand() {
               </motion.div>
             ))}
           </motion.div>
+        )}
+
+        {!woo && selectedBrand && visibleMock.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg">No featured products for {selectedBrand} yet.</p>
+          </div>
         )}
       </div>
     </div>
