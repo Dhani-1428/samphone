@@ -172,7 +172,7 @@ export default function SmartSearch({
             className={cn(
               "min-w-0 flex-1 bg-transparent focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
               variant === "header"
-                ? "py-2.5 typo-search text-black placeholder:text-neutral-500"
+                ? "py-2 typo-search text-black placeholder:text-neutral-500"
                 : "py-2.5 text-sm text-foreground placeholder:text-muted-foreground",
               leadingIcon ? "px-2" : "px-4",
             )}
