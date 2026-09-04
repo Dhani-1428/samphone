@@ -209,10 +209,10 @@
 
 .nav-bar-item {
   font-family: "Open Sans", sans-serif;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   font-weight: 700;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 12px;
+  line-height: 18px;
   color: #ffffff;
 }
 
@@ -226,8 +226,8 @@
   font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
   font-weight: 700;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 .typo-topbar {

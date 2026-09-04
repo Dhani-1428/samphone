@@ -997,7 +997,7 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-4 uppercase text-white no-underline transition-[background-color] ${
+    `nav-bar-item inline-flex h-[50px] shrink-0 items-center whitespace-nowrap px-2 uppercase text-white no-underline transition-[background-color] ${
       active ? "bg-sam" : "bg-transparent hover:bg-sam"
     }`;
 
@@ -1134,11 +1134,11 @@ export default function Navbar() {
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
       <nav className="relative z-[55] hidden w-full overflow-visible bg-brand xl:block">
-        <div className={`${navShell} flex h-[50px] w-full items-stretch justify-start gap-x-1`}>
+        <div className="mx-auto flex h-[50px] w-full max-w-[1600px] items-stretch justify-start px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
           <div className="relative shrink-0">
             <button
               type="button"
-              className={`nav-all-categories inline-flex h-full min-w-[11.5rem] shrink-0 items-center gap-2.5 px-4 text-white transition-[background-color] ${
+              className={`nav-all-categories inline-flex h-full shrink-0 items-center gap-2 px-3 text-white transition-[background-color] ${
                 categoriesActive
                   ? "bg-sam-dark"
                   : "bg-sam hover:bg-sam-dark"
@@ -1146,8 +1146,8 @@ export default function Navbar() {
               aria-expanded={categoriesActive}
               onClick={openCategoriesMenu}
             >
-              <Menu className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
-              <span className="flex-1 text-left">{t("nav_all_accessories")}</span>
+              <Menu className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+              <span>{t("nav_all_accessories")}</span>
               <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${categoriesActive ? "rotate-180" : ""}`} aria-hidden />
             </button>
             <AnimatePresence>
@@ -1169,86 +1169,90 @@ export default function Navbar() {
               ) : null}
             </AnimatePresence>
           </div>
-          <div className="flex min-w-0 flex-1 items-center gap-x-1 overflow-x-auto hide-dropdown-scrollbar">
-            <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
-              {t("nav_home")}
-            </Link>
-            {(
-              [
-                { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
-                { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
-                { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
-                { label: "Oppo Reno", slug: "oppo-reno", idx: primaryBrandIdx.oppoReno },
-                { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
-                { label: "Huawei", slug: "huawei", idx: primaryBrandIdx.huawei },
-                { label: "One Plus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
-                { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
-              ] as const
-            ).map((item) => {
-              const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  title="Click to open menu · Double-click to view all products"
-                  className={navItemClass(active)}
-                  aria-expanded={active}
-                  onClick={() => openBrandMenu(item.idx)}
-                  onDoubleClick={(e) => {
-                    e.preventDefault();
-                    closeMenu();
-                    navigate(`/brand/${item.slug}`);
-                  }}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              className={navItemClass(othersActive)}
-              aria-expanded={othersActive}
-              onClick={() => openOthersMenu()}
-            >
-              {t("nav_bar_others")}
-            </button>
-            <Link
-              href="/phones"
-              className={navItemClass(location.startsWith("/phones") || location.startsWith("/smartphones"))}
-              onClick={closeMenu}
-            >
-              Smartphones
-            </Link>
-            <Link
-              href="/tablets"
-              className={navItemClass(location.startsWith("/tablets"))}
-              onClick={closeMenu}
-            >
-              Tablets
-            </Link>
-            <Link
-              href="/cards"
-              className={navItemClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
-              onClick={closeMenu}
-            >
-              Cards
-            </Link>
-            <Link
-              href="/tools"
-              className={navItemClass(
-                location.startsWith("/tools") || location.startsWith("/group/Repairing"),
-              )}
-              onClick={closeMenu}
-            >
-              Tools
-            </Link>
-            <Link
-              href="/new"
-              className={navItemClass(location.startsWith("/new"))}
-              onClick={closeMenu}
-            >
-              {t("nav_new")}
-            </Link>
+          <div className="flex min-w-0 flex-1 items-center justify-between gap-x-0 overflow-x-auto hide-dropdown-scrollbar pl-1">
+            <div className="flex min-w-0 items-center">
+              <Link href="/" className={navItemClass(location === "/" || location === "")} onClick={closeMenu}>
+                {t("nav_home")}
+              </Link>
+              {(
+                [
+                  { label: "Apple", slug: "apple", idx: primaryBrandIdx.apple },
+                  { label: "Samsung", slug: "samsung", idx: primaryBrandIdx.samsung },
+                  { label: "Xiaomi", slug: "xiaomi", idx: primaryBrandIdx.xiaomi },
+                  { label: "Oppo Reno", slug: "oppo-reno", idx: primaryBrandIdx.oppoReno },
+                  { label: "Realme", slug: "realme", idx: primaryBrandIdx.realme },
+                  { label: "Huawei", slug: "huawei", idx: primaryBrandIdx.huawei },
+                  { label: "One Plus", slug: "oneplus", idx: primaryBrandIdx.oneplus },
+                  { label: "Motorola", slug: "motorola", idx: primaryBrandIdx.motorola },
+                ] as const
+              ).map((item) => {
+                const active = menuOpen && openDropdown === "brands" && activeBrandIdx === item.idx;
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    title="Click to open menu · Double-click to view all products"
+                    className={navItemClass(active)}
+                    aria-expanded={active}
+                    onClick={() => openBrandMenu(item.idx)}
+                    onDoubleClick={(e) => {
+                      e.preventDefault();
+                      closeMenu();
+                      navigate(`/brand/${item.slug}`);
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                className={navItemClass(othersActive)}
+                aria-expanded={othersActive}
+                onClick={() => openOthersMenu()}
+              >
+                {t("nav_bar_others")}
+              </button>
+              <Link
+                href="/phones"
+                className={navItemClass(location.startsWith("/phones") || location.startsWith("/smartphones"))}
+                onClick={closeMenu}
+              >
+                Smartphones
+              </Link>
+              <Link
+                href="/tablets"
+                className={navItemClass(location.startsWith("/tablets"))}
+                onClick={closeMenu}
+              >
+                Tablets
+              </Link>
+              <Link
+                href="/cards"
+                className={navItemClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
+                onClick={closeMenu}
+              >
+                Cards
+              </Link>
+            </div>
+            <div className="flex shrink-0 items-center">
+              <Link
+                href="/tools"
+                className={navItemClass(
+                  location.startsWith("/tools") || location.startsWith("/group/Repairing"),
+                )}
+                onClick={closeMenu}
+              >
+                Tools
+              </Link>
+              <Link
+                href="/new"
+                className={navItemClass(location.startsWith("/new"))}
+                onClick={closeMenu}
+              >
+                {t("nav_new")}
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
