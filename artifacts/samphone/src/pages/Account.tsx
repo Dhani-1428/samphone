@@ -182,14 +182,6 @@ export default function Account() {
   return (
     <div className="bg-muted/30 min-h-[75vh] py-8 md:py-10">
       <div className="container mx-auto px-4 md:px-6 max-w-6xl">
-        <nav className="text-sm text-muted-foreground mb-4">
-          <Link href="/" className="hover:text-primary">
-            {t("breadcrumb_home")}
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground font-medium">{t("account_title")}</span>
-        </nav>
-
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8">
           {t("account_title")}
         </h1>

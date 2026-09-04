@@ -1,4 +1,3 @@
-import { Link } from "wouter";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -78,11 +77,6 @@ export default function AccountSidebar({ user, section, onNavigate, onLogout }: 
           <LogOut className="h-4 w-4" />
           {t("auth_logout")}
         </Button>
-        <p className="px-3 pt-2 text-[11px] text-muted-foreground">
-          <Link href="/" className="hover:text-primary">
-            {t("breadcrumb_home")}
-          </Link>
-        </p>
       </div>
     </aside>
   );

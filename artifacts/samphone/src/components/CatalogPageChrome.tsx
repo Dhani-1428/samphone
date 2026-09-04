@@ -1,22 +1,8 @@
-import { Link } from "wouter";
 import type { LucideIcon } from "lucide-react";
-import { ArrowLeft } from "lucide-react";
-import { useLang } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
 export function CatalogBackLink() {
-  const { t } = useLang();
-  return (
-    <Link
-      href="/"
-      className="mb-8 mt-6 inline-flex items-center gap-2.5 text-sm font-bold text-sam transition-colors hover:underline"
-    >
-      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-sam text-sam">
-        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.4} />
-      </span>
-      {t("backToHome")}
-    </Link>
-  );
+  return null;
 }
 
 export function CatalogSectionHeading({

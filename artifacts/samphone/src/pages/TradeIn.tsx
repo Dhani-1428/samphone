@@ -78,14 +78,6 @@ export default function TradeIn() {
   return (
     <div className="bg-muted/30 min-h-[75vh] py-10">
       <div className="container mx-auto px-4 md:px-6 max-w-xl">
-        <nav className="text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
-            {t("breadcrumb_home")}
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground font-medium">{t("nav_trade_in")}</span>
-        </nav>
-
         <div className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
             <RefreshCw className="w-8 h-8 text-primary" />

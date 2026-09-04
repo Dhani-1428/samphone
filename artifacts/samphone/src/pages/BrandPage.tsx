@@ -489,25 +489,6 @@ export default function BrandPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
-      <div className="bg-[#111111] py-8 text-white">
-        <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-          <p className="mb-1 text-sm text-white/50">
-            <Link href="/" className="hover:text-white/80">Home</Link>
-            <span className="mx-1.5">/</span>
-            {brandLabel}
-          </p>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {brandLabel}
-          </h1>
-          <p className="mt-1 text-sm text-white/60">
-            {waiting
-              ? "Loading products…"
-              : `${brandProducts.length} products across ${models.length || families.length || 1} models`}
-            {syncingMore ? " · updating catalog…" : ""}
-          </p>
-        </div>
-      </div>
-
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <button
           type="button"

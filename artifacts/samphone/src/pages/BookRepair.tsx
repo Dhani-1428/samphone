@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link, useSearch } from "wouter";
+import { useSearch } from "wouter";
 import { Wrench } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,14 +81,6 @@ export default function BookRepair() {
   return (
     <div className="bg-muted/30 min-h-[75vh] py-10">
       <div className="container mx-auto px-4 md:px-6 max-w-3xl">
-        <nav className="text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
-            {t("breadcrumb_home")}
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground font-medium">{t("nav_book_repair")}</span>
-        </nav>
-
         <form className="rounded-xl border border-border bg-card p-6 md:p-8 shadow-sm" onSubmit={submit}>
           <div className="flex items-center gap-3 mb-2">
             <Wrench className="w-8 h-8 text-primary" />

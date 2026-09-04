@@ -31,7 +31,7 @@ import {
 export type ProductCrumb = { label: string; href?: string };
 
 export default function ProductDetailLayout({
-  crumbs,
+  crumbs: _crumbs,
   badge,
   title,
   rating = 0,
@@ -88,24 +88,6 @@ export default function ProductDetailLayout({
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-16">
       <div className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 md:px-8 md:py-8">
-        <nav className="mb-5 flex flex-wrap items-center gap-x-1.5 text-[13px] text-[#C48A4A]">
-          {crumbs.map((c, i) => {
-            const last = i === crumbs.length - 1;
-            return (
-              <span key={`${c.label}-${i}`} className="inline-flex min-w-0 items-center">
-                {i > 0 ? <span className="mx-1.5 text-[#C48A4A]">›</span> : null}
-                {c.href && !last ? (
-                  <Link href={c.href} className="hover:underline">
-                    {c.label}
-                  </Link>
-                ) : (
-                  <span className={cn(last ? "truncate text-[#333333]" : "")}>{c.label}</span>
-                )}
-              </span>
-            );
-          })}
-        </nav>
-
         <div className="grid items-start gap-8 lg:grid-cols-12 lg:gap-8 xl:gap-10">
           <div className="lg:col-span-5">
             {gallery.length === 0 ? (
