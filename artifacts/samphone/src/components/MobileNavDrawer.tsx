@@ -299,50 +299,48 @@ export default function MobileNavDrawer({
         </div>
 
         <div className="mb-5">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-normal text-black dark:text-white/70">
+            {t("nav_browse_by")}
+          </p>
+          <ul className="overflow-hidden rounded-lg border border-black/[0.08] dark:border-white/15">
+            {(
+              [
+                { href: "/", label: t("nav_home") },
+                { href: "/brand/apple", label: "Apple" },
+                { href: "/brand/samsung", label: "Samsung" },
+                { href: "/brand/xiaomi", label: "Xiaomi" },
+                { href: "/brand/oppo-reno", label: "Oppo Reno" },
+                { href: "/brand/realme", label: "Realme" },
+                { href: "/brand/huawei", label: "Huawei" },
+                { href: "/brand/oneplus", label: "One Plus" },
+                { href: "/brand/motorola", label: "Motorola" },
+                { href: "/multi-brand", label: t("nav_bar_others") },
+                { href: "/phones", label: t("nav_smartphones") },
+                { href: "/tablets", label: t("nav_tablets") },
+                { href: "/cards", label: "Cards" },
+                { href: "/tools", label: "Tools" },
+                { href: "/new", label: t("nav_new") },
+              ] as const
+            ).map((item) => (
+              <li key={item.href} className="border-b border-black/[0.06] last:border-b-0 dark:border-white/10">
+                <Link
+                  href={item.href}
+                  onClick={onClose}
+                  className="flex h-11 items-center px-4 text-[13px] font-bold uppercase tracking-normal text-black dark:text-white"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mb-5">
           <p className="mb-2 inline-flex items-center gap-2 text-[15px] font-bold text-black dark:text-white">
             <LayoutGrid className="h-4 w-4" />
             {t("nav_all_accessories")}
           </p>
           <AccessoryPageButtons variant="menu" onNavigate={onClose} className="rounded-lg border border-black/[0.08] dark:border-white/15" />
-        </div>
-
-        <Link
-          href="/"
-          onClick={onClose}
-          className="mb-5 flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-        >
-          {t("nav_home")}
-        </Link>
-
-        <div className="mb-5 grid grid-cols-2 gap-2">
-          <Link
-            href="/phones"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_smartphones")}
-          </Link>
-          <Link
-            href="/tablets"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_tablets")}
-          </Link>
-          <Link
-            href="/tools"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            Tools
-          </Link>
-          <Link
-            href="/new"
-            onClick={onClose}
-            className="flex h-11 items-center justify-center rounded-lg border border-black/[0.1] text-[13px] font-bold uppercase tracking-normal text-black dark:border-white/15 dark:text-white"
-          >
-            {t("nav_new")}
-          </Link>
         </div>
 
         <p className="mb-2 text-[11px] font-bold uppercase tracking-normal text-black">{t("nav_browse_by")}</p>
