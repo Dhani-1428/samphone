@@ -997,8 +997,8 @@ export default function Navbar() {
   const categoriesActive = menuOpen && openDropdown === "categories";
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase tracking-normal transition-colors ${
-      active ? "bg-sam text-white" : "text-white hover:bg-sam hover:text-white"
+    `nav-bar-item inline-flex h-[46px] shrink-0 items-center whitespace-nowrap px-2.5 uppercase tracking-normal text-white no-underline transition-[background-color] ${
+      active ? "bg-sam" : "bg-transparent hover:bg-sam"
     }`;
 
   return (

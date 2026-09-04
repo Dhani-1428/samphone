@@ -213,6 +213,13 @@
   font-weight: 700;
   font-size: 12px;
   line-height: 22px;
+  color: #ffffff;
+}
+
+.nav-bar-item:hover,
+.nav-bar-item:focus-visible,
+.nav-bar-item[aria-expanded="true"] {
+  color: #ffffff;
 }
 
 .nav-all-categories {
