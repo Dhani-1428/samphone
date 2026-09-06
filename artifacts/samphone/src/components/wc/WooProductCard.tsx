@@ -16,7 +16,7 @@ import ColorSwatches from "@/components/wc/ColorSwatches";
 const PLACEHOLDER =
   "data:image/svg+xml," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#f4f4f5" width="400" height="400"/><path fill="#d4d4d8" d="M140 160h120v80H140z"/><circle fill="#d4d4d8" cx="200" cy="130" r="28"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#E8EDF8" width="400" height="400"/><path fill="#243F9F" opacity="0.22" d="M140 160h120v80H140z"/><circle fill="#243F9F" opacity="0.22" cx="200" cy="130" r="28"/></svg>`,
   );
 
 interface WooProductCardProps {
@@ -57,7 +57,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const priceLabel = showPrice ? displayFormatted : null;
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-black/[0.08] bg-white shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-card">
+    <article
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand/15 bg-white",
+        "shadow-[0_6px_18px_rgba(36,63,159,0.08)] transition-all duration-300",
+        "hover:-translate-y-0.5 hover:border-sam/50 hover:shadow-[0_14px_28px_rgba(36,63,159,0.16)]",
+        "dark:border-white/10 dark:bg-card",
+      )}
+    >
       <button
         type="button"
         onClick={(e) => {
@@ -65,43 +72,59 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           e.stopPropagation();
           wishToggle(cartKey);
         }}
-        className="absolute right-2 top-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-navy opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:bg-card dark:text-foreground"
+        className={cn(
+          "absolute right-2.5 top-2.5 z-20 flex h-8 w-8 items-center justify-center rounded-full",
+          "bg-white text-brand shadow-sm ring-1 ring-brand/10 transition-opacity",
+          "opacity-0 group-hover:opacity-100 dark:bg-card dark:text-foreground",
+          wishlisted && "opacity-100",
+        )}
         aria-pressed={wishlisted}
         aria-label="Wishlist"
       >
-        <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "")} />
+        <Heart className={cn("h-4 w-4", wishlisted ? "fill-sam text-sam" : "")} />
       </button>
 
       {product.brand && compact ? (
-        <p className="absolute left-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-foreground/70">
+        <p className="absolute left-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-brand/70">
           {product.brand}
         </p>
       ) : null}
 
-      <div className={cn("relative", compact ? "px-4 pt-8" : "px-3 pt-3")}>
+      <div className={cn("relative", compact ? "px-3 pt-7" : "px-3 pt-3")}>
         {!compact ? (
           <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
             {recent && (
-              <span className="rounded-full bg-[#E8E8E8] px-2 py-0.5 text-[10px] font-semibold text-[#111111]">
+              <span className="rounded-full bg-sam px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                 {t("badge_new")}
               </span>
             )}
             {service && (
-              <span className="rounded-full bg-[#E8E8E8] px-2 py-0.5 text-[10px] font-semibold text-[#111111]">
+              <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                 {t("badge_service")}
               </span>
             )}
           </div>
         ) : null}
-        <Link href={productHref} className="block aspect-square bg-white">
-          <CatalogImage
-            src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-            className="h-full w-full object-contain"
-            loading="lazy"
-            onError={() => setImgOk(false)}
+
+        <Link
+          href={productHref}
+          className="relative block overflow-hidden rounded-xl bg-[#EEF1F9] ring-1 ring-brand/10"
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.7),transparent_65%)]"
           />
+          <span className="relative block aspect-square p-3 sm:p-3.5">
+            <CatalogImage
+              src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
+              alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+              onError={() => setImgOk(false)}
+            />
+          </span>
         </Link>
+
         {swatches.length > 0 ? (
           <div className="mt-2">
             <ColorSwatches
@@ -116,9 +139,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-3 pb-3 pt-2">
+      <div className="flex flex-1 flex-col gap-2 px-3 pb-3.5 pt-2.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-lg font-bold tabular-nums leading-none text-foreground">
+          <span className="text-lg font-extrabold tabular-nums leading-none text-brand">
             {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
           </span>
           {showPrice && canBuyDealer ? (
@@ -131,14 +154,18 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               />
             </div>
           ) : product.dealerOnly ? (
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#111111]">{t("dealer_only")}</span>
+            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
+              {t("dealer_only")}
+            </span>
           ) : null}
         </div>
         <Link href={productHref} className="mt-auto block">
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-medium leading-snug text-foreground">{product.name}</h3>
+          <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold leading-snug text-[#1A2744] transition-colors group-hover:text-brand dark:text-foreground">
+            {product.name}
+          </h3>
         </Link>
         {compact && product.brand ? (
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{product.brand}</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-brand/55">{product.brand}</p>
         ) : null}
       </div>
     </article>
