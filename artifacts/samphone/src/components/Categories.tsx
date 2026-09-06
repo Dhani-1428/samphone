@@ -110,35 +110,46 @@ function AccessoryCategoryTile({
     <Link
       href={accessoryPageHref(page.group)}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-[1.15rem] transition-transform duration-300 hover:-translate-y-1",
+        "group relative flex flex-col overflow-hidden rounded-[1.25rem] shadow-[0_10px_28px_rgba(36,63,159,0.18)] transition-transform duration-300 hover:-translate-y-1",
         isBlue ? "bg-brand" : "bg-sam",
       )}
       data-testid={`card-category-${index}`}
     >
-      <span className="relative flex aspect-[1/1.05] items-center justify-center px-4 pb-2 pt-5 sm:px-5 sm:pt-6">
+      {/* Soft depth so brand/sam color stays visible around products */}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-0 opacity-40",
+          isBlue
+            ? "bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.28),transparent_55%)]"
+            : "bg-[radial-gradient(circle_at_70%_15%,rgba(255,255,255,0.35),transparent_55%)]",
+        )}
+      />
+
+      <span className="relative flex aspect-[1/1.08] items-center justify-center px-5 pb-1 pt-6 sm:px-6 sm:pt-7">
         {img ? (
           <CatalogImage
             src={img}
             alt={page.label}
-            className="h-full w-full object-contain drop-shadow-sm transition-transform duration-500 group-hover:scale-105"
+            className="h-[78%] w-[78%] object-contain mix-blend-multiply drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
           <span
             className={cn(
-              "flex h-16 w-16 items-center justify-center rounded-full",
-              isBlue ? "bg-white/15 text-white" : "bg-brand/15 text-brand",
+              "flex h-20 w-20 items-center justify-center rounded-full",
+              isBlue ? "bg-white/20 text-white" : "bg-brand/20 text-brand",
             )}
           >
-            <Icon className="h-8 w-8" strokeWidth={1.7} />
+            <Icon className="h-10 w-10" strokeWidth={1.7} />
           </span>
         )}
       </span>
 
-      <span className="mt-auto px-3 pb-3.5 sm:px-4 sm:pb-4">
-        <span className="flex w-full items-center gap-2 rounded-full bg-white px-2.5 py-2 shadow-sm sm:gap-2.5 sm:px-3 sm:py-2.5">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-white sm:h-8 sm:w-8">
-            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.2} />
+      <span className="relative mt-auto px-3 pb-3.5 sm:px-4 sm:pb-4">
+        <span className="flex w-full items-center gap-2 rounded-full bg-white px-2.5 py-2.5 shadow-[0_4px_14px_rgba(36,63,159,0.16)] sm:gap-2.5 sm:px-3 sm:py-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-white sm:h-9 sm:w-9">
+            <Icon className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" strokeWidth={2.2} />
           </span>
           <span className="min-w-0 flex-1 truncate text-[12px] font-extrabold leading-tight text-brand sm:text-[13px] md:text-[14px]">
             {page.label}
