@@ -59,7 +59,7 @@ export function groupIcon(group: string): LucideIcon {
   if (k.includes("headphone")) return Headphones;
   if (k.includes("speaker")) return Speaker;
   if (k.includes("watch")) return Watch;
-  if (k.includes("car")) return Smartphone;
+  if (k.includes("car")) return Car;
   if (k.includes("laptop")) return Laptop;
   if (k.includes("audio") || k.includes("mic")) return Mic;
   if (k.includes("electronic")) return Cpu;
