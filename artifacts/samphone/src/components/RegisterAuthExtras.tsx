@@ -127,13 +127,13 @@ export function RegisterTermsCheckbox({ checked, onChange }: TermsProps) {
       />
       <span>
         {t("reg_agree_prefix")}{" "}
-        <a href={LEGAL_LINKS.terms} target="_blank" rel="noreferrer" className="font-semibold text-brand hover:underline">
+        <Link href={LEGAL_LINKS.terms} className="font-semibold text-brand hover:underline">
           {t("footer_terms")}
-        </a>{" "}
+        </Link>{" "}
         {t("reg_agree_and")}{" "}
-        <a href={LEGAL_LINKS.privacy} target="_blank" rel="noreferrer" className="font-semibold text-brand hover:underline">
+        <Link href={LEGAL_LINKS.privacy} className="font-semibold text-brand hover:underline">
           {t("footer_privacy")}
-        </a>
+        </Link>
       </span>
     </label>
   );

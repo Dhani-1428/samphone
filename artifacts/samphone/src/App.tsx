@@ -45,6 +45,7 @@ import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
+import LegalPage from "@/pages/LegalPage";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
@@ -89,6 +90,33 @@ function Router() {
       </Route>
       <Route path="/contact">
         <Layout><Contact /></Layout>
+      </Route>
+      <Route path="/terms-conditions">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/terms">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/privacy-policy">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/privacy-policy-and-data-protection">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/privacy">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/refund-return-policy">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/refunds">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/shipping-policy">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/shipping">
+        <Layout><LegalPage /></Layout>
       </Route>
       <Route path="/app">
         <Layout><AppFeatures /></Layout>

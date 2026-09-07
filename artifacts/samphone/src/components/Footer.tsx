@@ -228,7 +228,7 @@ export default function Footer() {
             <ul>
               {policyLinks.map((link) => (
                 <li key={link.href}>
-                  <FooterLink {...link} external compact />
+                  <FooterLink {...link} compact />
                 </li>
               ))}
             </ul>

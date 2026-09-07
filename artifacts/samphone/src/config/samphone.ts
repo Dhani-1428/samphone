@@ -16,10 +16,10 @@ export const STRIPE_PUBLISHABLE_KEY =
   "pk_live_51TsRh0IFNHslwSxObrZX8Fx7eneUwyjSeSj0QmbJJKB39lmLDrwNzGOjfk646Y4hacs0jyT9bJSPpGuk4hlojYTy00Ir71HQaq";
 
 export const LEGAL_LINKS = {
-  privacy: "https://samphone.pt/privacy-policy-and-data-protection",
-  terms: "https://samphone.pt/terms-conditions",
-  refunds: "https://samphone.pt/refund-return-policy",
-  shipping: "https://samphone.pt/shipping-policy",
+  privacy: "/privacy-policy",
+  terms: "/terms-conditions",
+  refunds: "/refund-return-policy",
+  shipping: "/shipping-policy",
   livro: "https://www.livroreclamacoes.pt/Inicio",
 } as const;
 
