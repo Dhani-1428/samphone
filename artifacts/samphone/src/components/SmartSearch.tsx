@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { searchCatalog, type SearchHit } from "@/data/search-index";
+import type { SearchHit } from "@/data/search-index";
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
 import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
@@ -11,12 +11,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { getPrimaryImageUrl, searchProductsRemote, wooProductHref, type WooProduct } from "@/lib/woocommerce";
 import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 import CatalogImage from "@/components/CatalogImage";
-
-const SEARCH_PLACEHOLDER =
-  "data:image/svg+xml," +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect fill="#f4f4f5" width="96" height="96"/><path fill="#d4d4d8" d="M34 38h28v20H34z"/><circle fill="#d4d4d8" cx="48" cy="31" r="7"/></svg>`,
-  );
+import { normalizeCatalogImageUrl } from "@/config/samphone";
 
 type Props = {
   className?: string;
@@ -53,14 +48,17 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
     <span className="text-xs font-bold text-black">{t("woo_price_na")}</span>
   );
 
-  const thumb = (
+  const liveSrc = normalizeCatalogImageUrl(hit.imageSrc);
+  const thumb = liveSrc && imgOk ? (
     <CatalogImage
-      src={imgOk ? hit.imageSrc : SEARCH_PLACEHOLDER}
+      src={liveSrc}
       alt=""
       className="h-12 w-12 shrink-0 rounded-lg bg-[#F3F5F8] object-cover"
       loading="lazy"
       onError={() => setImgOk(false)}
     />
+  ) : (
+    <span className="h-12 w-12 shrink-0 rounded-lg bg-[#F3F5F8]" aria-hidden />
   );
 
   const details = (
@@ -87,7 +85,7 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
         <ProductCartControls
           cartKey={hit.cartKey}
           variant="icon-stepper"
-          preview={{ name: hit.name, img: hit.imageSrc }}
+          preview={{ name: hit.name, img: liveSrc }}
         />
       </div>
     </li>
@@ -125,7 +123,7 @@ export default function SmartSearch({
           name: p.name,
           subtitle: p.categories?.[0]?.name,
           href: wooProductHref(p.id),
-          imageSrc: getPrimaryImageUrl(p) ?? SEARCH_PLACEHOLDER,
+          imageSrc: getPrimaryImageUrl(p) ?? "",
           priceText: unit != null ? formatEuroAmount(unit) : null,
         };
       };
@@ -141,17 +139,13 @@ export default function SmartSearch({
         return out.slice(0, 40);
       };
 
-      if (products.length > 0) {
-        setHits(searchProducts(trimmed, 40).map(toHit));
-      } else {
-        setHits(searchCatalog(trimmed, 40));
-      }
+      const local = products.length > 0 ? searchProducts(trimmed, 40).map(toHit) : [];
+      setHits(local);
 
       void searchProductsRemote(trimmed, 40)
         .then((remote) => {
           if (cancelled) return;
-          const remoteHits = remote.map(toHit);
-          setHits((prev) => mergeHits([...prev, ...remoteHits]));
+          setHits(mergeHits([...remote.map(toHit), ...local]));
         })
         .catch(() => {
           /* keep local hits */

@@ -1,4 +1,5 @@
 import { WOO_API_BASE, getWooStoreDisplayUrl, usesWooProxy } from "@/config/woocommerce";
+import { normalizeCatalogImageUrl } from "@/config/samphone";
 
 /**
  * Product shape as returned by WooCommerce REST (subset used in UI).
@@ -315,8 +316,10 @@ export function getDisplayPrice(product: WooProduct): string | null {
 }
 
 export function getPrimaryImageUrl(product: WooProduct): string | null {
-  const src = product.images?.[0]?.src;
-  if (typeof src === "string" && src.length > 0) return src;
+  for (const img of product.images ?? []) {
+    const src = normalizeCatalogImageUrl(img?.src);
+    if (src) return src;
+  }
   return null;
 }
 
