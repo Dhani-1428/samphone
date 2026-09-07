@@ -200,20 +200,55 @@ export function RegisterShell({
   const { t } = useLang();
   return (
     <div className="bg-white">
-      <div className="mx-auto flex min-h-[calc(100dvh-var(--site-header-h,9rem))] w-full max-w-lg flex-col justify-center px-5 py-10 sm:px-8">
-        <h1 className="font-display text-2xl font-bold text-navy sm:text-3xl">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          <Link href={switchHref} className="font-semibold text-brand hover:underline">
-            {switchLabel}
-          </Link>
-        </p>
-        <div className="mt-8 space-y-5">{children}</div>
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          {t("auth_has_account")}{" "}
-          <Link href="/login" className="font-semibold text-brand hover:underline">
-            {t("login")}
-          </Link>
-        </p>
+      <div className="mx-auto grid min-h-[calc(100dvh-var(--site-header-h,9rem))] w-full max-w-[1400px] lg:grid-cols-2">
+        <div className="relative hidden overflow-hidden bg-white lg:block">
+          <div className="absolute inset-0">
+            <video
+              src="/video/register-boy.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden
+              className="pointer-events-none absolute left-0 top-1/2 h-[130%] w-[210%] max-w-none -translate-y-1/2 object-cover object-[0%_48%]"
+            />
+          </div>
+          <p className="absolute bottom-10 left-10 max-w-sm text-sm font-medium text-neutral-400">
+            {t("reg_hero_line")}
+          </p>
+        </div>
+
+        <div className="relative mx-auto mt-6 aspect-[4/3] w-[min(22rem,80vw)] overflow-hidden lg:hidden">
+          <video
+            src="/video/register-boy.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 h-[140%] w-[200%] max-w-none object-cover object-[0%_42%]"
+          />
+        </div>
+
+        <div className="flex items-start justify-center px-5 py-10 sm:px-10 lg:px-14 lg:py-12">
+          <div className="w-full max-w-md">
+            <h1 className="font-display text-2xl font-bold text-navy sm:text-3xl">{title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              <Link href={switchHref} className="font-semibold text-brand hover:underline">
+                {switchLabel}
+              </Link>
+            </p>
+            <div className="mt-8 space-y-5">{children}</div>
+            <p className="mt-8 text-center text-sm text-muted-foreground">
+              {t("auth_has_account")}{" "}
+              <Link href="/login" className="font-semibold text-brand hover:underline">
+                {t("login")}
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
