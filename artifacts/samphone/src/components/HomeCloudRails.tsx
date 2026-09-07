@@ -4,16 +4,23 @@ import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { fetchCloudHomeRails, fetchCloudProductsByGroup, type CloudHomeRails } from "@/lib/samphone-cloud";
+import { fetchCloudHomeRails, fetchCloudProductList, type CloudHomeRails } from "@/lib/samphone-cloud";
 import { filterProductsMatchingTitle } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
-const EXTRA_GROUPS = [
-  { key: "hoco", title: "Hoco", group: "Hoco" },
-  { key: "magsafe", title: "MagSafe", group: "MagSafe" },
-  { key: "jelly", title: "Soft Jelly", group: "Soft Jelly" },
-  { key: "glass", title: "Full Glue Glass", group: "Full Glue Glass" },
-];
+const HOME_CATEGORY_RAILS = [
+  { key: "repair-tools", title: "Repair Tools", group: "Repairing Tools", query: { category_group: "Repairing Tools" } },
+  { key: "memory-cards", title: "Memory Cards", group: "Cards", query: { category_group: "Cards" } },
+  { key: "adapters", title: "Adapters", group: "Chargers", query: { leaf_category: "Adapters" } },
+  { key: "car-support", title: "Mobile Car Support", group: "Mobile Car Support", query: { category_group: "Mobile Car" } },
+  { key: "magsafe-covers", title: "MagSafe Covers", group: "Original Accessories", query: { q: "magsafe" } },
+  { key: "wireless-headsets", title: "Wireless Headsets", group: "Headphones", query: { category_group: "Headphones" } },
+  { key: "power-bank", title: "Power Bank", group: "Powerbanks", query: { category_group: "Powerbanks" } },
+  { key: "cables", title: "Cables", group: "Cables", query: { category_group: "Cables" } },
+  { key: "screen-protectors", title: "Screen Protectors", group: "Original Accessories", query: { q: "tempered glass" } },
+  { key: "phone-cases", title: "Phone Cases", group: "Original Accessories", query: { q: "phone case" } },
+  { key: "chargers", title: "Chargers", group: "Chargers", query: { category_group: "Chargers" } },
+] as const;
 
 function mergeForTitle(title: string, apiItems: WooProduct[], catalog: WooProduct[], limit = 14): WooProduct[] {
   const fromApi = filterProductsMatchingTitle(apiItems, title, limit);
@@ -41,17 +48,17 @@ export default function HomeCloudRails() {
         if (alive) setRails({ best: [], fresh: [], sections: [] });
       });
     void Promise.all(
-      EXTRA_GROUPS.map(async (g) => ({
-        ...g,
-        items: await fetchCloudProductsByGroup(g.group, 24),
-      })),
-    )
-      .then((rows) => {
-        if (alive) setExtra(rows);
-      })
-      .catch(() => {
-        if (alive) setExtra([]);
-      });
+      HOME_CATEGORY_RAILS.map(async (g) => {
+        try {
+          const page = await fetchCloudProductList({ ...g.query }, 24);
+          return { key: g.key, title: g.title, group: g.group, items: page.items };
+        } catch {
+          return { key: g.key, title: g.title, group: g.group, items: [] as WooProduct[] };
+        }
+      }),
+    ).then((rows) => {
+      if (alive) setExtra(rows);
+    });
     return () => {
       alive = false;
     };
@@ -60,16 +67,6 @@ export default function HomeCloudRails() {
   const label = t("woo_price_na");
   const cards = (items: WooProduct[]) =>
     items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
-
-  const sectionRows = useMemo(() => {
-    if (!rails) return [];
-    return rails.sections
-      .map((s) => ({
-        ...s,
-        items: mergeForTitle(s.title || s.group || s.key, s.items, catalog),
-      }))
-      .filter((s) => s.items.length > 0);
-  }, [rails, catalog]);
 
   const extraRows = useMemo(() => {
     if (!extra) return [];
@@ -92,15 +89,6 @@ export default function HomeCloudRails() {
           {cards(rails.best)}
         </HomeProductRail>
       ) : null}
-      {sectionRows.map((s) => (
-        <HomeProductRail
-          key={s.key}
-          title={s.title}
-          seeAllHref={s.group ? `/group/${encodeURIComponent(s.group)}` : "/accessories"}
-        >
-          {cards(s.items)}
-        </HomeProductRail>
-      ))}
       {extraRows.map((s) => (
         <HomeProductRail key={s.key} title={s.title} seeAllHref={`/group/${encodeURIComponent(s.group)}`}>
           {cards(s.items)}

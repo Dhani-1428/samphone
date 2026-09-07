@@ -426,15 +426,17 @@ export function pickHomeFeatured(
 }
 
 const SECTION_TITLE_NEEDLES: Record<string, string[]> = {
-  chargers: ["charger", "charging adapter", "wall charger", "car charger"],
-  cables: ["cable", "usb-c", "usbc", "lightning cable", "type-c", "type c"],
-  headphones: ["headphone", "earphone", "earbuds", "earbud", "headset", "handsfree", "airpods"],
-  powerbanks: ["powerbank", "power bank"],
-  speakers: ["speaker", "bluetooth speaker"],
-  hoco: ["hoco"],
-  magsafe: ["magsafe", "mag safe"],
-  "soft jelly": ["jelly", "silicone", "silicon soft"],
-  "full glue glass": ["full glue", "tempered glass", "screen protector", "glass protector"],
+  "repair tools": ["repair tool", "repairing tool", "screwdriver", "spudger", "opening tool", "suction cup", "tweezer"],
+  "memory cards": ["memory card", "sd card", "microsd", "micro sd", "tf card", "sdhc", "sdxc"],
+  adapters: ["adapter", "adaptor"],
+  "mobile car support": ["car support", "car mount", "car holder", "car stand", "dashboard mount", "vent mount"],
+  "magsafe covers": ["magsafe cover", "magsafe case", "mag safe cover", "mag safe case", "magsafe"],
+  "wireless headsets": ["wireless headset", "bluetooth headset", "wireless earphone", "bluetooth earphone", "tws", "wireless earbuds"],
+  "power bank": ["powerbank", "power bank"],
+  cables: ["cable", "usb-c", "lightning cable", "type-c"],
+  "screen protectors": ["screen protector", "tempered glass", "full glue", "glass protector"],
+  "phone cases": ["phone case", "back cover", "flip cover", "silicon case", "silicone case"],
+  chargers: ["charger", "wall charger", "fast charger"],
 };
 
 function sectionTitleNeedles(title: string): string[] {

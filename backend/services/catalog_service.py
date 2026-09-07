@@ -24,11 +24,17 @@ logger = logging.getLogger(__name__)
 
 # Home screen category rows (replaces 5 extra /products calls).
 HOME_RAIL_SECTIONS: tuple[tuple[str, str, str], ...] = (
-    ("chargers", "Chargers", "Chargers"),
+    ("repair-tools", "Repair Tools", "Repairing Tools"),
+    ("memory-cards", "Memory Cards", "Cards"),
+    ("adapters", "Adapters", "Chargers"),
+    ("car-support", "Mobile Car Support", "Mobile Car"),
+    ("magsafe-covers", "MagSafe Covers", "Original Accessories"),
+    ("wireless-headsets", "Wireless Headsets", "Headphones"),
+    ("power-bank", "Power Bank", "Powerbanks"),
     ("cables", "Cables", "Cables"),
-    ("headphones", "Headphones", "Headphones"),
-    ("powerbanks", "Powerbanks", "Powerbanks"),
-    ("speakers", "Speakers", "Speakers"),
+    ("screen-protectors", "Screen Protectors", "Original Accessories"),
+    ("phone-cases", "Phone Cases", "Original Accessories"),
+    ("chargers", "Chargers", "Chargers"),
 )
 
 _PREVIEW_KEYS = (
