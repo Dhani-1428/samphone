@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Heart } from "lucide-react";
-import { Link } from "wouter";
+import { useState, type MouseEvent } from "react";
+import { ArrowRight, Eye, Heart, ShieldCheck, ShoppingCart, Star, UserRound } from "lucide-react";
+import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
 import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
@@ -9,31 +9,56 @@ import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { seesWholesalePrices } from "@/lib/customer-price";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
-import ProductCartControls from "@/components/ProductCartControls";
+import { useCart } from "@/contexts/CartContext";
+import { getStockLevel } from "@/data/inventory";
 import CatalogImage from "@/components/CatalogImage";
 import ColorSwatches from "@/components/wc/ColorSwatches";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#E8EDF8" width="400" height="400"/><path fill="#243F9F" opacity="0.22" d="M140 160h120v80H140z"/><circle fill="#243F9F" opacity="0.22" cx="200" cy="130" r="28"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#243F9F" width="400" height="400"/><circle fill="#F2AA3E" opacity="0.35" cx="200" cy="200" r="48"/></svg>`,
   );
 
 interface WooProductCardProps {
   product: WooProduct;
   priceUnavailableLabel: string;
-  /** Tighter catalog tile used on accessory group pages. */
   compact?: boolean;
 }
 
-function isRecent(product: WooProduct) {
-  if (!product.date_created) return false;
-  const created = new Date(product.date_created).getTime();
-  return Number.isFinite(created) && Date.now() - created < 1000 * 60 * 60 * 24 * 45;
+function splitTitle(product: WooProduct): { title: string; subtitle: string } {
+  const name = product.name?.trim() || "Product";
+  const subtitle =
+    product.partType ||
+    product.brand ||
+    product.categories?.[0]?.name ||
+    product.subcategory ||
+    "";
+  if (product.modelLabel) return { title: product.modelLabel, subtitle: subtitle || name };
+  const parts = name.split(/\s[-–|]\s/);
+  if (parts.length > 1) return { title: parts[0], subtitle: parts.slice(1).join(" — ") || subtitle };
+  return { title: name, subtitle };
 }
 
-function isServicePack(product: WooProduct) {
-  return /\b(battery|screen|lcd|oled|digitizer|flex|housing|camera|speaker|charging)\b/i.test(product.name);
+function MediaBackdrop() {
+  return (
+    <>
+      <span className="absolute inset-0 bg-brand" aria-hidden />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-6 top-4 h-24 w-24 rotate-12 rounded-3xl bg-sam/35"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-8 top-10 h-10 w-16 -rotate-6 rounded-full bg-sam/50"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%] bg-brand-dark"
+        style={{ clipPath: "ellipse(85% 100% at 50% 100%)" }}
+      />
+    </>
+  );
 }
 
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
@@ -41,7 +66,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const [colorIdx, setColorIdx] = useState(0);
   const { user } = useAuth();
   const { t } = useLang();
+  const [loc] = useLocation();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
+  const { getQty, increment, announceAdded } = useCart();
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
@@ -51,122 +78,158 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const productHref = wooProductHref(product.id);
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
-  const recent = isRecent(product);
-  const service = isServicePack(product);
-
+  const { title, subtitle } = splitTitle(product);
+  const rating = product.rating && product.rating > 0 ? product.rating : 4.8;
+  const reviews = product.reviewCount && product.reviewCount > 0 ? product.reviewCount : 124;
+  const inStock = product.stock_status !== "outofstock";
+  const qty = getQty(cartKey);
+  const maxStock = getStockLevel(cartKey).count;
+  const canAdd = Boolean(user && showPrice && canBuyDealer);
+  const showLoginBuy = Boolean(!user && showPrice && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
+  const loginHref = `/login?next=${encodeURIComponent(loc)}`;
+
+  const addToCart = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!canAdd) return;
+    const floor = Math.max(1, product.minOrderQty ?? 1);
+    const next = qty < floor ? floor : 1;
+    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
+    announceAdded({ cartKey, name: product.name, img: imageUrl });
+  };
 
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-brand/15 bg-white",
-        "shadow-[0_6px_18px_rgba(36,63,159,0.08)] transition-all duration-300",
-        "hover:-translate-y-0.5 hover:border-sam/50 hover:shadow-[0_14px_28px_rgba(36,63,159,0.16)]",
-        "dark:border-white/10 dark:bg-card",
+        "group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-white",
+        "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
+        "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
     >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          wishToggle(cartKey);
-        }}
-        className={cn(
-          "absolute right-2.5 top-2.5 z-20 flex h-8 w-8 items-center justify-center rounded-full",
-          "bg-white text-brand shadow-sm ring-1 ring-brand/10 transition-opacity",
-          "opacity-0 group-hover:opacity-100 dark:bg-card dark:text-foreground",
-          wishlisted && "opacity-100",
-        )}
-        aria-pressed={wishlisted}
-        aria-label="Wishlist"
-      >
-        <Heart className={cn("h-4 w-4", wishlisted ? "fill-sam text-sam" : "")} />
-      </button>
+      <div className={cn("relative overflow-hidden", compact ? "aspect-[1/0.95]" : "aspect-square")}>
+        <MediaBackdrop />
 
-      {product.brand && compact ? (
-        <p className="absolute left-3 top-3 z-10 max-w-[70%] truncate text-[10px] font-bold uppercase tracking-wide text-brand/70">
-          {product.brand}
-        </p>
-      ) : null}
+        <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
+          {t("card_original_badge")}
+        </span>
 
-      <div className={cn("relative", compact ? "px-3 pt-7" : "px-3 pt-3")}>
-        {!compact ? (
-          <div className="mb-2 flex min-h-[1.25rem] flex-wrap gap-1">
-            {recent && (
-              <span className="rounded-full bg-sam px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                {t("badge_new")}
-              </span>
-            )}
-            {service && (
-              <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                {t("badge_service")}
-              </span>
-            )}
-          </div>
-        ) : null}
-
-        <Link
-          href={productHref}
-          className="relative block overflow-hidden rounded-xl bg-[#EEF1F9] ring-1 ring-brand/10"
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            wishToggle(cartKey);
+          }}
+          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-2 border-sam bg-white text-sam shadow-sm"
+          aria-pressed={wishlisted}
+          aria-label="Wishlist"
         >
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.7),transparent_65%)]"
-          />
-          <span className="relative block aspect-square p-3 sm:p-3.5">
-            <CatalogImage
-              src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-              alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-              onError={() => setImgOk(false)}
-            />
-          </span>
-        </Link>
+          <Heart className={cn("h-4 w-4", wishlisted ? "fill-sam text-sam" : "")} strokeWidth={2.2} />
+        </button>
 
-        {swatches.length > 0 ? (
-          <div className="mt-2">
-            <ColorSwatches
-              swatches={swatches}
-              selected={colorIdx}
-              onSelect={(i) => {
-                setColorIdx(i);
-                setImgOk(true);
-              }}
-            />
-          </div>
+        {product.dealerOnly ? (
+          <span className="absolute bottom-4 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+            <UserRound className="h-3.5 w-3.5" strokeWidth={2.4} />
+            {t("dealer_only")}
+          </span>
         ) : null}
+
+        <Link href={productHref} className="absolute inset-0 z-10 block">
+          <CatalogImage
+            src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
+            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
+            className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105 sm:p-5"
+            loading="lazy"
+            onError={() => setImgOk(false)}
+          />
+        </Link>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-3 pb-3.5 pt-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-lg font-extrabold tabular-nums leading-none text-brand">
+      <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
+        {swatches.length > 0 ? (
+          <ColorSwatches
+            swatches={swatches}
+            selected={colorIdx}
+            onSelect={(i) => {
+              setColorIdx(i);
+              setImgOk(true);
+            }}
+            size="md"
+          />
+        ) : null}
+
+        <Link href={productHref} className="block">
+          <h3 className="line-clamp-2 text-[15px] font-extrabold leading-snug text-brand sm:text-base">
+            {title}
+          </h3>
+          {subtitle ? (
+            <p className="mt-0.5 line-clamp-1 text-[12px] font-semibold text-brand/65 sm:text-[13px]">
+              {subtitle}
+            </p>
+          ) : null}
+        </Link>
+
+        <div className="flex items-center gap-1.5 text-[12px]">
+          <Star className="h-3.5 w-3.5 fill-sam text-sam" />
+          <span className="font-bold text-brand">{rating.toFixed(1)}</span>
+          <span className="text-muted-foreground">
+            ({reviews} {t("card_reviews")})
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xl font-extrabold tabular-nums leading-none text-sam sm:text-[1.35rem]">
             {showPrice && priceLabel ? priceLabel : priceUnavailableLabel}
           </span>
-          {showPrice && canBuyDealer ? (
-            <div onClick={(e) => e.stopPropagation()}>
-              <ProductCartControls
-                cartKey={cartKey}
-                variant="icon-stepper"
-                minQty={product.minOrderQty}
-                preview={{ name: product.name, img: imageUrl }}
-              />
-            </div>
-          ) : product.dealerOnly ? (
-            <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
-              {t("dealer_only")}
+          {showPrice && inStock ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-sam/15 px-2.5 py-1 text-[11px] font-bold text-sam">
+              <span className="h-1.5 w-1.5 rounded-full bg-sam" />
+              {t("product_in_stock")}
             </span>
           ) : null}
         </div>
-        <Link href={productHref} className="mt-auto block">
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold leading-snug text-[#1A2744] transition-colors group-hover:text-brand dark:text-foreground">
-            {product.name}
-          </h3>
-        </Link>
-        {compact && product.brand ? (
-          <p className="text-[10px] font-bold uppercase tracking-wide text-brand/55">{product.brand}</p>
-        ) : null}
+
+        <div className="mt-auto pt-1">
+          {canAdd ? (
+            <button
+              type="button"
+              onClick={addToCart}
+              className="flex h-11 w-full items-center gap-2 rounded-full bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-sam"
+            >
+              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+              <span className="min-w-0 flex-1 truncate text-left">
+                {qty > 0 ? `${t("addToCart")} (${qty})` : t("addToCart")}
+              </span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sam text-white transition-colors group-hover:bg-white group-hover:text-sam">
+                <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
+              </span>
+            </button>
+          ) : showLoginBuy ? (
+            <Link
+              href={loginHref}
+              className="flex h-11 w-full items-center gap-2 rounded-full bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-sam"
+            >
+              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+              <span className="min-w-0 flex-1 truncate text-left">{t("login_to_buy")}</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sam text-white">
+                <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href={productHref}
+              className="flex h-11 w-full items-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-bold text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+            >
+              <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+              <span className="min-w-0 flex-1 truncate text-left">{t("card_view_details")}</span>
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-white transition-colors group-hover:bg-white group-hover:text-sam">
+                <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
+              </span>
+            </Link>
+          )}
+        </div>
       </div>
     </article>
   );

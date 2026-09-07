@@ -50,7 +50,7 @@ export default function ColorSwatches({
             className={cn(
               "rounded-full border shadow-sm transition-transform",
               dim,
-              active ? "scale-110 ring-2 ring-offset-1 ring-foreground/40" : "border-black/15",
+              active ? "scale-110 ring-2 ring-offset-1 ring-sam" : "border-black/15",
               isLight(s.hex) ? "border-black/25" : "border-black/20",
             )}
             style={{ backgroundColor: s.hex }}
