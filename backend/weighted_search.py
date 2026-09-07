@@ -328,18 +328,28 @@ def extract_required_generation_tokens(phrase: str) -> list[str]:
             add(tok)
             continue
 
-        # Bare generation digits (16, 17, 13, …)
+        # Bare generation digits (16, 17, 13, …), including a lone "17"
+        # so 17e / 17 Pro Max stay in results. Skip standalone storage sizes.
         if re.fullmatch(r"\d{1,2}", tok):
             if tok in _STORAGE_DIGITS and not has_phone and not has_extender:
                 continue
-            if has_phone or has_extender:
-                add(tok)
+            add(tok)
 
     return required
 
 
+def generation_token_pattern(token: str) -> str:
+    """Match a model generation so 17 hits 17e / 17 Pro Max, but not 117 or 170."""
+    t = re.sub(r"[^a-z0-9]+", "", (token or "").lower())
+    if not t:
+        return r"(?!)"
+    if t.isdigit():
+        return rf"(?<![0-9]){re.escape(t)}(?![0-9])"
+    return rf"(?<![a-z0-9]){re.escape(t)}(?![0-9])"
+
+
 def title_has_required_generations(title: str, required: list[str] | tuple[str, ...] | None) -> bool:
-    """True when every required generation/code appears as its own token in the title."""
+    """True when every required generation/code appears in the title (suffix variants allowed)."""
     if not required:
         return True
     blob = (title or "").lower()
@@ -348,17 +358,19 @@ def title_has_required_generations(title: str, required: list[str] | tuple[str, 
     for tok in required:
         if not tok:
             continue
-        if not re.search(rf"(?<![a-z0-9]){re.escape(tok)}(?![a-z0-9])", blob):
+        if not re.search(generation_token_pattern(tok), blob):
             return False
     return True
 
 
 def mysql_generation_regexp(token: str) -> str:
-    """MySQL REGEXP that matches token with non-alnum boundaries (case-insensitive via LOWER())."""
+    """MySQL REGEXP: 17 matches 17e / 17 Pro, not 117 or 170."""
     t = re.sub(r"[^a-z0-9]+", "", (token or "").lower())
     if not t:
         return "."
-    return rf"(^|[^0-9a-z]){re.escape(t)}([^0-9a-z]|$)"
+    if t.isdigit():
+        return rf"(^|[^0-9]){re.escape(t)}([^0-9]|$)"
+    return rf"(^|[^0-9a-z]){re.escape(t)}([^0-9]|$)"
 
 
 def normalize_query(text: str) -> str:

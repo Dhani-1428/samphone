@@ -8,7 +8,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, searchProductsRemote, wooProductHref, type WooProduct } from "@/lib/woocommerce";
 import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 import CatalogImage from "@/components/CatalogImage";
 
@@ -111,29 +111,56 @@ export default function SmartSearch({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (q.trim().length < 1) {
+    const trimmed = q.trim();
+    if (trimmed.length < 1) {
       setHits([]);
       return;
     }
+    let cancelled = false;
     const id = setTimeout(() => {
+      const toHit = (p: WooProduct): SearchHit => {
+        const unit = catalogUnitPrice(p, user);
+        return {
+          cartKey: `woo:${p.id}`,
+          name: p.name,
+          subtitle: p.categories?.[0]?.name,
+          href: wooProductHref(p.id),
+          imageSrc: getPrimaryImageUrl(p) ?? SEARCH_PLACEHOLDER,
+          priceText: unit != null ? formatEuroAmount(unit) : null,
+        };
+      };
+
+      const mergeHits = (list: SearchHit[]) => {
+        const seen = new Set<string>();
+        const out: SearchHit[] = [];
+        for (const hit of list) {
+          if (seen.has(hit.cartKey)) continue;
+          seen.add(hit.cartKey);
+          out.push(hit);
+        }
+        return out.slice(0, 40);
+      };
+
       if (products.length > 0) {
-        const wooHits: SearchHit[] = searchProducts(q, 10).map((p) => {
-          const unit = catalogUnitPrice(p, user);
-          return {
-            cartKey: `woo:${p.id}`,
-            name: p.name,
-            subtitle: p.categories?.[0]?.name,
-            href: wooProductHref(p.id),
-            imageSrc: getPrimaryImageUrl(p) ?? SEARCH_PLACEHOLDER,
-            priceText: unit != null ? formatEuroAmount(unit) : null,
-          };
-        });
-        setHits(wooHits);
-        return;
+        setHits(searchProducts(trimmed, 40).map(toHit));
+      } else {
+        setHits(searchCatalog(trimmed, 40));
       }
-      setHits(searchCatalog(q, 10));
+
+      void searchProductsRemote(trimmed, 40)
+        .then((remote) => {
+          if (cancelled) return;
+          const remoteHits = remote.map(toHit);
+          setHits((prev) => mergeHits([...prev, ...remoteHits]));
+        })
+        .catch(() => {
+          /* keep local hits */
+        });
     }, 120);
-    return () => clearTimeout(id);
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+    };
   }, [q, products.length, searchProducts, user]);
 
   const closeAndClear = () => {

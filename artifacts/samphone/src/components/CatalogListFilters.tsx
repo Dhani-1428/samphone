@@ -1,6 +1,6 @@
 import { Search, X } from "lucide-react";
 import { CatalogTypeChip } from "@/components/CatalogPageChrome";
-import { productSearchHaystack } from "@/lib/woo-product-filters";
+import { productMatchesSearchQuery } from "@/lib/woo-product-filters";
 import { cn } from "@/lib/utils";
 import type { WooProduct } from "@/lib/woocommerce";
 
@@ -34,7 +34,7 @@ export function applyCatalogListFilters(
   let list = products;
 
   if (q) {
-    list = list.filter((p) => productSearchHaystack(p).includes(q) || (p.name ?? "").toLowerCase().includes(q));
+    list = list.filter((p) => productMatchesSearchQuery(p, q));
   }
   if (filters.inStock) list = list.filter((p) => p.stock_status === "instock");
   if (filters.onSale) list = list.filter((p) => p.on_sale);

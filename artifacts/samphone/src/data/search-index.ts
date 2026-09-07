@@ -1,4 +1,5 @@
 import { allSlugs } from "@/data/categories";
+import { searchTokenMatchesText } from "@/lib/woo-product-filters";
 import {
   ACCESSORIES_PRODUCTS,
   CARDS_PRODUCTS,
@@ -65,21 +66,22 @@ export function buildSearchIndex(): SearchHit[] {
 export function searchCatalog(query: string, limit = 10): SearchHit[] {
   const q = query.trim().toLowerCase();
   if (q.length < 1) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
   const index = buildSearchIndex();
   const scored: { hit: SearchHit; score: number }[] = [];
   for (const hit of index) {
     const name = hit.name.toLowerCase();
     const sub = (hit.subtitle ?? "").toLowerCase();
+    const hay = `${name} ${sub}`;
+    if (!tokens.every((w) => searchTokenMatchesText(hay, w))) continue;
     let score = 0;
     if (name === q) score += 100;
     else if (name.startsWith(q)) score += 40;
-    else if (name.includes(q)) score += 20;
-    if (sub.includes(q)) score += 8;
-    const words = q.split(/\s+/).filter(Boolean);
-    for (const w of words) {
-      if (w.length < 2) continue;
-      if (name.includes(w)) score += 5;
-      if (sub.includes(w)) score += 2;
+    else if (searchTokenMatchesText(name, q)) score += 20;
+    if (searchTokenMatchesText(sub, q)) score += 8;
+    for (const w of tokens) {
+      if (searchTokenMatchesText(name, w)) score += 5;
+      if (searchTokenMatchesText(sub, w)) score += 2;
     }
     if (score > 0) scored.push({ hit, score });
   }

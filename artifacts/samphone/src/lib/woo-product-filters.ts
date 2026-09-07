@@ -240,6 +240,43 @@ export function filterCatalogForSmartphonesTab(
   return [];
 }
 
+/** Escape a string for use inside a RegExp. */
+function escapeRegExpToken(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Match one search token against catalog text.
+ * Digits like "17" hit "17e" and "17 Pro Max", but not "117" or "170".
+ */
+export function searchTokenMatchesText(haystack: string, token: string): boolean {
+  const hay = haystack.toLowerCase();
+  const tok = token.trim().toLowerCase();
+  if (!tok) return true;
+  if (/^\d{1,4}$/.test(tok)) {
+    return new RegExp(`(?:^|[^0-9])${escapeRegExpToken(tok)}(?:[^0-9]|$)`).test(hay);
+  }
+  return hay.includes(tok);
+}
+
+/** Every query token must appear in the haystack (generation-aware). */
+export function textMatchesSearchQuery(haystack: string, query: string): boolean {
+  const tokens = query
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (tokens.length === 0) return true;
+  const hay = haystack.toLowerCase();
+  return tokens.every((tok) => searchTokenMatchesText(hay, tok));
+}
+
+export function productMatchesSearchQuery(p: WooProduct, query: string): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  return textMatchesSearchQuery(productSearchHaystack(p), q) || textMatchesSearchQuery(p.name ?? "", q);
+}
+
 /** Search text used to decide which brand a catalog product belongs to. */
 export function productSearchHaystack(p: WooProduct): string {
   return [

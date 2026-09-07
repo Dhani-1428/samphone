@@ -12,6 +12,7 @@ import {
   brandKeywordNeedles,
   filterProductsByBrandKeyword,
   productSearchHaystack,
+  textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
 import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -140,7 +141,7 @@ function Sidebar({
   const visibleModels = useMemo(() => {
     const q = modelQuery.trim().toLowerCase();
     if (!q) return models;
-    return models.filter((m) => m.label.toLowerCase().includes(q));
+    return models.filter((m) => textMatchesSearchQuery(m.label, q));
   }, [models, modelQuery]);
 
   return (

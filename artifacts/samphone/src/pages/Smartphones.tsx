@@ -12,6 +12,7 @@ import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
 import { cn } from "@/lib/utils";
 import {
   filterCatalogForSmartphonesTab,
+  productMatchesSearchQuery,
   sortByPrice,
 } from "@/lib/woo-product-filters";
 
@@ -141,9 +142,19 @@ export default function Smartphones() {
   const catalogList = useMemo(() => sortByPrice(items ?? [], "asc"), [items]);
 
   const searchResultList = useMemo(() => {
-    if (!woo || !debouncedSearch || apiRawHits === null) return [];
-    return sortByPrice(apiRawHits, "asc");
-  }, [woo, debouncedSearch, apiRawHits]);
+    if (!woo || !debouncedSearch) return [];
+    const fromApi = apiRawHits ?? [];
+    const fromLocal = catalogList.filter((p) => productMatchesSearchQuery(p, debouncedSearch));
+    const seen = new Set(fromApi.map((p) => p.cloudId || p.id));
+    const merged = [...fromApi];
+    for (const p of fromLocal) {
+      const key = p.cloudId || p.id;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(p);
+    }
+    return sortByPrice(merged, "asc");
+  }, [woo, debouncedSearch, apiRawHits, catalogList]);
 
   const displayList = debouncedSearch ? searchResultList : catalogList;
   const loading = items == null;

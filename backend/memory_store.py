@@ -104,12 +104,26 @@ def filter_products(
         if group_title:
             out = filter_by_group(out, group_title)
         else:
+            from weighted_search import build_search_terms, product_matches_any
+
+            terms = build_search_terms(q)
+            expanded = terms.get("expanded") or [q.strip().lower()]
+            required = terms.get("required_tokens") or []
             out = [
                 p
                 for p in out
-                if any(
-                    _match_regex(str(p.get(f) or ""), q)
-                    for f in ("title", "brand", "category", "subcategory", "model", "sku", "leaf_category", "part_type")
+                if product_matches_any(
+                    title=str(p.get("title") or ""),
+                    sku=str(p.get("sku") or ""),
+                    categories=[
+                        str(p.get("category") or ""),
+                        str(p.get("subcategory") or ""),
+                        str(p.get("leaf_category") or ""),
+                    ],
+                    brand=str(p.get("brand") or ""),
+                    attributes=[str(p.get("model") or ""), str(p.get("part_type") or "")],
+                    expanded=expanded,
+                    required_tokens=required,
                 )
             ]
     from catalog_sort import sort_products

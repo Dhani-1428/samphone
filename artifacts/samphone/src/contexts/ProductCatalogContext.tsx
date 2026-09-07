@@ -19,6 +19,7 @@ import {
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
+import { productMatchesSearchQuery, productSearchHaystack, searchTokenMatchesText } from "@/lib/woo-product-filters";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
 const CACHE_KEY = "samphone-products-cache-json-v6-cloud";
@@ -243,12 +244,16 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
     (q: string, limit = 10): WooProduct[] => {
       const tokens = normalizeQuery(q);
       if (tokens.length === 0) return [];
-      const lower = (s: string) => s.toLowerCase();
       const score = (p: WooProduct): number => {
-        const hay = [p.name, ...(p.categories?.map((c) => c.name) ?? [])].map(lower).join(" ");
-        let s = 0;
+        const name = (p.name ?? "").toLowerCase();
+        const hay = productSearchHaystack(p);
+        if (!productMatchesSearchQuery(p, q)) return 0;
+        let s = 4;
         for (const t of tokens) {
-          if (hay.includes(t)) s += 2;
+          if (name === t) s += 80;
+          else if (name.startsWith(t) || name.includes(` ${t}`)) s += 30;
+          else if (searchTokenMatchesText(name, t)) s += 20;
+          else if (searchTokenMatchesText(hay, t)) s += 8;
         }
         return s;
       };
