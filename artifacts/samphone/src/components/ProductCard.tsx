@@ -102,7 +102,7 @@ export default function ProductCard({
           <img
             src={img}
             alt={name}
-            className="h-full w-full object-contain p-5 mix-blend-multiply transition-transform duration-500 group-hover:scale-105 sm:p-6"
+            className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105 sm:p-6"
           />
         </Link>
       </div>
