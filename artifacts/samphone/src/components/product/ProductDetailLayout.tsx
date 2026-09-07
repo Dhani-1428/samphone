@@ -317,7 +317,7 @@ export default function ProductDetailLayout({
           {tab === "desc" ? (
             descriptionHtml ? (
               <div
-                className="prose prose-neutral max-w-none text-[15px] leading-relaxed text-black prose-headings:font-display prose-headings:text-navy prose-a:text-[#111111] prose-li:marker:text-[#111111]"
+                className="prose prose-neutral max-w-none uppercase text-[15px] leading-relaxed text-black prose-headings:font-display prose-headings:text-navy prose-a:text-[#111111] prose-li:marker:text-[#111111]"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             ) : (

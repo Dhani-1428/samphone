@@ -136,7 +136,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             {title}
           </h3>
           {subtitle ? (
-            <p className="product-card-copy mt-1 line-clamp-2 text-[13px] leading-5 text-brand/70 sm:text-sm">
+            <p className="product-card-copy mt-1 line-clamp-2 text-[13px] leading-5 uppercase text-brand/70 sm:text-sm">
               {subtitle}
             </p>
           ) : null}
