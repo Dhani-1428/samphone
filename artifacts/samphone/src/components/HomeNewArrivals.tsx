@@ -1,19 +1,30 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { sortNewest } from "@/lib/woo-product-filters";
+import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
+import type { WooProduct } from "@/lib/woocommerce";
 
 export default function HomeNewArrivals() {
   const { t } = useLang();
-  const woo = hasWooCommerceConfig();
-  const { products, loading } = useProductCatalog();
-  const wooRows = useMemo(() => (woo ? sortNewest(products).slice(0, 14) : []), [woo, products]);
+  const [wooRows, setWooRows] = useState<WooProduct[] | null>(null);
 
-  if (woo && loading && wooRows.length === 0) {
+  useEffect(() => {
+    let alive = true;
+    void fetchCloudNewArrivals(14)
+      .then((rows) => {
+        if (alive) setWooRows(rows);
+      })
+      .catch(() => {
+        if (alive) setWooRows([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (wooRows == null) {
     return (
       <HomeProductRail
         title={t("newArrivals_section_title")}

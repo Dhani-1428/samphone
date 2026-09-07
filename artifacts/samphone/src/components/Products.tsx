@@ -1,24 +1,30 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { pickHomeFeatured, sortNewest } from "@/lib/woo-product-filters";
+import { fetchCloudFeatured } from "@/lib/samphone-cloud";
+import type { WooProduct } from "@/lib/woocommerce";
 
 export default function Products() {
   const { t } = useLang();
-  const woo = hasWooCommerceConfig();
-  const { products, loading } = useProductCatalog();
+  const [featured, setFeatured] = useState<WooProduct[] | null>(null);
 
-  const featured = useMemo(() => {
-    if (!woo) return [];
-    const excludeNewArrivals = new Set(sortNewest(products).slice(0, 14).map((p) => p.id));
-    return pickHomeFeatured(products, 14, 0, excludeNewArrivals);
-  }, [woo, products]);
+  useEffect(() => {
+    let alive = true;
+    void fetchCloudFeatured(14)
+      .then((rows) => {
+        if (alive) setFeatured(rows);
+      })
+      .catch(() => {
+        if (alive) setFeatured([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-  if (woo && loading && featured.length === 0) {
+  if (featured == null) {
     return (
       <div id="products">
         <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">

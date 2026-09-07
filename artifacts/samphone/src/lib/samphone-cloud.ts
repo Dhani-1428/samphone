@@ -350,6 +350,11 @@ export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> 
   return mapItems(data);
 }
 
+export async function fetchCloudFeatured(limit = 24): Promise<WooProduct[]> {
+  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/featured?limit=${limit}`);
+  return mapItems(data);
+}
+
 export async function fetchCloudHomeSeed(limit = 24): Promise<WooProduct[]> {
   const [featured, news, rails] = await Promise.allSettled([
     cloudFetchJson<ListEnvelope<CloudProduct>>(`/featured?limit=${limit}`),

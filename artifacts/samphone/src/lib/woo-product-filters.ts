@@ -422,26 +422,48 @@ export function pickHomeFeatured(
 ): WooProduct[] {
   const sorted = sortNewest(products);
   const filtered = excludeIds ? sorted.filter((p) => !excludeIds.has(p.id)) : sorted;
+  return filtered.slice(offset, offset + limit);
+}
+
+const SECTION_TITLE_NEEDLES: Record<string, string[]> = {
+  chargers: ["charger", "charging adapter", "wall charger", "car charger"],
+  cables: ["cable", "usb-c", "usbc", "lightning cable", "type-c", "type c"],
+  headphones: ["headphone", "earphone", "earbuds", "earbud", "headset", "handsfree", "airpods"],
+  powerbanks: ["powerbank", "power bank"],
+  speakers: ["speaker", "bluetooth speaker"],
+  hoco: ["hoco"],
+  magsafe: ["magsafe", "mag safe"],
+  "soft jelly": ["jelly", "silicone", "silicon soft"],
+  "full glue glass": ["full glue", "tempered glass", "screen protector", "glass protector"],
+};
+
+function sectionTitleNeedles(title: string): string[] {
+  const key = title.toLowerCase().replace(/\s+/g, " ").trim();
+  const extra = SECTION_TITLE_NEEDLES[key] ?? SECTION_TITLE_NEEDLES[key.replace(/s$/, "")] ?? [];
+  const words = key
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !/^(the|and|for|of|products?|all)$/i.test(w));
+  return [...new Set([...extra, ...words, key])];
+}
+
+/** Keep only products that match a homepage rail title (Chargers, Hoco, …). */
+export function filterProductsMatchingTitle(
+  products: WooProduct[],
+  title: string,
+  limit = 14,
+): WooProduct[] {
+  const needles = sectionTitleNeedles(title);
+  if (!needles.length) return [];
   const out: WooProduct[] = [];
   const seen = new Set<number>();
-
-  const takeFrom = (rows: WooProduct[]) => {
-    for (const p of rows) {
-      if (out.length >= limit) break;
-      if (seen.has(p.id)) continue;
-      seen.add(p.id);
-      out.push(p);
-    }
-  };
-
-  // Prefer a distinct window in the filtered pool.
-  takeFrom(filtered.slice(offset, offset + limit));
-  // Then fill from start of the filtered pool.
-  if (out.length < limit) takeFrom(filtered);
-  // Final fallback: fill from full catalog to avoid empty home sections.
-  if (out.length < limit) takeFrom(sorted.slice(offset, offset + limit));
-  if (out.length < limit) takeFrom(sorted);
-
+  for (const p of products) {
+    if (out.length >= limit) break;
+    if (seen.has(p.id)) continue;
+    const hay = productSearchHaystack(p);
+    if (!needles.some((n) => hay.includes(n) || haystackHasNeedle(hay, n))) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
   return out;
 }
 
