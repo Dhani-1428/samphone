@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,7 +54,7 @@ function mergeHits(list: SearchHit[]): SearchHit[] {
   return out.slice(0, 40);
 }
 
-function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void }) {
+function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) => void }) {
   const { t } = useLang();
   const [imgOk, setImgOk] = useState(true);
 
@@ -87,7 +87,10 @@ function SearchHitRow({ hit, onSelect }: { hit: SearchHit; onSelect: () => void 
       <Link
         href={resolveHitHref(hit)}
         className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        onClick={onSelect}
+        onClick={(e) => {
+          e.preventDefault();
+          onOpen(resolveHitHref(hit));
+        }}
       >
         {thumb}
         <div className="min-w-0 flex-1">
@@ -119,6 +122,7 @@ export default function SmartSearch({
 }: Props) {
   const { t } = useLang();
   const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { products, searchProducts } = useProductCatalog();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -159,8 +163,8 @@ export default function SmartSearch({
       if (wrapRef.current?.contains(t) || panelRef.current?.contains(t)) return;
       setOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("click", onDown);
+    return () => document.removeEventListener("click", onDown);
   }, [open]);
 
   useEffect(() => {
@@ -195,9 +199,10 @@ export default function SmartSearch({
     };
   }, [q, products, searchProducts, user]);
 
-  const closeAndClear = () => {
+  const openProduct = (href: string) => {
     setOpen(false);
     setQ("");
+    navigate(href);
   };
 
   const panel =
@@ -211,21 +216,20 @@ export default function SmartSearch({
             className="fixed z-[200] overflow-hidden rounded-md border border-black/[0.08] bg-white text-black shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
           >
             <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
-              <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-black">
-                {q.trim().length < 1 ? t("search_suggestions") : t("searchPlaceholder")}
-              </p>
+              {q.trim().length < 1 ? (
+                <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-black">
+                  {t("search_suggestions")}
+                </p>
+              ) : null}
               {hits.length === 0 && !searching ? (
                 <p className="px-3 py-2 text-sm font-bold text-black">{t("search_no_results")}</p>
               ) : (
                 <ul className="text-sm">
                   {hits.map((h) => (
-                    <SearchHitRow key={h.cartKey} hit={h} onSelect={closeAndClear} />
+                    <SearchHitRow key={h.cartKey} hit={h} onOpen={openProduct} />
                   ))}
                 </ul>
               )}
-              {searching ? (
-                <p className="px-3 py-2 text-xs font-semibold text-neutral-500">{t("searchPlaceholder")}…</p>
-              ) : null}
             </div>
           </div>,
           document.body,

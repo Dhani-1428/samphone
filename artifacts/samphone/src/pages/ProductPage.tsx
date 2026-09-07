@@ -86,18 +86,33 @@ export default function ProductPage() {
       return;
     }
     let alive = true;
-    setWooLoading(true);
-    setWooProduct(null);
+    const cached = wooCatalogProducts.find((p) => p.id === wooId) ?? null;
+    if (cached) {
+      setWooProduct(cached);
+      setWooLoading(false);
+    } else {
+      setWooLoading(true);
+      setWooProduct(null);
+    }
     void fetchProductById(wooId)
       .then((p) => {
         if (!alive) return;
-        setWooProduct(p);
-        setColorIdx(0);
-        if (p?.cloudId) {
-          void fetchRelatedProducts(p.cloudId).then((rows) => {
+        if (p) {
+          setWooProduct(p);
+          setColorIdx(0);
+        } else if (!cached) {
+          setWooProduct(null);
+        }
+        const id = p?.cloudId || cached?.cloudId;
+        if (id) {
+          void fetchRelatedProducts(id).then((rows) => {
             if (alive) setRelated(rows);
           });
         }
+      })
+      .catch(() => {
+        if (!alive) return;
+        if (!cached) setWooProduct(null);
       })
       .finally(() => {
         if (alive) setWooLoading(false);
@@ -105,7 +120,7 @@ export default function ProductPage() {
     return () => {
       alive = false;
     };
-  }, [wooId]);
+  }, [wooId, wooCatalogProducts]);
 
   if (isWooProduct) {
     if (wooLoading) {

@@ -204,13 +204,18 @@ function imageList(p: CloudProduct): WooProduct["images"] {
   return out;
 }
 
+function parsePositiveInt(v: unknown): number {
+  const n = typeof v === "number" ? v : Number.parseInt(String(v ?? "").trim(), 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 export function mapCloudProduct(p: CloudProduct): WooProduct | null {
-  const wcId = typeof p.wc_id === "number" && p.wc_id > 0 ? p.wc_id : 0;
+  const wcId = parsePositiveInt(p.wc_id);
   const uuid = typeof p.id === "string" ? p.id : "";
   if (!wcId && !uuid) return null;
   const cats = Array.isArray(p.categories)
     ? p.categories.map((c) => ({
-        id: typeof c.wc_id === "number" ? c.wc_id : typeof c.id === "number" ? c.id : 0,
+        id: parsePositiveInt(c.wc_id) || parsePositiveInt(c.id),
         name: c.name || p.category || p.brand || "",
         slug: c.slug || "",
       }))
