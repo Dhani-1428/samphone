@@ -14,10 +14,13 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
-import { cloudAuth, patchCloudProfile } from "@/lib/samphone-cloud";
+import { isClerkEnabled } from "@/lib/clerk-runtime";
+import { registerWithSharedIdentity } from "@/lib/shared-identity-auth";
+import { patchCloudProfile, type CloudAuthSession } from "@/lib/samphone-cloud";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth as useClerkAuth, useSignUp } from "@clerk/clerk-react";
 
 function PasswordField({
   id,
@@ -66,11 +69,18 @@ function PasswordField({
 }
 
 type PendingAuth = {
-  result: Awaited<ReturnType<typeof cloudAuth>>;
+  result: CloudAuthSession;
   email: string;
 };
 
-export default function RegisterBusiness() {
+type ClerkRegisterHelpers = {
+  isLoaded: boolean;
+  signUp: ReturnType<typeof useSignUp>["signUp"];
+  setActive: ReturnType<typeof useSignUp>["setActive"];
+  getToken: () => Promise<string | null>;
+};
+
+function RegisterBusinessPage({ clerk }: { clerk?: ClerkRegisterHelpers }) {
   const { t } = useLang();
   const { login } = useAuth();
   const [, setLocation] = useLocation();
@@ -144,22 +154,47 @@ export default function RegisterBusiness() {
     setBusy(true);
     setError(null);
     try {
-      const result = await cloudAuth("/auth/register", {
+      const companyAddress = `${street.trim()}, ${postal.trim()} ${city.trim()}, ${country.name}`;
+      const result = await registerWithSharedIdentity({
         email: em,
         password,
         name: company,
-        account_type: "b2b",
-        phone,
-        country: country.code,
-        address: street.trim(),
-        city: city.trim(),
-        postal_code: postal.trim(),
-        business_name: company,
-        vat_number: vat,
-        nif: vat,
-        vat,
-        business_type: businessType,
-        company_address: `${street.trim()}, ${postal.trim()} ${city.trim()}, ${country.name}`,
+        fields: {
+          account_type: "b2b",
+          phone,
+          country: country.code,
+          address: street.trim(),
+          city: city.trim(),
+          postal_code: postal.trim(),
+          business_name: company,
+          vat_number: vat,
+          nif: vat,
+          vat,
+          business_type: businessType,
+          company_address: companyAddress,
+        },
+        clerk: clerk
+          ? {
+              isLoaded: clerk.isLoaded,
+              signUp: clerk.signUp,
+              setActive: clerk.setActive ?? undefined,
+              getToken: clerk.getToken,
+            }
+          : undefined,
+        syncFields: {
+          account_type: "b2b",
+          phone,
+          name: company,
+          email: em,
+          business_name: company,
+          vat_number: vat,
+          business_type: businessType,
+          company_address: companyAddress,
+          address: street.trim(),
+          city: city.trim(),
+          postal_code: postal.trim(),
+          country: country.code,
+        },
       });
       await patchCloudProfile({
         name: company,
@@ -399,4 +434,23 @@ export default function RegisterBusiness() {
       </form>
     </RegisterShell>
   );
+}
+
+function RegisterBusinessWithClerk() {
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const { getToken } = useClerkAuth();
+  return (
+    <RegisterBusinessPage
+      clerk={{
+        isLoaded,
+        signUp,
+        setActive,
+        getToken,
+      }}
+    />
+  );
+}
+
+export default function RegisterBusiness() {
+  return isClerkEnabled() ? <RegisterBusinessWithClerk /> : <RegisterBusinessPage />;
 }

@@ -95,7 +95,13 @@ function looksLikeHtml(text: string): boolean {
 
 function isPublicAuthPath(path: string): boolean {
   const p = path.split("?")[0];
-  return p === "/auth/login" || p === "/auth/register" || p === "/auth/clerk-sync";
+  return (
+    p === "/auth/login" ||
+    p === "/auth/register" ||
+    p === "/auth/clerk-sync" ||
+    p === "/auth/mfa/setup" ||
+    p === "/auth/mfa/verify"
+  );
 }
 
 async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -516,10 +522,39 @@ function parseAuthPayload(data: Record<string, unknown>, fallbackEmail: string, 
   };
 }
 
+export type CloudAuthSession = ReturnType<typeof parseAuthPayload>;
+
+export type ClerkSyncFields = {
+  name?: string;
+  email?: string;
+  account_type?: string;
+  phone?: string;
+  business_name?: string;
+  vat_number?: string;
+  business_type?: string;
+  company_address?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+};
+
+export class CloudMfaRequiredError extends Error {
+  readonly mfaToken: string;
+  readonly email: string;
+
+  constructor(mfaToken: string, email: string) {
+    super("mfa_required");
+    this.name = "CloudMfaRequiredError";
+    this.mfaToken = mfaToken;
+    this.email = email;
+  }
+}
+
 export async function cloudAuth(
   path: "/auth/login" | "/auth/register" | "/auth/clerk-sync",
   body: Record<string, string | boolean | number | undefined>,
-) {
+): Promise<CloudAuthSession> {
   const cleaned = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined && v !== ""));
   const data = await cloudFetchJson<Record<string, unknown>>(path, {
     method: "POST",
@@ -528,6 +563,16 @@ export async function cloudAuth(
   });
   const email = typeof body.email === "string" ? body.email : "";
   const name = typeof body.name === "string" ? body.name : undefined;
+
+  const mfaRequired = data.mfa_required === true || data.mfaRequired === true;
+  const mfaToken =
+    (typeof data.mfa_token === "string" && data.mfa_token) ||
+    (typeof data.mfaToken === "string" && data.mfaToken) ||
+    "";
+  if (mfaRequired && mfaToken) {
+    throw new CloudMfaRequiredError(mfaToken, email);
+  }
+
   const parsed = parseAuthPayload(data, email, name);
   if (!parsed.token) {
     throw new WooCommerceFetchError("Sign-in did not return a session. Please try again.");
@@ -536,8 +581,44 @@ export async function cloudAuth(
   return parsed;
 }
 
-export async function clerkSync(clerkToken: string) {
-  return cloudAuth("/auth/clerk-sync", { clerk_token: clerkToken });
+export async function clerkSync(clerkToken: string, extra?: ClerkSyncFields): Promise<CloudAuthSession> {
+  return cloudAuth("/auth/clerk-sync", {
+    clerk_token: clerkToken,
+    name: extra?.name,
+    email: extra?.email,
+    account_type: extra?.account_type,
+    phone: extra?.phone,
+    business_name: extra?.business_name,
+    vat_number: extra?.vat_number,
+    business_type: extra?.business_type,
+    company_address: extra?.company_address,
+    address: extra?.address,
+    city: extra?.city,
+    postal_code: extra?.postal_code,
+    country: extra?.country,
+  });
+}
+
+export async function cloudMfaVerify(opts: {
+  mfaToken: string;
+  code: string;
+  email?: string;
+}): Promise<CloudAuthSession> {
+  const data = await cloudFetchJson<Record<string, unknown>>("/auth/mfa/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mfa_token: opts.mfaToken,
+      code: opts.code.trim(),
+      email: opts.email,
+    }),
+  });
+  const parsed = parseAuthPayload(data, opts.email ?? "");
+  if (!parsed.token) {
+    throw new WooCommerceFetchError("MFA verification did not return a session.");
+  }
+  setStoredApiJwt(parsed.token);
+  return parsed;
 }
 
 export type CloudHomeRails = {

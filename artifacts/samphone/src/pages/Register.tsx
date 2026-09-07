@@ -13,10 +13,13 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
-import { cloudAuth, patchCloudProfile } from "@/lib/samphone-cloud";
+import { isClerkEnabled } from "@/lib/clerk-runtime";
+import { registerWithSharedIdentity } from "@/lib/shared-identity-auth";
+import { patchCloudProfile, type CloudAuthSession } from "@/lib/samphone-cloud";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useAuth as useClerkAuth, useSignUp } from "@clerk/clerk-react";
 
 function PasswordField({
   id,
@@ -65,12 +68,19 @@ function PasswordField({
 }
 
 type PendingAuth = {
-  result: Awaited<ReturnType<typeof cloudAuth>>;
+  result: CloudAuthSession;
   email: string;
   phone: string;
 };
 
-export default function Register() {
+type ClerkRegisterHelpers = {
+  isLoaded: boolean;
+  signUp: ReturnType<typeof useSignUp>["signUp"];
+  setActive: ReturnType<typeof useSignUp>["setActive"];
+  getToken: () => Promise<string | null>;
+};
+
+function RegisterPage({ clerk }: { clerk?: ClerkRegisterHelpers }) {
   const { t } = useLang();
   const { login } = useAuth();
   const [, setLocation] = useLocation();
@@ -129,12 +139,28 @@ export default function Register() {
     setBusy(true);
     setError(null);
     try {
-      const result = await cloudAuth("/auth/register", {
+      const result = await registerWithSharedIdentity({
         email: em,
         password,
         name,
-        account_type: "b2c",
-        phone,
+        fields: {
+          account_type: "b2c",
+          phone,
+        },
+        clerk: clerk
+          ? {
+              isLoaded: clerk.isLoaded,
+              signUp: clerk.signUp,
+              setActive: clerk.setActive ?? undefined,
+              getToken: clerk.getToken,
+            }
+          : undefined,
+        syncFields: {
+          account_type: "b2c",
+          phone,
+          name,
+          email: em,
+        },
       });
       await patchCloudProfile({
         name,
@@ -269,4 +295,23 @@ export default function Register() {
       </form>
     </RegisterShell>
   );
+}
+
+function RegisterWithClerk() {
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const { getToken } = useClerkAuth();
+  return (
+    <RegisterPage
+      clerk={{
+        isLoaded,
+        signUp,
+        setActive,
+        getToken,
+      }}
+    />
+  );
+}
+
+export default function Register() {
+  return isClerkEnabled() ? <RegisterWithClerk /> : <RegisterPage />;
 }

@@ -73,6 +73,7 @@ Fill username / password / client id / secret / sender mobile from DPD Portugal,
 
 ## Related docs
 
+- `docs/AUTH.md` — same Clerk + cloud login for app and website
 - `docs/B2B.md` — B2C vs B2B pricing, per-account / product / category discounts, SMTP emails
 - `docs/VERCEL.md` — storefront deploy
 - `docs/SECURITY.md` — never put secrets in `VITE_*`
