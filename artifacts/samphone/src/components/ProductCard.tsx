@@ -6,6 +6,7 @@ import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardQtyStepper } from "@/components/ProductCartControls";
+import ProductCardWriting from "@/components/ProductCardWriting";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -75,16 +76,12 @@ export default function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
-        <Link href={productHref} className="block">
-          <h3 className="product-card-copy line-clamp-2 text-[16px] leading-6 tracking-[-0.01em] text-brand sm:text-[17px]">
-            {name}
-          </h3>
-          {subtitle ? (
-            <p className="product-card-copy mt-1 line-clamp-2 text-[13px] leading-5 uppercase text-brand/70 sm:text-sm">
-              {subtitle}
-            </p>
-          ) : null}
-        </Link>
+        <ProductCardWriting
+          href={productHref}
+          title={name}
+          description={subtitle}
+          readMoreLabel={t("card_read_more")}
+        />
 
         <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />

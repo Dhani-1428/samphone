@@ -105,7 +105,7 @@ export default function ProductDetailLayout({
                 {badge}
               </span>
             ) : null}
-            <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-navy md:text-[1.75rem] lg:text-[2rem]">
+            <h1 className="product-card-copy text-2xl uppercase leading-tight tracking-[0.04em] text-black md:text-[1.75rem] lg:text-[2rem]">
               {title}
             </h1>
 
@@ -134,7 +134,11 @@ export default function ProductDetailLayout({
               </button>
             </div>
 
-            {excerpt ? <p className="mt-4 text-[15px] leading-relaxed text-[#5B6B86]">{excerpt}</p> : null}
+            {excerpt ? (
+              <p className="product-card-copy mt-4 text-[15px] uppercase leading-relaxed tracking-[0.04em] text-black">
+                {excerpt}
+              </p>
+            ) : null}
 
             {swatches}
 
@@ -317,7 +321,7 @@ export default function ProductDetailLayout({
           {tab === "desc" ? (
             descriptionHtml ? (
               <div
-                className="prose prose-neutral max-w-none uppercase text-[15px] leading-relaxed text-black prose-headings:font-display prose-headings:text-navy prose-a:text-[#111111] prose-li:marker:text-[#111111]"
+                className="product-card-copy prose prose-neutral max-w-none uppercase text-[15px] leading-relaxed tracking-[0.04em] text-black prose-headings:font-display prose-headings:uppercase prose-headings:text-black prose-a:text-[#111111] prose-li:marker:text-[#111111]"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             ) : (
