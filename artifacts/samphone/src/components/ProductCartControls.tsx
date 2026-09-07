@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md";
 
-/** Orange − qty + control for product cards. Does not open the side cart. */
+/** Add to cart first; after a click, orange − qty + . Does not open the side cart. */
 export function CardQtyStepper({
   cartKey,
   minQty = 1,
@@ -18,11 +18,20 @@ export function CardQtyStepper({
   cartKey: string;
   minQty?: number;
 }) {
+  const { t } = useLang();
   const { getQty, increment, decrement } = useCart();
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
   const floor = Math.max(1, minQty);
   const atMax = qty >= maxStock;
+
+  const addToCart = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (atMax) return;
+    const next = qty < floor ? floor : 1;
+    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
+  };
 
   const onMinus = (e: MouseEvent) => {
     e.preventDefault();
@@ -30,13 +39,19 @@ export function CardQtyStepper({
     decrement(cartKey);
   };
 
-  const onPlus = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (atMax) return;
-    const next = qty < floor ? floor : 1;
-    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
-  };
+  if (qty <= 0) {
+    return (
+      <button
+        type="button"
+        className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
+        onClick={addToCart}
+        data-testid={`add-cart-${cartKey}`}
+      >
+        <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+        <span className="truncate">{t("addToCart")}</span>
+      </button>
+    );
+  }
 
   return (
     <div
@@ -47,7 +62,6 @@ export function CardQtyStepper({
         type="button"
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40"
         onClick={onMinus}
-        disabled={qty <= 0}
         aria-label="Decrease quantity"
       >
         <Minus className="h-4 w-4" strokeWidth={2.4} />
@@ -56,7 +70,7 @@ export function CardQtyStepper({
       <button
         type="button"
         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40"
-        onClick={onPlus}
+        onClick={addToCart}
         disabled={atMax}
         aria-label="Increase quantity"
       >
