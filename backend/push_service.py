@@ -15,6 +15,8 @@ EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 PREF_DEFAULTS = {
     "orderUpdates": True,
     "promotions": True,
+    "newArrivals": True,
+    "restock": True,
     "push": True,
     "cartReminders": True,
 }
@@ -25,8 +27,12 @@ def kind_to_pref(kind: str) -> Optional[str]:
     k = (kind or "").strip().lower()
     if k.startswith("order") or k in {"wholesale_approved", "wholesale_rejected", "wholesale_suspended"}:
         return "orderUpdates"
-    if k in {"promotion", "new_product", "discount", "personal_discount"}:
+    if k in {"new_product", "new_arrival"}:
+        return "newArrivals"
+    if k in {"promotion", "discount", "personal_discount"}:
         return "promotions"
+    if k in {"restock", "back_in_stock"}:
+        return "restock"
     if k in {"cart_abandon", "cart_reminder"}:
         return "cartReminders"
     if k in {"wholesale_submitted", "wholesale_request"}:
@@ -40,6 +46,15 @@ def prefs_allow(prefs: Optional[dict], kind: str) -> bool:
         return False
     flag = kind_to_pref(kind)
     if flag is None:
+        return True
+    return bool(p.get(flag, True))
+
+
+def prefs_allow_email(prefs: Optional[dict], kind: str) -> bool:
+    """Email opt-in is independent of the mobile push master switch."""
+    p = {**PREF_DEFAULTS, **(prefs or {})}
+    flag = kind_to_pref(kind)
+    if flag is None or flag == "push":
         return True
     return bool(p.get(flag, True))
 

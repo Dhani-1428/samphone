@@ -436,6 +436,61 @@ async def upsert_stock_notification(product_id: str, email: str, mongo_db=None) 
     )
 
 
+async def list_stock_notifications(email: Optional[str] = None, mongo_db=None) -> list[dict]:
+    if USE_MEMORY:
+        return memory_store.list_stock_notifications(email)
+    if app_mysql_enabled():
+        return await asyncio.to_thread(get_app_db().list_stock_notifications, email)
+    mdb = _mongo_db(mongo_db)
+    if not mdb:
+        return []
+    query: dict[str, Any] = {}
+    if email:
+        query["email"] = email.strip().lower()
+    cursor = mdb.stock_notifications.find(query, {"_id": 0})
+    return await cursor.to_list(length=2000)
+
+
+async def delete_stock_notification(product_id: str, email: str, mongo_db=None) -> bool:
+    if USE_MEMORY:
+        return memory_store.delete_stock_notification(product_id, email)
+    if app_mysql_enabled():
+        return await asyncio.to_thread(get_app_db().delete_stock_notification, product_id, email)
+    mdb = _mongo_db(mongo_db)
+    if not mdb:
+        return False
+    result = await mdb.stock_notifications.delete_one({"product_id": product_id, "email": email.strip().lower()})
+    return bool(getattr(result, "deleted_count", 0))
+
+
+async def get_meta(key: str, mongo_db=None) -> Optional[str]:
+    if USE_MEMORY:
+        return memory_store.get_meta(key)
+    if app_mysql_enabled():
+        return await asyncio.to_thread(get_app_db().get_meta, key)
+    mdb = _mongo_db(mongo_db)
+    if not mdb:
+        return None
+    row = await mdb.app_meta.find_one({"meta_key": key}, {"_id": 0, "meta_value": 1})
+    if not row:
+        return None
+    val = row.get("meta_value")
+    return val if isinstance(val, str) else None
+
+
+async def set_meta(key: str, value: str, mongo_db=None) -> None:
+    if USE_MEMORY:
+        memory_store.set_meta(key, value)
+        return
+    if app_mysql_enabled():
+        await asyncio.to_thread(get_app_db().set_meta, key, value)
+        return
+    mdb = _mongo_db(mongo_db)
+    if not mdb:
+        return
+    await mdb.app_meta.update_one({"meta_key": key}, {"$set": {"meta_key": key, "meta_value": value}}, upsert=True)
+
+
 async def admin_stats(mongo_db=None) -> dict:
     if USE_MEMORY:
         return memory_store.admin_stats()

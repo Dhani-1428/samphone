@@ -2,7 +2,7 @@ const https = require("https");
 
 const UPSTREAM = "https://samphone.cloud/api";
 const ALLOWED =
-  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
+  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|stock-alerts|notifications|orders|cart|payments|brands|admin)(\/|$)/i;
 
 function header(req, name) {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];

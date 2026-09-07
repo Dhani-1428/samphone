@@ -2281,8 +2281,33 @@ async def admin_list_products(
     raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")
 
 
+def _queue_restock_if_available(background_tasks: BackgroundTasks, product_id: str, product: Optional[dict]) -> None:
+    qty = 0
+    in_stock = False
+    if product:
+        in_stock = bool(product.get("in_stock"))
+        try:
+            qty = int(product.get("stock_quantity") or 0)
+        except (TypeError, ValueError):
+            qty = 0
+    if not (in_stock or qty > 0):
+        return
+
+    async def _run() -> None:
+        from jobs.alert_emails import process_restock_for_product
+
+        await process_restock_for_product(product_id)
+
+    background_tasks.add_task(_run)
+
+
 @api_router.patch("/admin/products/{product_id}")
-async def admin_update_stock(product_id: str, body: StockUpdate, _admin=Depends(get_current_admin)):
+async def admin_update_stock(
+    product_id: str,
+    body: StockUpdate,
+    background_tasks: BackgroundTasks,
+    _admin=Depends(get_current_admin),
+):
     b2c = body.b2c_price if body.b2c_price is not None else body.retailPrice
     wholesale = body.regularPrice
     price_edit = b2c is not None or wholesale is not None
@@ -2299,6 +2324,7 @@ async def admin_update_stock(product_id: str, body: StockUpdate, _admin=Depends(
             raise HTTPException(status_code=502, detail=str(exc))
         if not updated:
             raise HTTPException(status_code=404, detail="Product not found")
+        _queue_restock_if_available(background_tasks, product_id, updated)
         return updated
     if body.stock_quantity is None:
         raise HTTPException(status_code=400, detail="No product fields to update")
@@ -2309,17 +2335,24 @@ async def admin_update_stock(product_id: str, body: StockUpdate, _admin=Depends(
             raise HTTPException(status_code=502, detail=str(exc))
         if not updated:
             raise HTTPException(status_code=404, detail="Product not found")
+        _queue_restock_if_available(background_tasks, product_id, updated)
         return updated
     if USE_MEMORY:
         updated = memory_store.update_product_stock(product_id, body.stock_quantity)
         if not updated:
             raise HTTPException(status_code=404, detail="Product not found")
+        _queue_restock_if_available(background_tasks, product_id, updated)
         return updated
     raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")
 
 
 @api_router.put("/admin/products/{product_id}/edit")
-async def admin_edit_product(product_id: str, body: AdminProductEdit, _admin=Depends(get_current_admin)):
+async def admin_edit_product(
+    product_id: str,
+    body: AdminProductEdit,
+    background_tasks: BackgroundTasks,
+    _admin=Depends(get_current_admin),
+):
     """Update price, sale, public override, image, and/or stock for a catalog product."""
     if not _woo_catalog_enabled():
         raise HTTPException(status_code=501, detail="Catalog MySQL required for product edits")
@@ -2345,6 +2378,8 @@ async def admin_edit_product(product_id: str, body: AdminProductEdit, _admin=Dep
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     if not updated:
         raise HTTPException(status_code=404, detail="Product not found")
+    if body.stock_quantity is not None:
+        _queue_restock_if_available(background_tasks, product_id, updated)
     return updated
 
 
@@ -2906,7 +2941,10 @@ class PushTokenBody(BaseModel):
 
 class NotificationPrefsBody(BaseModel):
     orderUpdates: Optional[bool] = None
+    orders: Optional[bool] = None
     promotions: Optional[bool] = None
+    newArrivals: Optional[bool] = None
+    restock: Optional[bool] = None
     push: Optional[bool] = None
     cartReminders: Optional[bool] = None
 
@@ -2941,6 +2979,7 @@ async def get_notification_prefs(current=Depends(get_current_user)):
     from push_service import PREF_DEFAULTS
 
     prefs = {**PREF_DEFAULTS, **(current.get("notificationPrefs") or {})}
+    prefs["orders"] = bool(prefs.get("orderUpdates", True))
     return prefs
 
 
@@ -2952,9 +2991,13 @@ async def update_notification_prefs(body: NotificationPrefsBody, current=Depends
         raise HTTPException(status_code=501, detail="Prefs require app MySQL or USE_MEMORY=1")
     current_prefs = {**PREF_DEFAULTS, **(current.get("notificationPrefs") or {})}
     patch = body.model_dump(exclude_none=True)
+    if "orders" in patch:
+        patch["orderUpdates"] = patch.pop("orders")
     next_prefs = {**current_prefs, **patch}
     user = await data_store.update_user(current["email"], {"notificationPrefs": next_prefs}, db)
-    return {**PREF_DEFAULTS, **((user or {}).get("notificationPrefs") or next_prefs)}
+    prefs = {**PREF_DEFAULTS, **((user or {}).get("notificationPrefs") or next_prefs)}
+    prefs["orders"] = bool(prefs.get("orderUpdates", True))
+    return prefs
 
 
 @api_router.post("/admin/broadcast")
@@ -3493,11 +3536,44 @@ async def get_order(order_id: str, current=Depends(get_current_user)):
 
 
 @api_router.post("/notify-stock")
-async def notify_stock(body: StockNotify, request: Request):
+async def notify_stock(body: StockNotify, request: Request, background_tasks: BackgroundTasks):
     reject_honeypot(body.website)
     rate_limit(request, "notify_stock", limit=10, window_sec=60)
     email = str(body.email).strip().lower()
     await data_store.upsert_stock_notification(body.product_id, email, db)
+    from jobs.alert_emails import confirm_restock_signup
+
+    background_tasks.add_task(confirm_restock_signup, body.product_id, email)
+    return {"ok": True}
+
+
+@api_router.get("/stock-alerts")
+async def list_stock_alerts(current=Depends(get_current_user)):
+    email = str(current.get("email") or "").strip().lower()
+    rows = await data_store.list_stock_notifications(email, db)
+    from jobs.alert_emails import _product_title, resolve_product_sync
+
+    items = []
+    for row in rows:
+        pid = str(row.get("product_id") or "")
+        product = resolve_product_sync(pid) if pid else None
+        items.append(
+            {
+                "product_id": pid,
+                "email": email,
+                "title": _product_title(product) if product else pid,
+                "created_at": row.get("created_at"),
+            }
+        )
+    return {"items": items}
+
+
+@api_router.delete("/stock-alerts/{product_id}")
+async def delete_stock_alert(product_id: str, current=Depends(get_current_user)):
+    email = str(current.get("email") or "").strip().lower()
+    ok = await data_store.delete_stock_notification(product_id, email, db)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Alert not found")
     return {"ok": True}
 
 
@@ -3750,6 +3826,21 @@ async def seed():
             await asyncio.sleep(backoff_sec)
 
     asyncio.create_task(_cart_abandonment_loop())
+
+    async def _alert_email_loop() -> None:
+        from jobs.alert_emails import process_alert_emails
+
+        await asyncio.sleep(90)
+        interval = max(60, int(os.environ.get("ALERT_EMAIL_INTERVAL_SEC", "900")))
+        while True:
+            try:
+                result = await process_alert_emails(None)
+                logger.info("Alert email job: %s", result)
+            except Exception as exc:
+                logger.warning("Alert email job failed: %s", exc)
+            await asyncio.sleep(interval)
+
+    asyncio.create_task(_alert_email_loop())
 
     if USE_MEMORY and not _woo_catalog_enabled():
         if ADMIN_PASSWORD:

@@ -974,6 +974,63 @@ class AppDB:
                     (product_id, email.lower()),
                 )
 
+    def list_stock_notifications(self, email: Optional[str] = None) -> list[dict]:
+        self.ensure_schema()
+        sql = "SELECT product_id, email, created_at FROM stock_notifications"
+        params: list[Any] = []
+        if email:
+            sql += " WHERE email = %s"
+            params.append(email.strip().lower())
+        sql += " ORDER BY created_at DESC"
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+        out = []
+        for r in rows:
+            created = r.get("created_at")
+            out.append(
+                {
+                    "product_id": r.get("product_id"),
+                    "email": r.get("email"),
+                    "created_at": created.isoformat() if hasattr(created, "isoformat") else created,
+                }
+            )
+        return out
+
+    def delete_stock_notification(self, product_id: str, email: str) -> bool:
+        self.ensure_schema()
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM stock_notifications WHERE product_id = %s AND email = %s",
+                    (product_id, email.strip().lower()),
+                )
+                return cur.rowcount > 0
+
+    def get_meta(self, key: str) -> Optional[str]:
+        self.ensure_schema()
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT meta_value FROM app_meta WHERE meta_key = %s", (key,))
+                row = cur.fetchone()
+        if not row:
+            return None
+        return row.get("meta_value")
+
+    def set_meta(self, key: str, value: str) -> None:
+        self.ensure_schema()
+        with self._conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO app_meta (meta_key, meta_value)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE meta_value = VALUES(meta_value)
+                    """,
+                    (key, value),
+                )
+
     def list_wholesale_requests(self, status: Optional[str] = None) -> list[dict]:
         self.ensure_schema()
         sql = """

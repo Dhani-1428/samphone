@@ -21,6 +21,7 @@ type Props = {
   onExport?: () => void;
   onDeleteAccount?: () => void;
   onCancelOrder?: (id: string) => void;
+  onRemoveRestockAlert?: (productId: string) => void;
 };
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -43,6 +44,7 @@ export default function AccountSectionPanels({
   onExport,
   onDeleteAccount,
   onCancelOrder,
+  onRemoveRestockAlert,
 }: Props) {
   const { t } = useLang();
   const currency = import.meta.env.VITE_WOOCOMMERCE_CURRENCY_SYMBOL ?? "€";
@@ -116,11 +118,13 @@ export default function AccountSectionPanels({
       onDataChange({ ...data, notifications: { ...data.notifications, [key]: v } });
     return (
       <Panel title={t("account_nav_notifications")}>
+        <p className="text-sm text-muted-foreground mb-4">{t("account_notif_email_hint")}</p>
         <div className="space-y-3 max-w-lg">
           {(
             [
               ["orders", t("account_notif_orders")],
               ["promotions", t("account_notif_promos")],
+              ["newArrivals", t("account_notif_new")],
               ["restock", t("account_notif_restock")],
             ] as const
           ).map(([key, label]) => (
@@ -273,28 +277,21 @@ export default function AccountSectionPanels({
           <p className="text-sm text-muted-foreground mb-4">{t("account_restock_empty")}</p>
         ) : (
           <ul className="space-y-2 mb-4">
-            {data.restockAlerts.map((a, i) => (
-              <li key={i} className="rounded-lg border border-border px-4 py-2 text-sm">
-                {a}
+            {data.restockAlerts.map((a) => (
+              <li key={a.productId} className="rounded-lg border border-border px-4 py-2 text-sm flex justify-between gap-3 items-center">
+                <span>{a.title}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRemoveRestockAlert?.(a.productId)}
+                >
+                  {t("account_restock_remove")}
+                </Button>
               </li>
             ))}
           </ul>
         )}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() =>
-            onDataChange({
-              ...data,
-              restockAlerts: [...data.restockAlerts, `SKU alert ${data.restockAlerts.length + 1}`],
-            })
-          }
-        >
-          {t("account_restock_add")}
-        </Button>
-        <Button type="button" className="mt-4 ml-2" onClick={onSave}>
-          {t("account_save_changes")}
-        </Button>
       </Panel>
     );
   }

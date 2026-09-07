@@ -7,7 +7,7 @@ const UPSTREAM_ORIGIN = (process.env.SAMPHONE_CLOUD_ORIGIN || process.env.SAMPHO
 );
 const UPSTREAM = `${UPSTREAM_ORIGIN}/api`;
 const ALLOWED =
-  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin|leads|contact|newsletter|health)(\/|$)/i;
+  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|stock-alerts|notifications|orders|cart|payments|brands|admin|leads|contact|newsletter|health)(\/|$)/i;
 
 function header(req, name) {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];

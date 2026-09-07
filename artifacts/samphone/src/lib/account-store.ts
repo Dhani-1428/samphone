@@ -32,6 +32,11 @@ export interface WarrantyReturn {
   productName: string;
 }
 
+export interface RestockAlert {
+  productId: string;
+  title: string;
+}
+
 export interface AccountData {
   address: AccountAddress;
   vatNumber: string;
@@ -39,11 +44,12 @@ export interface AccountData {
   notifications: {
     orders: boolean;
     promotions: boolean;
+    newArrivals: boolean;
     restock: boolean;
   };
   paymentMethods: PaymentMethod[];
   walletBalance: number;
-  restockAlerts: string[];
+  restockAlerts: RestockAlert[];
   creditNotes: CreditNote[];
   warrantyReturns: WarrantyReturn[];
 }
@@ -64,7 +70,7 @@ export function defaultAccountData(): AccountData {
     address: { ...EMPTY_ADDRESS },
     vatNumber: "",
     twoFactorEnabled: false,
-    notifications: { orders: true, promotions: false, restock: true },
+    notifications: { orders: true, promotions: true, newArrivals: true, restock: true },
     paymentMethods: [],
     walletBalance: 0,
     restockAlerts: [],
@@ -88,7 +94,16 @@ export function loadAccountData(email: string): AccountData {
       address: { ...EMPTY_ADDRESS, ...parsed.address },
       notifications: { ...defaultAccountData().notifications, ...parsed.notifications },
       paymentMethods: Array.isArray(parsed.paymentMethods) ? parsed.paymentMethods : [],
-      restockAlerts: Array.isArray(parsed.restockAlerts) ? parsed.restockAlerts : [],
+      restockAlerts: Array.isArray(parsed.restockAlerts)
+        ? parsed.restockAlerts.map((item, i) =>
+            typeof item === "string"
+              ? { productId: `local-${i}`, title: item }
+              : {
+                  productId: String((item as RestockAlert).productId || `local-${i}`),
+                  title: String((item as RestockAlert).title || "Product"),
+                },
+          )
+        : [],
       creditNotes: Array.isArray(parsed.creditNotes) ? parsed.creditNotes : [],
       warrantyReturns: Array.isArray(parsed.warrantyReturns) ? parsed.warrantyReturns : [],
     };

@@ -17,9 +17,13 @@ import { listOrders, type StoredOrder } from "@/lib/orders";
 import {
   cancelCloudOrder,
   deleteCloudAccount,
+  deleteStockAlert,
   exportCloudAccount,
   fetchCloudOrders,
+  fetchNotificationPrefs,
+  fetchStockAlerts,
   patchCloudProfile,
+  patchNotificationPrefs,
 } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,6 +63,25 @@ export default function Account() {
       .catch(() => {
         /* keep local fallback */
       });
+    void Promise.all([fetchNotificationPrefs(), fetchStockAlerts()]).then(([prefs, rows]) => {
+      setAccountData((prev) => {
+        const base = prev ?? loadAccountData(user.email);
+        const next = {
+          ...base,
+          notifications: prefs
+            ? {
+                orders: prefs.orders ?? prefs.orderUpdates,
+                promotions: prefs.promotions,
+                newArrivals: prefs.newArrivals,
+                restock: prefs.restock,
+              }
+            : base.notifications,
+          restockAlerts: rows.map((r) => ({ productId: r.product_id, title: r.title || r.product_id })),
+        };
+        saveAccountData(user.email, next);
+        return next;
+      });
+    });
   }, [user]);
 
   const navigateSection = useCallback(
@@ -92,7 +115,26 @@ export default function Account() {
     }).catch(() => {
       /* local save still applied */
     });
+    void patchNotificationPrefs({
+      orderUpdates: accountData.notifications.orders,
+      promotions: accountData.notifications.promotions,
+      newArrivals: accountData.notifications.newArrivals,
+      restock: accountData.notifications.restock,
+    }).catch(() => {
+      /* local save still applied */
+    });
     toast({ title: t("account_save_changes") });
+  };
+
+  const handleRemoveRestockAlert = (productId: string) => {
+    if (!accountData || !user) return;
+    persist({
+      ...accountData,
+      restockAlerts: accountData.restockAlerts.filter((a) => a.productId !== productId),
+    });
+    void deleteStockAlert(productId).catch(() => {
+      /* list will refresh on next visit */
+    });
   };
 
   const handleLogout = () => {
@@ -214,6 +256,7 @@ export default function Account() {
                 onExport={handleExport}
                 onDeleteAccount={handleDeleteAccount}
                 onCancelOrder={handleCancelOrder}
+                onRemoveRestockAlert={handleRemoveRestockAlert}
               />
             )}
           </div>

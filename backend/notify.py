@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 import data_store
 from localization import normalize_language, tr
-from push_service import PREF_DEFAULTS, notify_user_devices, prefs_allow
+from push_service import PREF_DEFAULTS, notify_user_devices, prefs_allow_email
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,21 @@ def _localized_note(kind: str, title: str, message: str, lang: str) -> tuple[str
     return title, message
 
 
+_EMAIL_KINDS = {
+    "personal_discount",
+    "discount",
+    "promotion",
+    "new_product",
+    "new_arrival",
+    "restock",
+    "back_in_stock",
+}
+
+
+def _kind_emailable(kind: str) -> bool:
+    return (kind or "").strip().lower() in _EMAIL_KINDS
+
+
 async def notify_user(
     user_id: str,
     kind: str,
@@ -33,8 +48,9 @@ async def notify_user(
     mongo_db=None,
     push: bool = True,
     persist: bool = True,
+    email: bool = True,
 ) -> Optional[dict]:
-    """Persist in-app notification and/or send Expo push."""
+    """Persist in-app notification and/or send Expo push and alert email."""
     note = None
     user = None
     lang = "en"
@@ -46,13 +62,29 @@ async def notify_user(
     title, message = _localized_note(kind, title, message, lang)
     if persist:
         note = await data_store.add_notification(user_id, kind, title, message, mongo_db)
+    if user is None:
+        try:
+            user = await data_store.find_user_by_id(user_id, mongo_db)
+        except Exception:
+            user = None
+    prefs = (user or {}).get("notificationPrefs") or {}
+    if email and _kind_emailable(kind) and user and prefs_allow_email(prefs, kind):
+        try:
+            from email_service import send_alert_email, SITE_URL
+
+            route = str((data or {}).get("route") or "").strip() or "/"
+            send_alert_email(
+                user,
+                title=title,
+                message=message,
+                cta_url=f"{SITE_URL}{route}" if route.startswith("/") else route,
+            )
+        except Exception:
+            logger.exception("Alert email failed for user %s kind=%s", user_id, kind)
     if not push:
         return note
 
     try:
-        if user is None:
-            user = await data_store.find_user_by_id(user_id, mongo_db)
-        prefs = (user or {}).get("notificationPrefs") or {}
         tokens = await data_store.list_push_tokens(user_id, mongo_db)
         notify_user_devices(
             tokens=tokens,
@@ -126,11 +158,12 @@ async def broadcast_customers(
     user_ids = await data_store.list_customer_user_ids(mongo_db)
     sent_in_app = 0
     pushed = 0
+    emailed = 0
     for uid in user_ids:
         try:
             user = await data_store.find_user_by_id(uid, mongo_db)
             prefs = {**PREF_DEFAULTS, **((user or {}).get("notificationPrefs") or {})}
-            if not prefs_allow(prefs, kind):
+            if not prefs_allow_email(prefs, kind):
                 continue
             await data_store.add_notification(uid, kind, title, message, mongo_db)
             sent_in_app += 1
@@ -143,6 +176,17 @@ async def broadcast_customers(
                 body=message,
                 data=data,
             )
+            if _kind_emailable(kind) and user and prefs_allow_email(prefs, kind):
+                from email_service import send_alert_email, SITE_URL
+
+                route = str((data or {}).get("route") or "").strip() or "/"
+                if send_alert_email(
+                    user,
+                    title=title,
+                    message=message,
+                    cta_url=f"{SITE_URL}{route}" if route.startswith("/") else route,
+                ):
+                    emailed += 1
         except Exception:
             logger.exception("Broadcast failed for user %s", uid)
-    return {"users": len(user_ids), "in_app": sent_in_app, "push_tickets": pushed}
+    return {"users": len(user_ids), "in_app": sent_in_app, "push_tickets": pushed, "emails": emailed}

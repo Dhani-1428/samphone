@@ -808,3 +808,90 @@ def send_admin_order_cancelled_email(order: dict) -> bool:
     )
     subject = tr(lang, "email.order.cancelled.subject", order_number=order_number)
     return send_email(admin, subject, _layout(subject, body), plain)
+
+
+def _product_url(product: dict | None = None, product_id: str = "") -> str:
+    pid = str((product or {}).get("id") or product_id or "").strip()
+    slug = str((product or {}).get("slug") or "p").strip() or "p"
+    if pid:
+        return f"{SITE_URL}/product/{slug}/{pid}"
+    return f"{SITE_URL}/new"
+
+
+def send_alert_email(
+    user: dict,
+    *,
+    title: str,
+    message: str,
+    cta_url: str = "",
+    cta_label: str = "View on Samphone",
+) -> bool:
+    email_addr = (user.get("email") or "").strip()
+    if not email_addr:
+        return False
+    name = (user.get("name") or email_addr.split("@")[0] or "there").strip()
+    link = (cta_url or SITE_URL).strip() or SITE_URL
+    body = f"""
+      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(title)}</h2>
+      <p style="margin:0 0 16px;color:#374151;">Hi {html.escape(name)},</p>
+      <p style="margin:0 0 20px;color:#374151;white-space:pre-wrap;">{html.escape(message)}</p>
+      <p style="margin:0;">
+        <a href="{html.escape(link)}" style="display:inline-block;background:#3F61AA;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">
+          {html.escape(cta_label)}
+        </a>
+      </p>
+    """
+    plain = f"{title}\n\nHi {name},\n\n{message}\n\n{link}\n"
+    return send_email(email_addr, f"{SITE_NAME}: {title}", _layout(title, body), plain)
+
+
+def send_restock_subscribed_email(email: str, product: dict | None = None) -> bool:
+    title = (product or {}).get("title") or (product or {}).get("name") or "this product"
+    url = _product_url(product)
+    body = f"""
+      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">We'll email you when it's back</h2>
+      <p style="margin:0 0 16px;color:#374151;">
+        You're on the restock list for <strong>{html.escape(str(title))}</strong>.
+        We'll send an email as soon as it's available again.
+      </p>
+      <p style="margin:0;">
+        <a href="{html.escape(url)}" style="color:#3F61AA;font-weight:700;">View product</a>
+      </p>
+    """
+    plain = f"We'll email you when {title} is back in stock.\n{url}\n"
+    return send_email(email, f"{SITE_NAME}: Restock alert saved", _layout("Restock alert saved", body), plain)
+
+
+def send_back_in_stock_email(email: str, product: dict | None = None) -> bool:
+    title = (product or {}).get("title") or (product or {}).get("name") or "A product you wanted"
+    url = _product_url(product)
+    body = f"""
+      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">Back in stock</h2>
+      <p style="margin:0 0 16px;color:#374151;">
+        <strong>{html.escape(str(title))}</strong> is available again on {html.escape(SITE_NAME)}.
+      </p>
+      <p style="margin:0;">
+        <a href="{html.escape(url)}" style="display:inline-block;background:#3F61AA;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">
+          Shop now
+        </a>
+      </p>
+    """
+    plain = f"{title} is back in stock.\n{url}\n"
+    return send_email(email, f"{SITE_NAME}: {title} is back in stock", _layout("Back in stock", body), plain)
+
+
+def send_new_arrivals_email(user: dict, products: list[dict]) -> bool:
+    names = [
+        str(p.get("title") or p.get("name") or "").strip()
+        for p in (products or [])
+        if str(p.get("title") or p.get("name") or "").strip()
+    ]
+    listed = ", ".join(names[:8]) if names else "new products"
+    extra = f" and {len(names) - 8} more" if len(names) > 8 else ""
+    return send_alert_email(
+        user,
+        title="New products have arrived",
+        message=f"Just added to the Samphone catalog: {listed}{extra}.",
+        cta_url=f"{SITE_URL}/new",
+        cta_label="See new arrivals",
+    )

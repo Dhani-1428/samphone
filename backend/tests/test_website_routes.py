@@ -83,3 +83,45 @@ def test_admin_login_and_patch_user():
     assert patched.status_code == 200, patched.text
     assert patched.json().get("wholesaleStatus") == "approved"
     assert patched.json().get("accountDiscountPercent") == 10
+
+
+def test_notification_prefs_and_stock_alerts():
+    email = "alerts@example.com"
+    password = "password12"
+    created = client.post(
+        "/api/auth/register",
+        json={"email": email, "password": password, "name": "Alerts"},
+    )
+    assert created.status_code == 200, created.text
+    token = created.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    prefs = client.get("/api/notifications/prefs", headers=headers)
+    assert prefs.status_code == 200, prefs.text
+    body = prefs.json()
+    assert body.get("restock") is True
+    assert body.get("newArrivals") is True
+    assert body.get("promotions") is True
+    assert body.get("orderUpdates") is True
+
+    patched = client.patch(
+        "/api/notifications/prefs",
+        headers=headers,
+        json={"promotions": False, "restock": True, "newArrivals": True, "orders": True},
+    )
+    assert patched.status_code == 200, patched.text
+    assert patched.json().get("promotions") is False
+    assert patched.json().get("orders") is True
+
+    wait = client.post("/api/notify-stock", json={"product_id": "sku-test-1", "email": email})
+    assert wait.status_code == 200, wait.text
+
+    listed = client.get("/api/stock-alerts", headers=headers)
+    assert listed.status_code == 200, listed.text
+    alerts = listed.json().get("items") or []
+    assert any(a.get("product_id") == "sku-test-1" for a in alerts)
+
+    removed = client.delete("/api/stock-alerts/sku-test-1", headers=headers)
+    assert removed.status_code == 200, removed.text
+    empty = client.get("/api/stock-alerts", headers=headers)
+    assert empty.json().get("items") == []

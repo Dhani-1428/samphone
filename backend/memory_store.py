@@ -694,6 +694,34 @@ def upsert_stock_notification(product_id: str, email: str) -> None:
     )
 
 
+def list_stock_notifications(email: Optional[str] = None) -> list[dict]:
+    rows = _stock_notifications
+    if email:
+        needle = email.strip().lower()
+        rows = [n for n in rows if n.get("email") == needle]
+    return [deepcopy(n) for n in rows]
+
+
+def delete_stock_notification(product_id: str, email: str) -> bool:
+    needle = email.strip().lower()
+    for i, n in enumerate(_stock_notifications):
+        if n.get("product_id") == product_id and n.get("email") == needle:
+            _stock_notifications.pop(i)
+            return True
+    return False
+
+
+def get_meta(key: str) -> Optional[str]:
+    val = _meta.get(key)
+    if val is None:
+        return None
+    return val if isinstance(val, str) else str(val)
+
+
+def set_meta(key: str, value: str) -> None:
+    _meta[key] = value
+
+
 def seed_meta(version: str) -> bool:
     if _meta.get("version") == version:
         return False

@@ -777,6 +777,53 @@ export async function notifyStock(productId: string, email: string): Promise<voi
   });
 }
 
+export type CloudNotificationPrefs = {
+  orderUpdates: boolean;
+  orders?: boolean;
+  promotions: boolean;
+  newArrivals: boolean;
+  restock: boolean;
+  push?: boolean;
+  cartReminders?: boolean;
+};
+
+export async function fetchNotificationPrefs(): Promise<CloudNotificationPrefs | null> {
+  try {
+    return await cloudFetchJson<CloudNotificationPrefs>("/notifications/prefs");
+  } catch {
+    return null;
+  }
+}
+
+export async function patchNotificationPrefs(
+  body: Partial<CloudNotificationPrefs>,
+): Promise<CloudNotificationPrefs | null> {
+  return cloudFetchJson<CloudNotificationPrefs>("/notifications/prefs", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export type CloudStockAlert = {
+  product_id: string;
+  title: string;
+  created_at?: string;
+};
+
+export async function fetchStockAlerts(): Promise<CloudStockAlert[]> {
+  try {
+    const data = await cloudFetchJson<{ items?: CloudStockAlert[] }>("/stock-alerts");
+    return Array.isArray(data.items) ? data.items : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function deleteStockAlert(productId: string): Promise<void> {
+  await cloudFetchJson(`/stock-alerts/${encodeURIComponent(productId)}`, { method: "DELETE" });
+}
+
 export type CloudProfile = {
   email: string;
   name: string;
