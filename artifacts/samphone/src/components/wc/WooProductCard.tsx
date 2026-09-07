@@ -132,11 +132,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         ) : null}
 
         <Link href={productHref} className="block">
-          <h3 className="line-clamp-2 text-[16px] font-normal leading-6 tracking-[-0.01em] text-brand sm:text-[17px]">
+          <h3 className="product-card-copy line-clamp-2 text-[16px] leading-6 tracking-[-0.01em] text-brand sm:text-[17px]">
             {title}
           </h3>
           {subtitle ? (
-            <p className="mt-1 line-clamp-2 text-[13px] font-normal leading-5 text-brand/70 sm:text-sm">
+            <p className="product-card-copy mt-1 line-clamp-2 text-[13px] leading-5 text-brand/70 sm:text-sm">
               {subtitle}
             </p>
           ) : null}
@@ -153,7 +153,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           {showPrice && priceLabel ? (
-            <span className="text-xl font-normal tabular-nums leading-none text-sam sm:text-[1.35rem]">
+            <span className="product-card-copy text-xl tabular-nums leading-none text-sam sm:text-[1.35rem]">
               {priceLabel}
             </span>
           ) : (

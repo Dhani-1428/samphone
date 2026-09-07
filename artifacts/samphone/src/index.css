@@ -207,6 +207,12 @@
   font-weight: 900;
 }
 
+.product-card-copy {
+  font-family: "Arial Black", Arial, Helvetica, sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
 .nav-bar-item {
   font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
