@@ -8,8 +8,6 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
 import CatalogListFilters, {
   applyCatalogListFilters,
-  catalogListFilterCount,
-  CatalogFilterLayout,
   EMPTY_CATALOG_LIST_FILTERS,
   type CatalogListFilterState,
 } from "@/components/CatalogListFilters";
@@ -207,35 +205,30 @@ export default function CategoryPage() {
         {wooLoading ? <CatalogLoading /> : null}
 
         {!wooLoading && configured && wooList.length > 0 ? (
-          <CatalogFilterLayout
-            activeCount={catalogListFilterCount(filters)}
-            sidebar={
-              <CatalogListFilters
-                filters={filters}
-                onChange={setFilters}
-                resultCount={filteredWooList.length}
-                searchPlaceholder={`Search in ${label}…`}
-              />
-            }
+          <CatalogListFilters
+            filters={filters}
+            onChange={setFilters}
+            resultCount={filteredWooList.length}
+            searchPlaceholder={`Search in ${label}…`}
+          />
+        ) : null}
+
+        {showWooGrid ? (
+          <motion.ul
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 md:gap-5"
           >
-            {showWooGrid ? (
-              <motion.ul
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 md:gap-5"
-              >
-                {filteredWooList.map((p) => (
-                  <motion.li key={p.id} variants={cardVariants}>
-                    <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-                  </motion.li>
-                ))}
-              </motion.ul>
-            ) : null}
-            {showFilteredEmpty ? (
-              <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
-            ) : null}
-          </CatalogFilterLayout>
+            {filteredWooList.map((p) => (
+              <motion.li key={p.id} variants={cardVariants}>
+                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+              </motion.li>
+            ))}
+          </motion.ul>
+        ) : null}
+        {showFilteredEmpty ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
         ) : null}
 
         {!wooLoading && showWooEmpty && (

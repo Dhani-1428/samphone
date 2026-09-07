@@ -4,12 +4,6 @@ import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
-import {
-  CatalogFilterAside,
-  CatalogFilterLayout,
-  FilterSection,
-} from "@/components/CatalogListFilters";
-import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { MULTI_BRAND_FEATURED } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -50,32 +44,29 @@ export default function MultiBrand() {
       <MultiBrandHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <CatalogFilterLayout
-          activeCount={selectedBrand ? 1 : 0}
-          sidebar={
-            <CatalogFilterAside onClear={selectedBrand ? () => setSelectedBrand(null) : undefined}>
-              <FilterSection title="Brand">
-                <div className="flex flex-col gap-2">
-                  <CatalogTypeChip active={selectedBrand === null} onClick={() => setSelectedBrand(null)}>
-                    All
-                  </CatalogTypeChip>
-                  {brandCards.map((b) => (
-                    <CatalogTypeChip
-                      key={b}
-                      active={selectedBrand === b}
-                      onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
-                    >
-                      {b}
-                    </CatalogTypeChip>
-                  ))}
-                </div>
-              </FilterSection>
-            </CatalogFilterAside>
-          }
-        >
-          <h2 className="mb-5 font-display text-xl font-bold text-navy">
-            {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
-          </h2>
+        <div className="mb-8 flex flex-wrap gap-x-5 gap-y-2 border-b border-black/[0.06]">
+          <button
+            type="button"
+            onClick={() => setSelectedBrand(null)}
+            className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === null ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+          >
+            All
+          </button>
+          {brandCards.map((b) => (
+            <button
+              key={b}
+              type="button"
+              onClick={() => setSelectedBrand(selectedBrand === b ? null : b)}
+              className={`border-b-2 pb-2 text-sm transition-colors ${selectedBrand === b ? "border-[#111111] font-semibold text-navy" : "border-transparent text-muted-foreground hover:text-navy"}`}
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+
+        <h2 className="mb-5 font-display text-xl font-bold text-navy">
+          {selectedBrand ? `${selectedBrand} Products` : "Featured Products"}
+        </h2>
 
           {woo && loading && visibleWoo.length === 0 ? <CatalogLoading /> : null}
 
@@ -124,7 +115,6 @@ export default function MultiBrand() {
               <p className="text-lg">No featured products for {selectedBrand} yet.</p>
             </div>
           )}
-        </CatalogFilterLayout>
       </div>
     </div>
   );

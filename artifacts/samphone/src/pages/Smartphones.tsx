@@ -4,17 +4,12 @@ import { useLocation } from "wouter";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
-import {
-  CatalogFilterAside,
-  CatalogFilterLayout,
-  FilterSection,
-} from "@/components/CatalogListFilters";
-import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
 import { SMARTPHONE_FETCH_QUERIES, TABLET_FETCH_QUERIES } from "@/data/device-catalog";
 import { searchProductsQuery, type WooProduct } from "@/lib/woocommerce";
 import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
+import { cn } from "@/lib/utils";
 import {
   filterCatalogForSmartphonesTab,
   sortByPrice,
@@ -165,66 +160,70 @@ export default function Smartphones() {
     ? t("smartphones_search_results", { query: debouncedSearch })
     : t("smartphones_parts_heading_default");
 
-  const activeCount = (debouncedSearch ? 1 : 0) + (section === "tablets" ? 1 : 0);
-
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       <SmartphonesHeader section={section} />
 
-      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        <CatalogFilterLayout
-          activeCount={activeCount}
-          sidebar={
-            <CatalogFilterAside
-              onClear={
-                debouncedSearch || section === "tablets"
-                  ? () => {
-                      clearSearch();
-                      navigate("/phones");
-                    }
-                  : undefined
-              }
+      <div className="border-t border-black/[0.06] bg-white">
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-3 px-5 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:px-8 md:px-10 lg:px-14">
+          <div className="flex flex-wrap items-center gap-5">
+            <button
+              type="button"
+              onClick={() => navigate("/phones")}
+              className={cn(
+                "border-b-2 pb-1 text-sm font-semibold transition-colors",
+                section === "phones"
+                  ? "border-[#111111] text-navy"
+                  : "border-transparent text-muted-foreground hover:text-navy",
+              )}
             >
-              <FilterSection title="Device">
-                <div className="flex flex-col gap-2">
-                  <CatalogTypeChip active={section === "phones"} onClick={() => navigate("/phones")}>
-                    {t("smartphones_tab_phones")}
-                  </CatalogTypeChip>
-                  <CatalogTypeChip active={section === "tablets"} onClick={() => navigate("/tablets")}>
-                    {t("smartphones_tab_tablets")}
-                  </CatalogTypeChip>
-                </div>
-              </FilterSection>
-              <FilterSection title="Search">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-                  <input
-                    type="search"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder={t("smartphones_search_brand")}
-                    autoComplete="off"
-                    enterKeyHint="search"
-                    aria-label={t("smartphones_search_brand")}
-                    className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-8 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
-                  />
-                  {searchInput ? (
-                    <button
-                      type="button"
-                      onClick={clearSearch}
-                      className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:bg-muted"
-                      aria-label={t("smartphones_search_clear")}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : null}
-                </div>
-              </FilterSection>
-            </CatalogFilterAside>
-          }
-        >
-          <h2 className="mb-1 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
-          <p className="mb-6 text-sm text-[#5B6B86]">{countLabel}</p>
+              {t("smartphones_tab_phones")}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/tablets")}
+              className={cn(
+                "border-b-2 pb-1 text-sm font-semibold transition-colors",
+                section === "tablets"
+                  ? "border-[#111111] text-navy"
+                  : "border-transparent text-muted-foreground hover:text-navy",
+              )}
+            >
+              {t("smartphones_tab_tablets")}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
+        <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="relative w-full md:max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t("smartphones_search_brand")}
+              autoComplete="off"
+              enterKeyHint="search"
+              aria-label={t("smartphones_search_brand")}
+              className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#111111]/30"
+            />
+            {searchInput ? (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label={t("smartphones_search_clear")}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        <h2 className="mb-1 font-display text-2xl font-bold text-navy">{productsHeading}</h2>
+        <p className="mb-6 text-sm text-[#5B6B86]">{countLabel}</p>
 
           {showSyncBanner ? (
             <p className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
@@ -264,7 +263,6 @@ export default function Smartphones() {
           {!woo ? (
             <p className="py-16 text-sm text-muted-foreground">{t("smartphones_tablets_catalog_hint")}</p>
           ) : null}
-        </CatalogFilterLayout>
       </div>
     </div>
   );

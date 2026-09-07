@@ -6,8 +6,6 @@ import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
 import CatalogListFilters, {
   applyCatalogListFilters,
-  catalogListFilterCount,
-  CatalogFilterLayout,
   EMPTY_CATALOG_LIST_FILTERS,
   type CatalogListFilterState,
 } from "@/components/CatalogListFilters";
@@ -135,22 +133,14 @@ export default function NewArrivals() {
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
         {showFilters ? (
-          <CatalogFilterLayout
-            activeCount={catalogListFilterCount(filters)}
-            sidebar={
-              <CatalogListFilters
-                filters={filters}
-                onChange={setFilters}
-                resultCount={list.length}
-                searchPlaceholder="Search new arrivals…"
-              />
-            }
-          >
-            {grid}
-          </CatalogFilterLayout>
-        ) : (
-          grid
-        )}
+          <CatalogListFilters
+            filters={filters}
+            onChange={setFilters}
+            resultCount={list.length}
+            searchPlaceholder="Search new arrivals…"
+          />
+        ) : null}
+        {grid}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "wouter";
+import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { SlidersHorizontal, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -144,18 +144,17 @@ function Sidebar({
   }, [models, modelQuery]);
 
   return (
-    <aside className="w-full shrink-0 lg:w-60 xl:w-64">
-      <div className="rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-[15px] font-bold text-black">Filters</span>
-          <button
-            type="button"
-            className="text-[12px] text-sam hover:underline"
-            onClick={() => onChange({ ...EMPTY_FILTERS })}
-          >
-            Clear all
-          </button>
-        </div>
+    <div className="mb-6 w-full rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-[15px] font-bold text-black">Filters</span>
+        <button
+          type="button"
+          className="text-[12px] text-sam hover:underline"
+          onClick={() => onChange({ ...EMPTY_FILTERS })}
+        >
+          Clear all
+        </button>
+      </div>
 
         {families.length > 0 && (
           <FilterSection title="Family">
@@ -197,8 +196,8 @@ function Sidebar({
                 className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
               />
             </label>
-            <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <div className="mt-2 flex max-h-40 flex-wrap gap-2 overflow-y-auto pr-1">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
                 <input
                   type="radio"
                   name="brand-model"
@@ -209,7 +208,7 @@ function Sidebar({
                 <span>All models</span>
               </label>
               {visibleModels.map((m) => (
-                <label key={m.id} className="flex cursor-pointer items-start gap-2 text-sm">
+                <label key={m.id} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
                   <input
                     type="radio"
                     name="brand-model"
@@ -225,28 +224,30 @@ function Sidebar({
         )}
 
         <FilterSection title="Availability">
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={filters.inStock}
-              onChange={(e) => onChange({ ...filters, inStock: e.target.checked })}
-              className="accent-sam"
-            />
-            In stock only
-          </label>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={filters.onSale}
-              onChange={(e) => onChange({ ...filters, onSale: e.target.checked })}
-              className="accent-sam"
-            />
-            On sale
-          </label>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={filters.inStock}
+                onChange={(e) => onChange({ ...filters, inStock: e.target.checked })}
+                className="accent-sam"
+              />
+              In stock only
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={filters.onSale}
+                onChange={(e) => onChange({ ...filters, onSale: e.target.checked })}
+                className="accent-sam"
+              />
+              On sale
+            </label>
+          </div>
         </FilterSection>
 
         <FilterSection title="Price range">
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-xs items-center gap-2">
             <input
               type="number"
               placeholder="Min"
@@ -274,8 +275,7 @@ function Sidebar({
             />
           </div>
         </FilterSection>
-      </div>
-    </aside>
+    </div>
   );
 }
 
@@ -323,7 +323,6 @@ export default function BrandPage() {
 
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [sort, setSort] = useState<SortKey>("newest");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [remoteBrand, setRemoteBrand] = useState<WooProduct[]>([]);
   const [brandLoading, setBrandLoading] = useState(true);
   const [remoteModel, setRemoteModel] = useState<WooProduct[] | null>(null);
@@ -486,14 +485,6 @@ export default function BrandPage() {
     return list;
   }, [brandProducts, activeFamily, selectedModel, filters, sort, routeBrand]);
 
-  const activeFilterCount =
-    (filters.inStock ? 1 : 0) +
-    (filters.onSale ? 1 : 0) +
-    (filters.minPrice != null ? 1 : 0) +
-    (filters.maxPrice != null ? 1 : 0) +
-    (filters.family ? 1 : 0) +
-    (filters.model ? 1 : 0);
-
   const waiting =
     brandLoading ||
     modelLoading ||
@@ -502,78 +493,46 @@ export default function BrandPage() {
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <button
-          type="button"
-          className="mb-4 flex items-center gap-2 rounded-lg border border-black/[0.12] bg-white px-4 py-2 text-sm font-semibold lg:hidden"
-          onClick={() => setSidebarOpen((v) => !v)}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-sam text-[11px] text-white">
-              {activeFilterCount}
-            </span>
-          )}
-          {sidebarOpen ? <ChevronUp className="h-4 w-4 ml-auto" /> : <ChevronDown className="h-4 w-4 ml-auto" />}
-        </button>
+        <Sidebar
+          filters={filters}
+          onChange={setFilters}
+          families={families}
+          models={models}
+        />
 
-        {sidebarOpen && (
-          <div className="mb-4 lg:hidden">
-            <Sidebar
-              filters={filters}
-              onChange={setFilters}
-              families={families}
-              models={models}
-            />
+        <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
+
+        {waiting ? (
+          <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
+        ) : !woo ? (
+          <p className="py-16 text-center text-muted-foreground">
+            No store connected yet.
+          </p>
+        ) : filteredProducts.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-muted-foreground">No products match your filters.</p>
+            <button
+              type="button"
+              className="mt-3 text-sm text-sam hover:underline"
+              onClick={() => setFilters({ ...EMPTY_FILTERS })}
+            >
+              Clear filters
+            </button>
           </div>
-        )}
-
-        <div className="flex gap-6">
-          <div className="hidden lg:block">
-            <Sidebar
-              filters={filters}
-              onChange={setFilters}
-              families={families}
-              models={models}
-            />
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
-
-            {waiting ? (
-              <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
-            ) : !woo ? (
-              <p className="py-16 text-center text-muted-foreground">
-                No store connected yet.
-              </p>
-            ) : filteredProducts.length === 0 ? (
-              <div className="py-16 text-center">
-                <p className="text-muted-foreground">No products match your filters.</p>
-                <button
-                  type="button"
-                  className="mt-3 text-sm text-sam hover:underline"
-                  onClick={() => setFilters({ ...EMPTY_FILTERS })}
-                >
-                  Clear filters
-                </button>
-              </div>
-            ) : (
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
-              >
-                {filteredProducts.map((p) => (
-                  <motion.div key={productKey(p)} variants={itemVariants}>
-                    <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-                  </motion.div>
-                ))}
+        ) : (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+          >
+            {filteredProducts.map((p) => (
+              <motion.div key={productKey(p)} variants={itemVariants}>
+                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
               </motion.div>
-            )}
-          </div>
-        </div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
