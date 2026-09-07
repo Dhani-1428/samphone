@@ -110,17 +110,19 @@ function AccessoryCategoryTile({
       className="group flex flex-col overflow-hidden rounded-2xl border border-brand/10 bg-white shadow-[0_4px_16px_rgba(36,63,159,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-sam/40 hover:shadow-[0_12px_28px_rgba(36,63,159,0.12)]"
       data-testid={`card-category-${index}`}
     >
-      <span className="relative flex aspect-square items-center justify-center bg-[#F7F8FA] p-5 sm:p-6">
+      <span className="relative block aspect-square w-full overflow-hidden bg-white">
         {img ? (
           <CatalogImage
             src={img}
             alt={page.label}
-            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white">
-            <Icon className="h-8 w-8" strokeWidth={1.7} />
+          <span className="absolute inset-0 flex items-center justify-center bg-[#F7F8FA]">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white">
+              <Icon className="h-8 w-8" strokeWidth={1.7} />
+            </span>
           </span>
         )}
       </span>
