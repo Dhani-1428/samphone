@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { AlertCircle } from "lucide-react";
 import { useParams } from "wouter";
 import { allSlugs } from "@/data/categories";
-import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
 import CatalogListFilters, {
@@ -11,9 +10,6 @@ import CatalogListFilters, {
   EMPTY_CATALOG_LIST_FILTERS,
   type CatalogListFilterState,
 } from "@/components/CatalogListFilters";
-import productCase from "@/assets/product-case.png";
-import productCharger from "@/assets/product-charger.png";
-import productScreen from "@/assets/product-screen.png";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import {
@@ -26,24 +22,6 @@ import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink } from "@/components/CatalogPageChrome";
-
-const imgPool = [productCase, productCharger, productScreen];
-
-function generateProducts(slug: string, label: string) {
-  const seed = slug.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return Array.from({ length: 8 }, (_, i) => ({
-    id: i + 1,
-    cartKey: `cat:${slug}:${i + 1}`,
-    name: `${label} — ${["Model A", "Pro Edition", "Ultra Slim", "Heavy Duty", "Standard", "Premium", "Compact", "Deluxe"][i]}`,
-    subtitle: label,
-    price: parseFloat((((seed + i * 7) % 80) + 5.99).toFixed(2)),
-    oldPrice: i % 3 === 0 ? parseFloat((((seed + i * 7) % 80) + 15.99).toFixed(2)) : null,
-    rating: parseFloat((4.5 + ((i * 0.1) % 0.5)).toFixed(1)),
-    reviews: ((seed + i * 13) % 300) + 10,
-    img: imgPool[(seed + i) % 3],
-    badge: i === 0 ? "Bestseller" : i === 2 ? "New" : i === 5 ? "Sale" : null,
-  }));
-}
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const cardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -163,9 +141,6 @@ export default function CategoryPage() {
   const label = syntheticLabel ?? wooMeta?.name ?? staticMeta?.label ?? humanizeSlug(slug);
   const parent = syntheticBrandName ?? parentFromWoo ?? staticMeta?.parent ?? "Shop";
 
-  const useMock = !configured && Boolean(staticMeta);
-  const mockProducts = useMock ? generateProducts(slug, label) : [];
-
   const showWooGrid = configured && filteredWooList.length > 0;
   const showWooEmpty =
     configured && !wooLoading && !catalogError && wooList.length === 0;
@@ -175,9 +150,7 @@ export default function CategoryPage() {
 
   const heroDescription = configured && wooList.length > 0
     ? `${filteredWooList.length} products`
-    : useMock
-      ? `${mockProducts.length} products available`
-      : "";
+    : "";
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -243,21 +216,6 @@ export default function CategoryPage() {
           <p className="py-16 text-center text-sm text-muted-foreground">
             {lang === "pt" ? "Categoria não encontrada." : "Category not found."}
           </p>
-        )}
-
-        {useMock && (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
-          >
-            {mockProducts.map((p) => (
-              <motion.div key={p.id} variants={cardVariants}>
-                <ProductCard {...p} testPrefix="cat" />
-              </motion.div>
-            ))}
-          </motion.div>
         )}
       </div>
     </div>

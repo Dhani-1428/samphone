@@ -1,10 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
-import { MULTI_BRAND_FEATURED } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -37,7 +35,6 @@ export default function MultiBrand() {
     () => filterMultiBrandCatalog(products, selectedBrand, 48),
     [products, selectedBrand],
   );
-  const visibleMock = MULTI_BRAND_FEATURED.filter((p) => !selectedBrand || p.brand === selectedBrand);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -92,28 +89,6 @@ export default function MultiBrand() {
                 </motion.li>
               ))}
             </motion.ul>
-          )}
-
-          {!woo && (
-            <motion.div
-              ref={ref}
-              variants={containerVariants}
-              initial="hidden"
-              animate={isInView ? "visible" : "hidden"}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5"
-            >
-              {visibleMock.map((p) => (
-                <motion.div key={p.cartKey} variants={itemVariants}>
-                  <ProductCard {...p} testPrefix="multi" />
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
-
-          {!woo && selectedBrand && visibleMock.length === 0 && (
-            <div className="text-center py-16 text-muted-foreground">
-              <p className="text-lg">No featured products for {selectedBrand} yet.</p>
-            </div>
           )}
       </div>
     </div>

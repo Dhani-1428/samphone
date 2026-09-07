@@ -2,11 +2,9 @@ import { useMemo } from "react";
 import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
-import ProductCard from "@/components/ProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
-import { HOME_PRODUCTS } from "@/data/catalog";
 import { pickHomeFeatured, sortNewest } from "@/lib/woo-product-filters";
 
 export default function Products() {
@@ -30,17 +28,14 @@ export default function Products() {
     );
   }
 
-  const cards =
-    woo && featured.length > 0
-      ? featured.map((p) => (
-          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
-        ))
-      : HOME_PRODUCTS.map((product) => <ProductCard key={product.id} {...product} testPrefix="home" />);
+  if (featured.length === 0) return null;
 
   return (
     <div id="products">
       <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
-        {cards}
+        {featured.map((p) => (
+          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+        ))}
       </HomeProductRail>
     </div>
   );

@@ -65,6 +65,7 @@ export function RecentlyViewedProvider({ children }: { children: ReactNode }) {
   const products = useMemo(() => {
     const list: CatalogProduct[] = [];
     for (const k of keys) {
+      if (!k.startsWith("woo:")) continue;
       const p = resolveCatalogProduct(k);
       if (p) list.push(p);
     }

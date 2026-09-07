@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
-import ProductCard from "@/components/ProductCard";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
@@ -9,7 +8,6 @@ import CatalogListFilters, {
   EMPTY_CATALOG_LIST_FILTERS,
   type CatalogListFilterState,
 } from "@/components/CatalogListFilters";
-import { NEW_ARRIVALS_PRODUCTS } from "@/data/catalog";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -104,25 +102,6 @@ export default function NewArrivals() {
             </motion.li>
           ))}
         </motion.ul>
-      ) : null}
-
-      {!woo && !busy && rawList.length === 0 ? (
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-5 lg:grid-cols-5 xl:grid-cols-6"
-        >
-          {NEW_ARRIVALS_PRODUCTS.map((p) => {
-            const { daysAgo: _daysAgo, ...card } = p;
-            return (
-              <motion.div key={p.cartKey} variants={itemVariants}>
-                <ProductCard {...card} testPrefix="new" />
-              </motion.div>
-            );
-          })}
-        </motion.div>
       ) : null}
     </>
   );
