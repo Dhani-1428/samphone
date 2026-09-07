@@ -314,7 +314,6 @@ export default function MobileNavDrawer({
                 { href: "/brand/motorola", label: "Motorola" },
                 { href: "/multi-brand", label: t("nav_bar_others") },
                 { href: "/phones", label: t("nav_smartphones") },
-                { href: "/tablets", label: t("nav_tablets") },
                 { href: "/cards", label: "Cards" },
                 { href: "/tools", label: "Tools" },
               ] as const

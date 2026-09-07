@@ -1155,13 +1155,6 @@ export default function Navbar() {
                 Smartphones
               </Link>
               <Link
-                href="/tablets"
-                className={navItemClass(location.startsWith("/tablets"))}
-                onClick={closeMenu}
-              >
-                Tablets
-              </Link>
-              <Link
                 href="/cards"
                 className={navItemClass(location.startsWith("/cards") || location.startsWith("/group/Cards"))}
                 onClick={closeMenu}
