@@ -356,7 +356,7 @@ function megaRowGridClass(row: NavFamily[][], apple: boolean, fourCol: boolean) 
 }
 
 const megaLinkClass =
-  "block text-[13px] leading-5 text-[#333333] hover:text-brand dark:text-white";
+  "block text-[14px] leading-5 text-[#333333] hover:text-brand dark:text-white";
 const megaHeadingClass =
   "mb-3 text-[16px] font-bold uppercase leading-6 text-[#111111] dark:text-white";
 
@@ -929,7 +929,7 @@ export default function Navbar() {
   };
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-sm px-2.5 uppercase text-white no-underline transition-[background-color] ${
+    `nav-bar-item inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-sm px-2.5 uppercase text-white no-underline transition-[background-color] ${
       active ? "bg-sam" : "bg-transparent hover:bg-sam/90"
     }`;
 
