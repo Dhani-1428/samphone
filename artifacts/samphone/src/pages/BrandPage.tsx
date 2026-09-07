@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronUp, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
+import { CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,10 +15,9 @@ import {
   productSearchHaystack,
   textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
-import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductList, fetchCloudProductsForModel } from "@/lib/samphone-cloud";
-import { modelSearchNames, productBelongsToModel } from "@/lib/model-catalog";
+import { modelSearchNames, productBelongsToModel, splitModelCatalog } from "@/lib/model-catalog";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
 import {
   familiesForBrandSlug,
@@ -486,6 +486,11 @@ export default function BrandPage() {
     return list;
   }, [brandProducts, activeFamily, selectedModel, filters, sort, routeBrand]);
 
+  const { parts: modelParts, accessories: modelAccessories } = useMemo(
+    () => (selectedModel ? splitModelCatalog(filteredProducts) : { parts: [], accessories: [] }),
+    [filteredProducts, selectedModel],
+  );
+
   const waiting =
     brandLoading ||
     modelLoading ||
@@ -519,6 +524,51 @@ export default function BrandPage() {
             >
               Clear filters
             </button>
+          </div>
+        ) : selectedModel ? (
+          <div className="space-y-10">
+            <section>
+              <CatalogSectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
+              {modelParts.length === 0 ? (
+                <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+              ) : (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+                >
+                  {modelParts.map((p) => (
+                    <motion.div key={productKey(p)} variants={itemVariants}>
+                      <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </section>
+            <section>
+              <CatalogSectionHeading
+                icon={Sparkles}
+                title={t("model_accessories_section")}
+                hint={t("model_accessories_section_hint")}
+              />
+              {modelAccessories.length === 0 ? (
+                <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+              ) : (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+                >
+                  {modelAccessories.map((p) => (
+                    <motion.div key={productKey(p)} variants={itemVariants}>
+                      <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </section>
           </div>
         ) : (
           <motion.div

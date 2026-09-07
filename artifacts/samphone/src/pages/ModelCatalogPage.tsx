@@ -273,34 +273,30 @@ export default function ModelCatalogPage() {
             <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
           ) : (
             <div className="space-y-10">
-              {parts.length > 0 ? (
-                <section>
-                  <SectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
-                  <TypeChips
-                    allLabel={t("model_filter_all")}
-                    selected={partType}
-                    onSelect={setPartType}
-                    chips={partChips}
-                  />
-                  <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
-                </section>
-              ) : null}
-              {accessories.length > 0 ? (
-                <section>
-                  <SectionHeading
-                    icon={Sparkles}
-                    title={t("model_accessories_section")}
-                    hint={t("model_accessories_section_hint")}
-                  />
-                  <TypeChips
-                    allLabel={t("model_filter_all")}
-                    selected={accType}
-                    onSelect={setAccType}
-                    chips={accChips}
-                  />
-                  <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
-                </section>
-              ) : null}
+              <section>
+                <SectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
+                <TypeChips
+                  allLabel={t("model_filter_all")}
+                  selected={partType}
+                  onSelect={setPartType}
+                  chips={partChips}
+                />
+                <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
+              </section>
+              <section>
+                <SectionHeading
+                  icon={Sparkles}
+                  title={t("model_accessories_section")}
+                  hint={t("model_accessories_section_hint")}
+                />
+                <TypeChips
+                  allLabel={t("model_filter_all")}
+                  selected={accType}
+                  onSelect={setAccType}
+                  chips={accChips}
+                />
+                <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
+              </section>
             </div>
           )
         ) : null}
