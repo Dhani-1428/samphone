@@ -128,14 +128,14 @@ function AccessoryCategoryTile({
       </span>
 
       <span className="mt-auto px-3 pb-3.5 pt-3 sm:px-4 sm:pb-4">
-        <span className="flex w-full items-center gap-2 rounded-full border border-brand/10 bg-white px-2.5 py-2 shadow-sm sm:gap-2.5 sm:px-3 sm:py-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-white sm:h-9 sm:w-9">
+        <span className="flex w-full items-center gap-2 rounded-full border border-brand/10 bg-white px-2.5 py-2 shadow-sm transition-colors duration-200 group-hover:border-sam group-hover:bg-sam sm:gap-2.5 sm:px-3 sm:py-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-white transition-colors duration-200 group-hover:bg-white group-hover:text-sam sm:h-9 sm:w-9">
             <Icon className="h-4 w-4 sm:h-[1.05rem] sm:w-[1.05rem]" strokeWidth={2.2} />
           </span>
-          <span className="min-w-0 flex-1 truncate text-[12px] font-extrabold leading-tight text-brand sm:text-[13px] md:text-[14px]">
+          <span className="min-w-0 flex-1 truncate text-[12px] font-extrabold leading-tight text-brand transition-colors duration-200 group-hover:text-white sm:text-[13px] md:text-[14px]">
             {page.label}
           </span>
-          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-brand sm:h-4 sm:w-4" strokeWidth={2.4} />
+          <ArrowRight className="h-3.5 w-3.5 shrink-0 text-brand transition-colors duration-200 group-hover:text-white sm:h-4 sm:w-4" strokeWidth={2.4} />
         </span>
       </span>
     </Link>
