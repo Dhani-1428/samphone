@@ -159,13 +159,13 @@ function TypeChips({
 function SectionHeading({
   icon,
   title,
-  hint,
+  highlight,
 }: {
   icon: LucideIcon;
   title: string;
-  hint: string;
+  highlight: string;
 }) {
-  return <CatalogSectionHeading icon={icon} title={title} hint={hint} />;
+  return <CatalogSectionHeading icon={icon} title={title} highlight={highlight} />;
 }
 
 export default function ModelCatalogPage() {
@@ -274,7 +274,7 @@ export default function ModelCatalogPage() {
           ) : (
             <div className="space-y-10">
               <section>
-                <SectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
+                <SectionHeading icon={Wrench} title={t("model_parts_of")} highlight={title} />
                 <TypeChips
                   allLabel={t("model_filter_all")}
                   selected={partType}
@@ -284,11 +284,7 @@ export default function ModelCatalogPage() {
                 <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
               </section>
               <section>
-                <SectionHeading
-                  icon={Sparkles}
-                  title={t("model_accessories_section")}
-                  hint={t("model_accessories_section_hint")}
-                />
+                <SectionHeading icon={Sparkles} title={t("model_accessories_of")} highlight={title} />
                 <TypeChips
                   allLabel={t("model_filter_all")}
                   selected={accType}

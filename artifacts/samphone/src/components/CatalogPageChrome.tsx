@@ -8,19 +8,39 @@ export function CatalogBackLink() {
 export function CatalogSectionHeading({
   icon: Icon,
   title,
+  highlight,
   hint,
 }: {
   icon: LucideIcon;
   title: string;
+  highlight?: string;
   hint?: string;
 }) {
+  const large = Boolean(highlight);
   return (
     <div className="mb-4 flex items-start gap-3">
-      <span className="mt-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sam text-white">
-        <Icon className="h-5 w-5" strokeWidth={2.2} />
+      <span
+        className={`mt-0.5 inline-flex shrink-0 items-center justify-center rounded-xl bg-sam text-white ${
+          large ? "h-12 w-12" : "h-11 w-11"
+        }`}
+      >
+        <Icon className={large ? "h-6 w-6" : "h-5 w-5"} strokeWidth={2.2} />
       </span>
       <div>
-        <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand">{title}</h2>
+        <h2
+          className={`font-display font-extrabold tracking-tight ${
+            large ? "text-[1.95rem] leading-tight text-navy sm:text-[2.25rem]" : "text-[1.65rem] text-brand"
+          }`}
+        >
+          {highlight ? (
+            <>
+              {title}{" "}
+              <span className="text-sam underline decoration-sam decoration-[3px] underline-offset-4">{highlight}</span>
+            </>
+          ) : (
+            title
+          )}
+        </h2>
         {hint ? <p className="mt-0.5 text-sm font-semibold text-neutral-700">{hint}</p> : null}
       </div>
     </div>

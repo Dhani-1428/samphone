@@ -528,7 +528,7 @@ export default function BrandPage() {
         ) : selectedModel ? (
           <div className="space-y-10">
             <section>
-              <CatalogSectionHeading icon={Wrench} title={t("model_parts_title")} hint={t("model_parts_hint")} />
+              <CatalogSectionHeading icon={Wrench} title={t("model_parts_of")} highlight={selectedModel.label} />
               {modelParts.length === 0 ? (
                 <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
               ) : (
@@ -549,8 +549,8 @@ export default function BrandPage() {
             <section>
               <CatalogSectionHeading
                 icon={Sparkles}
-                title={t("model_accessories_section")}
-                hint={t("model_accessories_section_hint")}
+                title={t("model_accessories_of")}
+                highlight={selectedModel.label}
               />
               {modelAccessories.length === 0 ? (
                 <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
