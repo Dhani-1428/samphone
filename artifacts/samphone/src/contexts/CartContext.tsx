@@ -143,7 +143,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => Object.values(items).reduce((a, n) => a + n, 0),
     [items],
   );
-  const railVisible = totalItems > 0;
+  /** Side cart stays closed — adding items does not open a rail. */
+  const railVisible = false;
   const openCart = useCallback(() => {}, []);
   const closeCart = useCallback(() => {}, []);
   const setCartOpen = useCallback((_open: boolean) => {}, []);

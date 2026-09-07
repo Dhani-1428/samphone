@@ -13,7 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import ProductImageGallery from "@/components/product/ProductImageGallery";
-import ProductCartControls from "@/components/ProductCartControls";
+import { CardQtyStepper } from "@/components/ProductCartControls";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -191,12 +191,7 @@ export default function ProductDetailLayout({
 
               {user ? (
                 inStock ? (
-                  <ProductCartControls
-                    cartKey={cartKey}
-                    size="md"
-                    buttonClassName="h-12 rounded-lg bg-[#111111] hover:bg-[#000000]"
-                    preview={{ name: title, img: preferredSrc || gallery[0] || null }}
-                  />
+                  <CardQtyStepper cartKey={cartKey} />
                 ) : (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                     {t("notify_stock")}

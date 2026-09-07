@@ -1,16 +1,70 @@
-import { useMemo } from "react";
+import { type MouseEvent } from "react";
 import { Link, useLocation } from "wouter";
 import { Lock, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { getStockLevel } from "@/data/inventory";
-import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md";
+
+/** Orange − qty + control for product cards. Does not open the side cart. */
+export function CardQtyStepper({
+  cartKey,
+  minQty = 1,
+}: {
+  cartKey: string;
+  minQty?: number;
+}) {
+  const { getQty, increment, decrement } = useCart();
+  const qty = getQty(cartKey);
+  const maxStock = getStockLevel(cartKey).count;
+  const floor = Math.max(1, minQty);
+  const atMax = qty >= maxStock;
+
+  const onMinus = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    decrement(cartKey);
+  };
+
+  const onPlus = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (atMax) return;
+    const next = qty < floor ? floor : 1;
+    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
+  };
+
+  return (
+    <div
+      className="flex h-11 min-w-0 flex-1 items-center rounded-full bg-sam text-white"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40"
+        onClick={onMinus}
+        disabled={qty <= 0}
+        aria-label="Decrease quantity"
+      >
+        <Minus className="h-4 w-4" strokeWidth={2.4} />
+      </button>
+      <span className="min-w-0 flex-1 text-center text-sm font-bold tabular-nums">{qty}</span>
+      <button
+        type="button"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40"
+        onClick={onPlus}
+        disabled={atMax}
+        aria-label="Increase quantity"
+      >
+        <Plus className="h-4 w-4" strokeWidth={2.4} />
+      </button>
+    </div>
+  );
+}
 
 export default function ProductCartControls({
   cartKey,
@@ -34,26 +88,15 @@ export default function ProductCartControls({
   const { user } = useAuth();
   const [loc] = useLocation();
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
-  const { getQty, increment, decrement, announceAdded } = useCart();
+  const { getQty, increment, decrement } = useCart();
   const { t } = useLang();
-  const { products } = useProductCatalog();
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
   const floor = Math.max(1, minQty ?? 1);
   const atMax = qty >= maxStock;
-  const catalogPreview = useMemo(() => {
-    const line = buildCartLinePreview(cartKey, 1, buildWooProductMap(products), user);
-    return { name: line.name, img: line.img };
-  }, [cartKey, products, user]);
   const addToCart = () => {
     const next = qty < floor ? floor : 1;
     for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
-    if (loc === "/cart") return;
-    announceAdded({
-      cartKey,
-      name: preview?.name || catalogPreview.name,
-      img: preview?.img ?? catalogPreview.img,
-    });
   };
 
   if (!user) {
@@ -206,7 +249,7 @@ export default function ProductCartControls({
       >
         <Minus className="w-3.5 h-3.5" />
       </Button>
-      <span className={textSize}>{qty}</span>
+      <span className={cn(textSize, variant !== "compact" && variant !== "icon-stepper" && "min-w-0 flex-1")}>{qty}</span>
       <Button
         type="button"
         variant="outline"

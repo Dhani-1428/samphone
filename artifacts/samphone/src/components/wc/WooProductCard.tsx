@@ -20,10 +20,9 @@ import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { seesWholesalePrices } from "@/lib/customer-price";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { useCart } from "@/contexts/CartContext";
-import { getStockLevel } from "@/data/inventory";
 import CatalogImage from "@/components/CatalogImage";
 import ColorSwatches from "@/components/wc/ColorSwatches";
+import { CardQtyStepper } from "@/components/ProductCartControls";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -58,7 +57,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { t } = useLang();
   const [loc] = useLocation();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
-  const { getQty, increment, announceAdded } = useCart();
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
@@ -72,8 +70,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const rating = product.rating && product.rating > 0 ? product.rating : 4.8;
   const reviews = product.reviewCount && product.reviewCount > 0 ? product.reviewCount : 124;
   const inStock = product.stock_status !== "outofstock";
-  const qty = getQty(cartKey);
-  const maxStock = getStockLevel(cartKey).count;
   const canAdd = Boolean(user && showPrice && canBuyDealer);
   const showLoginBuy = Boolean(!user && showPrice && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
@@ -83,16 +79,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
     e.preventDefault();
     e.stopPropagation();
     wishToggle(cartKey);
-  };
-
-  const addToCart = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!canAdd) return;
-    const floor = Math.max(1, product.minOrderQty ?? 1);
-    const next = qty < floor ? floor : 1;
-    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
-    announceAdded({ cartKey, name: product.name, img: imageUrl });
   };
 
   return (
@@ -193,16 +179,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <div className="mt-auto flex items-center gap-2 pt-1">
           {canAdd ? (
             <>
-              <button
-                type="button"
-                onClick={addToCart}
-                className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
-              >
-                <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-                <span className="truncate">
-                  {qty > 0 ? `${t("addToCart")} (${qty})` : t("addToCart")}
-                </span>
-              </button>
+              <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
               <button
                 type="button"
                 onClick={toggleWish}

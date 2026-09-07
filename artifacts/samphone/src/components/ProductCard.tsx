@@ -5,8 +5,7 @@ import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
-import { getStockLevel } from "@/data/inventory";
+import { CardQtyStepper } from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -39,24 +38,13 @@ export default function ProductCard({
   const { t } = useLang();
   const { user } = useAuth();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
-  const { getQty, increment, announceAdded } = useCart();
   const wishlisted = wishHas(cartKey);
   const productHref = hrefForCartKey(cartKey);
-  const qty = getQty(cartKey);
-  const maxStock = getStockLevel(cartKey).count;
 
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     wishToggle(cartKey);
-  };
-
-  const addToCart = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) return;
-    increment(cartKey, maxStock);
-    announceAdded({ cartKey, name, img });
   };
 
   return (
@@ -121,16 +109,7 @@ export default function ProductCard({
 
         <div className="mt-auto flex items-center gap-2 pt-1">
           {user ? (
-            <button
-              type="button"
-              onClick={addToCart}
-              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
-            >
-              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-              <span className="truncate">
-                {qty > 0 ? `${t("addToCart")} (${qty})` : t("addToCart")}
-              </span>
-            </button>
+            <CardQtyStepper cartKey={cartKey} />
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
