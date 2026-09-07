@@ -56,7 +56,7 @@ export default function ProductCard({
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-[#F7F8FA]">
+      <div className="relative aspect-square overflow-hidden bg-white">
         <button
           type="button"
           onClick={toggleWish}
@@ -69,7 +69,7 @@ export default function ProductCard({
           <img
             src={img}
             alt={name}
-            className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105 sm:p-6"
+            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
       </div>

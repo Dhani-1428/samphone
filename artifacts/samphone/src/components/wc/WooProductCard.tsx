@@ -88,7 +88,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
     >
-      <div className={cn("relative overflow-hidden bg-[#F7F8FA]", compact ? "aspect-[1/0.95]" : "aspect-square")}>
+      <div className={cn("relative overflow-hidden bg-white", compact ? "aspect-[1/0.95]" : "aspect-square")}>
 
         <button
           type="button"
@@ -111,7 +111,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-            className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105 sm:p-6"
+            className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             onError={() => setImgOk(false)}
           />
