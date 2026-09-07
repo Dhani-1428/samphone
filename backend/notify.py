@@ -70,14 +70,14 @@ async def notify_user(
     prefs = (user or {}).get("notificationPrefs") or {}
     if email and _kind_emailable(kind) and user and prefs_allow_email(prefs, kind):
         try:
-            from email_service import send_alert_email, SITE_URL
+            from email_service import send_alert_email, SHOP_URL
 
             route = str((data or {}).get("route") or "").strip() or "/"
             send_alert_email(
                 user,
                 title=title,
                 message=message,
-                cta_url=f"{SITE_URL}{route}" if route.startswith("/") else route,
+                cta_url=f"{SHOP_URL}{route}" if route.startswith("/") else route,
             )
         except Exception:
             logger.exception("Alert email failed for user %s kind=%s", user_id, kind)
@@ -177,14 +177,14 @@ async def broadcast_customers(
                 data=data,
             )
             if _kind_emailable(kind) and user and prefs_allow_email(prefs, kind):
-                from email_service import send_alert_email, SITE_URL
+                from email_service import send_alert_email, SHOP_URL
 
                 route = str((data or {}).get("route") or "").strip() or "/"
                 if send_alert_email(
                     user,
                     title=title,
                     message=message,
-                    cta_url=f"{SITE_URL}{route}" if route.startswith("/") else route,
+                    cta_url=f"{SHOP_URL}{route}" if route.startswith("/") else route,
                 ):
                     emailed += 1
         except Exception:

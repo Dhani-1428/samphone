@@ -14,11 +14,13 @@ from localization import normalize_language, tr
 logger = logging.getLogger(__name__)
 
 SITE_NAME = "Samphone"
-SITE_URL = os.environ.get("SITE_URL", "https://samphone.pt").rstrip("/")
+# Customer-facing shop links in emails (buttons, account, cart, products).
+SHOP_URL = os.environ.get("SHOP_URL", "https://samphone.eu").rstrip("/")
+SITE_URL = os.environ.get("SITE_URL", SHOP_URL).rstrip("/")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@samphone.pt")
 STORE_PHONE = os.environ.get("STORE_PHONE", "+351 937 119 295").strip() or "+351 937 119 295"
 STORE_PUBLIC_EMAIL = os.environ.get("STORE_PUBLIC_EMAIL", "geral@samphone.pt").strip() or "geral@samphone.pt"
-STORE_WEB = "www.samphone.pt"
+STORE_WEB = os.environ.get("STORE_WEB", "samphone.eu").strip() or "samphone.eu"
 NAVY = "#1E4A8C"
 ORANGE = "#F5A21A"
 LIGHT_BLUE = "#E8F0FB"
@@ -208,8 +210,8 @@ def send_welcome_email(user: dict) -> bool:
     email_addr = (user.get("email") or "").strip()
     if not email_addr:
         return False
-    account_url = f"{SITE_URL}/account"
-    shop_url = SITE_URL
+    account_url = f"{SHOP_URL}/account"
+    shop_url = SHOP_URL
     year = datetime.now(timezone.utc).year
     html_body = _b2c_welcome_html(account_url=account_url, shop_url=shop_url, year=year)
     plain = (
@@ -386,7 +388,7 @@ def send_wholesale_pending_email(user: dict) -> bool:
     email_addr = (user.get("email") or "").strip()
     if not email_addr:
         return False
-    account_url = f"{SITE_URL}/account"
+    account_url = f"{SHOP_URL}/account"
     year = datetime.now(timezone.utc).year
     html_body = _b2b_welcome_html(account_url=account_url, year=year)
     plain = (
@@ -641,7 +643,7 @@ def send_admin_business_application_email(user: dict) -> bool:
       </p>
       {details_table}
       <p style="margin:20px 0 0;">
-        <a href="{html.escape(SITE_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
+        <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
           text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
           Open Samphone
         </a>
@@ -735,7 +737,7 @@ def send_wholesale_decision_email(user: dict, *, approved: bool, reason: str = "
           </p>
           {details}
           <p style="margin:24px 0 0;">
-            <a href="{html.escape(SITE_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
+            <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
               text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
               Open Samphone &amp; view business prices
             </a>
@@ -807,7 +809,7 @@ def send_login_email(user: dict) -> bool:
             Yours faithfully,<br/>
             {html.escape(SITE_NAME)} Accounts Office
           </p>
-          <p style="margin:24px 0 0;">{_cta(SITE_URL, "Access account", colorful=False)}</p>
+          <p style="margin:24px 0 0;">{_cta(SHOP_URL, "Access account", colorful=False)}</p>
         """
         subject = f"{SITE_NAME} — confirmation of sign-in to your business account"
         return send_email(email_addr, subject, _layout_business(subject, body))
@@ -827,7 +829,7 @@ def send_login_email(user: dict) -> bool:
         If this was you, you're all set. If it wasn't, change your password and tell us at
         <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>.
       </p>
-      <p style="margin:28px 0 0;">{_cta(SITE_URL, f"Open {SITE_NAME}", colorful=True)}</p>
+      <p style="margin:28px 0 0;">{_cta(SHOP_URL, f"Open {SITE_NAME}", colorful=True)}</p>
     """
     subject = f"You're signed in to {SITE_NAME}"
     return send_email(email_addr, subject, _layout_public(subject, body))
@@ -864,7 +866,7 @@ def send_cart_abandonment_email(user: dict, cart: dict) -> bool:
         lines_plain.append(f"- {title} x{qty} ({line_total})")
 
     subtotal = _format_money(cart.get("subtotal"))
-    cart_url = f"{SITE_URL}/cart"
+    cart_url = f"{SHOP_URL}/cart"
 
     body = f"""
       <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">Hi {html.escape(name)}, your cart is waiting</h2>
@@ -920,7 +922,7 @@ def _api_public_base() -> str:
     return (
         os.environ.get("API_PUBLIC_URL", "").strip()
         or os.environ.get("PUBLIC_API_URL", "").strip()
-        or SITE_URL
+        or SHOP_URL
     ).rstrip("/")
 
 
@@ -937,8 +939,8 @@ def _absolute_media_url(url: str) -> str:
 def _product_page_url(product_id: str) -> str:
     pid = (product_id or "").strip()
     if not pid:
-        return SITE_URL
-    tmpl = os.environ.get("PRODUCT_PAGE_URL", "").strip() or f"{SITE_URL}/product/{{id}}"
+        return SHOP_URL
+    tmpl = os.environ.get("PRODUCT_PAGE_URL", "").strip() or f"{SHOP_URL}/product/{{id}}"
     return tmpl.replace("{id}", pid)
 
 
@@ -1244,7 +1246,7 @@ def send_order_confirmation_email(order: dict) -> bool:
     plain = (
         f"Thank you for your order!\n\nHi {name},\n"
         f"Order number: {order_number}\nTotal: {total}\n"
-        f"View order: {SITE_URL}/account?section=orders\n"
+        f"View order: {SHOP_URL}/account?section=orders\n"
     )
     subject = f"Thank you for your order! — {order_number}"
     logger.info("Order confirmation email (%s) queued for %s", motto, email_addr)
@@ -1254,7 +1256,7 @@ def send_order_confirmation_email(order: dict) -> bool:
 def _b2c_order_confirmation_html(order: dict) -> str:
     lang = normalize_language(order.get("language"))
     name = (order.get("customer_name") or order.get("full_name") or "there").strip().split()[0]
-    order_url = f"{SITE_URL}/account?section=orders"
+    order_url = f"{SHOP_URL}/account?section=orders"
     inner = f"""
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -1313,7 +1315,7 @@ def _b2c_order_confirmation_html(order: dict) -> str:
 def _b2b_order_confirmation_html(order: dict) -> str:
     lang = normalize_language(order.get("language"))
     company = (order.get("company_name") or order.get("businessName") or "Business Team").strip() or "Business Team"
-    order_url = f"{SITE_URL}/account?section=orders"
+    order_url = f"{SHOP_URL}/account?section=orders"
     inner = f"""
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
@@ -1420,7 +1422,7 @@ def send_order_cancelled_email(order: dict) -> bool:
     _, items_plain = _order_items_html_plain(order, lang)
     items_table = _order_items_table(order, lang)
     addr_html, addr_plain = _order_address_block(order)
-    orders_url = f"{SITE_URL}/account/orders"
+    orders_url = f"{SHOP_URL}/account/orders"
 
     body = f"""
       <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(tr(lang, "order.cancelled.title"))}</h2>
@@ -1497,8 +1499,8 @@ def _product_url(product: dict | None = None, product_id: str = "") -> str:
     pid = str((product or {}).get("id") or product_id or "").strip()
     slug = str((product or {}).get("slug") or "p").strip() or "p"
     if pid:
-        return f"{SITE_URL}/product/{slug}/{pid}"
-    return f"{SITE_URL}/new"
+        return f"{SHOP_URL}/product/{slug}/{pid}"
+    return f"{SHOP_URL}/new"
 
 
 def send_alert_email(
@@ -1513,7 +1515,7 @@ def send_alert_email(
     if not email_addr:
         return False
     name = (user.get("name") or email_addr.split("@")[0] or "there").strip()
-    link = (cta_url or SITE_URL).strip() or SITE_URL
+    link = (cta_url or SHOP_URL).strip() or SHOP_URL
     body = f"""
       <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(title)}</h2>
       <p style="margin:0 0 16px;color:#374151;">Hi {html.escape(name)},</p>
@@ -1575,6 +1577,6 @@ def send_new_arrivals_email(user: dict, products: list[dict]) -> bool:
         user,
         title="New products have arrived",
         message=f"Just added to the Samphone catalog: {listed}{extra}.",
-        cta_url=f"{SITE_URL}/new",
+        cta_url=f"{SHOP_URL}/new",
         cta_label="See new arrivals",
     )

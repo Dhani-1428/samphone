@@ -19,6 +19,8 @@ DEFAULT_CORS_ORIGINS = (
     "https://www.samphone.pt,"
     "https://samphone.pt,"
     "https://staging.samphone.pt,"
+    "https://samphone.eu,"
+    "https://www.samphone.eu,"
     "https://samphone.cloud,"
     "https://www.samphone.cloud,"
     "http://localhost:8081,"

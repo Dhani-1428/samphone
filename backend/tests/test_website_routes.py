@@ -150,6 +150,8 @@ def test_public_and_business_account_emails(monkeypatch):
     assert "geral@samphone.pt" in html_body
     assert "+351 937 119 295" in html_body
     assert "/account" in html_body
+    assert "https://samphone.eu/account" in html_body
+    assert "https://samphone.eu" in html_body
     assert "Official correspondence" not in html_body
     assert "Hey Ana" not in html_body
 
@@ -169,6 +171,7 @@ def test_public_and_business_account_emails(monkeypatch):
     assert "Welcome to Samphone" in biz_html
     assert "Business!" in biz_html
     assert "Go to Business Account" in biz_html
+    assert "https://samphone.eu/account" in biz_html
     assert "Your Business Account Gives You More" in biz_html
     assert "geral@samphone.pt" in biz_html
     assert "online store for businesses" in biz_html
@@ -221,6 +224,7 @@ def test_order_confirmation_is_single_template_per_account(monkeypatch):
     assert "Thank you for your order!" in html_b2c
     assert "Hi John" in html_b2c
     assert "What happens next?" in html_b2c
+    assert "https://samphone.eu/account" in html_b2c
     assert "Easy Returns" in html_b2c
     assert "VAT Number" not in html_b2c
     assert "Business Pricing" not in html_b2c
@@ -250,6 +254,7 @@ def test_order_confirmation_is_single_template_per_account(monkeypatch):
     assert "QUANTITY" in html_b2b
     assert "Business Pricing" in html_b2b
     assert "Important information" in html_b2b
+    assert "https://samphone.eu/account" in html_b2b
     assert "What happens next?" not in html_b2b
     assert "Easy Returns" not in html_b2b
     assert "Hi John" not in html_b2b
