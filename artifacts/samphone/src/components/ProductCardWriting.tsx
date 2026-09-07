@@ -1,8 +1,8 @@
 import { Link } from "wouter";
 
-/** Same type as the former Read More label: Open Sans, 13px, medium, all caps. */
+/** Same type as the former Read More label: Open Sans, 15px, medium, all caps. */
 export const PRODUCT_DESC_TYPE =
-  "font-sans text-[13px] font-medium uppercase leading-5 tracking-[0.08em] text-black";
+  "font-sans text-[15px] font-medium uppercase leading-5 tracking-[0.08em] text-black";
 
 export default function ProductCardWriting({
   href,

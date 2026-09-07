@@ -135,7 +135,7 @@ export default function ProductDetailLayout({
             </div>
 
             {excerpt ? (
-              <p className="mt-4 font-sans text-[13px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black">
+              <p className="mt-4 font-sans text-[15px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black">
                 {excerpt}
               </p>
             ) : null}
@@ -321,7 +321,7 @@ export default function ProductDetailLayout({
           {tab === "desc" ? (
             descriptionHtml ? (
               <div
-                className="prose prose-neutral max-w-none font-sans text-[13px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black prose-headings:font-sans prose-headings:text-[13px] prose-headings:font-medium prose-headings:uppercase prose-headings:tracking-[0.08em] prose-headings:text-black prose-p:text-[13px] prose-p:font-medium prose-p:text-black prose-li:text-[13px] prose-li:font-medium prose-li:text-black prose-strong:font-medium prose-strong:text-black prose-a:text-black prose-li:marker:text-black"
+                className="prose prose-neutral max-w-none font-sans text-[15px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black prose-headings:font-sans prose-headings:text-[15px] prose-headings:font-medium prose-headings:uppercase prose-headings:tracking-[0.08em] prose-headings:text-black prose-p:text-[15px] prose-p:font-medium prose-p:text-black prose-li:text-[15px] prose-li:font-medium prose-li:text-black prose-strong:font-medium prose-strong:text-black prose-a:text-black prose-li:marker:text-black"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             ) : (
