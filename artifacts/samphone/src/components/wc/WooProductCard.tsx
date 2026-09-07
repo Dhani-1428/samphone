@@ -141,16 +141,16 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
-          <span className="font-bold text-brand">{rating.toFixed(1)}</span>
+          <span className="font-medium uppercase text-brand">{rating.toFixed(1)}</span>
           <span className="h-3 w-px bg-brand/20" aria-hidden />
-          <span className="text-muted-foreground">
+          <span className="uppercase text-muted-foreground">
             ({reviews} {t("card_reviews")})
           </span>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           {showPrice && priceLabel ? (
-            <span className="product-card-copy text-xl tabular-nums leading-none text-sam sm:text-[1.35rem]">
+            <span className="product-card-copy text-xl font-medium tabular-nums leading-none text-sam sm:text-[1.35rem]">
               {priceLabel}
             </span>
           ) : (
@@ -160,7 +160,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             </span>
           )}
           {showPrice && inStock ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-bold text-brand">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
               <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
               {t("product_in_stock")}
             </span>
@@ -188,7 +188,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             <>
               <Link
                 href={loginHref}
-                className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
+                className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
               >
                 <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
                 <span className="truncate">{t("login_to_buy")}</span>
@@ -209,7 +209,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : (
             <Link
               href={productHref}
-              className="flex h-11 w-full items-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-bold text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+              className="flex h-11 w-full items-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
             >
               <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
               <span className="min-w-0 flex-1 truncate text-left">{t("card_view_details")}</span>
