@@ -7,22 +7,13 @@ export const PRODUCT_DESC_TYPE =
 export default function ProductCardWriting({
   href,
   title,
-  description,
 }: {
   href: string;
   title: string;
-  description?: string;
 }) {
   return (
     <Link href={href} className="block w-full text-center">
-      <h3 className={`${PRODUCT_DESC_TYPE} line-clamp-2 text-brand`}>
-        {title}
-      </h3>
-      {description ? (
-        <p className={`${PRODUCT_DESC_TYPE} mt-1 line-clamp-2 text-brand/60`}>
-          {description}
-        </p>
-      ) : null}
+      <h3 className={`${PRODUCT_DESC_TYPE} line-clamp-2 text-brand`}>{title}</h3>
     </Link>
   );
 }

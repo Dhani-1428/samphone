@@ -29,7 +29,6 @@ export default function ProductCard({
   id,
   cartKey,
   name,
-  subtitle,
   price,
   rating,
   reviews,
@@ -76,7 +75,7 @@ export default function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
-        <ProductCardWriting href={productHref} title={name} description={subtitle} />
+        <ProductCardWriting href={productHref} title={name} />
 
         <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />

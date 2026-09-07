@@ -23,7 +23,6 @@ import CatalogImage from "@/components/CatalogImage";
 import ColorSwatches from "@/components/wc/ColorSwatches";
 import ProductCardWriting from "@/components/ProductCardWriting";
 import { CardQtyStepper } from "@/components/ProductCartControls";
-import { stripHtml } from "@/lib/product-copy";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -35,18 +34,6 @@ interface WooProductCardProps {
   product: WooProduct;
   priceUnavailableLabel: string;
   compact?: boolean;
-}
-
-function cardDescription(product: WooProduct, title: string): string {
-  const fromHtml = stripHtml(product.short_description || product.description || "");
-  if (fromHtml && fromHtml.toLowerCase() !== title.toLowerCase()) return fromHtml;
-  return (
-    product.partType ||
-    product.brand ||
-    product.categories?.[0]?.name ||
-    product.subcategory ||
-    ""
-  );
 }
 
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
@@ -66,7 +53,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const cartKey = `woo:${product.id}`;
   const wishlisted = wishHas(cartKey);
   const title = product.name?.trim() || "Product";
-  const subtitle = cardDescription(product, title);
   const rating = product.rating && product.rating > 0 ? product.rating : 4.8;
   const reviews = product.reviewCount && product.reviewCount > 0 ? product.reviewCount : 124;
   const inStock = product.stock_status !== "outofstock";
@@ -132,7 +118,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           />
         ) : null}
 
-        <ProductCardWriting href={productHref} title={title} description={subtitle} />
+        <ProductCardWriting href={productHref} title={title} />
 
         <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
