@@ -145,8 +145,10 @@ function AccessoryCategoryTile({
 
 export default function Categories({
   showHeading = true,
+  showFilters = true,
 }: {
   showHeading?: boolean;
+  showFilters?: boolean;
 }) {
   const [tiles, setTiles] = useState<Record<string, TileData>>({});
   const [query, setQuery] = useState("");
@@ -166,6 +168,7 @@ export default function Categories({
   }, []);
 
   const visiblePages = useMemo(() => {
+    if (!showFilters) return ACCESSORY_NAV_PAGES;
     const q = query.trim().toLowerCase();
     return ACCESSORY_NAV_PAGES.filter((page) => {
       if (activeGroup && page.group !== activeGroup) return false;
@@ -173,53 +176,55 @@ export default function Categories({
       const hay = `${page.label} ${page.group} ${page.subtypes.map((s) => s.label).join(" ")}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [query, activeGroup]);
+  }, [query, activeGroup, showFilters]);
 
   return (
     <section id="categories" className="bg-white py-8 md:py-12">
       <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         {showHeading ? <AccessoriesHeroBanner /> : null}
 
-        <div className="mb-6 rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
-          <div className="relative w-full md:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search accessories…"
-              autoComplete="off"
-              className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sam/30"
-              aria-label="Search accessories"
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
+        {showFilters ? (
+          <div className="mb-6 rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
+            <div className="relative w-full md:max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search accessories…"
+                autoComplete="off"
+                className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sam/30"
+                aria-label="Search accessories"
+              />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <CatalogTypeChip active={activeGroup == null} onClick={() => setActiveGroup(null)}>
-              All
-            </CatalogTypeChip>
-            {ACCESSORY_NAV_PAGES.map((page) => (
-              <CatalogTypeChip
-                key={page.group}
-                active={activeGroup === page.group}
-                onClick={() => setActiveGroup(activeGroup === page.group ? null : page.group)}
-                icon={groupIcon(page.group)}
-              >
-                {page.label}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <CatalogTypeChip active={activeGroup == null} onClick={() => setActiveGroup(null)}>
+                All
               </CatalogTypeChip>
-            ))}
+              {ACCESSORY_NAV_PAGES.map((page) => (
+                <CatalogTypeChip
+                  key={page.group}
+                  active={activeGroup === page.group}
+                  onClick={() => setActiveGroup(activeGroup === page.group ? null : page.group)}
+                  icon={groupIcon(page.group)}
+                >
+                  {page.label}
+                </CatalogTypeChip>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {visiblePages.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">No categories match your filters.</p>

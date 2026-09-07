@@ -14,7 +14,7 @@ export default function Home() {
     <>
       <Hero />
       <HomeServices />
-      <Categories />
+      <Categories showFilters={false} />
       <HomeNewArrivals />
       <HomeCloudRails />
       <RecommendedSection />
