@@ -43,7 +43,7 @@ export function CardQtyStepper({
     return (
       <button
         type="button"
-        className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
+        className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
         onClick={addToCart}
         data-testid={`add-cart-${cartKey}`}
       >

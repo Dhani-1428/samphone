@@ -1,8 +1,6 @@
 import { useState, type MouseEvent } from "react";
 import {
   AlertCircle,
-  ArrowRight,
-  Bookmark,
   Eye,
   Heart,
   Package,
@@ -148,55 +146,25 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : null}
         </div>
 
-        <div className="mt-auto flex items-center gap-2 pt-1">
+        <div className="mt-auto flex flex-col gap-2 pt-1">
           {canAdd ? (
-            <>
-              <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
-              <button
-                type="button"
-                onClick={toggleWish}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand/15 bg-brand/5 text-brand transition-colors hover:border-sam hover:bg-sam/10 hover:text-sam"
-                aria-pressed={wishlisted}
-                aria-label="Save"
-              >
-                <Bookmark
-                  className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")}
-                  strokeWidth={2.2}
-                />
-              </button>
-            </>
+            <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
           ) : showLoginBuy ? (
-            <>
-              <Link
-                href={loginHref}
-                className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
-              >
-                <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-                <span className="truncate">{t("login_to_buy")}</span>
-              </Link>
-              <button
-                type="button"
-                onClick={toggleWish}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand/15 bg-brand/5 text-brand transition-colors hover:border-sam hover:bg-sam/10 hover:text-sam"
-                aria-pressed={wishlisted}
-                aria-label="Save"
-              >
-                <Bookmark
-                  className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")}
-                  strokeWidth={2.2}
-                />
-              </button>
-            </>
-          ) : (
             <Link
-              href={productHref}
-              className="flex h-11 w-full items-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+              href={loginHref}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
             >
-              <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-              <span className="min-w-0 flex-1 truncate text-left">{t("card_view_details")}</span>
-              <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.4} />
+              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+              <span className="truncate">{t("addToCart")}</span>
             </Link>
-          )}
+          ) : null}
+          <Link
+            href={productHref}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+          >
+            <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+            <span className="truncate">{t("card_view_details")}</span>
+          </Link>
         </div>
       </div>
     </article>
