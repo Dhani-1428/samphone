@@ -76,9 +76,9 @@ export default function ProductCard({
 
       <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
         <Link href={productHref} className="block">
-          <h3 className="line-clamp-2 text-[15px] font-extrabold leading-snug text-brand sm:text-base">{name}</h3>
+          <h3 className="line-clamp-2 text-[15px] font-normal leading-snug text-brand sm:text-base">{name}</h3>
           {subtitle ? (
-            <p className="mt-0.5 line-clamp-1 text-[12px] font-medium text-brand/55 sm:text-[13px]">
+            <p className="mt-0.5 line-clamp-1 text-[12px] font-normal text-brand/55 sm:text-[13px]">
               {subtitle}
             </p>
           ) : null}
@@ -94,7 +94,7 @@ export default function ProductCard({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xl font-extrabold tabular-nums leading-none text-sam sm:text-[1.35rem]">
+          <span className="text-xl font-normal tabular-nums leading-none text-sam sm:text-[1.35rem]">
             €{price.toFixed(2).replace(".", ",")}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-bold text-brand">
