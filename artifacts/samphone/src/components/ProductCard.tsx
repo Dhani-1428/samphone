@@ -76,9 +76,11 @@ export default function ProductCard({
 
       <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
         <Link href={productHref} className="block">
-          <h3 className="line-clamp-2 text-[15px] font-normal leading-snug text-brand sm:text-base">{name}</h3>
+          <h3 className="line-clamp-2 text-[16px] font-normal leading-6 tracking-[-0.01em] text-brand sm:text-[17px]">
+            {name}
+          </h3>
           {subtitle ? (
-            <p className="mt-0.5 line-clamp-1 text-[12px] font-normal text-brand/55 sm:text-[13px]">
+            <p className="mt-1 line-clamp-2 text-[13px] font-normal leading-5 text-brand/70 sm:text-sm">
               {subtitle}
             </p>
           ) : null}
