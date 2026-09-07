@@ -140,10 +140,18 @@ def test_public_and_business_account_emails(monkeypatch):
     captured.clear()
     send_welcome_email({"email": "public@example.com", "name": "Ana", "accountType": "b2c"})
     assert captured
-    assert "Welcome to Samphone" in captured[0]["subject"]
-    assert "Hey Ana" in captured[0]["html"]
-    assert "#FDB136" in captured[0]["html"]
-    assert "Official correspondence" not in captured[0]["html"]
+    html_body = captured[0]["html"]
+    assert captured[0]["subject"] == "Welcome to Samphone!"
+    assert "Welcome to Samphone!" in html_body
+    assert "Go to My Account" in html_body
+    assert "YOUR SAMPHONE ACCOUNT" in html_body
+    assert "Ready to start shopping?" in html_body
+    assert "MOBILE PARTS" in html_body
+    assert "geral@samphone.pt" in html_body
+    assert "+351 937 119 295" in html_body
+    assert "/account" in html_body
+    assert "Official correspondence" not in html_body
+    assert "Hey Ana" not in html_body
 
     captured.clear()
     send_welcome_email(
