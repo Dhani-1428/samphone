@@ -65,6 +65,12 @@ function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialPr
 
   return (
     <div className="space-y-2">
+      <button type="button" className={socialBtn} onClick={() => void oauth("oauth_google")}>
+        <span className="text-base font-bold text-[#4285F4]" aria-hidden>
+          G
+        </span>
+        {t("reg_continue_google")}
+      </button>
       <button type="button" className={socialBtn} onClick={() => void oauth("oauth_apple")}>
         <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
           <path
@@ -73,12 +79,6 @@ function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialPr
           />
         </svg>
         {t("reg_continue_apple")}
-      </button>
-      <button type="button" className={socialBtn} onClick={() => void oauth("oauth_google")}>
-        <span className="text-base font-bold text-[#4285F4]" aria-hidden>
-          G
-        </span>
-        {t("reg_continue_google")}
       </button>
       <button type="button" className={socialBtn} onClick={onMobileOtp}>
         {t("reg_continue_mobile")}
@@ -92,10 +92,10 @@ function FallbackSocialButtons({ onMobileOtp }: Pick<SocialProps, "onMobileOtp">
   return (
     <div className="space-y-2">
       <Link href="/login" className={socialBtn}>
-        {t("reg_continue_apple")}
+        {t("reg_continue_google")}
       </Link>
       <Link href="/login" className={socialBtn}>
-        {t("reg_continue_google")}
+        {t("reg_continue_apple")}
       </Link>
       <button type="button" className={socialBtn} onClick={onMobileOtp}>
         {t("reg_continue_mobile")}
@@ -186,23 +186,47 @@ export function RegisterOtpStep({ channel, destination, code, onCode, onVerify, 
   );
 }
 
+export function RegisterAccountToggle({ mode }: { mode: "personal" | "business" }) {
+  const { t } = useLang();
+  return (
+    <div className="grid grid-cols-2 rounded-lg border border-black/[0.12] bg-[#F4F6F8] p-1">
+      <Link
+        href="/register"
+        className={cn(
+          "flex h-10 items-center justify-center rounded-md text-sm font-bold",
+          mode === "personal" ? "bg-white text-brand shadow-sm" : "text-[#5B6B86] hover:text-navy",
+        )}
+      >
+        {t("reg_toggle_personal")}
+      </Link>
+      <Link
+        href="/register/business"
+        className={cn(
+          "flex h-10 items-center justify-center rounded-md text-sm font-bold",
+          mode === "business" ? "bg-white text-brand shadow-sm" : "text-[#5B6B86] hover:text-navy",
+        )}
+      >
+        {t("reg_toggle_business")}
+      </Link>
+    </div>
+  );
+}
+
 export function RegisterShell({
   title,
   children,
-  switchHref,
-  switchLabel,
+  accountType,
 }: {
   title: string;
   children: React.ReactNode;
-  switchHref: string;
-  switchLabel: string;
+  accountType: "personal" | "business";
 }) {
   const { t } = useLang();
   return (
     <div className="bg-white">
       <div className="mx-auto grid min-h-[calc(100dvh-var(--site-header-h,9rem))] w-full max-w-[1400px] lg:grid-cols-2">
-        <div className="relative hidden overflow-hidden bg-white lg:block">
-          <div className="absolute inset-0">
+        <div className="relative hidden min-h-full flex-col bg-[#F7F8FA] lg:flex">
+          <div className="relative min-h-0 flex-1">
             <video
               src="/video/register-boy.mp4"
               autoPlay
@@ -211,15 +235,15 @@ export function RegisterShell({
               playsInline
               preload="metadata"
               aria-hidden
-              className="pointer-events-none absolute left-0 top-1/2 h-[130%] w-[210%] max-w-none -translate-y-1/2 object-cover object-[0%_48%]"
+              className="absolute inset-0 h-full w-full object-contain object-center"
             />
           </div>
-          <p className="absolute bottom-10 left-10 max-w-sm text-sm font-medium text-neutral-400">
+          <p className="shrink-0 px-8 pb-8 pt-2 text-center text-sm font-medium text-neutral-500">
             {t("reg_hero_line")}
           </p>
         </div>
 
-        <div className="relative mx-auto mt-6 aspect-[4/3] w-[min(22rem,80vw)] overflow-hidden lg:hidden">
+        <div className="relative mx-auto mt-4 aspect-[4/5] w-full max-w-sm bg-[#F7F8FA] lg:hidden">
           <video
             src="/video/register-boy.mp4"
             autoPlay
@@ -228,18 +252,16 @@ export function RegisterShell({
             playsInline
             preload="metadata"
             aria-hidden
-            className="pointer-events-none absolute left-0 top-0 h-[140%] w-[200%] max-w-none object-cover object-[0%_42%]"
+            className="h-full w-full object-contain object-center"
           />
         </div>
 
         <div className="flex items-start justify-center px-5 py-10 sm:px-10 lg:px-14 lg:py-12">
           <div className="w-full max-w-md">
             <h1 className="font-display text-2xl font-bold text-navy sm:text-3xl">{title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              <Link href={switchHref} className="font-semibold text-brand hover:underline">
-                {switchLabel}
-              </Link>
-            </p>
+            <div className="mt-5">
+              <RegisterAccountToggle mode={accountType} />
+            </div>
             <div className="mt-8 space-y-5">{children}</div>
             <p className="mt-8 text-center text-sm text-muted-foreground">
               {t("auth_has_account")}{" "}

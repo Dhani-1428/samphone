@@ -9,7 +9,6 @@ import {
   LayoutGrid,
   Moon,
   Phone,
-  Repeat2,
   ShieldCheck,
   ShoppingBag,
   Sun,
@@ -220,7 +219,6 @@ export default function MobileNavDrawer({
   onClose,
   cartCount,
   wishlistCount,
-  compareCount,
   theme,
   onToggleTheme,
   brandGroups,
@@ -229,7 +227,6 @@ export default function MobileNavDrawer({
   onClose: () => void;
   cartCount: number;
   wishlistCount: number;
-  compareCount: number;
   theme: string;
   onToggleTheme: () => void;
   brandGroups: NavBrandGroup[];
@@ -453,13 +450,13 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
-        <Link href="/compare" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
+        <Link href="/cart" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
-              <Repeat2 className="h-5 w-5" />
-              {compareCount > 0 ? <CountBadge count={compareCount} /> : null}
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 ? <CountBadge count={cartCount} /> : null}
             </span>
-            {t("compare")}
+            {t("nav_cart")}
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -546,10 +543,6 @@ export default function MobileNavDrawer({
             </Link>
             <Link href="/register" onClick={onClose} className="flex h-12 items-center justify-between text-black dark:text-white">
               <span className="text-[14px] font-semibold">{t("registration")}</span>
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            </Link>
-            <Link href="/register/business" onClick={onClose} className="flex h-12 items-center justify-between text-brand">
-              <span className="text-[14px] font-semibold">{t("reg_for_business")}</span>
               <ChevronRight className="h-4 w-4 text-slate-400" />
             </Link>
           </>

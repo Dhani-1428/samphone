@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, Repeat2, ShoppingBag } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, ShoppingBag, User } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -60,7 +60,6 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCompare } from "@/contexts/CompareContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 import BrandLogo from "@/components/BrandLogo";
@@ -479,7 +478,6 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { totalItems: cartCount } = useCart();
   const { user } = useAuth();
-  const { keys: compareKeys } = useCompare();
   const { keys: wishlistKeys } = useWishlist();
   const { categories: wooCategories } = useProductCatalog();
   const [activeBrandIdx, setActiveBrandIdx] = useState(0);
@@ -949,25 +947,6 @@ export default function Navbar() {
               <Phone className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("phone")}
             </a>
-            {user ? (
-              <Link href="/account" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
-                {t("auth_my_account")}
-              </Link>
-            ) : (
-              <span className="inline-flex items-center gap-1.5">
-                <Link href="/login" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
-                  {t("login")}
-                </Link>
-                <span className="text-brand/40">|</span>
-                <Link href="/register" className="hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
-                  {t("registration")}
-                </Link>
-                <span className="text-brand/40">|</span>
-                <Link href="/register/business" className="font-semibold text-brand hover:text-brand-dark dark:hover:text-white" onClick={closeMenu}>
-                  {t("reg_for_business")}
-                </Link>
-              </span>
-            )}
             <ThemeToggle />
             <div className="relative">
               <label className="inline-flex h-7 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white px-2 typo-topbar text-[#555555] dark:border-white/15 dark:bg-[#1B2436] dark:text-[#C5D0E8]">
@@ -1021,19 +1000,6 @@ export default function Navbar() {
 
           <div className="ml-auto flex items-center lg:ml-0">
             <Link
-              href="/compare"
-              className="hidden items-center gap-2.5 px-4 lg:flex"
-              onClick={closeMenu}
-              aria-label={t("compare")}
-            >
-              <span className="relative text-[#333333] dark:text-white">
-                <Repeat2 className="h-6 w-6" strokeWidth={1.7} />
-                <CountBadge count={compareKeys.length} />
-              </span>
-              <span className="typo-header-action dark:text-white">{t("compare")}</span>
-            </Link>
-            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
-            <Link
               href="/wishlist"
               className="hidden items-center gap-2.5 px-4 lg:flex"
               onClick={closeMenu}
@@ -1058,6 +1024,33 @@ export default function Navbar() {
               </span>
               <span className="typo-header-action dark:text-white">{t("nav_cart")}</span>
             </Link>
+            <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
+            {user ? (
+              <Link
+                href="/account"
+                className="hidden items-center gap-2.5 px-4 lg:flex"
+                onClick={closeMenu}
+                aria-label={t("auth_my_account")}
+              >
+                <User className="h-6 w-6 text-[#333333] dark:text-white" strokeWidth={1.7} />
+                <span className="typo-header-action dark:text-white">{t("auth_my_account")}</span>
+              </Link>
+            ) : (
+              <div className="hidden items-center gap-2.5 px-4 lg:flex">
+                <User className="h-6 w-6 shrink-0 text-[#333333] dark:text-white" strokeWidth={1.7} />
+                <span className="typo-header-action inline-flex items-center gap-1.5 dark:text-white">
+                  <Link href="/login" className="hover:text-brand" onClick={closeMenu}>
+                    {t("login")}
+                  </Link>
+                  <span className="text-black/25 dark:text-white/30" aria-hidden>
+                    |
+                  </span>
+                  <Link href="/register" className="hover:text-brand" onClick={closeMenu}>
+                    {t("registration")}
+                  </Link>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1226,7 +1219,6 @@ export default function Navbar() {
         onClose={() => setDrawerOpen(false)}
         cartCount={cartCount}
         wishlistCount={wishlistKeys.length}
-        compareCount={compareKeys.length}
         theme={theme}
         onToggleTheme={toggleTheme}
         brandGroups={brandGroups}

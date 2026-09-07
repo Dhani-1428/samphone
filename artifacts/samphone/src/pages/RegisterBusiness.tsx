@@ -228,7 +228,7 @@ function RegisterBusinessPage({ clerk }: { clerk?: ClerkRegisterHelpers }) {
 
   if (otpStep && pending) {
     return (
-      <RegisterShell title={t("reg_otp_title")} switchHref="/register" switchLabel={t("reg_switch_personal")}>
+      <RegisterShell title={t("reg_otp_title")} accountType="business">
         <RegisterOtpStep
           channel="email"
           destination={pending.email}
@@ -244,17 +244,7 @@ function RegisterBusinessPage({ clerk }: { clerk?: ClerkRegisterHelpers }) {
   }
 
   return (
-    <RegisterShell title={t("reg_b2b_title")} switchHref="/register" switchLabel={t("reg_switch_personal")}>
-      <RegisterSocialButtons
-        accountType="b2b"
-        redirectPath={`/register/business${search || ""}`}
-        onMobileOtp={() => setMobileFocus(true)}
-      />
-
-      <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("auth_or_email")}
-      </p>
-
+    <RegisterShell title={t("reg_b2b_title")} accountType="business">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="reg-country" className="typo-form-label text-[#111111]">
@@ -432,6 +422,15 @@ function RegisterBusinessPage({ clerk }: { clerk?: ClerkRegisterHelpers }) {
           {busy ? t("woo_loading") : t("reg_b2b_submit")}
         </button>
       </form>
+
+      <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("auth_or_social")}
+      </p>
+      <RegisterSocialButtons
+        accountType="b2b"
+        redirectPath={`/register/business${search || ""}`}
+        onMobileOtp={() => setMobileFocus(true)}
+      />
     </RegisterShell>
   );
 }
