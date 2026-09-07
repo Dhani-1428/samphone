@@ -1,5 +1,5 @@
 import { type MouseEvent } from "react";
-import { Bookmark, Heart, Package, ShieldCheck, ShoppingCart, Star } from "lucide-react";
+import { Bookmark, Heart, Package, ShoppingCart, Star } from "lucide-react";
 import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -57,10 +57,6 @@ export default function ProductCard({
       data-testid={`card-${testPrefix}-${id}`}
     >
       <div className="relative aspect-square overflow-hidden bg-[#F7F8FA]">
-        <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm">
-          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
-          {t("card_original_badge")}
-        </span>
         <button
           type="button"
           onClick={toggleWish}

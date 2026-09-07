@@ -6,7 +6,6 @@ import {
   Eye,
   Heart,
   Package,
-  ShieldCheck,
   ShoppingCart,
   Star,
   Store,
@@ -90,11 +89,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       )}
     >
       <div className={cn("relative overflow-hidden bg-[#F7F8FA]", compact ? "aspect-[1/0.95]" : "aspect-square")}>
-
-        <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm">
-          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
-          {t("card_original_badge")}
-        </span>
 
         <button
           type="button"
