@@ -125,3 +125,57 @@ def test_notification_prefs_and_stock_alerts():
     assert removed.status_code == 200, removed.text
     empty = client.get("/api/stock-alerts", headers=headers)
     assert empty.json().get("items") == []
+
+
+def test_public_and_business_account_emails(monkeypatch):
+    captured: list[dict] = []
+
+    def fake_send(to, subject, html_body, text_body=""):
+        captured.append({"to": to, "subject": subject, "html": html_body})
+        return True
+
+    monkeypatch.setattr("email_service.send_email", fake_send)
+    from email_service import send_login_email, send_welcome_email
+
+    captured.clear()
+    send_welcome_email({"email": "public@example.com", "name": "Ana", "accountType": "b2c"})
+    assert captured
+    assert "Welcome to Samphone" in captured[0]["subject"]
+    assert "Hey Ana" in captured[0]["html"]
+    assert "#FDB136" in captured[0]["html"]
+    assert "Official correspondence" not in captured[0]["html"]
+
+    captured.clear()
+    send_welcome_email(
+        {
+            "email": "biz@example.com",
+            "name": "Carlos",
+            "accountType": "b2b",
+            "businessName": "Fix Shop",
+            "wholesaleStatus": "pending",
+        }
+    )
+    assert captured
+    assert "business account" in captured[0]["subject"].lower()
+    assert "Dear Carlos" in captured[0]["html"]
+    assert "Yours faithfully" in captured[0]["html"]
+    assert "Official correspondence" in captured[0]["html"]
+    assert "#FDB136" not in captured[0]["html"]
+
+    captured.clear()
+    send_login_email({"email": "public@example.com", "name": "Ana", "accountType": "b2c"})
+    assert "welcome back" in captured[0]["html"].lower()
+    assert "#FDB136" in captured[0]["html"]
+
+    captured.clear()
+    send_login_email(
+        {
+            "email": "biz@example.com",
+            "name": "Carlos",
+            "accountType": "b2b",
+            "businessName": "Fix Shop",
+        }
+    )
+    assert "Dear Carlos" in captured[0]["html"]
+    assert "confirmation of sign-in" in captured[0]["subject"].lower()
+    assert "Official correspondence" in captured[0]["html"]

@@ -90,26 +90,94 @@ def _html_to_plain(html_body: str) -> str:
     return html.unescape(text).strip()
 
 
+def _is_business_account(user: dict | None) -> bool:
+    if not user:
+        return False
+    account_type = str(user.get("accountType") or user.get("account_type") or "b2c").strip().lower()
+    status = str(user.get("wholesaleStatus") or user.get("wholesale_status") or "").strip().lower()
+    if account_type == "b2b" or status in {"pending", "approved", "suspended"}:
+        return True
+    return bool(
+        (user.get("businessName") or user.get("business_name") or "").strip()
+        or (user.get("vatNumber") or user.get("vat_number") or "").strip()
+    )
+
+
+def _cta(url: str, label: str, *, colorful: bool) -> str:
+    if colorful:
+        style = (
+            "display:inline-block;background:#FDB136;color:#1a1a2e;text-decoration:none;"
+            "font-weight:800;padding:14px 28px;border-radius:999px;font-size:15px;"
+        )
+    else:
+        style = (
+            "display:inline-block;background:#1B365D;color:#ffffff;text-decoration:none;"
+            "font-weight:600;padding:12px 22px;border-radius:2px;font-size:14px;"
+            "letter-spacing:0.04em;text-transform:uppercase;"
+        )
+    return (
+        f'<a href="{html.escape(url)}" style="{style}">{html.escape(label)}</a>'
+    )
+
+
 def _layout(title: str, body_html: str) -> str:
+    """Default transactional layout (orders, alerts)."""
+    return _layout_public(title, body_html)
+
+
+def _layout_public(title: str, body_html: str) -> str:
+    """Colourful consumer / personal-account emails."""
     return f"""<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f6fb;font-family:Segoe UI,Arial,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#f4f6fb;padding:24px 0;">
+<body style="margin:0;padding:0;background:#fff6e8;font-family:Segoe UI,Arial,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#fff6e8;padding:24px 0;">
     <tr><td align="center" style="padding:0 12px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
-        <tr><td style="background:#3F61AA;padding:28px 24px;">
-          <h1 style="margin:0;color:#fff;font-size:24px;font-weight:800;">{html.escape(SITE_NAME)}</h1>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(253,177,54,.22);">
+        <tr><td style="background:linear-gradient(135deg,#3F61AA 0%,#6C8EE8 48%,#FDB136 100%);padding:32px 24px;">
+          <p style="margin:0 0 8px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Samphone</p>
+          <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;line-height:1.2;">{html.escape(SITE_NAME)}</h1>
         </td></tr>
-        <tr><td style="padding:28px 24px;color:#1a1a2e;font-size:15px;line-height:1.6;">
+        <tr><td style="height:8px;background:#FDB136;font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="padding:28px 24px;color:#1a1a2e;font-size:15px;line-height:1.65;">
           {body_html}
         </td></tr>
-        <tr><td style="padding:20px 24px;background:#f7f8fc;color:#6b7280;font-size:12px;">
-          Questions? Reply to this email or contact us at
-          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;">{html.escape(SUPPORT_EMAIL)}</a>
+        <tr><td style="padding:18px 24px;background:#3F61AA;color:#e8eefc;font-size:12px;">
+          Need a hand? Write to
+          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#FDB136;font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>"""
+
+
+def _layout_business(title: str, body_html: str) -> str:
+    """Formal business / wholesale correspondence."""
+    return f"""<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{html.escape(title)}</title>
+</head>
+<body style="margin:0;padding:0;background:#eef1f4;font-family:Georgia,'Times New Roman',Times,serif;width:100% !important;-webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#eef1f4;padding:28px 0;">
+    <tr><td align="center" style="padding:0 12px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #c5cdd6;">
+        <tr><td style="background:#1B365D;padding:22px 28px;">
+          <p style="margin:0;color:#c5d4e8;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Official correspondence</p>
+          <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:400;font-family:Georgia,'Times New Roman',serif;">{html.escape(SITE_NAME)}</h1>
+        </td></tr>
+        <tr><td style="border-bottom:2px solid #1B365D;font-size:0;line-height:0;height:2px;">&nbsp;</td></tr>
+        <tr><td style="padding:32px 28px;color:#243447;font-size:15px;line-height:1.7;">
+          {body_html}
+        </td></tr>
+        <tr><td style="padding:16px 28px;background:#f4f6f8;color:#5b6775;font-size:11px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #d5dce3;">
+          This message is intended for the registered business contact. For assistance, contact
+          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#1B365D;">{html.escape(SUPPORT_EMAIL)}</a>.
         </td></tr>
       </table>
     </td></tr>
@@ -127,7 +195,9 @@ def _detail_row(label: str, value: str) -> str:
 
 
 def send_welcome_email(user: dict) -> bool:
-    """Personal (B2C) welcome. Business accounts use send_wholesale_pending_email instead."""
+    """Personal (B2C) colourful welcome. Business accounts use send_wholesale_pending_email."""
+    if _is_business_account(user):
+        return send_wholesale_pending_email(user)
     name = (user.get("name") or "there").strip()
     email_addr = (user.get("email") or "").strip()
     rows = [
@@ -141,30 +211,25 @@ def send_welcome_email(user: dict) -> bool:
 
     details_table = (
         '<table width="100%" cellpadding="0" cellspacing="0" '
-        'style="background:#f7f8fc;border-radius:8px;margin:20px 0;">'
+        'style="background:#fff6e8;border-radius:14px;margin:20px 0;border:1px solid #ffe0a3;">'
         + "".join(rows)
         + "</table>"
     )
 
     body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">Welcome to {html.escape(SITE_NAME)}, {html.escape(name)}!</h2>
+      <p style="margin:0 0 10px;color:#FDB136;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">You're in</p>
+      <h2 style="margin:0 0 12px;color:#3F61AA;font-size:26px;">Hey {html.escape(name)}, welcome to {html.escape(SITE_NAME)}!</h2>
       <p style="margin:0 0 8px;color:#374151;">
-        Thank you for creating your account. We are glad to have you with us.
-        Here is a summary of the details you provided:
+        Your personal account is ready. Thanks for joining — here is a snapshot of what you shared with us:
       </p>
       {details_table}
-      <p style="margin:24px 0 0;color:#374151;">
-        Browse our catalog of phone parts and accessories anytime in the Samphone app.
+      <p style="margin:20px 0 0;color:#374151;">
+        Browse phones, parts and accessories, save restock alerts, and grab offers as they drop.
       </p>
-      <p style="margin:24px 0 0;">
-        <a href="{html.escape(SITE_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
-          text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
-          Start shopping
-        </a>
-      </p>
+      <p style="margin:28px 0 0;">{_cta(SITE_URL, "Start shopping", colorful=True)}</p>
     """
     subject = f"Welcome to {SITE_NAME} — your account is ready"
-    return send_email(email_addr, subject, _layout(subject, body))
+    return send_email(email_addr, subject, _layout_public(subject, body))
 
 
 def send_wholesale_pending_email(user: dict) -> bool:
@@ -192,37 +257,26 @@ def send_wholesale_pending_email(user: dict) -> bool:
     )
 
     body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">
-        Your business account is under review
-      </h2>
-      <p style="margin:0 0 12px;color:#374151;">
-        Dear {html.escape(name)},
+      <p style="margin:0 0 18px;color:#5b6775;font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;">Business account</p>
+      <p style="margin:0 0 16px;color:#243447;">Dear {html.escape(name)},</p>
+      <p style="margin:0 0 14px;color:#243447;">
+        Thank you for creating a business account with {html.escape(SITE_NAME)}. This message confirms that we have received your registration and wholesale application.
       </p>
-      <p style="margin:0 0 12px;color:#374151;">
-        Thank you for registering with <strong>{html.escape(SITE_NAME)}</strong> as a business partner.
-        We have received your wholesale application and our team is carefully reviewing your details.
-      </p>
-      <p style="margin:0 0 12px;color:#374151;">
-        Please allow some time for this process. You will receive a second email from us as soon as
-        your account has been approved. Until then, business pricing remains locked for security
-        and compliance reasons.
+      <p style="margin:0 0 14px;color:#243447;">
+        Our team will review the information below. You will receive a further formal notice once a decision has been made. Until approval is granted, wholesale pricing remains unavailable.
       </p>
       {details_table}
-      <p style="margin:16px 0 0;color:#374151;">
-        You may continue browsing our catalog in the Samphone app. Once approved, wholesale prices
-        will appear automatically when you sign in.
+      <p style="margin:16px 0 0;color:#243447;">
+        You may sign in and browse the catalogue in the meantime. Should you require assistance, please contact {html.escape(SUPPORT_EMAIL)}.
       </p>
-      <p style="margin:24px 0 0;color:#374151;">
-        If you have any questions in the meantime, reply to this message or contact us at
-        <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;">{html.escape(SUPPORT_EMAIL)}</a>.
+      <p style="margin:28px 0 0;color:#243447;">
+        Yours faithfully,<br/>
+        {html.escape(SITE_NAME)} Wholesale Desk
       </p>
-      <p style="margin:28px 0 0;color:#111827;font-weight:700;">
-        Kind regards,<br/>
-        The {html.escape(SITE_NAME)} Team
-      </p>
+      <p style="margin:24px 0 0;">{_cta(SITE_URL, "Open Samphone", colorful=False)}</p>
     """
-    subject = f"Your {SITE_NAME} business account is pending approval"
-    return send_email(email_addr, subject, _layout(subject, body))
+    subject = f"{SITE_NAME} — confirmation of business account registration"
+    return send_email(email_addr, subject, _layout_business(subject, body))
 
 def send_admin_business_application_email(user: dict) -> bool:
     """
@@ -411,36 +465,57 @@ def send_wholesale_decision_email(user: dict, *, approved: bool, reason: str = "
     return send_email(email_addr, subject, _layout(subject, body))
 
 def send_login_email(user: dict) -> bool:
-    """Notify the user whenever they sign in (including after logout / reinstall)."""
+    """Notify the user whenever they sign in (including after logout)."""
     name = (user.get("name") or "there").strip()
     email_addr = (user.get("email") or "").strip()
     if not email_addr:
         return False
     when = datetime.now(timezone.utc).strftime("%d %b %Y, %H:%M UTC")
+    if _is_business_account(user):
+        business = (user.get("businessName") or user.get("business_name") or "").strip()
+        for_biz = f" for {html.escape(business)}" if business else ""
+        body = f"""
+          <p style="margin:0 0 18px;color:#5b6775;font-size:12px;font-family:Arial,Helvetica,sans-serif;letter-spacing:.08em;text-transform:uppercase;">Security notice</p>
+          <p style="margin:0 0 16px;color:#243447;">Dear {html.escape(name)},</p>
+          <p style="margin:0 0 14px;color:#243447;">
+            This is to confirm that a sign-in to the {html.escape(SITE_NAME)} business account{for_biz} was completed.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"
+            style="background:#f4f6f8;margin:20px 0;border:1px solid #d5dce3;">
+            {_detail_row("Registered email", email_addr)}
+            {_detail_row("Date and time (UTC)", when)}
+          </table>
+          <p style="margin:16px 0 0;color:#243447;">
+            If you authorised this access, no further action is required. If you did not, please reset the account password immediately and notify {html.escape(SUPPORT_EMAIL)}.
+          </p>
+          <p style="margin:28px 0 0;color:#243447;">
+            Yours faithfully,<br/>
+            {html.escape(SITE_NAME)} Accounts Office
+          </p>
+          <p style="margin:24px 0 0;">{_cta(SITE_URL, "Access account", colorful=False)}</p>
+        """
+        subject = f"{SITE_NAME} — confirmation of sign-in to your business account"
+        return send_email(email_addr, subject, _layout_business(subject, body))
+
     body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">Welcome back, {html.escape(name)}!</h2>
+      <p style="margin:0 0 10px;color:#FDB136;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">You're back</p>
+      <h2 style="margin:0 0 12px;color:#3F61AA;font-size:26px;">Hey {html.escape(name)}, welcome back!</h2>
       <p style="margin:0 0 8px;color:#374151;">
-        You just signed in to your {html.escape(SITE_NAME)} account.
+        You just signed in to your {html.escape(SITE_NAME)} account. Nice to see you again.
       </p>
       <table width="100%" cellpadding="0" cellspacing="0"
-        style="background:#f7f8fc;border-radius:8px;margin:20px 0;">
+        style="background:#fff6e8;border-radius:14px;margin:20px 0;border:1px solid #ffe0a3;">
         {_detail_row("Email", email_addr)}
         {_detail_row("Signed in at", when)}
       </table>
       <p style="margin:16px 0 0;color:#374151;">
-        If this was you, no action is needed. If you did not sign in, change your password
-        and contact us at
-        <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;">{html.escape(SUPPORT_EMAIL)}</a>.
+        If this was you, you're all set. If it wasn't, change your password and tell us at
+        <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>.
       </p>
-      <p style="margin:24px 0 0;">
-        <a href="{html.escape(SITE_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
-          text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
-          Open {html.escape(SITE_NAME)}
-        </a>
-      </p>
+      <p style="margin:28px 0 0;">{_cta(SITE_URL, f"Open {SITE_NAME}", colorful=True)}</p>
     """
-    subject = f"New sign-in to your {SITE_NAME} account"
-    return send_email(email_addr, subject, _layout(subject, body))
+    subject = f"You're signed in to {SITE_NAME}"
+    return send_email(email_addr, subject, _layout_public(subject, body))
 
 
 def _format_money(amount: Any) -> str:
