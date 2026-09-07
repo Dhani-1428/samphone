@@ -243,6 +243,89 @@ def filter_products_page(
     return product_page(page, total, limit=lim, offset=off)
 
 
+def list_categories() -> list[dict]:
+    counts: dict[tuple[str, str], int] = {}
+    for p in _products:
+        name = str(p.get("category") or p.get("leaf_category") or "").strip()
+        if not name:
+            continue
+        slug = name.lower().replace(" ", "-")
+        key = (name, slug)
+        counts[key] = counts.get(key, 0) + 1
+    items = []
+    for i, ((name, slug), count) in enumerate(sorted(counts.items(), key=lambda kv: kv[0][0].lower()), start=1):
+        items.append({"id": i, "wc_id": i, "name": name, "slug": slug, "parent": 0, "count": count})
+    return items
+
+
+def list_brands() -> list[dict]:
+    counts: dict[str, int] = {}
+    for p in _products:
+        brand = str(p.get("brand") or "").strip()
+        if not brand:
+            continue
+        counts[brand] = counts.get(brand, 0) + 1
+    return [
+        {"name": name, "slug": name.lower().replace(" ", "-"), "count": count}
+        for name, count in sorted(counts.items(), key=lambda kv: kv[0].lower())
+    ]
+
+
+def related_products(product_id: str, *, limit: int = 12, user: Optional[dict] = None) -> list[dict]:
+    src = _get_product_raw(product_id)
+    if not src:
+        return []
+    brand = src.get("brand")
+    category = src.get("category")
+    scored: list[tuple[int, dict]] = []
+    for p in _products:
+        if p.get("id") == product_id:
+            continue
+        score = 0
+        if brand and p.get("brand") == brand:
+            score += 2
+        if category and p.get("category") == category:
+            score += 1
+        if p.get("model") and p.get("model") == src.get("model"):
+            score += 3
+        if score:
+            scored.append((score, p))
+    scored.sort(key=lambda x: -x[0])
+    from wholesale import sanitize_products
+
+    return sanitize_products([p for _, p in scored[: max(1, min(limit, 24))]], user)
+
+
+def home_rails(*, part: str = "all", limit: int = 8, user: Optional[dict] = None) -> dict:
+    part_key = (part or "all").strip().lower()
+    if part_key not in {"all", "priority", "sections"}:
+        part_key = "all"
+    lim = max(1, min(int(limit or 8), 24))
+    payload: dict = {"part": part_key, "limit": lim, "best": [], "fresh": [], "sections": []}
+    if part_key in {"all", "priority"}:
+        payload["best"] = filter_products(best_seller=True, limit=lim, offset=0, user=user)
+        payload["fresh"] = filter_products(new_arrival=True, limit=lim, offset=0, user=user)
+    if part_key in {"all", "sections"}:
+        sections = []
+        for key, title, group in (
+            ("chargers", "Chargers", "Chargers"),
+            ("cables", "Cables", "Cables"),
+            ("headphones", "Headphones", "Headphones"),
+            ("powerbanks", "Powerbanks", "Powerbanks"),
+            ("speakers", "Speakers", "Speakers"),
+        ):
+            sections.append(
+                {
+                    "key": key,
+                    "title": title,
+                    "category_group": group,
+                    "items": filter_products(category_group=group, limit=lim, offset=0, user=user),
+                }
+            )
+        payload["sections"] = sections
+    return payload
+
+
 def _get_product_raw(product_id: str) -> Optional[dict]:
     for p in _products:
         if p.get("id") == product_id:

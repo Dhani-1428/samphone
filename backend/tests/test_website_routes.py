@@ -13,8 +13,11 @@ os.environ.setdefault("CORS_ALLOW_ORIGINS", "http://localhost:5173")
 from fastapi.testclient import TestClient
 
 from server import app
+import os as _os
 
 client = TestClient(app)
+ADMIN_LOGIN_EMAIL = _os.environ.get("ADMIN_EMAIL", "admin@example.com")
+ADMIN_LOGIN_PASSWORD = _os.environ.get("ADMIN_PASSWORD", "adminpass12")
 
 
 def test_health():
@@ -57,7 +60,7 @@ def test_mfa_verify_rejects_bad_token():
 
 
 def test_admin_login_and_patch_user():
-    login = client.post("/api/auth/admin-login", json={"email": "admin@example.com", "password": "adminpass12"})
+    login = client.post("/api/auth/admin-login", json={"email": ADMIN_LOGIN_EMAIL, "password": ADMIN_LOGIN_PASSWORD})
     assert login.status_code == 200, login.text
     admin_token = login.json()["access_token"]
     created = client.post(

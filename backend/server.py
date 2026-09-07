@@ -1852,21 +1852,30 @@ async def search_products(
     sort: str = "date_desc",
     viewer=Depends(get_optional_user),
 ):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    return await asyncio.to_thread(
-        woo.filter_products,
-        q=q,
-        brand=brand,
-        category=category,
-        min_price=min_price,
-        max_price=max_price,
-        sort=sort,
-        limit=limit,
-        offset=offset,
-        user=viewer,
-    )
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        return await asyncio.to_thread(
+            woo.filter_products,
+            q=q,
+            brand=brand,
+            category=category,
+            min_price=min_price,
+            max_price=max_price,
+            sort=sort,
+            limit=limit,
+            offset=offset,
+            user=viewer,
+        )
+    if USE_MEMORY:
+        return memory_store.filter_products_page(
+            q=q,
+            brand=brand,
+            category=category,
+            limit=limit,
+            offset=offset,
+            user=viewer,
+        )
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 @api_router.get("/products/{product_id}")
@@ -1912,22 +1921,26 @@ async def get_product(product_id: str, viewer=Depends(get_optional_user)):
 
 @api_router.get("/categories")
 async def list_categories(_viewer=Depends(get_optional_user)):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    if hasattr(woo, "list_categories"):
-        return {"items": await asyncio.to_thread(woo.list_categories)}
-    raise HTTPException(status_code=501, detail="Categories require catalog MySQL")
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        if hasattr(woo, "list_categories"):
+            return {"items": await asyncio.to_thread(woo.list_categories)}
+        raise HTTPException(status_code=501, detail="Categories require catalog MySQL")
+    if USE_MEMORY:
+        return {"items": memory_store.list_categories()}
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 @api_router.get("/brands")
 async def list_brands(_viewer=Depends(get_optional_user)):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    if hasattr(woo, "list_brands"):
-        return {"items": await asyncio.to_thread(woo.list_brands)}
-    raise HTTPException(status_code=501, detail="Brands require catalog MySQL")
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        if hasattr(woo, "list_brands"):
+            return {"items": await asyncio.to_thread(woo.list_brands)}
+        raise HTTPException(status_code=501, detail="Brands require catalog MySQL")
+    if USE_MEMORY:
+        return {"items": memory_store.list_brands()}
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 @api_router.get("/banners")
@@ -1969,22 +1982,26 @@ async def list_banners(limit: int = 8, _viewer=Depends(get_optional_user)):
 
 @api_router.get("/featured")
 async def featured_products(limit: int = 50, viewer=Depends(get_optional_user)):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    if hasattr(woo, "featured_products"):
-        return await asyncio.to_thread(woo.featured_products, limit=limit, user=viewer)
-    return await asyncio.to_thread(woo.filter_products, best_seller=True, limit=limit, offset=0, user=viewer)
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        if hasattr(woo, "featured_products"):
+            return await asyncio.to_thread(woo.featured_products, limit=limit, user=viewer)
+        return await asyncio.to_thread(woo.filter_products, best_seller=True, limit=limit, offset=0, user=viewer)
+    if USE_MEMORY:
+        return memory_store.filter_products_page(best_seller=True, limit=limit, offset=0, user=viewer)
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 @api_router.get("/new-arrivals")
 async def new_arrivals(limit: int = 50, viewer=Depends(get_optional_user)):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    if hasattr(woo, "new_arrivals"):
-        return await asyncio.to_thread(woo.new_arrivals, limit=limit, user=viewer)
-    return await asyncio.to_thread(woo.filter_products, new_arrival=True, limit=limit, offset=0, user=viewer)
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        if hasattr(woo, "new_arrivals"):
+            return await asyncio.to_thread(woo.new_arrivals, limit=limit, user=viewer)
+        return await asyncio.to_thread(woo.filter_products, new_arrival=True, limit=limit, offset=0, user=viewer)
+    if USE_MEMORY:
+        return memory_store.filter_products_page(new_arrival=True, limit=limit, offset=0, user=viewer)
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 _home_rails_cache: dict[str, tuple[float, dict]] = {}
@@ -2007,6 +2024,9 @@ async def home_rails(
 ):
     """Cached Home rails — one response instead of 7 /products calls."""
     if not _woo_catalog_enabled():
+        if USE_MEMORY:
+            payload = memory_store.home_rails(part=part, limit=limit, user=viewer)
+            return JSONResponse(content=payload, headers={"Cache-Control": "public, max-age=30"})
         raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
     part_key = (part or "all").strip().lower()
     if part_key not in {"all", "priority", "sections"}:
@@ -2035,13 +2055,15 @@ async def home_rails(
 
 @api_router.get("/related/{product_id}")
 async def related_products(product_id: str, limit: int = 12, viewer=Depends(get_optional_user)):
-    if not _woo_catalog_enabled():
-        raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
-    woo = get_woo_db()
-    if hasattr(woo, "related_products"):
-        items = await asyncio.to_thread(woo.related_products, product_id, limit=limit, user=viewer)
-        return {"items": items}
-    raise HTTPException(status_code=501, detail="Related products require catalog MySQL")
+    if _woo_catalog_enabled():
+        woo = get_woo_db()
+        if hasattr(woo, "related_products"):
+            items = await asyncio.to_thread(woo.related_products, product_id, limit=limit, user=viewer)
+            return {"items": items}
+        raise HTTPException(status_code=501, detail="Related products require catalog MySQL")
+    if USE_MEMORY:
+        return {"items": memory_store.related_products(product_id, limit=limit, user=viewer)}
+    raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
 class B2CPriceBody(BaseModel):
