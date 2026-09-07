@@ -901,10 +901,15 @@ def send_cart_abandonment_email(user: dict, cart: dict) -> bool:
 def _payment_method_label(method: str, lang: str = "en") -> str:
     key = (method or "").strip().lower()
     val = {
-        "card": {"en": "Card (Stripe)", "pt": "Cartao (Stripe)"},
+        "card": {"en": "Credit Card", "pt": "Cartao de credito"},
         "store": {"en": "Store pickup", "pt": "Levantamento em loja"},
         "delivery": {"en": "Cash on delivery", "pt": "Pagamento na entrega"},
         "cod": {"en": "Cash on delivery", "pt": "Pagamento na entrega"},
+        "mbway": {"en": "MB WAY", "pt": "MB WAY"},
+        "multibanco": {"en": "Multibanco / Bank Transfer", "pt": "Multibanco / Transferencia"},
+        "bank": {"en": "Bank Transfer", "pt": "Transferencia bancaria"},
+        "bank_transfer": {"en": "Bank Transfer", "pt": "Transferencia bancaria"},
+        "transfer": {"en": "Bank Transfer", "pt": "Transferencia bancaria"},
     }.get(key, method or "—")
     if isinstance(val, dict):
         return val.get(normalize_language(lang), val.get("en", "—"))
@@ -1032,48 +1037,336 @@ def _order_address_block(order: dict) -> tuple[str, str]:
     return "<br>".join(html_parts), "\n".join(plain_parts)
 
 
+def _is_business_order(order: dict | None) -> bool:
+    if not order:
+        return False
+    if _is_business_account(order):
+        return True
+    acct = str(order.get("account_type") or "").strip().lower()
+    if acct == "b2b":
+        return True
+    return bool((order.get("company_name") or "").strip() or (order.get("vat_number") or "").strip())
+
+
+def _order_date_label(order: dict) -> str:
+    raw = str(order.get("created_at") or "").strip()
+    if not raw:
+        return datetime.now(timezone.utc).strftime("%d %b %Y")
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return parsed.strftime("%d %b %Y")
+    except ValueError:
+        return raw[:10]
+
+
+def _order_paid_label(order: dict) -> tuple[str, str]:
+    method = str(order.get("payment_method") or "").strip().lower()
+    paid_methods = {"card", "mbway", "multibanco"}
+    if method in paid_methods or order.get("stripe_payment_intent_id"):
+        return "Paid", "#16A34A"
+    if method in {"delivery", "cod"}:
+        return "Pay on delivery", "#CA8A04"
+    if method in {"store"}:
+        return "Pay in store", "#CA8A04"
+    return "Pending", "#CA8A04"
+
+
+def _order_totals_rows(order: dict) -> str:
+    total = float(order.get("subtotal") or 0)
+    vat = round(total - (total / 1.23), 2) if total else 0
+    net = round(total - vat, 2)
+    shipping = (order.get("shipping_method") or "").strip() or "Standard"
+    return f"""
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+        <tr>
+          <td style="padding:6px 0;color:{GREY};font-size:14px;">Subtotal</td>
+          <td style="padding:6px 0;text-align:right;color:{NAVY};font-weight:700;">{_format_money(net)}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:{GREY};font-size:14px;">Shipping ({html.escape(shipping)})</td>
+          <td style="padding:6px 0;text-align:right;color:{NAVY};font-weight:700;">—</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:{GREY};font-size:14px;">VAT (23%)</td>
+          <td style="padding:6px 0;text-align:right;color:{NAVY};font-weight:700;">{_format_money(vat)}</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 0 0;color:{NAVY};font-size:16px;font-weight:800;">TOTAL</td>
+          <td style="padding:12px 0 0;text-align:right;color:{ORANGE};font-size:22px;font-weight:800;">{_format_money(total)}</td>
+        </tr>
+      </table>
+    """
+
+
+def _b2c_order_items(order: dict, lang: str) -> str:
+    items_html, _ = _order_items_html_plain(order, lang)
+    if not items_html.strip():
+        return f'<p style="margin:0;color:{GREY};">No items</p>'
+    return f'<table width="100%" cellpadding="0" cellspacing="0" border="0">{items_html}</table>'
+
+
+def _b2b_order_items(order: dict) -> str:
+    rows = ""
+    for item in order.get("items") or []:
+        title = (item.get("title") or item.get("name") or "Product").strip() or "Product"
+        sku = (item.get("sku") or item.get("product_id") or "").strip()
+        qty = int(item.get("quantity") or 1)
+        unit = float(item.get("price") or 0)
+        line = float(item.get("line_total") or unit * qty)
+        rows += f"""
+          <tr>
+            <td style="padding:10px 8px;border-bottom:1px solid #E5E7EB;color:{NAVY};font-size:13px;">
+              <strong>{html.escape(title)}</strong>
+              {f'<div style="color:{GREY};font-size:12px;">SKU {html.escape(sku)}</div>' if sku else ''}
+            </td>
+            <td style="padding:10px 8px;border-bottom:1px solid #E5E7EB;text-align:center;color:{NAVY};font-size:13px;">{qty}</td>
+            <td style="padding:10px 8px;border-bottom:1px solid #E5E7EB;text-align:right;color:{NAVY};font-size:13px;">{_format_money(unit)}</td>
+            <td style="padding:10px 8px;border-bottom:1px solid #E5E7EB;text-align:right;color:{NAVY};font-size:13px;font-weight:700;">{_format_money(line)}</td>
+          </tr>
+        """
+    if not rows:
+        rows = f'<tr><td colspan="4" style="padding:12px;color:{GREY};">No items</td></tr>'
+    return f"""
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #D7E2F0;border-radius:8px;overflow:hidden;">
+        <tr style="background:{LIGHT_BLUE};">
+          <th align="left" style="padding:10px 8px;color:{NAVY};font-size:11px;letter-spacing:.06em;">ITEM</th>
+          <th align="center" style="padding:10px 8px;color:{NAVY};font-size:11px;letter-spacing:.06em;">QUANTITY</th>
+          <th align="right" style="padding:10px 8px;color:{NAVY};font-size:11px;letter-spacing:.06em;">UNIT PRICE</th>
+          <th align="right" style="padding:10px 8px;color:{NAVY};font-size:11px;letter-spacing:.06em;">TOTAL</th>
+        </tr>
+        {rows}
+      </table>
+    """
+
+
+def _order_summary_box(order: dict, lang: str, *, business: bool) -> str:
+    number = (order.get("order_number") or order.get("id") or "").strip()
+    payment = _payment_method_label(str(order.get("payment_method") or ""), lang)
+    paid_label, paid_color = _order_paid_label(order)
+    company = (order.get("company_name") or order.get("businessName") or "").strip()
+    vat = (order.get("vat_number") or order.get("vatNumber") or "").strip()
+    extra = ""
+    if business:
+        extra = _detail_row("Company", company) + _detail_row("VAT Number", vat)
+    return f"""
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:14px;">
+        <tr><td style="padding:18px 20px;">
+          <p style="margin:0 0 10px;color:{NAVY};font-size:12px;font-weight:800;letter-spacing:.1em;">ORDER SUMMARY</p>
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            {_detail_row("Order Number", f"#{number}" if number and not number.startswith("#") else number)}
+            {_detail_row("Order Date", _order_date_label(order))}
+            {extra}
+            {_detail_row("Payment Method", payment)}
+            <tr>
+              <td style="padding:8px 12px;color:#6b7280;width:140px;">Payment Status</td>
+              <td style="padding:8px 12px;">
+                <span style="display:inline-block;background:{paid_color};color:#ffffff;font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;">{html.escape(paid_label)}</span>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+    """
+
+
+def _storefront_order_chrome(*, inner: str, motto: str) -> str:
+    phone = html.escape(STORE_PHONE)
+    mail = html.escape(STORE_PUBLIC_EMAIL)
+    web = html.escape(STORE_WEB)
+    fb = html.escape(os.environ.get("STORE_FACEBOOK", "https://www.facebook.com/").strip() or "https://www.facebook.com/")
+    ig = html.escape(os.environ.get("STORE_INSTAGRAM", "https://www.instagram.com/samphone.pt").strip() or "https://www.instagram.com/samphone.pt")
+    li = html.escape(os.environ.get("STORE_LINKEDIN", "https://www.linkedin.com/").strip() or "https://www.linkedin.com/")
+    year = datetime.now(timezone.utc).year
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thank you for your order!</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background:#ffffff;">
+        <tr>
+          <td style="background:{NAVY};padding:28px 28px 18px;text-align:center;">
+            <p style="margin:0;color:#ffffff;font-size:34px;font-weight:800;letter-spacing:0.04em;">SAMPHONE</p>
+            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
+          </td>
+        </tr>
+        <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
+        <tr><td style="padding:0;">{inner}</td></tr>
+        <tr>
+          <td style="background:{NAVY};padding:26px 24px 12px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:0 8px 16px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:34%;">
+                  <strong style="letter-spacing:0.04em;">SAMPHONE</strong><br/>
+                  <span style="color:#c9d7ee;font-size:12px;">{html.escape(motto)}</span>
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  ☎<br/>{phone}
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  ✉<br/><a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;">{mail}</a>
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  🌐<br/><a href="https://{web}" style="color:#ffffff;text-decoration:none;">{web}</a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:8px 0;text-align:center;">
+              <a href="{fb}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">f</a>
+              <a href="{ig}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">ig</a>
+              <a href="{li}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">in</a>
+            </p>
+            <p style="margin:8px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>"""
+
+
 def send_order_confirmation_email(order: dict) -> bool:
-    """Customer: Order confirmed with number, items (image/title/qty/price), total, payment, address."""
+    """Send a single customer confirmation: B2C or B2B template, never both."""
     email_addr = (order.get("customer_email") or "").strip()
     if not email_addr:
         return False
-    lang = normalize_language(order.get("language"))
-    name = (order.get("customer_name") or order.get("full_name") or email_addr.split("@")[0] or "there").strip()
+    if _is_business_order(order):
+        html_body = _b2b_order_confirmation_html(order)
+        motto = "business"
+    else:
+        html_body = _b2c_order_confirmation_html(order)
+        motto = "personal"
     order_number = (order.get("order_number") or order.get("id") or "").strip()
     total = _format_money(order.get("subtotal"))
-    payment = _payment_method_label(str(order.get("payment_method") or ""), lang)
-    _, items_plain = _order_items_html_plain(order, lang)
-    items_table = _order_items_table(order, lang)
-    addr_html, addr_plain = _order_address_block(order)
-    orders_url = f"{SITE_URL}/account/orders"
-
-    body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(tr(lang, "order.confirmed.title"))}</h2>
-      <p style="margin:0 0 20px;color:#374151;">
-        Hi {html.escape(name)}, thanks for your order. We’ve received it and will start processing shortly.
-      </p>
-      {_detail_row(tr(lang, "order.field.number"), order_number)}
-      {_detail_row(tr(lang, "order.field.total"), total)}
-      {_detail_row(tr(lang, "order.field.payment"), payment)}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.items"))}</p>
-      {items_table}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
-      <p style="margin:0 0 20px;color:#374151;line-height:1.5;">{addr_html}</p>
-      <p style="margin:28px 0 0;">
-        <a href="{html.escape(orders_url)}" style="display:inline-block;background:#3F61AA;color:#ffffff;
-          text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
-          {html.escape(tr(lang, "order.action.view_mine"))}
-        </a>
-      </p>
-    """
+    name = (order.get("customer_name") or order.get("full_name") or "").strip()
     plain = (
-        f"Order confirmed\n\nHi {name},\n\n"
-        f"Order number: {order_number}\nTotal: {total}\nPayment: {payment}\n\n"
-        "Items:\n" + "\n".join(items_plain) + f"\nSubtotal: {total}\n\nDelivery address:\n{addr_plain}\n\n"
-        f"View order: {orders_url}\n"
+        f"Thank you for your order!\n\nHi {name},\n"
+        f"Order number: {order_number}\nTotal: {total}\n"
+        f"View order: {SITE_URL}/account?section=orders\n"
     )
-    subject = tr(lang, "email.order.confirmed.subject", order_number=order_number)
-    return send_email(email_addr, subject, _layout(subject, body), plain)
+    subject = f"Thank you for your order! — {order_number}"
+    logger.info("Order confirmation email (%s) queued for %s", motto, email_addr)
+    return send_email(email_addr, subject, html_body, plain)
+
+
+def _b2c_order_confirmation_html(order: dict) -> str:
+    lang = normalize_language(order.get("language"))
+    name = (order.get("customer_name") or order.get("full_name") or "there").strip().split()[0]
+    order_url = f"{SITE_URL}/account?section=orders"
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px 12px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:28px;">🛍️</p>
+            <h1 style="margin:0 0 10px;color:{NAVY};font-size:26px;font-weight:800;">Thank you for your order!</h1>
+            <p style="margin:0;color:{NAVY};font-size:16px;font-weight:700;">Hi {html.escape(name)},</p>
+            <p style="margin:8px auto 0;max-width:460px;color:{GREY};font-size:14px;line-height:1.55;">
+              We’ve received your order and we’re getting it ready. You’ll get another update when it ships.
+            </p>
+          </td>
+        </tr>
+        <tr><td style="padding:8px 24px;">{_order_summary_box(order, lang, business=False)}</td></tr>
+        <tr>
+          <td style="padding:18px 28px 8px;">
+            <p style="margin:0 0 10px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">YOUR ITEMS</p>
+            {_b2c_order_items(order, lang)}
+            {_order_totals_rows(order)}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F6EDE0;border-radius:14px;">
+              <tr><td style="padding:18px 20px;">
+                <p style="margin:0 0 12px;color:{NAVY};font-size:15px;font-weight:800;">What happens next?</p>
+                <p style="margin:0 0 8px;color:{GREY};font-size:14px;">1. Order confirmed — we have your payment and details.</p>
+                <p style="margin:0 0 8px;color:{GREY};font-size:14px;">2. Processing — your items are being prepared.</p>
+                <p style="margin:0;color:{GREY};font-size:14px;">3. Shipping — you’ll receive tracking when the parcel leaves us.</p>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:18px 28px 8px;text-align:center;">
+            <a href="{html.escape(order_url)}" style="display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:10px;">View My Order</a>
+            <p style="margin:12px 0 0;"><a href="{html.escape(order_url)}" style="color:{NAVY};font-size:12px;">visit your account</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 16px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:12px;">
+              <tr>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🔒<br/><strong>Secure Payments</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🛡<br/><strong>Quality Products</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">📦<br/><strong>Fast Shipping</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">↩<br/><strong>Easy Returns</strong></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    """
+    return _storefront_order_chrome(inner=inner, motto="Welcome to Samphone’s online store.")
+
+
+def _b2b_order_confirmation_html(order: dict) -> str:
+    lang = normalize_language(order.get("language"))
+    company = (order.get("company_name") or order.get("businessName") or "Business Team").strip() or "Business Team"
+    order_url = f"{SITE_URL}/account?section=orders"
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px 12px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:28px;">🏢</p>
+            <h1 style="margin:0 0 10px;color:{NAVY};font-size:26px;font-weight:800;">Thank you for your order!</h1>
+            <p style="margin:0;color:{NAVY};font-size:16px;font-weight:700;">Hi {html.escape(company)},</p>
+            <p style="margin:8px auto 0;max-width:480px;color:{GREY};font-size:14px;line-height:1.55;">
+              We’ve received your business order and our team is preparing it for dispatch.
+            </p>
+          </td>
+        </tr>
+        <tr><td style="padding:8px 24px;">{_order_summary_box(order, lang, business=True)}</td></tr>
+        <tr>
+          <td style="padding:18px 28px 8px;">
+            <p style="margin:0 0 10px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">ORDER ITEMS</p>
+            {_b2b_order_items(order)}
+            {_order_totals_rows(order)}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 28px;">
+            <p style="margin:0 0 6px;color:{NAVY};font-size:15px;font-weight:800;">Important information</p>
+            <p style="margin:0;color:{GREY};font-size:14px;line-height:1.55;">
+              This order will be shipped to the business address associated with your account.
+              For invoice queries or bulk support, contact {html.escape(STORE_PUBLIC_EMAIL)}.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:18px 28px 8px;text-align:center;">
+            <a href="{html.escape(order_url)}" style="display:inline-block;background:{NAVY};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:8px;">View My Order</a>
+            <p style="margin:12px 0 0;"><a href="{html.escape(order_url)}" style="color:{NAVY};font-size:12px;">login to your business account</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 16px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:12px;">
+              <tr>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🏷<br/><strong>Business Pricing</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🎧<br/><strong>Priority Support</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🚚<br/><strong>Fast &amp; Reliable Shipping</strong></td>
+                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">👤<br/><strong>Dedicated Account Manager</strong></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    """
+    return _storefront_order_chrome(
+        inner=inner,
+        motto="We’re proud to be your partner in mobile parts & accessories.",
+    )
 
 
 def send_admin_new_order_email(order: dict) -> bool:

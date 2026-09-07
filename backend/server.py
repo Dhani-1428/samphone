@@ -3348,13 +3348,21 @@ async def create_order(
         except Exception as exc:
             raise safe_http_error(502, "Stock update failed", exc, log_msg="order stock") from exc
 
+    from email_service import _is_business_account as _email_is_business
+
+    is_b2b = _email_is_business(current) or bool((body.company_name or "").strip() or (body.vat_number or "").strip())
+    order_prefix = "BSP" if is_b2b else "SP"
+    company_name = (body.company_name or "").strip() or (current.get("businessName") or current.get("business_name") or "").strip()
+    vat_number = (body.vat_number or "").strip() or (current.get("vatNumber") or current.get("vat_number") or "").strip()
     order = attach_tracking_fields(
         {
             "id": str(uuid.uuid4()),
-            "order_number": "SP" + datetime.now().strftime("%y%m%d") + str(uuid.uuid4().int)[:5],
+            "order_number": order_prefix + datetime.now().strftime("%y%m%d") + str(uuid.uuid4().int)[:5],
             "user_id": current["id"],
             "customer_email": current.get("email", ""),
             "customer_name": current.get("name", ""),
+            "account_type": "b2b" if is_b2b else "b2c",
+            "accountType": "b2b" if is_b2b else "b2c",
             "items": priced_items,
             "subtotal": server_subtotal,
             "full_name": body.full_name.strip(),
@@ -3363,8 +3371,10 @@ async def create_order(
             "city": body.city.strip(),
             "postal_code": body.postal_code.strip(),
             "country": (body.country or "").strip(),
-            "company_name": (body.company_name or "").strip(),
-            "vat_number": (body.vat_number or "").strip(),
+            "company_name": company_name,
+            "businessName": company_name,
+            "vat_number": vat_number,
+            "vatNumber": vat_number,
             "shipping_method": (body.shipping_method or "").strip(),
             "notes": (body.notes or "").strip(),
             "payment_method": body.payment_method,

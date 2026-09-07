@@ -192,3 +192,64 @@ def test_public_and_business_account_emails(monkeypatch):
     assert "Dear Carlos" in captured[0]["html"]
     assert "confirmation of sign-in" in captured[0]["subject"].lower()
     assert "Official correspondence" in captured[0]["html"]
+
+
+def test_order_confirmation_is_single_template_per_account(monkeypatch):
+    captured: list[dict] = []
+
+    def fake_send(to, subject, html_body, text_body=""):
+        captured.append({"to": to, "subject": subject, "html": html_body})
+        return True
+
+    monkeypatch.setattr("email_service.send_email", fake_send)
+    from email_service import send_order_confirmation_email
+
+    b2c_order = {
+        "customer_email": "john@example.com",
+        "customer_name": "John Smith",
+        "account_type": "b2c",
+        "order_number": "SP25051342",
+        "payment_method": "card",
+        "subtotal": 151.86,
+        "created_at": "2026-05-13T10:00:00+00:00",
+        "items": [{"title": "Screen", "sku": "SCR-1", "quantity": 1, "price": 79.9, "line_total": 79.9}],
+    }
+    captured.clear()
+    send_order_confirmation_email(b2c_order)
+    assert len(captured) == 1
+    html_b2c = captured[0]["html"]
+    assert "Thank you for your order!" in html_b2c
+    assert "Hi John" in html_b2c
+    assert "What happens next?" in html_b2c
+    assert "Easy Returns" in html_b2c
+    assert "VAT Number" not in html_b2c
+    assert "Business Pricing" not in html_b2c
+    assert "login to your business account" not in html_b2c
+    assert "Go to Business Account" not in html_b2c
+
+    b2b_order = {
+        "customer_email": "ops@techfix.pt",
+        "customer_name": "Carlos",
+        "account_type": "b2b",
+        "accountType": "b2b",
+        "company_name": "TechFix Solutions Lda",
+        "vat_number": "PT515123456",
+        "order_number": "BSP25051342",
+        "payment_method": "multibanco",
+        "subtotal": 1033.07,
+        "created_at": "2026-05-13T10:00:00+00:00",
+        "items": [{"title": "Battery pack", "sku": "BAT-1", "quantity": 25, "price": 12.0, "line_total": 300.0}],
+    }
+    captured.clear()
+    send_order_confirmation_email(b2b_order)
+    assert len(captured) == 1
+    html_b2b = captured[0]["html"]
+    assert "Thank you for your order!" in html_b2b
+    assert "TechFix Solutions Lda" in html_b2b
+    assert "VAT Number" in html_b2b
+    assert "QUANTITY" in html_b2b
+    assert "Business Pricing" in html_b2b
+    assert "Important information" in html_b2b
+    assert "What happens next?" not in html_b2b
+    assert "Easy Returns" not in html_b2b
+    assert "Hi John" not in html_b2b
