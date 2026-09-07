@@ -986,7 +986,7 @@ export default function Navbar() {
           <BrandLogo className="h-8 w-auto sm:h-9" onClick={closeMenu} />
 
           <div className="hidden min-w-0 flex-1 lg:block">
-            <div className="flex items-center overflow-hidden rounded-md border border-black/[0.08] bg-[#F3F4F6] dark:border-white/15 dark:bg-[#1B2436]">
+            <div className="flex items-center overflow-visible rounded-md border border-black/[0.08] bg-[#F3F4F6] dark:border-white/15 dark:bg-[#1B2436]">
               <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
               <button
                 type="button"
@@ -1055,7 +1055,7 @@ export default function Navbar() {
         </div>
 
         <div className={`${navShell} pb-3 lg:hidden`}>
-          <div className="overflow-hidden rounded-md border border-black/[0.12] dark:border-white/15">
+          <div className="overflow-visible rounded-md border border-black/[0.12] dark:border-white/15">
             <SmartSearch variant="header" />
           </div>
         </div>

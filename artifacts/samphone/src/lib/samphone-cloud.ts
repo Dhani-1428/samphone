@@ -477,7 +477,7 @@ export async function searchCloudProducts(query: string, limit = 20): Promise<Wo
   const q = query.trim();
   if (!q) return [];
   const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(
-    `/products-search?q=${encodeURIComponent(q)}&sort=date_desc`,
+    `/products-search?q=${encodeURIComponent(q)}&limit=${limit}&sort=date_desc`,
   );
   return mapItems(data).slice(0, limit);
 }
