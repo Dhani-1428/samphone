@@ -927,8 +927,8 @@ export default function Navbar() {
   };
 
   const navItemClass = (active: boolean) =>
-    `nav-bar-item inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-sm px-2.5 uppercase text-white no-underline transition-[background-color] ${
-      active ? "bg-sam" : "bg-transparent hover:bg-sam/90"
+    `nav-bar-item inline-flex h-9 shrink-0 items-center whitespace-nowrap border-b-[3px] px-2.5 uppercase text-white no-underline transition-colors ${
+      active ? "border-sam bg-transparent" : "border-transparent bg-transparent hover:border-white/55"
     }`;
 
   return (
