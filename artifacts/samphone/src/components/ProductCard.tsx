@@ -1,5 +1,5 @@
 import { type MouseEvent } from "react";
-import { ArrowRight, Heart, ShieldCheck, ShoppingCart, Star } from "lucide-react";
+import { Bookmark, Heart, Package, ShieldCheck, ShoppingCart, Star } from "lucide-react";
 import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -31,16 +31,11 @@ function MediaBackdrop() {
       <span className="absolute inset-0 bg-brand" aria-hidden />
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-6 top-4 h-24 w-24 rotate-12 rounded-3xl bg-sam/35"
+        className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-brand-dark/55"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute right-8 top-10 h-10 w-16 -rotate-6 rounded-full bg-sam/50"
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[38%] bg-brand-dark"
-        style={{ clipPath: "ellipse(85% 100% at 50% 100%)" }}
+        className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10"
       />
     </>
   );
@@ -66,6 +61,12 @@ export default function ProductCard({
   const qty = getQty(cartKey);
   const maxStock = getStockLevel(cartKey).count;
 
+  const toggleWish = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    wishToggle(cartKey);
+  };
+
   const addToCart = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -83,29 +84,25 @@ export default function ProductCard({
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="relative aspect-square overflow-hidden">
+      <div className="relative aspect-square overflow-hidden bg-brand">
         <MediaBackdrop />
-        <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+        <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm">
           <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
           {t("card_original_badge")}
         </span>
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            wishToggle(cartKey);
-          }}
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border-2 border-sam bg-white text-sam shadow-sm"
+          onClick={toggleWish}
+          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm"
           data-testid={`button-wishlist-${testPrefix}-${id}`}
         >
-          <Heart className={cn("h-4 w-4", wishlisted ? "fill-sam text-sam" : "")} strokeWidth={2.2} />
+          <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
         <Link href={productHref} className="absolute inset-0 z-10 block">
           <img
             src={img}
             alt={name}
-            className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105 sm:p-5"
+            className="h-full w-full object-contain p-5 mix-blend-multiply transition-transform duration-500 group-hover:scale-105 sm:p-6"
           />
         </Link>
       </div>
@@ -114,15 +111,16 @@ export default function ProductCard({
         <Link href={productHref} className="block">
           <h3 className="line-clamp-2 text-[15px] font-extrabold leading-snug text-brand sm:text-base">{name}</h3>
           {subtitle ? (
-            <p className="mt-0.5 line-clamp-1 text-[12px] font-semibold text-brand/65 sm:text-[13px]">
+            <p className="mt-0.5 line-clamp-1 text-[12px] font-medium text-brand/55 sm:text-[13px]">
               {subtitle}
             </p>
           ) : null}
         </Link>
 
-        <div className="flex items-center gap-1.5 text-[12px]">
+        <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
           <span className="font-bold text-brand">{rating.toFixed(1)}</span>
+          <span className="h-3 w-px bg-brand/20" aria-hidden />
           <span className="text-muted-foreground">
             ({reviews} {t("card_reviews")})
           </span>
@@ -132,39 +130,45 @@ export default function ProductCard({
           <span className="text-xl font-extrabold tabular-nums leading-none text-sam sm:text-[1.35rem]">
             €{price.toFixed(2).replace(".", ",")}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sam/15 px-2.5 py-1 text-[11px] font-bold text-sam">
-            <span className="h-1.5 w-1.5 rounded-full bg-sam" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-bold text-brand">
+            <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
             {t("product_in_stock")}
           </span>
         </div>
 
-        <div className="mt-auto pt-1">
+        <div className="mt-auto flex items-center gap-2 pt-1">
           {user ? (
             <button
               type="button"
               onClick={addToCart}
-              className="flex h-11 w-full items-center gap-2 rounded-full bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-sam"
+              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
             >
               <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-              <span className="min-w-0 flex-1 truncate text-left">
+              <span className="truncate">
                 {qty > 0 ? `${t("addToCart")} (${qty})` : t("addToCart")}
-              </span>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sam text-white">
-                <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
               </span>
             </button>
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
-              className="flex h-11 w-full items-center gap-2 rounded-full bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-sam"
+              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-bold text-white transition-colors hover:bg-brand"
             >
               <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-              <span className="min-w-0 flex-1 truncate text-left">{t("login_to_buy")}</span>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sam text-white">
-                <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
-              </span>
+              <span className="truncate">{t("login_to_buy")}</span>
             </Link>
           )}
+          <button
+            type="button"
+            onClick={toggleWish}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-brand/15 bg-brand/5 text-brand transition-colors hover:border-sam hover:bg-sam/10 hover:text-sam"
+            aria-pressed={wishlisted}
+            aria-label="Save"
+          >
+            <Bookmark
+              className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")}
+              strokeWidth={2.2}
+            />
+          </button>
         </div>
       </div>
     </article>
