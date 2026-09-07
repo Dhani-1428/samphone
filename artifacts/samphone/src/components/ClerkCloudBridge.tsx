@@ -39,7 +39,7 @@ export default function ClerkCloudBridge() {
           isWholesale: result.isWholesale,
           wholesaleStatus: result.wholesaleStatus,
           accountType: result.accountType,
-          dealerTier: result.dealerTier,
+          accountDiscountPercent: result.accountDiscountPercent,
           phone: result.phone,
           role: result.role,
           businessName: result.businessName,

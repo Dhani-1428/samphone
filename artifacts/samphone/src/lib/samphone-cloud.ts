@@ -9,7 +9,7 @@ import {
 } from "@/config/samphone";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery } from "@/lib/woocommerce";
-import { parsePersonalPricing } from "@/lib/customer-price";
+import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
 
 export { catalogImageReferrerPolicy };
 
@@ -495,7 +495,12 @@ function parseAuthPayload(data: Record<string, unknown>, fallbackEmail: string, 
     isWholesale: user.isWholesale === true,
     wholesaleStatus: str("wholesaleStatus", "wholesale_status") || undefined,
     accountType: str("accountType", "account_type") || undefined,
-    dealerTier: str("dealerTier", "dealer_tier") || undefined,
+    accountDiscountPercent: parseAccountDiscountPercent(
+      user.accountDiscountPercent ??
+        user.account_discount_percent ??
+        user.discountPercent ??
+        user.discount_percent,
+    ),
     phone: str("phone") || undefined,
     vatNumber: str("vatNumber", "vat_number") || undefined,
     businessName: str("businessName", "business_name") || undefined,
@@ -706,7 +711,7 @@ export type CloudProfile = {
   accountType?: string;
   isWholesale?: boolean;
   wholesaleStatus?: string;
-  dealerTier?: string;
+  accountDiscountPercent?: number;
   language?: string;
   rejectionReason?: string;
   personalPricing?: import("@/lib/customer-price").PersonalPricingRule[];
@@ -894,7 +899,8 @@ export type AdminWholesaleUser = {
   accountType?: string;
   wholesaleStatus?: string;
   isWholesale?: boolean;
-  dealerTier?: string;
+  accountDiscountPercent?: number;
+  personalPricing?: import("@/lib/customer-price").PersonalPricingRule[];
   businessName?: string;
   vatNumber?: string;
   businessType?: string;
@@ -912,9 +918,17 @@ function asAdminUser(raw: unknown): AdminWholesaleUser | null {
     email,
     name: typeof o.name === "string" ? o.name : email.split("@")[0] || id,
     accountType: typeof o.accountType === "string" ? o.accountType : typeof o.account_type === "string" ? o.account_type : undefined,
-    wholesaleStatus: typeof o.wholesaleStatus === "string" ? o.wholesaleStatus : typeof o.wholesale_status === "string" ? o.wholesale_status : undefined,
+    wholesaleStatus:
+      typeof o.wholesaleStatus === "string"
+        ? o.wholesaleStatus
+        : typeof o.wholesale_status === "string"
+          ? o.wholesale_status
+          : undefined,
     isWholesale: o.isWholesale === true,
-    dealerTier: typeof o.dealerTier === "string" ? o.dealerTier : typeof o.dealer_tier === "string" ? o.dealer_tier : undefined,
+    accountDiscountPercent: parseAccountDiscountPercent(
+      o.accountDiscountPercent ?? o.account_discount_percent ?? o.discountPercent ?? o.discount_percent,
+    ),
+    personalPricing: parsePersonalPricing(o.personalPricing ?? o.personal_pricing),
     businessName: typeof o.businessName === "string" ? o.businessName : typeof o.business_name === "string" ? o.business_name : undefined,
     vatNumber: typeof o.vatNumber === "string" ? o.vatNumber : typeof o.vat_number === "string" ? o.vat_number : undefined,
     businessType: typeof o.businessType === "string" ? o.businessType : typeof o.business_type === "string" ? o.business_type : undefined,
@@ -950,7 +964,7 @@ export async function fetchAdminWholesaleRequests(authToken: string): Promise<Ad
 export async function patchAdminWholesaleUser(
   authToken: string,
   userId: string,
-  body: Record<string, string | boolean | number>,
+  body: Record<string, string | boolean | number | null | import("@/lib/customer-price").PersonalPricingRule[]>,
 ): Promise<void> {
   const headers = { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" };
   const payload = JSON.stringify(body);

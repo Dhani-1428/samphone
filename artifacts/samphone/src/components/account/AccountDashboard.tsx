@@ -33,7 +33,12 @@ export default function AccountDashboard({ data, orders, onAddressChange, onSave
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm text-sm">
           <p className="font-semibold text-foreground">
             {seesWholesalePrices(user)
-              ? t("wholesale_approved_banner", { tier: user.dealerTier || "Bronze" })
+              ? t("wholesale_approved_banner", {
+                  discount:
+                    user.accountDiscountPercent != null && user.accountDiscountPercent > 0
+                      ? t("wholesale_discount_suffix", { percent: String(user.accountDiscountPercent) })
+                      : "",
+                })
               : (user.wholesaleStatus || "").toLowerCase() === "rejected"
                 ? t("wholesale_rejected_banner")
                 : (user.wholesaleStatus || "").toLowerCase() === "suspended"

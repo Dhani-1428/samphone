@@ -3,6 +3,10 @@ import type { WooProduct } from "@/lib/woocommerce";
 export type PersonalPricingRule = {
   productId?: string;
   wooProductId?: number;
+  /** Match Woo category id, slug, or name (case-insensitive). */
+  categoryId?: string;
+  categorySlug?: string;
+  categoryName?: string;
   percent?: number;
   fixedEur?: number;
 };
@@ -10,26 +14,12 @@ export type PersonalPricingRule = {
 export type PriceUser = {
   isWholesale?: boolean;
   wholesaleStatus?: string;
-  dealerTier?: string;
+  /** Flat % off catalog base for this account (admin-set). Replaces dealer tiers. */
+  accountDiscountPercent?: number;
   personalPricing?: PersonalPricingRule[];
 } | null | undefined;
 
 const BLOCKED_WHOLESALE = new Set(["pending", "rejected", "suspended", "denied", "blocked", "inactive"]);
-
-/** Extra % off wholesale for approved B2B dealer tiers (matches samphone.cloud). */
-export const DEALER_TIER_DISCOUNT_PERCENT: Record<string, number> = {
-  bronze: 10,
-  standard: 12,
-  silver: 15,
-  gold: 18,
-  platinum: 22,
-};
-
-export function dealerTierDiscountPercent(tier: string | null | undefined): number {
-  if (!tier) return DEALER_TIER_DISCOUNT_PERCENT.bronze;
-  const key = tier.trim().toLowerCase();
-  return DEALER_TIER_DISCOUNT_PERCENT[key] ?? DEALER_TIER_DISCOUNT_PERCENT.bronze;
-}
 
 export function seesWholesalePrices(user: PriceUser): boolean {
   if (!user?.isWholesale) return false;
@@ -57,18 +47,34 @@ function wholesaleAmount(product: WooProduct): number | null {
   return parseMoney(product.wholesalePrice) ?? parseMoney(product.regular_price) ?? retailAmount(product);
 }
 
-function applyDealerTier(unit: number | null, user: PriceUser): number | null {
-  if (unit == null || !seesWholesalePrices(user)) return unit;
-  const pct = dealerTierDiscountPercent(user?.dealerTier);
-  if (pct <= 0) return unit;
-  const next = unit * (1 - pct / 100);
+export function normalizeDiscountPercent(raw: unknown): number | undefined {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) return undefined;
+  const pct = raw > 100 ? raw / 100 : raw;
+  if (pct <= 0) return undefined;
+  return Math.min(100, pct);
+}
+
+export function parseAccountDiscountPercent(raw: unknown): number | undefined {
+  if (raw == null || raw === "") return undefined;
+  if (typeof raw === "number") return normalizeDiscountPercent(raw);
+  if (typeof raw === "string" && raw.trim()) {
+    return normalizeDiscountPercent(Number.parseFloat(raw.replace(",", ".")));
+  }
+  return undefined;
+}
+
+function applyAccountDiscount(unit: number | null, user: PriceUser): number | null {
+  if (unit == null) return unit;
+  const pct = user?.accountDiscountPercent;
+  if (pct == null || !Number.isFinite(pct) || pct <= 0) return unit;
+  const next = unit * (1 - Math.min(100, pct) / 100);
   return next > 0 ? next : unit;
 }
 
 export function catalogUnitPrice(product: WooProduct, user: PriceUser): number | null {
   const base = seesWholesalePrices(user) ? wholesaleAmount(product) : retailAmount(product);
-  const withTier = applyDealerTier(base, user);
-  return applyPersonalPricing(withTier, product, user);
+  const withAccount = applyAccountDiscount(base, user);
+  return applyPersonalPricing(withAccount, product, user);
 }
 
 export function catalogCompareAtPrice(product: WooProduct, user: PriceUser): number | null {
@@ -100,11 +106,32 @@ export function applyPersonalPricing(
 }
 
 function ruleMatchesProduct(rule: PersonalPricingRule, product: WooProduct): boolean {
-  const hasTarget = Boolean(rule.productId || rule.wooProductId);
-  if (!hasTarget) return true;
-  if (rule.wooProductId && rule.wooProductId === product.id) return true;
-  if (rule.productId && (rule.productId === product.cloudId || rule.productId === String(product.id))) return true;
-  return false;
+  const hasProductTarget = Boolean(rule.productId || rule.wooProductId);
+  const hasCategoryTarget = Boolean(rule.categoryId || rule.categorySlug || rule.categoryName);
+  if (!hasProductTarget && !hasCategoryTarget) return true;
+
+  if (hasProductTarget) {
+    if (rule.wooProductId && rule.wooProductId === product.id) return true;
+    if (rule.productId && (rule.productId === product.cloudId || rule.productId === String(product.id))) {
+      return true;
+    }
+    if (!hasCategoryTarget) return false;
+  }
+
+  if (!hasCategoryTarget) return false;
+  const cats = product.categories ?? [];
+  const idNeedle = (rule.categoryId || "").trim().toLowerCase();
+  const slugNeedle = (rule.categorySlug || "").trim().toLowerCase();
+  const nameNeedle = (rule.categoryName || "").trim().toLowerCase();
+  return cats.some((c) => {
+    const id = String(c.id ?? "").toLowerCase();
+    const slug = (c.slug || "").toLowerCase();
+    const name = (c.name || "").toLowerCase();
+    if (idNeedle && (id === idNeedle || slug === idNeedle || name === idNeedle)) return true;
+    if (slugNeedle && slug === slugNeedle) return true;
+    if (nameNeedle && (name === nameNeedle || name.includes(nameNeedle))) return true;
+    return false;
+  });
 }
 
 export function parsePersonalPricing(raw: unknown): PersonalPricingRule[] {
@@ -121,17 +148,34 @@ export function parsePersonalPricing(raw: unknown): PersonalPricingRule[] {
       undefined;
     const wooRaw = o.wooProductId ?? o.woo_product_id ?? o.wc_id;
     const wooProductId = typeof wooRaw === "number" ? wooRaw : Number.parseInt(String(wooRaw ?? ""), 10);
+    const categoryId = str(o.categoryId) || str(o.category_id) || undefined;
+    const categorySlug = str(o.categorySlug) || str(o.category_slug) || undefined;
+    const categoryName = str(o.categoryName) || str(o.category_name) || undefined;
     const percentRaw = o.percent ?? o.discountPercent ?? o.discount_percent ?? o.percentBps ?? o.percent_bps;
     let percent: number | undefined;
     if (typeof percentRaw === "number" && Number.isFinite(percentRaw)) {
       percent = percentRaw > 100 ? percentRaw / 100 : percentRaw;
     }
     const fixedRaw = o.fixedEur ?? o.fixed_eur ?? o.amount ?? o.fixedPrice ?? o.fixed_price ?? o.price;
-    const fixedEur = parseMoney(typeof fixedRaw === "number" || typeof fixedRaw === "string" ? fixedRaw : null) ?? undefined;
-    if (!productId && !Number.isFinite(wooProductId) && percent == null && fixedEur == null) continue;
+    const fixedEur =
+      parseMoney(typeof fixedRaw === "number" || typeof fixedRaw === "string" ? fixedRaw : null) ?? undefined;
+    if (
+      !productId &&
+      !Number.isFinite(wooProductId) &&
+      !categoryId &&
+      !categorySlug &&
+      !categoryName &&
+      percent == null &&
+      fixedEur == null
+    ) {
+      continue;
+    }
     out.push({
       productId,
       wooProductId: Number.isFinite(wooProductId) && wooProductId > 0 ? wooProductId : undefined,
+      categoryId,
+      categorySlug,
+      categoryName,
       percent,
       fixedEur,
     });

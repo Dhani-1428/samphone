@@ -6,7 +6,6 @@
 - Personal form: full name, email, mobile (E.164), password, confirm, Apple/Google/Mobile OTP, terms → OTP → live retail.
 - Business form: country, NIF/VAT, business name, business email, mobile, category, street, postal, city, passwords, social OTP, terms → OTP → pending wholesale.
 
-
 ## Public / B2C (personal)
 
 - Signup: Create account as a personal shopper (`accountType: b2c`).
@@ -14,7 +13,7 @@
 - Sees retail (public) prices.
 - Accessories, Hoco, glass/covers, tools: cost mapped through public price bands on the API (e.g. €0.99–1.90 → €4.90, €50–60 → €89.90).
 - Phone repair parts (screens, batteries, cameras, etc.): keep the live/API price, not accessory bands.
-- Wholesale fields (`wholesalePrice`, dealer tier, etc.) are stripped from the API for public responses.
+- Wholesale fields (`wholesalePrice`, account discounts, etc.) are stripped from the API for public responses.
 - Guest browsing uses the same public prices (unless `REQUIRE_AUTH_FOR_PRICES=1` on the API).
 
 ## Business / B2B (wholesale)
@@ -22,19 +21,16 @@
 - Signup: Business account with company name, VAT/NIF, type, address (`accountType: b2b`).
 - Status starts as **pending**. They can browse, but business prices stay locked (retail).
 - Admin reviews in **Admin → Wholesale** (`/admin/wholesale`).
-  - **Approve** → `wholesaleStatus: approved`, prices unlock, dealer tier set (default **bronze**).
+  - **Approve** → `wholesaleStatus: approved`, wholesale prices unlock.
   - **Reject** → stay on public prices; reason emailed.
   - **Suspend** → wholesale off again; retail until re-approved.
 - Approved B2B sees live wholesale / API / `b2b_price` as the selling base. Public retail is still stored so admin can toggle Public vs Business.
-- Dealer tiers (extra % off wholesale on the storefront):
+- There are **no bronze / silver / gold account tiers**.
+- Admin sets discounts per customer instead:
+  - **Account discount %** — flat percent off that account’s catalog base (retail or wholesale).
+  - **Product / category rules** — extra % or fixed € for a specific product or category on that account (`/admin/wholesale` discount panel, or `/admin/pricing`).
 
-| Tier | Discount |
-|------|----------|
-| Bronze | 10% |
-| Standard | 12% |
-| Silver | 15% |
-| Gold | 18% |
-| Platinum | 22% |
+Price order on the storefront: catalog base → account discount % → product/category personal rules → (optional) pricing API resolve.
 
 Admin accounts can preview Public or Business prices in the admin app.
 
@@ -66,7 +62,7 @@ CART_ABANDON_HOURS=24
 |-------|-----|---------|
 | Personal signup | B2C | Welcome — account ready |
 | Business signup | B2B | Business account pending approval |
-| B2B approved | B2B | Wholesale unlocked + pricing tier |
+| B2B approved | B2B | Wholesale unlocked (+ account discount if set) |
 | B2B rejected | B2B | Application rejected + reason |
 | Order placed | Customer | Order confirmed |
 | Order cancelled | Customer | Order cancelled |

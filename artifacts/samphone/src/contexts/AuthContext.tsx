@@ -22,7 +22,7 @@ export interface AuthUser {
   isWholesale?: boolean;
   wholesaleStatus?: string;
   accountType?: string;
-  dealerTier?: string;
+  accountDiscountPercent?: number;
   phone?: string;
   businessName?: string;
   vatNumber?: string;
@@ -52,7 +52,7 @@ function profileFields(src: Partial<AuthUser> | CloudProfile | null | undefined)
     isWholesale: src.isWholesale,
     wholesaleStatus: src.wholesaleStatus,
     accountType: src.accountType,
-    dealerTier: src.dealerTier,
+    accountDiscountPercent: src.accountDiscountPercent,
     phone: src.phone,
     businessName: src.businessName,
     vatNumber: src.vatNumber,

@@ -181,7 +181,9 @@ export default function AdminPricing() {
         <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold">Pricing administration</h1>
-            <p className="text-sm text-muted-foreground">Portugal · EUR · Customer-specific B2B/B2C</p>
+            <p className="text-sm text-muted-foreground">
+              Per-customer product and category discounts · Portugal · EUR
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/admin/wholesale">
