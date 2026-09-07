@@ -105,7 +105,7 @@ export default function ProductDetailLayout({
                 {badge}
               </span>
             ) : null}
-            <h1 className="product-card-copy text-2xl uppercase leading-tight tracking-[0.04em] text-black md:text-[1.75rem] lg:text-[2rem]">
+            <h1 className="font-sans text-2xl font-medium uppercase leading-tight tracking-[0.08em] text-black md:text-[1.75rem] lg:text-[2rem]">
               {title}
             </h1>
 
@@ -135,7 +135,7 @@ export default function ProductDetailLayout({
             </div>
 
             {excerpt ? (
-              <p className="product-card-copy mt-4 text-[15px] uppercase leading-relaxed tracking-[0.04em] text-black">
+              <p className="mt-4 font-sans text-[13px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black">
                 {excerpt}
               </p>
             ) : null}
@@ -321,7 +321,7 @@ export default function ProductDetailLayout({
           {tab === "desc" ? (
             descriptionHtml ? (
               <div
-                className="product-card-copy prose prose-neutral max-w-none uppercase text-[15px] leading-relaxed tracking-[0.04em] text-black prose-headings:font-display prose-headings:uppercase prose-headings:text-black prose-a:text-[#111111] prose-li:marker:text-[#111111]"
+                className="prose prose-neutral max-w-none font-sans text-[13px] font-medium uppercase leading-relaxed tracking-[0.08em] text-black prose-headings:font-sans prose-headings:text-[13px] prose-headings:font-medium prose-headings:uppercase prose-headings:tracking-[0.08em] prose-headings:text-black prose-p:text-[13px] prose-p:font-medium prose-li:text-[13px] prose-a:text-[#111111] prose-li:marker:text-[#111111]"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             ) : (

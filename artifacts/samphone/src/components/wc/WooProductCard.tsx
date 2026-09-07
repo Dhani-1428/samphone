@@ -132,12 +132,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           />
         ) : null}
 
-        <ProductCardWriting
-          href={productHref}
-          title={title}
-          description={subtitle}
-          readMoreLabel={t("card_read_more")}
-        />
+        <ProductCardWriting href={productHref} title={title} description={subtitle} />
 
         <div className="flex items-center gap-2 text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
