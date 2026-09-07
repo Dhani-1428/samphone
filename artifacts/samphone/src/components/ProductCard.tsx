@@ -25,22 +25,6 @@ export interface ProductCardProps {
   testPrefix?: string;
 }
 
-function MediaBackdrop() {
-  return (
-    <>
-      <span className="absolute inset-0 bg-brand" aria-hidden />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-brand-dark/55"
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10"
-      />
-    </>
-  );
-}
-
 export default function ProductCard({
   id,
   cartKey,
@@ -84,8 +68,7 @@ export default function ProductCard({
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-brand">
-        <MediaBackdrop />
+      <div className="relative aspect-square overflow-hidden bg-[#F7F8FA]">
         <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm">
           <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
           {t("card_original_badge")}

@@ -28,7 +28,7 @@ import ColorSwatches from "@/components/wc/ColorSwatches";
 const PLACEHOLDER =
   "data:image/svg+xml," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#243F9F" width="400" height="400"/><circle fill="#F2AA3E" opacity="0.35" cx="200" cy="200" r="48"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect fill="#F7F8FA" width="400" height="400"/><circle fill="#D1D5DB" opacity="0.55" cx="200" cy="200" r="48"/></svg>`,
   );
 
 interface WooProductCardProps {
@@ -49,22 +49,6 @@ function splitTitle(product: WooProduct): { title: string; subtitle: string } {
   const parts = name.split(/\s[-–|]\s/);
   if (parts.length > 1) return { title: parts[0], subtitle: parts.slice(1).join(" — ") || subtitle };
   return { title: name, subtitle };
-}
-
-function MediaBackdrop() {
-  return (
-    <>
-      <span className="absolute inset-0 bg-brand" aria-hidden />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-brand-dark/55"
-      />
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/10"
-      />
-    </>
-  );
 }
 
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
@@ -119,8 +103,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
     >
-      <div className={cn("relative overflow-hidden bg-brand", compact ? "aspect-[1/0.95]" : "aspect-square")}>
-        <MediaBackdrop />
+      <div className={cn("relative overflow-hidden bg-[#F7F8FA]", compact ? "aspect-[1/0.95]" : "aspect-square")}>
 
         <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-sam px-2.5 py-1 text-[10px] font-bold tracking-wide text-white shadow-sm">
           <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.4} />
