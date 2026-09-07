@@ -1,5 +1,6 @@
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useLang } from "@/contexts/LanguageContext";
+import HomeProductRail from "@/components/HomeProductRail";
 import ProductCard from "@/components/ProductCard";
 
 export default function RecentlyViewedSection() {
@@ -9,19 +10,10 @@ export default function RecentlyViewedSection() {
   if (products.length === 0) return null;
 
   return (
-    <section className="py-8 md:py-10">
-      <div className="mx-auto w-full max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <h2 className="font-display text-2xl font-bold text-foreground md:text-[2rem]">
-            {t("recently_viewed_title")}
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-          {products.slice(0, 10).map((p) => (
-            <ProductCard key={p.cartKey} {...p} testPrefix="recent" />
-          ))}
-        </div>
-      </div>
-    </section>
+    <HomeProductRail title={t("recently_viewed_title")} seeAllHref="/wishlist">
+      {products.slice(0, 10).map((p) => (
+        <ProductCard key={p.cartKey} {...p} testPrefix="recent" />
+      ))}
+    </HomeProductRail>
   );
 }
