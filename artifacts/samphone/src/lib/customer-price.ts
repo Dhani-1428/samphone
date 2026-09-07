@@ -140,23 +140,50 @@ export function parsePersonalPricing(raw: unknown): PersonalPricingRule[] {
   for (const row of raw) {
     if (!row || typeof row !== "object") continue;
     const o = row as Record<string, unknown>;
-    const productId =
+    const applies = String(o.appliesTo || o.applies_to || "").toLowerCase();
+    const targets = Array.isArray(o.targetIds) ? o.targetIds : Array.isArray(o.target_ids) ? o.target_ids : [];
+    const firstTarget = targets.length ? String(targets[0]) : "";
+    let productId =
       str(o.productId) ||
       str(o.product_id) ||
       str(o.cloudId) ||
       str(o.cloud_id) ||
       undefined;
-    const wooRaw = o.wooProductId ?? o.woo_product_id ?? o.wc_id;
+    const wooRaw =
+      o.wooProductId ??
+      o.woo_product_id ??
+      o.wc_id ??
+      (applies === "product" && /^\d+$/.test(firstTarget) ? firstTarget : undefined);
     const wooProductId = typeof wooRaw === "number" ? wooRaw : Number.parseInt(String(wooRaw ?? ""), 10);
-    const categoryId = str(o.categoryId) || str(o.category_id) || undefined;
-    const categorySlug = str(o.categorySlug) || str(o.category_slug) || undefined;
+    if (applies === "product" && firstTarget && !productId && !Number.isFinite(wooProductId)) {
+      productId = firstTarget;
+    }
+    const categoryId =
+      str(o.categoryId) ||
+      str(o.category_id) ||
+      (applies === "category" ? firstTarget : "") ||
+      undefined;
+    const categorySlug = str(o.categorySlug) || str(o.category_slug) || (applies === "category" ? firstTarget : "") || undefined;
     const categoryName = str(o.categoryName) || str(o.category_name) || undefined;
-    const percentRaw = o.percent ?? o.discountPercent ?? o.discount_percent ?? o.percentBps ?? o.percent_bps;
+    const percentRaw =
+      o.percent ??
+      o.discountPercent ??
+      o.discount_percent ??
+      o.percentBps ??
+      o.percent_bps ??
+      (o.discountType === "percentage" || o.discount_type === "percentage" ? o.discountValue ?? o.discount_value : undefined);
     let percent: number | undefined;
     if (typeof percentRaw === "number" && Number.isFinite(percentRaw)) {
       percent = percentRaw > 100 ? percentRaw / 100 : percentRaw;
     }
-    const fixedRaw = o.fixedEur ?? o.fixed_eur ?? o.amount ?? o.fixedPrice ?? o.fixed_price ?? o.price;
+    const fixedRaw =
+      o.fixedEur ??
+      o.fixed_eur ??
+      o.amount ??
+      o.fixedPrice ??
+      o.fixed_price ??
+      o.price ??
+      (o.discountType === "fixed" || o.discount_type === "fixed" ? o.discountValue ?? o.discount_value : undefined);
     const fixedEur =
       parseMoney(typeof fixedRaw === "number" || typeof fixedRaw === "string" ? fixedRaw : null) ?? undefined;
     if (

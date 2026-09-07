@@ -1,8 +1,13 @@
+const http = require("http");
 const https = require("https");
 
-const UPSTREAM = "https://samphone.cloud/api";
+const UPSTREAM_ORIGIN = (process.env.SAMPHONE_CLOUD_ORIGIN || process.env.SAMPHONE_API_ORIGIN || "https://samphone.cloud").replace(
+  /\/$/,
+  "",
+);
+const UPSTREAM = `${UPSTREAM_ORIGIN}/api`;
 const ALLOWED =
-  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin)(\/|$)/i;
+  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|orders|cart|payments|brands|admin|leads|contact|newsletter|health)(\/|$)/i;
 
 function header(req, name) {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
@@ -58,11 +63,12 @@ function proxy(target, method, headers, body) {
     const payload = method === "GET" || method === "HEAD" ? undefined : body;
     const reqHeaders = { ...headers };
     if (payload && payload.length > 0) reqHeaders["Content-Length"] = String(payload.length);
-    const upstream = https.request(
+    const transport = url.protocol === "http:" ? http : https;
+    const upstream = transport.request(
       {
         protocol: url.protocol,
         hostname: url.hostname,
-        port: url.port || 443,
+        port: url.port || (url.protocol === "http:" ? 80 : 443),
         path: `${url.pathname}${url.search}`,
         method,
         headers: reqHeaders,
@@ -123,4 +129,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-if (typeof module.exports === 'function') module.exports.config = { maxDuration: 30 };
+if (typeof module.exports === "function") module.exports.config = { maxDuration: 30 };

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { REPAIR_SERVICES, estimateRepairTotal, type RepairServiceId } from "@/lib/repair-pricing";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { submitRepairLead } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
 
 function parseServices(raw: string | null): RepairServiceId[] {
@@ -75,6 +76,17 @@ export default function BookRepair() {
       .filter(Boolean)
       .join("\n");
     openWhatsApp(message);
+    void submitRepairLead({
+      name: name.trim(),
+      phone: phone.trim(),
+      device: device.trim(),
+      services: selected,
+      urgency,
+      notes: notes.trim(),
+      total,
+    }).catch(() => {
+      /* WhatsApp is the primary booking path */
+    });
     toast({ title: t("book_ok") });
   };
 

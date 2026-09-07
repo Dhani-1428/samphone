@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Secrets — never commit
+.env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# Local artifacts
+*.log
+.pytest_cache/
+.mypy_cache/
+_scrape/
+!_scrape/models_catalog.json
+products_seed.json
+uploads/
+
+# DPD shipping labels (PDFs on disk)
+storage/labels/
+storage/

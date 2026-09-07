@@ -1,6 +1,16 @@
 # Samphone stack (website ↔ app ↔ cloud)
 
-The storefront, Expo app, and `samphone.cloud` share one backend so catalog, banners, orders, auth, and shipping stay in sync. The app never calls DPD directly — catalog, banners, orders, and DPD all go through `samphone.cloud`.
+The storefront, Expo app, and FastAPI backend share one API contract so catalog, banners, orders, auth, and shipping stay in sync.
+
+## Website backend (this repo)
+
+Python FastAPI lives in `backend/` (same surface as the Expo `myapi` / `samphone.cloud` API).
+
+- Local: `pnpm backend` or `backend/start.sh` → `http://127.0.0.1:8006`
+- Storefront: `VITE_SAMPHONE_CLOUD_ORIGIN=http://127.0.0.1:8006` and `VITE_SAMPHONE_API_URL=/cloud-api`
+- Production can still proxy `/cloud-api` to `https://samphone.cloud` via `api/cloud.js`
+
+See `backend/README.md`.
 
 ## Live hosts
 

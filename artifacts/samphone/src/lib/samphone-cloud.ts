@@ -100,7 +100,10 @@ function isPublicAuthPath(path: string): boolean {
     p === "/auth/register" ||
     p === "/auth/clerk-sync" ||
     p === "/auth/mfa/setup" ||
-    p === "/auth/mfa/verify"
+    p === "/auth/mfa/verify" ||
+    p === "/contact" ||
+    p === "/newsletter" ||
+    p.startsWith("/leads/")
   );
 }
 
@@ -1072,6 +1075,43 @@ export async function patchAdminProduct(
   await cloudFetchJson(`/admin/products/${encodeURIComponent(productId)}`, {
     method: "PATCH",
     headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function submitContactLead(body: {
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+}): Promise<void> {
+  await cloudFetchJson("/leads/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function subscribeNewsletter(email: string): Promise<void> {
+  await cloudFetchJson("/leads/newsletter", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function submitRepairLead(body: Record<string, unknown>): Promise<void> {
+  await cloudFetchJson("/leads/repair", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function submitTradeInLead(body: Record<string, unknown>): Promise<void> {
+  await cloudFetchJson("/leads/trade-in", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
 }

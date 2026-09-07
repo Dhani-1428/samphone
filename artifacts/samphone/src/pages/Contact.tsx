@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock, Send, MessageCircle, CheckCircle } from "lu
 import { Button } from "@/components/ui/button";
 import { SiWhatsapp, SiInstagram, SiFacebook } from "react-icons/si";
 import PageVideoHero from "@/components/PageVideoHero";
+import { submitContactLead } from "@/lib/samphone-cloud";
 
 const contactInfo = [
   { icon: MapPin, label: "Address", value: "Rua da Palma N.221–223, 1100-391 Lisboa, Portugal", link: "https://maps.google.com/?q=Rua+da+Palma+221+Lisboa+Portugal" },
@@ -33,10 +34,22 @@ export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name && form.email && form.message) setSubmitted(true);
+    if (!form.name || !form.email || !form.message) return;
+    setSending(true);
+    setError(null);
+    try {
+      await submitContactLead(form);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send the message. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -76,7 +89,8 @@ export default function Contact() {
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Message</label>
                   <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="How can we help you?" rows={5} className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" required />
                 </div>
-                <Button type="submit" size="lg" className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12"><Send className="w-4 h-4" /> Send Message</Button>
+                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                <Button type="submit" size="lg" disabled={sending} className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12"><Send className="w-4 h-4" /> {sending ? "Sending…" : "Send Message"}</Button>
               </form>
             )}
           </motion.div>

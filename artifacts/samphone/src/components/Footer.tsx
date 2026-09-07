@@ -33,6 +33,7 @@ import { FaCcAmex, FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "re
 import { SiFacebook, SiInstagram, SiWhatsapp } from "react-icons/si";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { subscribeNewsletter } from "@/lib/samphone-cloud";
 import {
   LEGAL_LINKS,
   STORE_ADDRESS,
@@ -128,6 +129,7 @@ export default function Footer() {
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   const serviceLinks = [
     { href: `mailto:${STORE_EMAIL}`, label: t("footer_email_support"), Icon: Mail, external: true },
@@ -257,10 +259,21 @@ export default function Footer() {
                   {lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}
                 </p>
               ) : (
+                <>
+                {subscribeError ? (
+                  <p className="mb-2 text-[12px] text-red-800">{subscribeError}</p>
+                ) : null}
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    if (email) setSubscribed(true);
+                    if (!email) return;
+                    setSubscribeError(null);
+                    try {
+                      await subscribeNewsletter(email);
+                      setSubscribed(true);
+                    } catch (err) {
+                      setSubscribeError(err instanceof Error ? err.message : "Could not subscribe.");
+                    }
                   }}
                   className="flex overflow-hidden rounded-md bg-white"
                 >
@@ -280,6 +293,7 @@ export default function Footer() {
                     {t("footer_subscribe")}
                   </button>
                 </form>
+                </>
               )}
             </div>
           </div>

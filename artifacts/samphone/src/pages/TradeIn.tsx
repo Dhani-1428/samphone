@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { estimateTradeInEuro, generateTradeInCode, saveTradeInVoucher, type TradeCondition } from "@/lib/trade-in";
 import { openWhatsApp } from "@/lib/whatsapp";
+import { submitTradeInLead } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
 
 const BRANDS = ["Apple", "Samsung", "Google", "Xiaomi", "OnePlus", "Huawei", "Other"];
@@ -66,6 +67,18 @@ export default function TradeIn() {
       `${t("trade_code_label")}: ${c}`,
     ].join("\n");
     openWhatsApp(message);
+    void submitTradeInLead({
+      name: name.trim(),
+      phone: phone.trim(),
+      brand,
+      model: model.trim(),
+      condition,
+      age_years: age[0],
+      estimate,
+      code: c,
+    }).catch(() => {
+      /* WhatsApp is the primary trade-in path */
+    });
     toast({ title: t("trade_code_label"), description: c });
   };
 
