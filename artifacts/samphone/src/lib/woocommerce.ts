@@ -199,21 +199,10 @@ const STORE_PRODUCT_PARAMS = { status: "publish" as const };
 const PRODUCT_LIST_FIELDS =
   "id,name,slug,permalink,price,regular_price,sale_price,categories,images,date_created";
 
-/** First page from samphone.cloud FastAPI (home rails + catalog page). */
+/** First page from samphone.cloud FastAPI — do not wait on /home-rails. */
 export async function fetchProductsFirstBatch(perPage = 100): Promise<WooProduct[]> {
   const cloud = await import("@/lib/samphone-cloud");
-  const [seed, page] = await Promise.all([
-    cloud.fetchCloudHomeSeed(Math.min(perPage, 24)),
-    cloud.fetchCloudProductsPage(0, perPage),
-  ]);
-  const seen = new Set<number>();
-  const out: WooProduct[] = [];
-  for (const p of [...seed, ...page]) {
-    if (seen.has(p.id)) continue;
-    seen.add(p.id);
-    out.push(p);
-  }
-  return out;
+  return cloud.fetchCloudProductsPage(0, perPage);
 }
 
 /** Next catalog page (`offset` pagination on FastAPI). */

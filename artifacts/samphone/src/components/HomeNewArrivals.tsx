@@ -32,7 +32,7 @@ export default function HomeNewArrivals() {
     return sortNewest(products).slice(0, 14);
   }, [wooRows, products]);
 
-  if (display.length === 0 && (wooRows == null || loading)) {
+  if (display.length === 0 && wooRows == null && loading) {
     return (
       <HomeProductRail
         title={t("newArrivals_section_title")}

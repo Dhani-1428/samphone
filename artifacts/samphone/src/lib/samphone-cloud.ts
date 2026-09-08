@@ -640,12 +640,12 @@ export type CloudHomeRails = {
   sections: { key: string; title: string; group?: string; items: WooProduct[] }[];
 };
 
-export async function fetchCloudHomeRails(limit = 10): Promise<CloudHomeRails> {
+export async function fetchCloudHomeRails(limit = 10, part: "all" | "priority" | "sections" = "all"): Promise<CloudHomeRails> {
   const data = await cloudFetchJson<{
     best?: CloudProduct[];
     fresh?: CloudProduct[];
     sections?: { key?: string; title?: string; category_group?: string; items?: CloudProduct[] }[];
-  }>(`/home-rails?part=all&limit=${limit}`);
+  }>(`/home-rails?part=${part}&limit=${limit}`);
   return {
     best: mapItems(data.best ?? []),
     fresh: mapItems(data.fresh ?? []),

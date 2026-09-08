@@ -4,22 +4,22 @@ import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { fetchCloudHomeRails, fetchCloudProductList, type CloudHomeRails } from "@/lib/samphone-cloud";
+import { fetchCloudHomeRails, type CloudHomeRails } from "@/lib/samphone-cloud";
 import { filterProductsMatchingTitle } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 const HOME_CATEGORY_RAILS = [
-  { key: "repair-tools", title: "Repair Tools", group: "Repairing Tools", query: { category_group: "Repairing Tools" } },
-  { key: "memory-cards", title: "Memory Cards", group: "Cards", query: { category_group: "Cards" } },
-  { key: "adapters", title: "Adapters", group: "Chargers", query: { leaf_category: "Adapters" } },
-  { key: "car-support", title: "Mobile Car Support", group: "Mobile Car Support", query: { category_group: "Mobile Car" } },
-  { key: "magsafe-covers", title: "MagSafe Covers", group: "Original Accessories", query: { q: "magsafe" } },
-  { key: "wireless-headsets", title: "Wireless Headsets", group: "Headphones", query: { category_group: "Headphones" } },
-  { key: "power-bank", title: "Power Bank", group: "Powerbanks", query: { category_group: "Powerbanks" } },
-  { key: "cables", title: "Cables", group: "Cables", query: { category_group: "Cables" } },
-  { key: "screen-protectors", title: "Screen Protectors", group: "Original Accessories", query: { q: "tempered glass" } },
-  { key: "phone-cases", title: "Phone Cases", group: "Original Accessories", query: { q: "phone case" } },
-  { key: "chargers", title: "Chargers", group: "Chargers", query: { category_group: "Chargers" } },
+  { key: "repair-tools", title: "Repair Tools", group: "Repairing Tools" },
+  { key: "memory-cards", title: "Memory Cards", group: "Cards" },
+  { key: "adapters", title: "Adapters", group: "Chargers" },
+  { key: "car-support", title: "Mobile Car Support", group: "Mobile Car Support" },
+  { key: "magsafe-covers", title: "MagSafe Covers", group: "Original Accessories" },
+  { key: "wireless-headsets", title: "Wireless Headsets", group: "Headphones" },
+  { key: "power-bank", title: "Power Bank", group: "Powerbanks" },
+  { key: "cables", title: "Cables", group: "Cables" },
+  { key: "screen-protectors", title: "Screen Protectors", group: "Original Accessories" },
+  { key: "phone-cases", title: "Phone Cases", group: "Original Accessories" },
+  { key: "chargers", title: "Chargers", group: "Chargers" },
 ] as const;
 
 function mergeRailItems(apiItems: WooProduct[], catalog: WooProduct[], title: string, limit = 14): WooProduct[] {
@@ -44,33 +44,38 @@ function mergeRailItems(apiItems: WooProduct[], catalog: WooProduct[], title: st
 export default function HomeCloudRails() {
   const { t } = useLang();
   const { products: catalog } = useProductCatalog();
-  const [rails, setRails] = useState<CloudHomeRails | null>(null);
-  const [extra, setExtra] = useState<Record<string, WooProduct[]>>({});
+  const [rails, setRails] = useState<CloudHomeRails>({ best: [], fresh: [], sections: [] });
+  const [priorityReady, setPriorityReady] = useState(false);
+  const [sectionsReady, setSectionsReady] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudHomeRails(14)
+    void fetchCloudHomeRails(14, "priority")
       .then((r) => {
-        if (alive) setRails(r);
+        if (!alive) return;
+        setRails((prev) => ({
+          best: r.best,
+          fresh: r.fresh.length ? r.fresh : prev.fresh,
+          sections: prev.sections,
+        }));
+        setPriorityReady(true);
       })
       .catch(() => {
-        if (alive) setRails({ best: [], fresh: [], sections: [] });
+        if (alive) setPriorityReady(true);
       });
-    void Promise.all(
-      HOME_CATEGORY_RAILS.map(async (g) => {
-        try {
-          const page = await fetchCloudProductList({ ...g.query }, 24);
-          return [g.key, page.items] as const;
-        } catch {
-          return [g.key, [] as WooProduct[]] as const;
-        }
-      }),
-    ).then((rows) => {
-      if (!alive) return;
-      const next: Record<string, WooProduct[]> = {};
-      for (const [key, items] of rows) next[key] = items;
-      setExtra(next);
-    });
+    void fetchCloudHomeRails(14, "sections")
+      .then((r) => {
+        if (!alive) return;
+        setRails((prev) => ({
+          best: prev.best.length ? prev.best : r.best,
+          fresh: prev.fresh.length ? prev.fresh : r.fresh,
+          sections: r.sections,
+        }));
+        setSectionsReady(true);
+      })
+      .catch(() => {
+        if (alive) setSectionsReady(true);
+      });
     return () => {
       alive = false;
     };
@@ -81,19 +86,17 @@ export default function HomeCloudRails() {
     items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
 
   const extraRows = useMemo(() => {
-    const fromHome = new Map((rails?.sections ?? []).map((s) => [s.key, s.items]));
-    return HOME_CATEGORY_RAILS.map((g) => {
-      const apiItems = extra[g.key]?.length ? extra[g.key] : fromHome.get(g.key) ?? [];
-      return {
-        key: g.key,
-        title: g.title,
-        group: g.group,
-        items: mergeRailItems(apiItems, catalog, g.title),
-      };
-    }).filter((s) => s.items.length > 0);
-  }, [rails, extra, catalog]);
+    const fromHome = new Map(rails.sections.map((s) => [s.key, s.items]));
+    return HOME_CATEGORY_RAILS.map((g) => ({
+      key: g.key,
+      title: g.title,
+      group: g.group,
+      items: mergeRailItems(fromHome.get(g.key) ?? [], catalog, g.title),
+    })).filter((s) => s.items.length > 0);
+  }, [rails, catalog]);
 
-  if (rails == null) {
+  const waiting = !priorityReady && !sectionsReady && extraRows.length === 0 && rails.best.length === 0;
+  if (waiting) {
     return <CatalogLoading compact className="bg-[#F4F6F8]" />;
   }
 
