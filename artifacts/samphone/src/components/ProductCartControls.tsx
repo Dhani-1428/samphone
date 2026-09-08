@@ -43,7 +43,7 @@ export function CardQtyStepper({
     return (
       <button
         type="button"
-        className="product-card-add flex h-11 min-w-0 flex-1 items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
+        className="product-card-add flex h-9 min-w-0 flex-1 items-center justify-center px-3 text-xs transition-colors hover:bg-[#1a4499]"
         onClick={addToCart}
         data-testid={`add-cart-${cartKey}`}
       >
@@ -54,12 +54,12 @@ export function CardQtyStepper({
 
   return (
     <div
-      className="product-card-add flex h-11 min-w-0 flex-1 items-center"
+      className="product-card-add flex h-9 min-w-0 flex-1 items-center"
       onClick={(e) => e.stopPropagation()}
     >
       <button
         type="button"
-        className="flex h-11 w-11 shrink-0 items-center justify-center disabled:opacity-40"
+        className="flex h-9 w-9 shrink-0 items-center justify-center disabled:opacity-40"
         onClick={onMinus}
         aria-label="Decrease quantity"
       >
@@ -68,7 +68,7 @@ export function CardQtyStepper({
       <span className="min-w-0 flex-1 text-center text-sm font-bold tabular-nums">{qty}</span>
       <button
         type="button"
-        className="flex h-11 w-11 shrink-0 items-center justify-center disabled:opacity-40"
+        className="flex h-9 w-9 shrink-0 items-center justify-center disabled:opacity-40"
         onClick={addToCart}
         disabled={atMax}
         aria-label="Increase quantity"

@@ -279,6 +279,9 @@
 
 .product-card {
   border-radius: 0;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
 }
 
 .product-card-add {
