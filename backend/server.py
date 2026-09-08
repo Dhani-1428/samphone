@@ -242,6 +242,21 @@ def _woo_catalog_enabled() -> bool:
         return False
 
 
+async def _mongo_products_page(query: dict, *, limit: int, offset: int, viewer):
+    """Same catalog as GET /products when Woo MySQL is off but Mongo still has items."""
+    if db is None:
+        return None
+    from catalog_pagination import product_page
+
+    lim = max(1, min(int(limit or 50), 200))
+    off = max(0, int(offset or 0))
+    docs = await db.products.find(query, {"_id": 0}).skip(off).limit(lim).to_list(lim)
+    if not docs:
+        return None
+    total = await db.products.count_documents(query)
+    return product_page(sanitize_products(docs, viewer), total, limit=lim, offset=off)
+
+
 def _is_catalog_connectivity_error(exc: BaseException) -> bool:
     msg = str(exc).lower()
     if "access denied" in msg or "can't connect" in msg or "timed out" in msg:
@@ -1989,6 +2004,12 @@ async def featured_products(limit: int = 50, viewer=Depends(get_optional_user)):
         return await asyncio.to_thread(woo.filter_products, best_seller=True, limit=limit, offset=0, user=viewer)
     if USE_MEMORY:
         return memory_store.filter_products_page(best_seller=True, limit=limit, offset=0, user=viewer)
+    page = await _mongo_products_page({"best_seller": True}, limit=limit, offset=0, viewer=viewer)
+    if page and page.get("items"):
+        return page
+    page = await _mongo_products_page({}, limit=limit, offset=0, viewer=viewer)
+    if page:
+        return page
     raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
@@ -2001,6 +2022,12 @@ async def new_arrivals(limit: int = 50, viewer=Depends(get_optional_user)):
         return await asyncio.to_thread(woo.filter_products, new_arrival=True, limit=limit, offset=0, user=viewer)
     if USE_MEMORY:
         return memory_store.filter_products_page(new_arrival=True, limit=limit, offset=0, user=viewer)
+    page = await _mongo_products_page({"new_arrival": True}, limit=limit, offset=0, viewer=viewer)
+    if page and page.get("items"):
+        return page
+    page = await _mongo_products_page({}, limit=limit, offset=0, viewer=viewer)
+    if page:
+        return page
     raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
 
 
@@ -2026,6 +2053,25 @@ async def home_rails(
     if not _woo_catalog_enabled():
         if USE_MEMORY:
             payload = memory_store.home_rails(part=part, limit=limit, user=viewer)
+            return JSONResponse(content=payload, headers={"Cache-Control": "public, max-age=30"})
+        part_key = (part or "all").strip().lower()
+        if part_key not in {"all", "priority", "sections"}:
+            part_key = "all"
+        lim = max(1, min(int(limit or 8), 24))
+        best = await _mongo_products_page({"best_seller": True}, limit=lim, offset=0, viewer=viewer)
+        if not best or not best.get("items"):
+            best = await _mongo_products_page({}, limit=lim, offset=0, viewer=viewer)
+        fresh = await _mongo_products_page({"new_arrival": True}, limit=lim, offset=0, viewer=viewer)
+        best_items = (best or {}).get("items") or []
+        fresh_items = (fresh or {}).get("items") or best_items
+        if best_items or fresh_items:
+            payload = {
+                "part": part_key,
+                "limit": lim,
+                "best": best_items if part_key in {"all", "priority"} else [],
+                "fresh": fresh_items if part_key in {"all", "priority"} else [],
+                "sections": [],
+            }
             return JSONResponse(content=payload, headers={"Cache-Control": "public, max-age=30"})
         raise HTTPException(status_code=503, detail="Catalog MySQL not configured")
     part_key = (part or "all").strip().lower()
@@ -3701,6 +3747,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=_cors,
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*(vercel\.app|samphone\.eu|samphone\.cloud|samphone\.pt)",
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "X-Voice-Request-Id", "X-Requested-With"],
 )

@@ -32,7 +32,7 @@ export default function Products() {
     return sortNewest(products).slice(0, 14);
   }, [featured, products]);
 
-  if (display.length === 0 && featured == null && loading) {
+  if (display.length === 0 && loading) {
     return (
       <div id="products">
         <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">

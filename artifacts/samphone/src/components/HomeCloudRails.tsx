@@ -43,7 +43,7 @@ function mergeRailItems(apiItems: WooProduct[], catalog: WooProduct[], title: st
 
 export default function HomeCloudRails() {
   const { t } = useLang();
-  const { products: catalog } = useProductCatalog();
+  const { products: catalog, loading } = useProductCatalog();
   const [rails, setRails] = useState<CloudHomeRails>({ best: [], fresh: [], sections: [] });
   const [priorityReady, setPriorityReady] = useState(false);
   const [sectionsReady, setSectionsReady] = useState(false);
@@ -95,7 +95,10 @@ export default function HomeCloudRails() {
     })).filter((s) => s.items.length > 0);
   }, [rails, catalog]);
 
-  const waiting = !priorityReady && !sectionsReady && extraRows.length === 0 && rails.best.length === 0;
+  const waiting =
+    extraRows.length === 0 &&
+    rails.best.length === 0 &&
+    (loading || (!priorityReady && !sectionsReady));
   if (waiting) {
     return <CatalogLoading compact className="bg-[#F4F6F8]" />;
   }

@@ -81,6 +81,14 @@ SPA routes (`/category/samsung-parts`, etc.) rewrite to `index.html`.
 2. If that URL shows the website or `configured: false`, products and banners will stay empty.
 3. Open a category page — products should load.
 
+**Catalog is on samphone.cloud** (`GET /api/products`). The site uses `/cloud-api` on Vercel. Check `https://<vercel-app>/cloud-api/products?limit=2` — you should see JSON `items`, not HTML.
+
+If you open **https://samphone.eu** and see a Hostinger “Parked Domain” page, DNS is not pointing at Vercel. In Vercel → Project → Settings → Domains, add `samphone.eu` / `www.samphone.eu` and set those records at the registrar (remove Hostinger parking). Until then, use the `*.vercel.app` URL.
+
+`VITE_SAMPHONE_API_URL` must be `/cloud-api` or `https://samphone.cloud/api` (not `https://samphone.cloud` and not `https://samphone.eu`).
+
+After changing env, **Redeploy**. Also restart samphone.cloud after pulling API changes so `/featured` and `/home-rails` stop returning 503.
+
 Env vars do **not** update a live deployment by themselves. After changing them, click **Deployments → ⋮ → Redeploy** (uncheck “Use existing Build Cache”).
 
 `VITE_*` values are baked in at **build** time. `WOOCOMMERCE_*` are read by `/api/woocommerce` at **runtime**, but Vercel still needs a new deployment to attach them.

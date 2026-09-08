@@ -1,9 +1,28 @@
 /** Public Samphone FastAPI — same backend as the Expo app. No secrets here. */
 
-export const SAMPHONE_CLOUD_ORIGIN = "https://samphone.cloud";
+export const SAMPHONE_CLOUD_ORIGIN = (
+  import.meta.env.VITE_SAMPHONE_CLOUD_ORIGIN ?? "https://samphone.cloud"
+).replace(/\/$/, "");
 
-/** Same-origin prefix rewritten to https://samphone.cloud/api (avoids CORS on Vercel). */
-export const SAMPHONE_API_BASE = (import.meta.env.VITE_SAMPHONE_API_URL ?? "/cloud-api").replace(/\/$/, "");
+function resolveSamphoneApiBase(): string {
+  const raw = String(import.meta.env.VITE_SAMPHONE_API_URL ?? "/cloud-api").trim();
+  if (!raw) return "/cloud-api";
+  const noSlash = raw.replace(/\/$/, "");
+  if (noSlash.startsWith("/")) return noSlash;
+  try {
+    const u = new URL(noSlash);
+    // Pasting https://samphone.cloud (no /api) would 404 /products.
+    if (u.pathname === "/" || u.pathname === "") {
+      u.pathname = "/api";
+    }
+    return `${u.origin}${u.pathname}`.replace(/\/$/, "");
+  } catch {
+    return "/cloud-api";
+  }
+}
+
+/** Same-origin `/cloud-api` on Vercel, or absolute `https://samphone.cloud/api`. */
+export const SAMPHONE_API_BASE = resolveSamphoneApiBase();
 
 export const CLERK_PUBLISHABLE_KEY =
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "pk_live_Y2xlcmsuc2FtcGhvbmUuY2xvdWQk";

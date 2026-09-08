@@ -1,5 +1,6 @@
 import {
   SAMPHONE_API_BASE,
+  SAMPHONE_CLOUD_ORIGIN,
   SITE_HOME_BANNERS,
   catalogImageReferrerPolicy,
   getStoredApiJwt,
@@ -107,32 +108,54 @@ function isPublicAuthPath(path: string): boolean {
   );
 }
 
+function cloudRequestUrls(path: string): string[] {
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  const primary = path.startsWith("http") ? path : `${SAMPHONE_API_BASE}${suffix}`;
+  const absolute = `${SAMPHONE_CLOUD_ORIGIN}/api${suffix}`;
+  if (primary === absolute) return [primary];
+  return [primary, absolute];
+}
+
 async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = path.startsWith("http") ? path : `${SAMPHONE_API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
   const jwt = getStoredApiJwt();
   if (jwt && !headers.has("Authorization") && !isPublicAuthPath(path)) {
     headers.set("Authorization", `Bearer ${jwt}`);
   }
-  let res: Response;
-  try {
-    res = await fetch(url, { ...init, headers });
-  } catch {
-    throw new WooCommerceFetchError(`Network request failed: ${url.split("?")[0]}`);
+  const urls = cloudRequestUrls(path);
+  let lastError: WooCommerceFetchError | null = null;
+  for (let i = 0; i < urls.length; i += 1) {
+    const url = urls[i];
+    let res: Response;
+    try {
+      res = await fetch(url, { ...init, headers });
+    } catch {
+      lastError = new WooCommerceFetchError(`Network request failed: ${url.split("?")[0]}`);
+      continue;
+    }
+    const text = await res.text().catch(() => "");
+    const html = looksLikeHtml(text);
+    const canRetry = i < urls.length - 1 && (html || res.status === 404 || res.status >= 502);
+    if (!res.ok) {
+      lastError = new WooCommerceFetchError(formatFastApiError(text, res.status), res.status);
+      if (canRetry) continue;
+      throw lastError;
+    }
+    if (html) {
+      lastError = new WooCommerceFetchError("Unexpected response from the server. Please try again.");
+      if (canRetry) continue;
+      throw lastError;
+    }
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      lastError = new WooCommerceFetchError("Could not read the server response. Please try again.");
+      if (canRetry) continue;
+      throw lastError;
+    }
   }
-  const text = await res.text().catch(() => "");
-  if (!res.ok) {
-    throw new WooCommerceFetchError(formatFastApiError(text, res.status), res.status);
-  }
-  if (looksLikeHtml(text)) {
-    throw new WooCommerceFetchError("Unexpected response from the server. Please try again.");
-  }
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    throw new WooCommerceFetchError("Could not read the server response. Please try again.");
-  }
+  throw lastError ?? new WooCommerceFetchError("Network request failed.");
 }
 
 function money(v: number | string | null | undefined): string {
