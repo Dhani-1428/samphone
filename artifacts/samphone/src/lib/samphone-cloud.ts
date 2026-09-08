@@ -369,13 +369,27 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
 }
 
 export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
-  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${limit}`);
-  return mapItems(data);
+  try {
+    const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${limit}`);
+    const items = mapItems(data);
+    if (items.length) return items;
+  } catch {
+    /* /products still has the catalog when this route is 503 */
+  }
+  const page = await fetchCloudProductList({ new_arrival: "true" }, limit);
+  return page.items;
 }
 
 export async function fetchCloudFeatured(limit = 24): Promise<WooProduct[]> {
-  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/featured?limit=${limit}`);
-  return mapItems(data);
+  try {
+    const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/featured?limit=${limit}`);
+    const items = mapItems(data);
+    if (items.length) return items;
+  } catch {
+    /* /products still has the catalog when this route is 503 */
+  }
+  const page = await fetchCloudProductList({ best_seller: "true" }, limit);
+  return page.items;
 }
 
 export async function fetchCloudHomeSeed(limit = 24): Promise<WooProduct[]> {

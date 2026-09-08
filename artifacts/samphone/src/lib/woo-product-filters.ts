@@ -442,10 +442,109 @@ const SECTION_TITLE_NEEDLES: Record<string, string[]> = {
 function sectionTitleNeedles(title: string): string[] {
   const key = title.toLowerCase().replace(/\s+/g, " ").trim();
   const extra = SECTION_TITLE_NEEDLES[key] ?? SECTION_TITLE_NEEDLES[key.replace(/s$/, "")] ?? [];
-  const words = key
-    .split(/\s+/)
-    .filter((w) => w.length > 2 && !/^(the|and|for|of|products?|all)$/i.test(w));
-  return [...new Set([...extra, ...words, key])];
+  return extra.length ? extra : key ? [key] : [];
+}
+
+const LCD_DISPLAY_PART =
+  /\b(lcd|oled|incell|tft|digitizer|display|screen\s*assembly|touch\s*\+|touch\s*panel|service\s*pack|replacement\s*screen)\b/i;
+const FLEX_OR_PORT_PART =
+  /\b(flex(\s*cable)?|volume\s*flex|power\s*flex|charging\s*(port|board|flex)|sub\s*board|daughter\s*board)\b/i;
+const HOUSING_PART = /\b(housing|middle\s*frame|chassis|bezel)\b/i;
+
+export type HomeRailKey =
+  | "repair-tools"
+  | "memory-cards"
+  | "adapters"
+  | "car-support"
+  | "magsafe-covers"
+  | "wireless-headsets"
+  | "power-bank"
+  | "cables"
+  | "screen-protectors"
+  | "phone-cases"
+  | "chargers";
+
+const TITLE_TO_RAIL: Record<string, HomeRailKey> = {
+  "repair tools": "repair-tools",
+  "memory cards": "memory-cards",
+  adapters: "adapters",
+  "mobile car support": "car-support",
+  "magsafe covers": "magsafe-covers",
+  "wireless headsets": "wireless-headsets",
+  "power bank": "power-bank",
+  cables: "cables",
+  "screen protectors": "screen-protectors",
+  "phone cases": "phone-cases",
+  chargers: "chargers",
+};
+
+/** True when a product belongs on a homepage accessory rail (never LCD/display parts in glass). */
+export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean {
+  const hay = productSearchHaystack(p);
+  switch (key) {
+    case "screen-protectors":
+      return (
+        /\b(tempered(\s*glass)?|privacy\s*glass|full\s*glue|screen\s*protect|glass\s*protect|normal\s*glass|curved\s*glass|vidro\s*templado|pel[ií]cula)\b/i.test(
+          hay,
+        ) && !LCD_DISPLAY_PART.test(hay)
+      );
+    case "phone-cases":
+      return (
+        /\b(phone\s*case|back\s*cover|flip\s*cover|silicon(e)?\s*(soft\s*)?(jelly|case|cover)|jelly|magsafe\s*(cover|case)|wallet\s*case|funda|capa)\b/i.test(
+          hay,
+        ) &&
+        !LCD_DISPLAY_PART.test(hay) &&
+        !HOUSING_PART.test(hay) &&
+        !/\b(back\s*glass|rear\s*glass)\b/i.test(hay)
+      );
+    case "magsafe-covers":
+      return /\bmagsafe\b/i.test(hay) && /\b(cover|case|funda|capa)\b/i.test(hay) && !/\bcharg/i.test(hay);
+    case "chargers":
+      return (
+        /\b(wall\s*charg|fast\s*charg|charger|carregador|adaptador|pd\s*\d{2,3}w|gan\s*charg)\b/i.test(hay) &&
+        !FLEX_OR_PORT_PART.test(hay) &&
+        !/\bcharging\s*case\b/i.test(hay)
+      );
+    case "adapters":
+      return /\b(adapter|adaptor|adaptador)\b/i.test(hay) && !FLEX_OR_PORT_PART.test(hay) && !LCD_DISPLAY_PART.test(hay);
+    case "cables":
+      return (
+        /\b(usb[-\s]*c|lightning|hdmi|type[-\s]*c|micro\s*usb|data\s*cable|charging\s*cable|\bcable\b|\bcabo\b)\b/i.test(
+          hay,
+        ) && !FLEX_OR_PORT_PART.test(hay)
+      );
+    case "power-bank":
+      return /\b(power\s*bank|powerbank|carregador\s*port[aá]til)\b/i.test(hay) && !/\bbattery\s*for\b/i.test(hay);
+    case "wireless-headsets":
+      return /\b(wireless\s*(headset|earphone|earbuds)|bluetooth\s*(headset|earphone)|tws|earbuds|neck\s*earphone)\b/i.test(
+        hay,
+      );
+    case "car-support":
+      return /\b(car\s*(support|mount|holder|stand|charger)|dashboard\s*mount|vent\s*mount)\b/i.test(hay);
+    case "memory-cards":
+      return /\b(memory\s*card|micro\s*sd|microsd|sd\s*card|tf\s*card|sdhc|sdxc)\b/i.test(hay);
+    case "repair-tools":
+      return (
+        /\b(repair(ing)?\s*tool|screwdriver|spudger|opening\s*tool|suction\s*cup|tweezer|pry\s*tool|iflx|mechanic\s*tool)\b/i.test(
+          hay,
+        ) && !LCD_DISPLAY_PART.test(hay)
+      );
+    default:
+      return false;
+  }
+}
+
+export function pickHomeRailItems(products: WooProduct[], key: HomeRailKey, limit = 14): WooProduct[] {
+  const out: WooProduct[] = [];
+  const seen = new Set<number>();
+  for (const p of products) {
+    if (out.length >= limit) break;
+    if (seen.has(p.id)) continue;
+    if (!productMatchesHomeRail(p, key)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  return out;
 }
 
 /** Keep only products that match a homepage rail title (Chargers, Hoco, …). */
@@ -454,6 +553,8 @@ export function filterProductsMatchingTitle(
   title: string,
   limit = 14,
 ): WooProduct[] {
+  const rail = TITLE_TO_RAIL[title.toLowerCase().replace(/\s+/g, " ").trim()];
+  if (rail) return pickHomeRailItems(products, rail, limit);
   const needles = sectionTitleNeedles(title);
   if (!needles.length) return [];
   const out: WooProduct[] = [];
