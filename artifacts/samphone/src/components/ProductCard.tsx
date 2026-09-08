@@ -1,5 +1,5 @@
 import { type MouseEvent } from "react";
-import { Eye, Heart, Package, ShoppingCart, Star } from "lucide-react";
+import { Eye, Heart, Package, Star } from "lucide-react";
 import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -50,7 +50,7 @@ export default function ProductCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-white",
+        "product-card group relative flex h-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
@@ -60,7 +60,7 @@ export default function ProductCard({
         <button
           type="button"
           onClick={toggleWish}
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm"
+          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center bg-white text-brand shadow-sm"
           data-testid={`button-wishlist-${testPrefix}-${id}`}
         >
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
@@ -77,7 +77,7 @@ export default function ProductCard({
       <div className="flex flex-1 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
         <ProductCardWriting href={productHref} title={name} />
 
-        <div className="flex items-center gap-2 text-[12px]">
+        <div className="flex items-center gap-2 product-card-copy text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
           <span className="font-medium uppercase text-brand">{rating.toFixed(1)}</span>
           <span className="h-3 w-px bg-brand/20" aria-hidden />
@@ -90,7 +90,7 @@ export default function ProductCard({
           <span className="product-card-copy text-xl font-medium tabular-nums leading-none text-sam sm:text-[1.35rem]">
             €{price.toFixed(2).replace(".", ",")}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
+          <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
             <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
             {t("product_in_stock")}
           </span>
@@ -102,15 +102,14 @@ export default function ProductCard({
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
+              className="product-card-add flex h-11 w-full items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
             >
-              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
               <span className="truncate">{t("addToCart")}</span>
             </Link>
           )}
           <Link
             href={productHref}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+            className="product-card-copy flex h-11 w-full items-center justify-center gap-2 border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
           >
             <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
             <span className="truncate">{t("card_view_details")}</span>

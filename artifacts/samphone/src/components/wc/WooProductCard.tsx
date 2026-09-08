@@ -4,7 +4,6 @@ import {
   Eye,
   Heart,
   Package,
-  ShoppingCart,
   Star,
   Store,
 } from "lucide-react";
@@ -68,7 +67,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-white",
+        "product-card group relative flex h-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
@@ -78,7 +77,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <button
           type="button"
           onClick={toggleWish}
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white text-brand shadow-sm"
+          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center bg-white text-brand shadow-sm"
           aria-pressed={wishlisted}
           aria-label="Wishlist"
         >
@@ -86,7 +85,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         </button>
 
         {product.dealerOnly ? (
-          <span className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-brand shadow-sm">
+          <span className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 bg-white/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-brand shadow-sm">
             <Store className="h-3.5 w-3.5" strokeWidth={2.2} />
             {t("dealer_only")}
           </span>
@@ -118,7 +117,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <ProductCardWriting href={productHref} title={title} />
 
-        <div className="flex items-center gap-2 text-[12px]">
+        <div className="flex items-center gap-2 product-card-copy text-[12px]">
           <Star className="h-3.5 w-3.5 fill-sam text-sam" />
           <span className="font-medium uppercase text-brand">{rating.toFixed(1)}</span>
           <span className="h-3 w-px bg-brand/20" aria-hidden />
@@ -133,13 +132,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               {priceLabel}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-sam/15 px-2.5 py-1.5 text-[11px] font-bold text-sam">
+            <span className="inline-flex items-center gap-1.5 bg-sam/15 px-2.5 py-1.5 text-[11px] font-medium text-sam">
               <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.4} />
               {priceUnavailableLabel}
             </span>
           )}
           {showPrice && inStock ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
+            <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
               <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
               {t("product_in_stock")}
             </span>
@@ -152,15 +151,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : showLoginBuy ? (
             <Link
               href={loginHref}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-sam px-3 text-sm font-medium uppercase text-white transition-colors hover:bg-brand"
+              className="product-card-add flex h-11 w-full items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
             >
-              <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={2.2} />
               <span className="truncate">{t("addToCart")}</span>
             </Link>
           ) : null}
           <Link
             href={productHref}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-sam hover:bg-sam hover:text-white"
+            className="product-card-copy flex h-11 w-full items-center justify-center gap-2 border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
           >
             <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
             <span className="truncate">{t("card_view_details")}</span>

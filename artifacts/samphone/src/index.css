@@ -229,9 +229,26 @@
 }
 
 .product-card-copy {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Roboto, sans-serif;
   font-weight: 500;
   font-style: normal;
+}
+
+.product-card {
+  font-family: Roboto, sans-serif;
+  font-weight: 500;
+  border-radius: 0;
+}
+
+.product-card-add {
+  font-family: Roboto, sans-serif;
+  font-weight: 500;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background-color: #2050b3;
+  border-radius: 0;
 }
 
 .nav-bar-item {
