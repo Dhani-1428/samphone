@@ -88,11 +88,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           </span>
         ) : null}
 
-        <Link href={productHref} className="absolute inset-0 z-10 flex items-center justify-center p-3 sm:p-4">
+        <Link href={productHref} className="absolute inset-0 z-10 block">
           <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-            className="h-full w-full object-contain object-center"
+            className="h-full w-full object-cover object-center"
             loading="lazy"
             onError={() => setImgOk(false)}
           />
