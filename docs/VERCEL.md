@@ -37,6 +37,8 @@ This merges `artifacts/api-server/.env` + `artifacts/samphone/.env` into **`verc
 
 Template (no secrets): copy `vercel.env.example` → `vercel.env` and fill in values manually.
 
+**Do not import `backend/.env` or `artifacts/api-server/.env`.** Those belong on samphone.cloud. Pasting them into Vercel often sets `PORT=` (empty) or a socket path; Vite then failed with `Invalid PORT value` and the deploy had no `public/` output. Remove `PORT`, `JWT_SECRET`, `CORS_ALLOW_ORIGINS`, MySQL, SMTP, DPD, Clerk/Stripe **secret** keys, and Woo `ck_`/`cs_` from the Vercel project, keep only the public `VITE_*` list below, then Redeploy.
+
 ### Option B — Add variables one by one
 
 In **Vercel → Project → Settings → Environment Variables**, add (Production + Preview):

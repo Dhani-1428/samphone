@@ -25,6 +25,7 @@ export const LEGAL_LINKS = {
 
 export const SITE_URL = (import.meta.env.VITE_SITE_URL ?? "https://samphone.eu").replace(/\/$/, "");
 export const STORE_EMAIL = "samphone.pt@gmail.com";
+export const STORE_PHONE = "+351 937 119 295";
 export const STORE_ADDRESS = "Rua da Palma N.221-223, 1100-391 Lisboa, Portugal";
 export const STORE_SOCIAL = {
   facebook: "https://www.facebook.com/",

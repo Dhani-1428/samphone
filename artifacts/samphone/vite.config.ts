@@ -5,13 +5,16 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { wooConfigFromEnv, wooDevPlugin } from "./server/woo-dev-plugin";
 
-const rawPort = process.env.PORT ?? "5173";
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
+/** Dev/preview listen port. Never throw — Vercel and pasted API .env files often set PORT to "" or a socket path. */
+function viteListenPort(): number {
+  const raw = process.env.PORT;
+  if (raw == null || String(raw).trim() === "") return 5173;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return 5173;
+  return n;
 }
 
+const port = viteListenPort();
 const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig(async ({ mode }) => {
@@ -48,7 +51,7 @@ export default defineConfig(async ({ mode }) => {
     wooDevPlugin(wooCfg),
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
+    ...(process.env.VERCEL ? [] : [runtimeErrorOverlay()]),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
