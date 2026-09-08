@@ -2,7 +2,7 @@ import { Link } from "wouter";
 
 /** Roboto-Medium (family Roboto, PostScript Roboto-Medium). */
 export const PRODUCT_DESC_TYPE =
-  "product-card-copy text-[15px] uppercase leading-5 tracking-[0.08em] text-black";
+  "product-card-copy text-[15px] uppercase leading-5 tracking-normal text-black";
 
 export default function ProductCardWriting({
   href,

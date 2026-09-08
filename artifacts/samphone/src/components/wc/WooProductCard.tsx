@@ -85,7 +85,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         </button>
 
         {product.dealerOnly ? (
-          <span className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 bg-white/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-brand shadow-sm">
+          <span className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 bg-white/95 px-2.5 py-1 text-[10px] font-medium uppercase tracking-normal text-brand shadow-sm">
             <Store className="h-3.5 w-3.5" strokeWidth={2.2} />
             {t("dealer_only")}
           </span>
