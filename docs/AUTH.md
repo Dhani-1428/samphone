@@ -31,7 +31,7 @@ Key files:
 1. Site Clerk = Production `clerk.samphone.cloud` (same publishable key as the app).
 2. Login/register/sync hit `samphone.cloud/api` (via `/cloud-api` rewrite).
 3. Every shop API call sends the **app JWT**.
-4. VPS `CORS_ALLOW_ORIGINS` includes `https://www.samphone.pt`.
+4. VPS `CORS_ALLOW_ORIGINS` includes `https://samphone.eu` and `https://www.samphone.eu`.
 5. Test: register on app → login on site; reverse (legacy WP user → app already works via cloud `wp_users` import).
 
 ## Do not

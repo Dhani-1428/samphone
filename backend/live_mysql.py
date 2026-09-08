@@ -200,6 +200,7 @@ def push_via_woocommerce_rest(
     """Push prices through WooCommerce REST when consumer keys are configured."""
     store = (
         _env("WOOCOMMERCE_STORE_URL")
+        or _env("SAMPHONE_STORE_URL")
         or _env("WC_API_URL")
         or _env("WC_SITE_URL")
         or _env("SITE_URL")

@@ -64,8 +64,9 @@ def _env(name: str, default: str = "") -> str:
 def _store_url() -> str:
     return (
         _env("WOOCOMMERCE_STORE_URL")
+        or _env("SAMPHONE_STORE_URL")
         or _env("WC_API_URL")
-        or _env("WC_SITE_URL", "https://www.samphone.pt")
+        or _env("WC_SITE_URL", "https://www.samphone.eu")
     ).rstrip("/")
 
 

@@ -20,7 +20,9 @@ SITE_URL = os.environ.get("SITE_URL", SHOP_URL).rstrip("/")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@samphone.pt")
 STORE_PHONE = os.environ.get("STORE_PHONE", "+351 937 119 295").strip() or "+351 937 119 295"
 STORE_PUBLIC_EMAIL = os.environ.get("STORE_PUBLIC_EMAIL", "geral@samphone.pt").strip() or "geral@samphone.pt"
-STORE_WEB = os.environ.get("STORE_WEB", "samphone.eu").strip() or "samphone.eu"
+STORE_WEB = (
+    os.environ.get("STORE_WEB_DISPLAY") or os.environ.get("STORE_WEB") or "www.samphone.eu"
+).strip() or "www.samphone.eu"
 NAVY = "#1E4A8C"
 ORANGE = "#F5A21A"
 LIGHT_BLUE = "#E8F0FB"
