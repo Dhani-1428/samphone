@@ -292,6 +292,15 @@
   border-radius: 0;
 }
 
+.product-card .product-card-price,
+.product-card-price {
+  font-family: "Roboto-Medium", "Roboto", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #c47d12;
+}
+
 .nav-bar-item {
   font-family: "Open Sans", sans-serif;
   letter-spacing: 0;

@@ -116,7 +116,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <div className="flex items-center justify-between gap-1">
           {showPrice && priceLabel ? (
-            <span className="product-card-copy text-base font-medium tabular-nums leading-none text-sam sm:text-lg">
+            <span className="product-card-price tabular-nums leading-none">
               {priceLabel}
             </span>
           ) : (

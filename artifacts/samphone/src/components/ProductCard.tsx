@@ -87,7 +87,7 @@ export default function ProductCard({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="product-card-copy text-xl font-medium tabular-nums leading-none text-sam sm:text-[1.35rem]">
+          <span className="product-card-price tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
           </span>
           <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
