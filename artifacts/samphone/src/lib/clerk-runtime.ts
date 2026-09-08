@@ -13,6 +13,7 @@ export function isClerkEnabled(): boolean {
   if (key.startsWith("pk_test_")) return isLocal;
   if (!key.startsWith("pk_live_")) return false;
   if (isLocal) return false;
+  if (host.endsWith(".vercel.app")) return true;
   if (host === "samphone.eu" || host.endsWith(".samphone.eu")) return true;
   if (host === "samphone.cloud" || host.endsWith(".samphone.cloud")) return true;
   if (host === "samphone.pt" || host.endsWith(".samphone.pt")) return true;
