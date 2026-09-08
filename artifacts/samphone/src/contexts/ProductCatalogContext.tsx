@@ -20,6 +20,7 @@ import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
 import { productMatchesSearchQuery, productSearchHaystack, searchTokenMatchesText } from "@/lib/woo-product-filters";
+import { parseSearchQuery, searchCatalogProducts } from "@/lib/model-search";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
 const CACHE_KEY = "samphone-products-cache-json-v6-cloud";
@@ -242,6 +243,11 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
 
   const searchProducts = useCallback(
     (q: string, limit = 10): WooProduct[] => {
+      const visible = filterCatalogForCustomer(products, user);
+      const parsed = parseSearchQuery(q);
+      if (parsed.model || parsed.type) {
+        return searchCatalogProducts(q, visible, limit);
+      }
       const tokens = normalizeQuery(q);
       if (tokens.length === 0) return [];
       const score = (p: WooProduct): number => {
@@ -257,7 +263,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
         }
         return s;
       };
-      return filterCatalogForCustomer(products, user)
+      return visible
         .map((p) => ({ p, s: score(p) }))
         .filter(({ s }) => s > 0)
         .sort((a, b) => b.s - a.s)

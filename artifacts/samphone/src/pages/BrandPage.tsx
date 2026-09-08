@@ -530,9 +530,14 @@ export default function BrandPage() {
             </button>
           </div>
         ) : selectedModel ? (
-          <div className="space-y-10">
-            <section>
+          <div className="space-y-12">
+            <section
+              data-catalog-section="parts"
+              className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
+            >
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">{t("model_parts_title")}</p>
               <CatalogSectionHeading icon={Wrench} title={t("model_parts_of")} highlight={selectedModel.label} />
+              <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_parts_hint")}</p>
               {modelParts.length === 0 ? (
                 <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
               ) : (
@@ -550,12 +555,19 @@ export default function BrandPage() {
                 </motion.div>
               )}
             </section>
-            <section>
+            <section
+              data-catalog-section="accessories"
+              className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
+            >
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">
+                {t("model_accessories_section")}
+              </p>
               <CatalogSectionHeading
                 icon={Sparkles}
                 title={t("model_accessories_of")}
                 highlight={selectedModel.label}
               />
+              <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_accessories_section_hint")}</p>
               {modelAccessories.length === 0 ? (
                 <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
               ) : (

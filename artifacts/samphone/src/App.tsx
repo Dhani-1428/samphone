@@ -45,6 +45,7 @@ import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
+import AdminCatalog from "@/pages/admin/AdminCatalog";
 import LegalPage from "@/pages/LegalPage";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -180,6 +181,9 @@ function Router() {
       </Route>
       <Route path="/admin/wholesale">
         <AdminWholesale />
+      </Route>
+      <Route path="/admin/catalog">
+        <AdminCatalog />
       </Route>
       <Route component={NotFound} />
     </Switch>

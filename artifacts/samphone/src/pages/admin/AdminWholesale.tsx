@@ -199,6 +199,9 @@ export default function AdminWholesale() {
           >
             Continue
           </Button>
+          <Link href="/admin/catalog" className="block text-center text-sm text-primary">
+            Catalog taxonomy
+          </Link>
           <Link href="/admin/pricing" className="block text-center text-sm text-primary">
             Product & category discounts
           </Link>
@@ -221,6 +224,11 @@ export default function AdminWholesale() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Link href="/admin/catalog">
+              <Button variant="outline" size="sm">
+                Catalog taxonomy
+              </Button>
+            </Link>
             <Link href="/admin/pricing">
               <Button variant="outline" size="sm">
                 Product / category discounts

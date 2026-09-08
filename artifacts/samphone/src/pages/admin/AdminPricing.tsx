@@ -186,6 +186,11 @@ export default function AdminPricing() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link href="/admin/catalog">
+              <Button variant="outline" size="sm">
+                Catalog taxonomy
+              </Button>
+            </Link>
             <Link href="/admin/wholesale">
               <Button variant="outline" size="sm">
                 Wholesale admin

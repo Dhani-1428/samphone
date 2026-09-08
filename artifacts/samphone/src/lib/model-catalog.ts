@@ -1,3 +1,4 @@
+import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
 
@@ -178,11 +179,11 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
   },
   {
     id: "back-glass",
-    label: "Back Glass / Cover",
+    label: "Back Glass",
     kind: "part",
     match: (h) =>
-      /\bback (glass|cover)\b/i.test(h) &&
-      !/\b(jelly|silicon|silicone|antishock|flip|magsafe|ring cover|design cover)\b/i.test(h),
+      /\b(back glass|rear glass)\b/i.test(h) &&
+      !/\b(jelly|silicon|silicone|antishock|flip|magsafe|ring cover|design cover|case|tempered)\b/i.test(h),
   },
   {
     id: "housing",
@@ -340,6 +341,33 @@ export const MODEL_ACCESSORY_TYPES: ModelTypeBucket[] = [
     kind: "accessory",
     match: (h) => /\bdesign (cover|case)\b/i.test(h),
   },
+  {
+    id: "back-cover",
+    label: "Back Cover",
+    kind: "accessory",
+    match: (h) =>
+      /\b(back cover|rear cover)\b/i.test(h) ||
+      (/\bcovers?\b/i.test(h) &&
+        !/\b(lcd|oled|back glass|jelly|magsafe|flip|antishock|silicon|silicone|case|tempered)\b/i.test(h)),
+  },
+  {
+    id: "charger",
+    label: "Charger",
+    kind: "accessory",
+    match: (h) => /\b(charger|carregador)\b/i.test(h) && !/\bcharging\s*(port|flex|board)\b/i.test(h),
+  },
+  {
+    id: "cable",
+    label: "Cable",
+    kind: "accessory",
+    match: (h) => /\b(usb[-\s]*c|lightning|data cable|charging cable|\bcable\b)\b/i.test(h) && !/\bflex\b/i.test(h),
+  },
+  {
+    id: "earphones",
+    label: "Earphones",
+    kind: "accessory",
+    match: (h) => /\b(earphone|headset|earbuds|tws)\b/i.test(h),
+  },
 ];
 
 export const OTHER_PARTS_TYPE: ModelTypeBucket = {
@@ -385,7 +413,11 @@ const API_TYPE_ALIASES: Record<string, string> = {
   "screen": "screen",
   "lcd assembly": "screen",
   "battery": "battery",
-  "back glass / cover": "back-glass",
+  "back glass / cover": "back-cover",
+  "back cover": "back-cover",
+  "charger": "charger",
+  "cable": "cable",
+  "earphones": "earphones",
   "housing / frame": "housing",
   "front camera": "front-cam",
   "rear camera": "rear-cam",
@@ -432,22 +464,30 @@ const ACCESSORY_MATCH_ORDER = [
   "ring",
   "magsafe",
   "design",
+  "back-cover",
+  "charger",
+  "cable",
+  "earphones",
   "normal-glass",
 ];
 
 export function classifyModelProduct(p: WooProduct): { kind: ModelTypeKind; typeId: string } {
-  const fromApi = bucketFromApiLabel(catalogTypeLabel(p));
-  if (fromApi) return fromApi;
+  const cls = classifyCatalogProduct(p);
+  const kind: ModelTypeKind = cls.category === "parts" ? "part" : "accessory";
   const h = p.name;
-  for (const id of ACCESSORY_MATCH_ORDER) {
-    const bucket = MODEL_ACCESSORY_TYPES.find((t) => t.id === id);
-    if (bucket?.match(h)) return { kind: "accessory", typeId: id };
+  if (kind === "accessory") {
+    for (const id of ACCESSORY_MATCH_ORDER) {
+      const bucket = MODEL_ACCESSORY_TYPES.find((t) => t.id === id);
+      if (bucket?.match(h)) return { kind: "accessory", typeId: id };
+    }
+    return { kind, typeId: cls.typeId };
   }
   for (const bucket of MODEL_PART_TYPES) {
     if (bucket.match(h)) return { kind: "part", typeId: bucket.id };
   }
-  if (isModelRepairPart(h)) return { kind: "part", typeId: OTHER_PARTS_TYPE.id };
-  return { kind: "accessory", typeId: OTHER_ACCESSORIES_TYPE.id };
+  const fromApi = bucketFromApiLabel(catalogTypeLabel(p));
+  if (fromApi?.kind === "part") return fromApi;
+  return { kind, typeId: cls.typeId };
 }
 
 function typeIndex(typeId: string, buckets: ModelTypeBucket[]): number {
@@ -480,6 +520,16 @@ export function typesWithCounts(
   return buckets
     .map((b) => ({ id: b.id, label: b.label, count: counts.get(b.id) ?? 0 }))
     .filter((b) => b.count > 0);
+}
+
+export function groupProductsByType(
+  products: WooProduct[],
+  kind: ModelTypeKind,
+): { id: string; label: string; count: number; items: WooProduct[] }[] {
+  return typesWithCounts(products, kind).map((chip) => ({
+    ...chip,
+    items: products.filter((p) => classifyModelProduct(p).typeId === chip.id),
+  }));
 }
 
 export function splitModelCatalog(products: WooProduct[]): { parts: WooProduct[]; accessories: WooProduct[] } {
