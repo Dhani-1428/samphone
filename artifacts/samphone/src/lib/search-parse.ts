@@ -92,16 +92,23 @@ const PRIORITY_MODELS: CanonicalModel[] = [
   },
 ];
 
-const NAV_MODELS = buildNavSearchModels();
-const SEEN_MODEL_IDS = new Set(PRIORITY_MODELS.map((m) => m.id));
-export const CANONICAL_MODELS: CanonicalModel[] = [
-  ...PRIORITY_MODELS,
-  ...NAV_MODELS.filter((m) => {
-    if (SEEN_MODEL_IDS.has(m.id)) return false;
-    SEEN_MODEL_IDS.add(m.id);
-    return true;
-  }),
-];
+let cachedCanonical: CanonicalModel[] | null = null;
+
+export function getCanonicalModels(): CanonicalModel[] {
+  if (cachedCanonical) return cachedCanonical;
+  const seen = new Set(PRIORITY_MODELS.map((m) => m.id));
+  cachedCanonical = [
+    ...PRIORITY_MODELS,
+    ...buildNavSearchModels().filter((m) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
+    }),
+  ];
+  return cachedCanonical;
+}
+
+export const CANONICAL_MODELS: CanonicalModel[] = PRIORITY_MODELS;
 
 export type ProductTypeSynonym = {
   id: CatalogSubcategory;
@@ -167,8 +174,9 @@ function hasPhrase(query: string, phrase: string): boolean {
 function aliasHits(query: string): { model: CanonicalModel; exact: boolean } | null {
   const qn = spaced(query);
   const qc = compact(query);
+  const models = getCanonicalModels();
   let best: { model: CanonicalModel; exact: boolean; spec: number } | null = null;
-  for (const model of CANONICAL_MODELS) {
+  for (const model of models) {
     for (const alias of [model.label, ...model.aliases]) {
       const an = spaced(alias);
       const ac = compact(alias);
@@ -182,7 +190,7 @@ function aliasHits(query: string): { model: CanonicalModel; exact: boolean } | n
   }
   if (best) return { model: best.model, exact: best.exact };
   let fuzzy: { model: CanonicalModel; dist: number } | null = null;
-  for (const model of CANONICAL_MODELS) {
+  for (const model of models) {
     for (const alias of [model.label, ...model.aliases]) {
       const ac = compact(alias);
       if (ac.length < 6 || Math.abs(ac.length - qc.length) > 3) continue;

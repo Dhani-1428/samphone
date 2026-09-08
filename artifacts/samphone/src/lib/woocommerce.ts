@@ -151,7 +151,13 @@ async function wooFetchJson<T>(
 
   let res: Response;
   try {
-    res = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12_000);
+    try {
+      res = await fetch(url, { method: "GET", headers: { Accept: "application/json" }, signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     const proxyOk = await checkWooProxy();
     const store = getWooStoreDisplayUrl();

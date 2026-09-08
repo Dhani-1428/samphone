@@ -496,9 +496,7 @@ export default function BrandPage() {
   );
 
   const waiting =
-    brandLoading ||
-    modelLoading ||
-    (loading && catalogBrandProducts.length === 0 && remoteBrand.length === 0);
+    !selectedModel && filteredProducts.length === 0 && (brandLoading || loading);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -543,7 +541,11 @@ export default function BrandPage() {
               <CatalogSectionHeading icon={Wrench} title={t("model_parts_of")} highlight={selectedModel.label} />
               <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_parts_hint")}</p>
               {modelParts.length === 0 ? (
-                <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+                modelLoading ? (
+                  <CatalogLoading compact className="rounded-xl bg-white" />
+                ) : (
+                  <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+                )
               ) : (
                 <motion.div
                   variants={containerVariants}
@@ -573,7 +575,11 @@ export default function BrandPage() {
               />
               <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_accessories_section_hint")}</p>
               {modelAccessories.length === 0 ? (
-                <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+                modelLoading ? (
+                  <CatalogLoading compact className="rounded-xl bg-white" />
+                ) : (
+                  <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
+                )
               ) : (
                 <motion.div
                   variants={containerVariants}

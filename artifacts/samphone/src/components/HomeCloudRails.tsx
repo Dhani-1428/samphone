@@ -35,7 +35,11 @@ function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 14)
 export default function HomeCloudRails() {
   const { t } = useLang();
   const [best, setBest] = useState<WooProduct[]>([]);
-  const [rows, setRows] = useState<RailRow[] | null>(null);
+  const [bestPending, setBestPending] = useState(true);
+  const [rows, setRows] = useState<RailRow[]>(() =>
+    HOME_CATEGORY_RAILS.map((g) => ({ key: g.key, title: g.title, group: g.group, items: [] })),
+  );
+  const [pendingKeys, setPendingKeys] = useState(() => new Set(HOME_CATEGORY_RAILS.map((g) => g.key)));
 
   useEffect(() => {
     let alive = true;
@@ -45,10 +49,13 @@ export default function HomeCloudRails() {
         if (alive && r.best.length) setBest(r.best);
       })
       .catch(() => {
-        /* sections fetch still fills category rows */
+        /* category rows still render */
+      })
+      .finally(() => {
+        if (alive) setBestPending(false);
       });
 
-    void Promise.all(
+    void Promise.allSettled(
       HOME_CATEGORY_RAILS.map(async (g) => {
         let items: WooProduct[] = [];
         try {
@@ -65,11 +72,15 @@ export default function HomeCloudRails() {
             /* keep what we have */
           }
         }
-        return { key: g.key, title: g.title, group: g.group, items };
+        if (!alive) return;
+        setRows((prev) => prev.map((row) => (row.key === g.key ? { ...row, items } : row)));
+        setPendingKeys((prev) => {
+          const next = new Set(prev);
+          next.delete(g.key);
+          return next;
+        });
       }),
-    ).then((next) => {
-      if (alive) setRows(next.filter((s) => s.items.length > 0));
-    });
+    );
 
     return () => {
       alive = false;
@@ -80,22 +91,24 @@ export default function HomeCloudRails() {
   const cards = (items: WooProduct[]) =>
     items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
 
-  if (rows == null && best.length === 0) {
-    return <CatalogLoading compact className="bg-[#F4F6F8]" />;
-  }
-
   return (
     <>
       {best.length > 0 ? (
         <HomeProductRail title={t("home_best_sellers")} seeAllHref="/store">
           {cards(best)}
         </HomeProductRail>
-      ) : null}
-      {(rows ?? []).map((s) => (
-        <HomeProductRail key={s.key} title={s.title} seeAllHref={`/group/${encodeURIComponent(s.group)}`}>
-          {cards(s.items)}
+      ) : bestPending ? (
+        <HomeProductRail title={t("home_best_sellers")} seeAllHref="/store">
+          <CatalogLoading compact />
         </HomeProductRail>
-      ))}
+      ) : null}
+      {rows.map((s) =>
+        s.items.length > 0 || pendingKeys.has(s.key) ? (
+          <HomeProductRail key={s.key} title={s.title} seeAllHref={`/group/${encodeURIComponent(s.group)}`}>
+            {s.items.length > 0 ? cards(s.items) : <CatalogLoading compact />}
+          </HomeProductRail>
+        ) : null,
+      )}
     </>
   );
 }

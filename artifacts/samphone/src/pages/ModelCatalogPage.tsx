@@ -234,7 +234,8 @@ export default function ModelCatalogPage() {
     void fetchCloudProductsForModel(names, brand)
       .then((list) => {
         if (!alive) return;
-        setRemote(list.filter(belongs));
+        const strict = list.filter(belongs);
+        setRemote(strict.length > 0 ? strict : list);
       })
       .catch(() => {
         if (alive) setRemote([]);
@@ -256,13 +257,15 @@ export default function ModelCatalogPage() {
         const label = parseModelName(model);
         const belongs = (p: WooProduct) =>
           names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, label, brand);
+        const remoteList = remote ?? [];
+        const remoteKeys = new Set(remoteList.map((p) => String(p.cloudId || p.id)));
         const seen = new Set<string>();
         const out: WooProduct[] = [];
-        for (const p of [...(remote ?? []), ...products.filter(belongs)]) {
+        for (const p of [...remoteList, ...products.filter(belongs)]) {
           const key = String(p.cloudId || p.id);
           if (seen.has(key)) continue;
           seen.add(key);
-          if (belongs(p)) out.push(p);
+          if (remoteKeys.has(key) || belongs(p)) out.push(p);
         }
         return out;
       }
@@ -296,8 +299,8 @@ export default function ModelCatalogPage() {
   const crumbBrand =
     brand === "iphone" && /^(ipad|iwatch|macbook)/i.test(family) ? "Apple" : brandName;
   const loading = model
-    ? modelFetching || remote == null
-    : catalogLoading || (modelProducts.length === 0 && products.length === 0);
+    ? modelFetching && modelProducts.length === 0 && (remote == null || remote.length === 0)
+    : catalogLoading && modelProducts.length === 0;
   const error = model ? null : catalogError;
   const priceLabel = t("woo_price_na");
 
@@ -312,59 +315,55 @@ export default function ModelCatalogPage() {
 
         <CatalogBackLink />
 
-        {loading ? (
-          <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
+        {loading && modelProducts.length === 0 ? (
+          <CatalogLoading compact className="mb-8 rounded-xl border border-black/[0.06] bg-white shadow-sm" />
         ) : null}
 
-        {error && !loading ? <p className="py-8 text-sm text-destructive">{error}</p> : null}
+        {error ? <p className="py-8 text-sm text-destructive">{error}</p> : null}
 
-        {!loading && !error ? (
-          modelProducts.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
-          ) : (
-            <div className="space-y-12">
-              <section
-                data-catalog-section="parts"
-                className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
-              >
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">{t("model_parts_title")}</p>
-                <SectionHeading icon={Wrench} title={t("model_parts_of")} highlight={title} />
-                <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_parts_hint")}</p>
-                <TypeChips
-                  allLabel={t("model_filter_all")}
-                  selected={partType}
-                  onSelect={setPartType}
-                  chips={partChips}
-                />
-                {partType ? (
-                  <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
-                ) : (
-                  <GroupedProductGrid groups={partGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
-                )}
-              </section>
-              <section
-                data-catalog-section="accessories"
-                className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
-              >
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">
-                  {t("model_accessories_section")}
-                </p>
-                <SectionHeading icon={Sparkles} title={t("model_accessories_of")} highlight={title} />
-                <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_accessories_section_hint")}</p>
-                <TypeChips
-                  allLabel={t("model_filter_all")}
-                  selected={accType}
-                  onSelect={setAccType}
-                  chips={accChips}
-                />
-                {accType ? (
-                  <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
-                ) : (
-                  <GroupedProductGrid groups={accGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
-                )}
-              </section>
-            </div>
-          )
+        {!error ? (
+          <div className="space-y-12">
+            <section
+              data-catalog-section="parts"
+              className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
+            >
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">{t("model_parts_title")}</p>
+              <SectionHeading icon={Wrench} title={t("model_parts_of")} highlight={title} />
+              <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_parts_hint")}</p>
+              <TypeChips
+                allLabel={t("model_filter_all")}
+                selected={partType}
+                onSelect={setPartType}
+                chips={partChips}
+              />
+              {partType ? (
+                <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
+              ) : (
+                <GroupedProductGrid groups={partGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
+              )}
+            </section>
+            <section
+              data-catalog-section="accessories"
+              className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-sm sm:p-6"
+            >
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-sam">
+                {t("model_accessories_section")}
+              </p>
+              <SectionHeading icon={Sparkles} title={t("model_accessories_of")} highlight={title} />
+              <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_accessories_section_hint")}</p>
+              <TypeChips
+                allLabel={t("model_filter_all")}
+                selected={accType}
+                onSelect={setAccType}
+                chips={accChips}
+              />
+              {accType ? (
+                <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
+              ) : (
+                <GroupedProductGrid groups={accGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
+              )}
+            </section>
+          </div>
         ) : null}
       </div>
     </div>
