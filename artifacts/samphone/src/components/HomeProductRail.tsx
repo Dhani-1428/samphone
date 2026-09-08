@@ -31,6 +31,7 @@ export default function HomeProductRail({
   const [api, setApi] = useState<CarouselApi>();
   const [pageIndex, setPageIndex] = useState(1);
   const [pageTotal, setPageTotal] = useState(1);
+  const [paused, setPaused] = useState(false);
   const items = Children.toArray(children);
 
   useEffect(() => {
@@ -49,30 +50,14 @@ export default function HomeProductRail({
   }, [api]);
 
   useEffect(() => {
-    if (!api || items.length < 3) return;
-    const root = api.rootNode();
-    let paused = false;
-    const pause = () => {
-      paused = true;
-    };
-    const resume = () => {
-      paused = false;
-    };
-    root.addEventListener("mouseenter", pause);
-    root.addEventListener("mouseleave", resume);
-    root.addEventListener("focusin", pause);
-    root.addEventListener("focusout", resume);
+    if (!api || items.length < 3 || paused) return;
     const id = window.setInterval(() => {
-      if (!paused) api.scrollNext();
+      api.scrollNext();
     }, 4200);
     return () => {
       window.clearInterval(id);
-      root.removeEventListener("mouseenter", pause);
-      root.removeEventListener("mouseleave", resume);
-      root.removeEventListener("focusin", pause);
-      root.removeEventListener("focusout", resume);
     };
-  }, [api, items.length]);
+  }, [api, items.length, paused]);
 
   return (
     <section className="py-8 md:py-10">
@@ -93,12 +78,18 @@ export default function HomeProductRail({
           </div>
         </div>
 
-        <div className="relative px-8 sm:px-10">
+        <div
+          className="relative px-8 sm:px-10"
+          onPointerEnter={() => setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
+        >
           <Carousel setApi={setApi} opts={{ align: "start", loop: true, duration: 55 }} className="w-full">
             <CarouselContent className="-ml-3 md:-ml-4">
               {items.map((child, i) => (
-                <CarouselItem key={i} className={cn("pl-3 md:pl-4", itemBasis)}>
-                  {child}
+                <CarouselItem key={i} className={cn("overflow-visible pl-3 md:pl-4", itemBasis)}>
+                  <div className="relative z-0 h-full origin-center will-change-transform transition-[transform,box-shadow] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_22px_44px_rgba(36,63,159,0.22)]">
+                    {child}
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
