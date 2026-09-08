@@ -5,11 +5,6 @@ import { useParams } from "wouter";
 import { allSlugs } from "@/data/categories";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
-import CatalogListFilters, {
-  applyCatalogListFilters,
-  EMPTY_CATALOG_LIST_FILTERS,
-  type CatalogListFilterState,
-} from "@/components/CatalogListFilters";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import {
@@ -77,14 +72,9 @@ export default function CategoryPage() {
     loading: false,
     items: null,
   });
-  const [filters, setFilters] = useState<CatalogListFilterState>({
-    ...EMPTY_CATALOG_LIST_FILTERS,
-    sort: "price-asc",
-  });
 
   useEffect(() => {
     setRemote({ loading: false, items: null });
-    setFilters({ ...EMPTY_CATALOG_LIST_FILTERS, sort: "price-asc" });
   }, [slug]);
 
   useEffect(() => {
@@ -122,7 +112,6 @@ export default function CategoryPage() {
   }, [configured, catalogLoading, slug, fromCatalog.length, synthetic]);
 
   const wooList: WooProduct[] = fromCatalog.length > 0 ? fromCatalog : remote.items ?? [];
-  const filteredWooList = useMemo(() => applyCatalogListFilters(wooList, filters), [wooList, filters]);
 
   const wooLoading =
     configured &&
@@ -141,15 +130,13 @@ export default function CategoryPage() {
   const label = syntheticLabel ?? wooMeta?.name ?? staticMeta?.label ?? humanizeSlug(slug);
   const parent = syntheticBrandName ?? parentFromWoo ?? staticMeta?.parent ?? "Shop";
 
-  const showWooGrid = configured && filteredWooList.length > 0;
+  const showWooGrid = configured && wooList.length > 0;
   const showWooEmpty =
     configured && !wooLoading && !catalogError && wooList.length === 0;
-  const showFilteredEmpty =
-    configured && !wooLoading && wooList.length > 0 && filteredWooList.length === 0;
   const showNotFound = !configured && !staticMeta && !wooLoading;
 
   const heroDescription = configured && wooList.length > 0
-    ? `${filteredWooList.length} products`
+    ? `${wooList.length} products`
     : "";
 
   return (
@@ -177,15 +164,6 @@ export default function CategoryPage() {
 
         {wooLoading ? <CatalogLoading /> : null}
 
-        {!wooLoading && configured && wooList.length > 0 ? (
-          <CatalogListFilters
-            filters={filters}
-            onChange={setFilters}
-            resultCount={filteredWooList.length}
-            searchPlaceholder={`Search in ${label}…`}
-          />
-        ) : null}
-
         {showWooGrid ? (
           <motion.ul
             variants={containerVariants}
@@ -193,15 +171,12 @@ export default function CategoryPage() {
             animate="visible"
             className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 md:gap-5"
           >
-            {filteredWooList.map((p) => (
+            {wooList.map((p) => (
               <motion.li key={p.id} variants={cardVariants}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
               </motion.li>
             ))}
           </motion.ul>
-        ) : null}
-        {showFilteredEmpty ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
         ) : null}
 
         {!wooLoading && showWooEmpty && (

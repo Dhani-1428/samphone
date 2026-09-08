@@ -145,7 +145,7 @@ function Sidebar({
   }, [models, modelQuery]);
 
   return (
-    <div className="mb-6 w-full rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-black/[0.08] bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[15px] font-bold text-black">Filters</span>
         <button
@@ -197,8 +197,8 @@ function Sidebar({
                 className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
               />
             </label>
-            <div className="mt-2 flex max-h-40 flex-wrap gap-2 overflow-y-auto pr-1">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
+            <div className="mt-2 flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
                 <input
                   type="radio"
                   name="brand-model"
@@ -209,7 +209,7 @@ function Sidebar({
                 <span>All models</span>
               </label>
               {visibleModels.map((m) => (
-                <label key={m.id} className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
+                <label key={m.id} className="flex cursor-pointer items-start gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
                   <input
                     type="radio"
                     name="brand-model"
@@ -248,7 +248,7 @@ function Sidebar({
         </FilterSection>
 
         <FilterSection title="Price range">
-          <div className="flex max-w-xs items-center gap-2">
+          <div className="flex items-center gap-2">
             <input
               type="number"
               placeholder="Min"
@@ -499,13 +499,17 @@ export default function BrandPage() {
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14 xl:px-16">
-        <Sidebar
-          filters={filters}
-          onChange={setFilters}
-          families={families}
-          models={models}
-        />
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+          <aside className="w-full shrink-0 lg:sticky lg:top-24 lg:w-[280px]">
+            <Sidebar
+              filters={filters}
+              onChange={setFilters}
+              families={families}
+              models={models}
+            />
+          </aside>
 
+          <div className="min-w-0 flex-1">
         <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
 
         {waiting ? (
@@ -584,6 +588,8 @@ export default function BrandPage() {
             ))}
           </motion.div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

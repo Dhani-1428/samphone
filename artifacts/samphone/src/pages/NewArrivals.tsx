@@ -3,11 +3,6 @@ import { motion, useInView } from "framer-motion";
 import WooProductCard from "@/components/wc/WooProductCard";
 import PageVideoHero from "@/components/PageVideoHero";
 import CatalogLoading from "@/components/CatalogLoading";
-import CatalogListFilters, {
-  applyCatalogListFilters,
-  EMPTY_CATALOG_LIST_FILTERS,
-  type CatalogListFilterState,
-} from "@/components/CatalogListFilters";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -37,10 +32,6 @@ export default function NewArrivals() {
   const { products, loading, error } = useProductCatalog();
   const [cloudItems, setCloudItems] = useState<WooProduct[] | null>(null);
   const [cloudLoading, setCloudLoading] = useState(true);
-  const [filters, setFilters] = useState<CatalogListFilterState>({
-    ...EMPTY_CATALOG_LIST_FILTERS,
-    sort: "newest",
-  });
 
   useEffect(() => {
     let alive = true;
@@ -62,30 +53,23 @@ export default function NewArrivals() {
 
   const catalogNewest = useMemo(() => (woo ? sortNewest(products) : []), [woo, products]);
 
-  const rawList = useMemo(() => {
+  const list = useMemo(() => {
     if (cloudItems && cloudItems.length > 0) return cloudItems;
     return catalogNewest;
   }, [cloudItems, catalogNewest]);
 
-  const list = useMemo(() => applyCatalogListFilters(rawList, filters), [rawList, filters]);
-
-  const busy = cloudLoading || (woo && loading && rawList.length === 0);
-  const showFilters = !busy && rawList.length > 0;
+  const busy = cloudLoading || (woo && loading && list.length === 0);
 
   const grid = (
     <>
       {busy ? <CatalogLoading /> : null}
 
-      {woo && !busy && error && rawList.length === 0 ? (
+      {woo && !busy && error && list.length === 0 ? (
         <p className="py-8 text-center text-sm text-destructive">{error}</p>
       ) : null}
 
-      {!busy && rawList.length === 0 && woo ? (
+      {!busy && list.length === 0 && woo ? (
         <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
-      ) : null}
-
-      {!busy && rawList.length > 0 && list.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">No products match your filters.</p>
       ) : null}
 
       {list.length > 0 ? (
@@ -111,14 +95,6 @@ export default function NewArrivals() {
       <NewArrivalsHeader />
 
       <div className="mx-auto w-full max-w-[1600px] px-5 py-8 sm:px-8 md:px-10 lg:px-14">
-        {showFilters ? (
-          <CatalogListFilters
-            filters={filters}
-            onChange={setFilters}
-            resultCount={list.length}
-            searchPlaceholder="Search new arrivals…"
-          />
-        ) : null}
         {grid}
       </div>
     </div>
