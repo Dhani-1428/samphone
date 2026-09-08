@@ -264,7 +264,7 @@ export default function MobileNavDrawer({
   const visible = showMore ? brandItems : brandItems.slice(0, 8);
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex flex-col bg-white text-black dark:bg-[#12192A] dark:text-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
+    <div className="site-navbar fixed inset-0 z-[80] flex flex-col bg-white text-black dark:bg-[#12192A] dark:text-white xl:hidden" role="dialog" aria-modal="true" aria-label={t("header_menu")}>
       <div className="flex items-center justify-between px-4 py-3">
         <button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center text-black dark:text-white" aria-label="Close">
           <X className="h-6 w-6" strokeWidth={1.8} />

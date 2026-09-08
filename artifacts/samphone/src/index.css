@@ -63,7 +63,7 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-sans);
   --font-mono: var(--app-font-sans);
-  --font-display: "Open Sans", sans-serif;
+  --font-display: "Roboto", sans-serif;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-extrabold: 800;
@@ -118,9 +118,9 @@
 
   --radius: 0.75rem;
 
-  --app-font-sans: "Open Sans", sans-serif;
-  --app-font-serif: "Open Sans", sans-serif;
-  --app-font-mono: "Open Sans", sans-serif;
+  --app-font-sans: "Roboto", sans-serif;
+  --app-font-serif: "Roboto", sans-serif;
+  --app-font-mono: "Roboto", sans-serif;
 }
 
 .dark {
@@ -162,18 +162,18 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: "Open Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
     letter-spacing: 0;
   }
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     font-size: 16px;
-    font-family: "Open Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
   }
   body {
     @apply bg-background text-foreground antialiased overflow-x-hidden;
-    font-family: "Open Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-weight: 500;
     font-size: 14px;
     color: #4A4A4A;
@@ -181,7 +181,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Open Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
     letter-spacing: 0;
     font-weight: 800;
     color: #243F9F;
@@ -190,7 +190,7 @@
   .font-sans,
   .font-serif,
   .font-mono {
-    font-family: "Open Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
   }
   .font-display {
     font-weight: 800;
@@ -277,7 +277,7 @@
 }
 
 .typo-topbar {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 500;
   font-size: 15px;
   line-height: 25px;
@@ -306,7 +306,7 @@
 }
 
 .typo-cart-count {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
@@ -314,7 +314,7 @@
 
 .dropdown-type,
 .dropdown-type * {
-  font-family: "Lato", Arial, Helvetica, sans-serif;
+  font-family: "Open Sans", sans-serif;
   letter-spacing: 0;
   font-weight: 600;
 }
@@ -333,7 +333,7 @@
 .typo-form-label,
 .typo-input,
 .typo-form-meta {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 500;
   font-size: 13px;
   line-height: 20px;
@@ -341,49 +341,49 @@
 
 .typo-btn-login,
 .typo-subscribe {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 700;
   font-size: 13px;
   line-height: 20px;
 }
 
 .typo-newsletter-title {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 800;
   font-size: 18px;
   line-height: 24px;
 }
 
 .typo-footer-heading {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 800;
   font-size: 20px;
   line-height: 26px;
 }
 
 .typo-footer-link {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 700;
   font-size: 15px;
   line-height: 24px;
 }
 
 .typo-footer-contact {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 500;
   font-size: 14px;
   line-height: 22px;
 }
 
 .typo-footer-phone {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 700;
   font-size: 18px;
   line-height: 24px;
 }
 
 .typo-policy-link {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 700;
   font-size: 14px;
   line-height: 22px;

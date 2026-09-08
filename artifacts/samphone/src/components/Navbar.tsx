@@ -1062,7 +1062,7 @@ export default function Navbar() {
       </div>
 
       {/* Brand row only on wide desktops — mobile uses the hamburger */}
-      <nav className="relative z-[55] hidden w-full overflow-visible bg-brand xl:block">
+      <nav className="site-navbar relative z-[55] hidden w-full overflow-visible bg-brand xl:block">
         <div className="mx-auto flex h-[50px] w-full max-w-[1600px] items-center justify-start px-3 sm:px-4 md:px-6 lg:px-8 xl:px-10">
           <div className="relative shrink-0 self-stretch">
             <button
