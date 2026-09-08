@@ -15,7 +15,12 @@ export default function RecommendedSection() {
   const wooSlice = useMemo(() => {
     if (!(woo && products.length > 0)) return [];
     const accessories = filterAccessoryCatalog(products);
-    const pool = accessories.length > 0 ? accessories : products.filter((p) => p.on_sale);
+    const pool =
+      accessories.length > 0
+        ? accessories
+        : products.filter((p) => p.on_sale).length > 0
+          ? products.filter((p) => p.on_sale)
+          : products;
     return sortNewest(pool).slice(0, 14);
   }, [woo, products]);
 

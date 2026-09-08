@@ -22,19 +22,19 @@ from woocommerce_classify import classify, clean_description, nice, phone_brand
 
 logger = logging.getLogger(__name__)
 
-# Home screen category rows (replaces 5 extra /products calls).
-HOME_RAIL_SECTIONS: tuple[tuple[str, str, str], ...] = (
-    ("repair-tools", "Repair Tools", "Repairing Tools"),
-    ("memory-cards", "Memory Cards", "Cards"),
-    ("adapters", "Adapters", "Chargers"),
-    ("car-support", "Mobile Car Support", "Mobile Car"),
-    ("magsafe-covers", "MagSafe Covers", "Original Accessories"),
-    ("wireless-headsets", "Wireless Headsets", "Headphones"),
-    ("power-bank", "Power Bank", "Powerbanks"),
-    ("cables", "Cables", "Cables"),
-    ("screen-protectors", "Screen Protectors", "Original Accessories"),
-    ("phone-cases", "Phone Cases", "Original Accessories"),
-    ("chargers", "Chargers", "Chargers"),
+# Home screen category rows: (key, title, see-all group, filter kwargs)
+HOME_RAIL_SECTIONS: tuple[tuple[str, str, str, dict[str, str]], ...] = (
+    ("repair-tools", "Repair Tools", "Repairing Tools", {"category_group": "Repairing Tools"}),
+    ("memory-cards", "Memory Cards", "Cards", {"category_group": "Cards"}),
+    ("adapters", "Adapters", "Chargers", {"leaf_category": "Adapters"}),
+    ("car-support", "Mobile Car Support", "Mobile Car", {"category_group": "Mobile Car"}),
+    ("magsafe-covers", "MagSafe Covers", "Original Accessories", {"q": "magsafe"}),
+    ("wireless-headsets", "Wireless Headsets", "Headphones", {"category_group": "Headphones"}),
+    ("power-bank", "Power Bank", "Powerbanks", {"category_group": "Powerbanks"}),
+    ("cables", "Cables", "Cables", {"category_group": "Cables"}),
+    ("screen-protectors", "Screen Protectors", "Original Accessories", {"q": "tempered glass"}),
+    ("phone-cases", "Phone Cases", "Original Accessories", {"q": "phone case"}),
+    ("chargers", "Chargers", "Chargers", {"category_group": "Chargers"}),
 )
 
 _PREVIEW_KEYS = (
@@ -1010,13 +1010,13 @@ class CatalogService:
             payload["fresh"] = _items(new_arrival=True, sort="date_desc")
         if part_key in {"all", "sections"}:
             sections: list[dict[str, Any]] = []
-            for key, title, group in HOME_RAIL_SECTIONS:
+            for key, title, group, query in HOME_RAIL_SECTIONS:
                 sections.append(
                     {
                         "key": key,
                         "title": title,
                         "category_group": group,
-                        "items": _items(category_group=group),
+                        "items": _items(**query),
                     }
                 )
             payload["sections"] = sections

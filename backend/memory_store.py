@@ -321,19 +321,25 @@ def home_rails(*, part: str = "all", limit: int = 8, user: Optional[dict] = None
         payload["fresh"] = filter_products(new_arrival=True, limit=lim, offset=0, user=user)
     if part_key in {"all", "sections"}:
         sections = []
-        for key, title, group in (
-            ("chargers", "Chargers", "Chargers"),
-            ("cables", "Cables", "Cables"),
-            ("headphones", "Headphones", "Headphones"),
-            ("powerbanks", "Powerbanks", "Powerbanks"),
-            ("speakers", "Speakers", "Speakers"),
+        for key, title, group, query in (
+            ("repair-tools", "Repair Tools", "Repairing Tools", {"category_group": "Repairing Tools"}),
+            ("memory-cards", "Memory Cards", "Cards", {"category_group": "Cards"}),
+            ("adapters", "Adapters", "Chargers", {"leaf_category": "Adapters"}),
+            ("car-support", "Mobile Car Support", "Mobile Car", {"category_group": "Mobile Car"}),
+            ("magsafe-covers", "MagSafe Covers", "Original Accessories", {"q": "magsafe"}),
+            ("wireless-headsets", "Wireless Headsets", "Headphones", {"category_group": "Headphones"}),
+            ("power-bank", "Power Bank", "Powerbanks", {"category_group": "Powerbanks"}),
+            ("cables", "Cables", "Cables", {"category_group": "Cables"}),
+            ("screen-protectors", "Screen Protectors", "Original Accessories", {"q": "tempered glass"}),
+            ("phone-cases", "Phone Cases", "Original Accessories", {"q": "phone case"}),
+            ("chargers", "Chargers", "Chargers", {"category_group": "Chargers"}),
         ):
             sections.append(
                 {
                     "key": key,
                     "title": title,
                     "category_group": group,
-                    "items": filter_products(category_group=group, limit=lim, offset=0, user=user),
+                    "items": filter_products(limit=lim, offset=0, user=user, **query),
                 }
             )
         payload["sections"] = sections

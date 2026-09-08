@@ -22,21 +22,30 @@ const HOME_CATEGORY_RAILS = [
   { key: "chargers", title: "Chargers", group: "Chargers", query: { category_group: "Chargers" } },
 ] as const;
 
-function mergeForTitle(title: string, apiItems: WooProduct[], catalog: WooProduct[], limit = 14): WooProduct[] {
-  const fromApi = filterProductsMatchingTitle(apiItems, title, limit);
-  if (fromApi.length >= limit) return fromApi;
-  const seen = new Set(fromApi.map((p) => p.id));
-  const extra = filterProductsMatchingTitle(catalog, title, limit + fromApi.length).filter((p) => !seen.has(p.id));
-  return [...fromApi, ...extra].slice(0, limit);
+function mergeRailItems(apiItems: WooProduct[], catalog: WooProduct[], title: string, limit = 14): WooProduct[] {
+  const out: WooProduct[] = [];
+  const seen = new Set<number>();
+  for (const p of apiItems) {
+    if (out.length >= limit) break;
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  if (out.length >= 4) return out;
+  for (const p of filterProductsMatchingTitle(catalog, title, limit + out.length)) {
+    if (out.length >= limit) break;
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  return out;
 }
 
 export default function HomeCloudRails() {
   const { t } = useLang();
   const { products: catalog } = useProductCatalog();
   const [rails, setRails] = useState<CloudHomeRails | null>(null);
-  const [extra, setExtra] = useState<{ key: string; title: string; group: string; items: WooProduct[] }[] | null>(
-    null,
-  );
+  const [extra, setExtra] = useState<Record<string, WooProduct[]>>({});
 
   useEffect(() => {
     let alive = true;
@@ -51,13 +60,16 @@ export default function HomeCloudRails() {
       HOME_CATEGORY_RAILS.map(async (g) => {
         try {
           const page = await fetchCloudProductList({ ...g.query }, 24);
-          return { key: g.key, title: g.title, group: g.group, items: page.items };
+          return [g.key, page.items] as const;
         } catch {
-          return { key: g.key, title: g.title, group: g.group, items: [] as WooProduct[] };
+          return [g.key, [] as WooProduct[]] as const;
         }
       }),
     ).then((rows) => {
-      if (alive) setExtra(rows);
+      if (!alive) return;
+      const next: Record<string, WooProduct[]> = {};
+      for (const [key, items] of rows) next[key] = items;
+      setExtra(next);
     });
     return () => {
       alive = false;
@@ -69,16 +81,19 @@ export default function HomeCloudRails() {
     items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
 
   const extraRows = useMemo(() => {
-    if (!extra) return [];
-    return extra
-      .map((s) => ({
-        ...s,
-        items: mergeForTitle(s.title, s.items, catalog),
-      }))
-      .filter((s) => s.items.length > 0);
-  }, [extra, catalog]);
+    const fromHome = new Map((rails?.sections ?? []).map((s) => [s.key, s.items]));
+    return HOME_CATEGORY_RAILS.map((g) => {
+      const apiItems = extra[g.key]?.length ? extra[g.key] : fromHome.get(g.key) ?? [];
+      return {
+        key: g.key,
+        title: g.title,
+        group: g.group,
+        items: mergeRailItems(apiItems, catalog, g.title),
+      };
+    }).filter((s) => s.items.length > 0);
+  }, [rails, extra, catalog]);
 
-  if (rails == null || extra == null) {
+  if (rails == null) {
     return <CatalogLoading compact className="bg-[#F4F6F8]" />;
   }
 

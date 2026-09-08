@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
+import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { fetchCloudFeatured } from "@/lib/samphone-cloud";
+import { sortNewest } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function Products() {
   const { t } = useLang();
+  const { products, loading } = useProductCatalog();
   const [featured, setFeatured] = useState<WooProduct[] | null>(null);
 
   useEffect(() => {
@@ -24,7 +27,12 @@ export default function Products() {
     };
   }, []);
 
-  if (featured == null) {
+  const display = useMemo(() => {
+    if (featured && featured.length > 0) return featured;
+    return sortNewest(products).slice(0, 14);
+  }, [featured, products]);
+
+  if (display.length === 0 && (featured == null || loading)) {
     return (
       <div id="products">
         <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
@@ -34,13 +42,13 @@ export default function Products() {
     );
   }
 
-  if (featured.length === 0) return null;
+  if (display.length === 0) return null;
 
   return (
     <div id="products">
       <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
-        {featured.map((p) => (
-          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+        {display.map((p) => (
+          <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
         ))}
       </HomeProductRail>
     </div>
