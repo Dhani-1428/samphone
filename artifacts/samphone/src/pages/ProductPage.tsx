@@ -186,8 +186,6 @@ export default function ProductPage() {
       ]}
       badge={product.subtitle || product.badge}
       title={product.name}
-      rating={product.rating}
-      reviewCount={product.reviews}
       excerpt={copy.excerpt}
       specRows={[
         { label: t("pdp_condition"), value: t("pdp_new") },
@@ -368,8 +366,6 @@ function WooProductView({
       crumbs={crumbs}
       badge={wooProduct.partType || primaryCat?.name}
       title={wooProduct.name}
-      rating={wooProduct.rating ?? 0}
-      reviewCount={wooProduct.reviewCount ?? 0}
       excerpt={copy.excerpt}
       specRows={specRows}
       compatibility={compatibility}
