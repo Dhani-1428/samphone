@@ -81,7 +81,7 @@ export default function MultiBrand() {
               variants={containerVariants}
               initial="hidden"
               animate={isInView ? "visible" : "hidden"}
-              className="grid list-none grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 p-0"
+              className="grid list-none grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 md:gap-5 p-0"
             >
               {visibleWoo.map((p) => (
                 <motion.li key={p.id} variants={itemVariants}>

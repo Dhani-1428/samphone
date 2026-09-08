@@ -141,7 +141,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
           ) : (
-            <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
               {visible.map((p) => (
                 <WooProductCard
                   key={p.cloudId || `${p.id}-${p.slug}`}

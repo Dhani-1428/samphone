@@ -551,7 +551,7 @@ export default function BrandPage() {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
                 >
                   {modelParts.map((p) => (
                     <motion.div key={productKey(p)} variants={itemVariants}>
@@ -585,7 +585,7 @@ export default function BrandPage() {
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+                  className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
                 >
                   {modelAccessories.map((p) => (
                     <motion.div key={productKey(p)} variants={itemVariants}>
@@ -601,7 +601,7 @@ export default function BrandPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
           >
             {filteredProducts.map((p) => (
               <motion.div key={productKey(p)} variants={itemVariants}>

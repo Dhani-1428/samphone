@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 const navInset = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16";
 
 const itemBasis =
-  "basis-[78%] min-[400px]:basis-[48%] sm:basis-[38%] md:basis-[28%] lg:basis-[22%] xl:basis-[18%] 2xl:basis-[15%]";
+  "basis-[86%] min-[400px]:basis-[58%] sm:basis-[46%] md:basis-[36%] lg:basis-[30%] xl:basis-[24%] 2xl:basis-[22%]";
 
 export default function HomeProductRail({
   title,

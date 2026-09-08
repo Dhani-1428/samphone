@@ -169,7 +169,7 @@ export default function CategoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 md:gap-5"
+            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5"
           >
             {wooList.map((p) => (
               <motion.li key={p.id} variants={cardVariants}>

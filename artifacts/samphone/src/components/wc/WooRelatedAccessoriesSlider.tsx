@@ -65,7 +65,7 @@ export default function WooRelatedAccessoriesSlider({
 
   /** ~6 cards visible on wide screens (reference layout). */
   const itemBasis =
-    "basis-[82%] min-[420px]:basis-[48%] sm:basis-[33%] md:basis-[25%] lg:basis-[20%] xl:basis-[16.666%] 2xl:basis-[15%]";
+    "basis-[86%] min-[420px]:basis-[56%] sm:basis-[42%] md:basis-[34%] lg:basis-[28%] xl:basis-[24%] 2xl:basis-[22%]";
 
   if (related.length === 0) return null;
 
