@@ -4,6 +4,8 @@ import {
   type CatalogTopCategory,
   type TaxonomyProduct,
 } from "./catalog-taxonomy.ts";
+import { hayMatchesModel } from "./model-aliases.ts";
+import { buildNavSearchModels } from "./nav-search-models.ts";
 
 export type CanonicalModel = {
   id: string;
@@ -23,7 +25,7 @@ export function spaced(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export const CANONICAL_MODELS: CanonicalModel[] = [
+const PRIORITY_MODELS: CanonicalModel[] = [
   {
     id: "iphone-17-pro-max",
     brand: "iphone",
@@ -88,6 +90,17 @@ export const CANONICAL_MODELS: CanonicalModel[] = [
     href: "/model/xiaomi/redmi/redmi-note-13",
     aliases: ["note 13", "redmi note 13", "redminote13", "xiaomi note 13"],
   },
+];
+
+const NAV_MODELS = buildNavSearchModels();
+const SEEN_MODEL_IDS = new Set(PRIORITY_MODELS.map((m) => m.id));
+export const CANONICAL_MODELS: CanonicalModel[] = [
+  ...PRIORITY_MODELS,
+  ...NAV_MODELS.filter((m) => {
+    if (SEEN_MODEL_IDS.has(m.id)) return false;
+    SEEN_MODEL_IDS.add(m.id);
+    return true;
+  }),
 ];
 
 export type ProductTypeSynonym = {
@@ -231,21 +244,20 @@ export function parseSearchQuery(raw: string): ParsedSearchQuery {
 }
 
 export function productNameMatchesModel(name: string, model: CanonicalModel): boolean {
-  const h = spaced(name);
-  const labels = [model.label, ...model.aliases].sort((a, b) => compact(b).length - compact(a).length);
-  const hit = labels.find((n) => hasPhrase(h, n) || compact(name).includes(compact(n)));
-  if (!hit) return false;
-  if (model.id.endsWith("-pro") && !model.id.endsWith("-pro-max")) {
-    if (/\bpro max\b/i.test(h) || /promax/i.test(compact(name))) return false;
-  }
-  if (model.id === "iphone-15" && /\b(pro|plus|promax)\b/i.test(h)) return false;
-  return true;
+  return hayMatchesModel(name, model.brand, model.label);
+}
+
+export function productTypeMatchesParsed(p: TaxonomyProduct, parsed: ParsedSearchQuery): boolean {
+  if (!parsed.type) return true;
+  const cls = classifyCatalogProduct(p);
+  if (cls.subcategory === parsed.type.id) return true;
+  if (parsed.type.id === "back-cover" && cls.subcategory === "case" && /\bcovers?\b/i.test(p.name)) return true;
+  return false;
 }
 
 export function productMatchesParsedQuery(p: TaxonomyProduct, parsed: ParsedSearchQuery): boolean {
   if (!parsed.raw) return true;
-  const cls = classifyCatalogProduct(p);
-  if (parsed.type && cls.subcategory !== parsed.type.id) return false;
+  if (!productTypeMatchesParsed(p, parsed)) return false;
   if (parsed.model && !productNameMatchesModel(p.name, parsed.model)) return false;
   return true;
 }

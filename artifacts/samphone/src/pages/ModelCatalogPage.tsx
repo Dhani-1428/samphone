@@ -229,11 +229,12 @@ export default function ModelCatalogPage() {
     setRemote(null);
     setModelFetching(true);
     const names = modelSearchNames(brand, model);
-    void fetchCloudProductsForModel(names)
+    const belongs = (p: WooProduct) =>
+      names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, parseModelName(model), brand);
+    void fetchCloudProductsForModel(names, brand)
       .then((list) => {
         if (!alive) return;
-        const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n)));
-        setRemote(strict);
+        setRemote(list.filter(belongs));
       })
       .catch(() => {
         if (alive) setRemote([]);
@@ -248,11 +249,27 @@ export default function ModelCatalogPage() {
 
   const modelProducts = useMemo(() => {
     const raw = (() => {
-      if (model) return remote ?? [];
       const familyLabel = parseModelName(family);
       const brandLabel = displayBrandName(brand);
+      if (model) {
+        const names = modelSearchNames(brand, model);
+        const label = parseModelName(model);
+        const belongs = (p: WooProduct) =>
+          names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, label, brand);
+        const seen = new Set<string>();
+        const out: WooProduct[] = [];
+        for (const p of [...(remote ?? []), ...products.filter(belongs)]) {
+          const key = String(p.cloudId || p.id);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          if (belongs(p)) out.push(p);
+        }
+        return out;
+      }
       return products.filter(
-        (p) => productBelongsToModel(p, familyLabel) || productBelongsToModel(p, `${brandLabel} ${familyLabel}`),
+        (p) =>
+          productBelongsToModel(p, familyLabel, brand) ||
+          productBelongsToModel(p, `${brandLabel} ${familyLabel}`, brand),
       );
     })();
     return filterCatalogForCustomer(raw, user);

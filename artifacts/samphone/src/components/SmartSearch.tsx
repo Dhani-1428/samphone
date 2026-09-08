@@ -195,7 +195,8 @@ export default function SmartSearch({
             parsed.model || parsed.type
               ? remote.filter((p) => catalogProductMatchesParsedQuery(p, parsed))
               : remote;
-          const merged = mergeHits([...filteredRemote.map((p) => toHit(p, user)), ...local]);
+          const useRemote = filteredRemote.length > 0 ? filteredRemote : remote;
+          const merged = mergeHits([...useRemote.map((p) => toHit(p, user)), ...local]);
           setHits(merged);
           logSearchAnalytics({
             at: new Date().toISOString(),

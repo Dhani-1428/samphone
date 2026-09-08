@@ -414,10 +414,10 @@ export default function BrandPage() {
     setModelLoading(true);
     setRemoteModel(null);
     const names = modelSearchNames(routeBrand, selectedModel.label);
-    void fetchCloudProductsForModel(names)
+    void fetchCloudProductsForModel(names, routeBrand)
       .then((list) => {
         if (!alive) return;
-        const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n)));
+        const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n, routeBrand)));
         setRemoteModel(strict.length ? strict : list);
       })
       .catch(() => {
@@ -457,7 +457,11 @@ export default function BrandPage() {
 
     if (selectedModel) {
       const names = modelSearchNames(routeBrand, selectedModel.label);
-      const byModel = list.filter((p) => names.some((n) => productBelongsToModel(p, n)));
+      const byModel = list.filter(
+        (p) =>
+          names.some((n) => productBelongsToModel(p, n, routeBrand)) ||
+          productBelongsToModel(p, selectedModel.label, routeBrand),
+      );
       if (byModel.length > 0) list = byModel;
     } else if (activeFamily) {
       list = list.filter((p) => activeFamily.test(productSearchHaystack(p)));

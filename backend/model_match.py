@@ -48,10 +48,43 @@ def model_aliases(model_name: str, brand: str) -> tuple[str, ...]:
     add(name)
 
     stripped = name
-    if brand and stripped.lower().startswith(f"{brand.lower()} "):
-        stripped = stripped[len(brand) :].strip()
-        add(stripped)
-        add(f"{brand} {stripped}")
+    prefixes = []
+    if brand:
+        prefixes.append(brand)
+    prefixes.extend(
+        (
+            "Samsung",
+            "Xiaomi",
+            "Apple",
+            "iPhone",
+            "Huawei",
+            "Honor",
+            "Oppo",
+            "Realme",
+            "Vivo",
+            "Motorola",
+            "Moto",
+            "OnePlus",
+            "Alcatel",
+            "TCL",
+            "ZTE",
+            "Nokia",
+            "Google",
+            "LG",
+            "Lenovo",
+        )
+    )
+    changed = True
+    while changed:
+        changed = False
+        for pfx in prefixes:
+            if pfx and stripped.lower().startswith(f"{pfx.lower()} "):
+                stripped = stripped[len(pfx) :].strip()
+                add(stripped)
+                if brand:
+                    add(f"{brand} {stripped}")
+                changed = True
+                break
 
     code = ""
     m = re.match(r"^(.+?)\s*\(([^)]+)\)\s*$", stripped)

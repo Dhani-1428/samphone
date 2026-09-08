@@ -246,7 +246,8 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       const visible = filterCatalogForCustomer(products, user);
       const parsed = parseSearchQuery(q);
       if (parsed.model || parsed.type) {
-        return searchCatalogProducts(q, visible, limit);
+        const smart = searchCatalogProducts(q, visible, limit);
+        if (smart.length > 0) return smart;
       }
       const tokens = normalizeQuery(q);
       if (tokens.length === 0) return [];

@@ -1,9 +1,9 @@
 import type { WooProduct } from "@/lib/woocommerce";
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { productBelongsToModel } from "@/lib/model-catalog";
 import {
   parseSearchQuery,
   productNameMatchesModel,
+  productTypeMatchesParsed,
   rankSearchResults as rankByName,
   type ParsedSearchQuery,
 } from "@/lib/search-parse";
@@ -23,10 +23,10 @@ export {
 
 export function catalogProductMatchesParsedQuery(p: WooProduct, parsed: ParsedSearchQuery): boolean {
   if (!parsed.raw) return true;
-  if (parsed.type && classifyCatalogProduct(p).subcategory !== parsed.type.id) return false;
+  if (!productTypeMatchesParsed(p, parsed)) return false;
   if (parsed.model) {
     const labels = [parsed.model.label, parsed.model.slug.replace(/-/g, " "), ...parsed.model.aliases];
-    const strict = labels.some((n) => productBelongsToModel(p, n));
+    const strict = labels.some((n) => productBelongsToModel(p, n, parsed.model?.brand ?? ""));
     if (!strict && !productNameMatchesModel(p.name, parsed.model)) return false;
   }
   return true;

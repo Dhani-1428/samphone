@@ -8,6 +8,7 @@ import {
   preferOriginalUpload,
   setStoredApiJwt,
 } from "@/config/samphone";
+import { modelAliases } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
@@ -806,14 +807,26 @@ async function fetchCloudProductPages(query: Record<string, string>): Promise<Wo
   return items;
 }
 
-export async function fetchCloudProductsForModel(names: string[]): Promise<WooProduct[]> {
-  const unique = [...new Set(names.map((n) => n.trim()).filter((n) => n.length >= 3))].slice(0, 8);
+export async function fetchCloudProductsForModel(names: string[], brand?: string): Promise<WooProduct[]> {
+  const expanded = new Set<string>();
+  for (const n of names) {
+    const trimmed = n.trim();
+    if (trimmed.length >= 3) expanded.add(trimmed);
+    for (const alias of modelAliases(brand ?? "", n)) {
+      if (alias.length >= 3) expanded.add(alias);
+    }
+  }
+  const unique = [...expanded];
   if (unique.length === 0) return [];
-  const byModel = await Promise.all(unique.slice(0, 3).map((q) => fetchCloudProductPages({ model: q })));
-  const merged = mergeWooProducts(byModel);
-  if (merged.length > 0) return merged;
-  const byQuery = await Promise.all(unique.slice(0, 3).map((q) => fetchCloudProductPages({ q })));
-  return mergeWooProducts(byQuery);
+  const preferred = unique
+    .filter((n) => n.length >= 5 && n.length <= 48)
+    .sort((a, b) => a.length - b.length);
+  const queries = (preferred.length > 0 ? preferred : unique).slice(0, 6);
+  const bags = await Promise.all([
+    ...queries.slice(0, 4).map((q) => fetchCloudProductPages({ model: q })),
+    ...queries.slice(0, 4).map((q) => fetchCloudProductPages({ q })),
+  ]);
+  return mergeWooProducts(bags);
 }
 
 export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {
