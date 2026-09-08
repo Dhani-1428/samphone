@@ -276,6 +276,15 @@
   line-height: 20px;
 }
 
+.site-navbar,
+.site-navbar button,
+.site-navbar a,
+.site-navbar span,
+.site-navbar p,
+.site-navbar li {
+  font-family: "Open Sans", sans-serif;
+}
+
 .typo-topbar {
   font-family: "Roboto", sans-serif;
   font-weight: 500;
