@@ -322,7 +322,7 @@ export default function MobileNavDrawer({
                 <Link
                   href={item.href}
                   onClick={onClose}
-                  className="flex h-11 items-center px-4 text-[13px] font-light uppercase tracking-normal text-black dark:text-white"
+                  className="flex h-11 items-center px-4 text-[13px] font-bold uppercase tracking-normal text-black dark:text-white"
                 >
                   {item.label}
                 </Link>
