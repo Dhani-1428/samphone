@@ -83,7 +83,7 @@ SPA routes (`/category/samsung-parts`, etc.) rewrite to `index.html`.
 
 **Catalog is on samphone.cloud** (`GET /api/products`). The site uses `/cloud-api` on Vercel. Check `https://<vercel-app>/cloud-api/products?limit=2` — you should see JSON `items`, not HTML.
 
-If you open **https://samphone.eu** and see a Hostinger “Parked Domain” page, DNS is not pointing at Vercel. In Vercel → Project → Settings → Domains, add `samphone.eu` / `www.samphone.eu` and set those records at the registrar (remove Hostinger parking). Until then, use the `*.vercel.app` URL.
+If you open **https://samphone.eu** and see a Hostinger “Parked Domain” page, that is expected until you attach the domain. For now use only the `*.vercel.app` URL — you do not need to add samphone.eu in Vercel until you want it public.
 
 `VITE_SAMPHONE_API_URL` must be `/cloud-api` or `https://samphone.cloud/api` (not `https://samphone.cloud` and not `https://samphone.eu`).
 
