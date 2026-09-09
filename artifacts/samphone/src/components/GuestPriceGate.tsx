@@ -28,7 +28,7 @@ export default function GuestPriceGate({ variant = "card" }: { variant?: Variant
   if (variant === "hero") {
     return (
       <div className="max-w-md space-y-4">
-        <p className="text-sm text-muted-foreground">{t("loginForPricing")}</p>
+        <p className="text-sm text-muted-foreground">{t("pdp_login_cart_hint")}</p>
         <Button asChild className="h-11 w-full bg-[#111111] text-white hover:bg-[#000000]">
           <Link href={loginHref}>{t("login_to_buy")}</Link>
         </Button>

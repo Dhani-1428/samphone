@@ -50,7 +50,7 @@ export function buildCartLinePreview(
     name: c?.name ?? cartKey,
     img: c?.img ?? null,
     href,
-    unitPrice: user ? (c?.price ?? null) : null,
+    unitPrice: c?.price ?? null,
     isWoo: false,
     productId: null,
   };

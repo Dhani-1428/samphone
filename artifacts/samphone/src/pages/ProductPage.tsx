@@ -188,8 +188,8 @@ export default function ProductPage() {
       gallery={gallery}
       cartKey={cartKey}
       inStock
-      priceLabel={user ? formatEuro(product.price) : null}
-      oldPriceLabel={user && !seesWholesalePrices(user) && product.oldPrice != null ? formatEuro(product.oldPrice) : null}
+      priceLabel={formatEuro(product.price)}
+      oldPriceLabel={!seesWholesalePrices(user) && product.oldPrice != null ? formatEuro(product.oldPrice) : null}
       vatNote
       descriptionHtml={copy.html}
       below={
@@ -329,7 +329,7 @@ function WooProductView({
       cartKey={cartKey}
       inStock={inStock}
       restockProductId={wooProduct.cloudId || String(wooProduct.id)}
-      priceLabel={user ? catalogPrice : null}
+      priceLabel={catalogPrice || null}
       oldPriceLabel={user && compareAt != null ? formatEuro(compareAt) : null}
       vatNote
       swatches={

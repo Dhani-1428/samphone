@@ -84,7 +84,7 @@ export function useCustomerProductPrice(product: WooProduct | null, quantity = 1
   const { resolveForProduct, enabled } = useCustomerPricing();
 
   const catalogCents = useMemo(() => {
-    if (!product || !user) return 0;
+    if (!product) return 0;
     return eurosToCents(catalogUnitPrice(product, user));
   }, [product, user]);
 

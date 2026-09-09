@@ -58,15 +58,10 @@ function mergeHits(list: SearchHit[]): SearchHit[] {
 
 function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) => void }) {
   const { t } = useLang();
-  const { user } = useAuth();
   const name = useTranslatedText(hit.name);
   const subtitle = useTranslatedText(hit.subtitle);
   const [imgOk, setImgOk] = useState(true);
-  const showPrice = Boolean(user);
-
-  const price = !showPrice ? (
-    <span className="text-[10px] font-medium leading-tight text-[#5B6B86]">{t("loginForPricing")}</span>
-  ) : hit.priceText ? (
+  const price = hit.priceText ? (
     <span className="whitespace-nowrap text-sm font-bold tabular-nums text-black">{hit.priceText}</span>
   ) : hit.priceNumber != null ? (
     <span className="whitespace-nowrap text-sm font-bold tabular-nums text-black">

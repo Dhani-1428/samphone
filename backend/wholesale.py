@@ -415,21 +415,14 @@ def sanitize_product(product: dict, user: Optional[dict]) -> dict:
         p.pop(field, None)
     p["retailPrice"] = round(retail, 2)
     p["price"] = p["retailPrice"]
-    # Guests never receive amounts — login required for public or business prices.
-    if not user:
-        p["price"] = None
-        p["retailPrice"] = None
-        p["regularPrice"] = None
-        p["compareAtPrice"] = None
-        p["price_hidden"] = True
-        p.pop("b2b_price", None)
-        p.pop("b2c_override", None)
-        p.pop("b2c_price", None)
-        return p
+    # Guests and personal accounts see public retail only. Wholesale stays stripped.
     p.pop("b2b_price", None)
     p.pop("b2c_override", None)
     p.pop("b2c_price", None)
     p.pop("price_hidden", None)
+    if not user:
+        p["regularPrice"] = float(p["price"])
+        return p
     if user and user.get("id"):
         # Normalize then apply personal discounts for this viewer only.
         p["regularPrice"] = float(p["price"])

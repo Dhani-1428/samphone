@@ -176,7 +176,7 @@ export default function ProductDetailLayout({
 
           <aside className="lg:col-span-3">
             <div className="space-y-4 border border-black/[0.08] bg-white p-5 shadow-sm lg:sticky lg:top-24">
-              {user && priceLabel ? (
+              {priceLabel ? (
                 <div>
                   <p className="product-card-copy text-3xl tabular-nums text-brand">{priceLabel}</p>
                   {oldPriceLabel ? (
@@ -184,8 +184,6 @@ export default function ProductDetailLayout({
                   ) : null}
                   {vatNote ? <p className="mt-1 text-xs text-[#333333]">{t("pdp_vat_included")}</p> : null}
                 </div>
-              ) : !user ? (
-                <p className="text-sm text-[#5B6B86]">{t("loginForPricing")}</p>
               ) : null}
 
               {!inStock && restockProductId ? (

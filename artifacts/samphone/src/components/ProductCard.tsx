@@ -87,13 +87,9 @@ export default function ProductCard({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          {user ? (
-            <span className="product-card-price tabular-nums leading-none">
-              €{price.toFixed(2).replace(".", ",")}
-            </span>
-          ) : (
-            <span className="text-[12px] font-medium leading-tight text-[#5B6B86]">{t("loginForPricing")}</span>
-          )}
+          <span className="product-card-price tabular-nums leading-none">
+            €{price.toFixed(2).replace(".", ",")}
+          </span>
           <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[13px] font-semibold uppercase text-brand">
             <Package className="h-4 w-4" strokeWidth={2.2} />
             {t("product_in_stock")}

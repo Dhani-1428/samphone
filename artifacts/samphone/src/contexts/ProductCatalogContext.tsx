@@ -21,8 +21,8 @@ import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price"
 import { searchCatalogProducts } from "@/lib/model-search";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
-const CACHE_KEY = "samphone-products-cache-json-v7-cloud";
-const CACHE_META_KEY = "samphone-products-cache-meta-v7-cloud";
+const CACHE_KEY = "samphone-products-cache-json-v8-cloud";
+const CACHE_META_KEY = "samphone-products-cache-meta-v8-cloud";
 const PER_PAGE = 200;
 const CAT_CACHE_KEY = "samphone-woo-categories-cache-v2-cloud";
 const CAT_META_KEY = "samphone-woo-categories-meta-v2-cloud";

@@ -24,13 +24,13 @@ export type PriceUser = {
 
 const BLOCKED_WHOLESALE = new Set(["pending", "rejected", "suspended", "denied", "blocked", "inactive"]);
 
-/** Guests must not see any catalog amounts. */
-export function canSeePrices(user: PriceUser): boolean {
-  return Boolean(user);
+/** Public retail is visible to everyone. Wholesale still requires approved B2B. */
+export function canSeePrices(_user: PriceUser): boolean {
+  return true;
 }
 
 export function pricingAudience(user: PriceUser): "guest" | "b2c" | "b2b" {
-  if (!canSeePrices(user)) return "guest";
+  if (!user) return "guest";
   return seesWholesalePrices(user) ? "b2b" : "b2c";
 }
 
@@ -88,7 +88,6 @@ function applyAccountDiscount(unit: number | null, user: PriceUser): number | nu
 }
 
 export function catalogUnitPrice(product: WooProduct, user: PriceUser): number | null {
-  if (!canSeePrices(user)) return null;
   const base = seesWholesalePrices(user) ? wholesaleAmount(product) : retailAmount(product);
   const withAccount = applyAccountDiscount(base, user);
   return applyPersonalPricing(withAccount, product, user);
