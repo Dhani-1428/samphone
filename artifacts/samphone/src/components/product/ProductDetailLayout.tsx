@@ -174,7 +174,7 @@ export default function ProductDetailLayout({
             <div className="space-y-4 border border-black/[0.08] bg-white p-5 shadow-sm lg:sticky lg:top-24">
               {priceLabel ? (
                 <div>
-                  <p className="product-card-copy text-3xl tabular-nums text-[#111111]">{priceLabel}</p>
+                  <p className="product-card-copy text-3xl tabular-nums text-brand">{priceLabel}</p>
                   {oldPriceLabel ? (
                     <p className="mt-0.5 text-sm text-muted-foreground line-through">{oldPriceLabel}</p>
                   ) : null}
