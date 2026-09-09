@@ -8,7 +8,7 @@ import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/compo
 import { groupIcon, subtypeIcon } from "@/components/AccessoryFilterChip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
-import { filterCatalogForCustomer } from "@/lib/customer-price";
+import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
 import {
   accessoryPageCopy,
   accessoryPageHref,
@@ -40,6 +40,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   const typeParam = new URLSearchParams(search).get("type") ?? "";
   const { t } = useLang();
   const { user } = useAuth();
+  const audience = pricingAudience(user);
   const [items, setItems] = useState<WooProduct[] | null>(null);
   const [catalogTotal, setCatalogTotal] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -74,7 +75,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
     return () => {
       alive = false;
     };
-  }, [fetchGroup]);
+  }, [fetchGroup, audience]);
 
   const subtype = page?.subtypes.find((s) => s.label === typeParam) ?? null;
   const copy = page ? accessoryPageCopy(page) : { blurb: t("home_accessories_sub"), typesLabel: t("home_accessories_title") };

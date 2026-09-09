@@ -6,6 +6,8 @@ import CatalogLoading from "@/components/CatalogLoading";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { pricingAudience } from "@/lib/customer-price";
 import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { sortNewest } from "@/lib/woo-product-filters";
 import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
@@ -29,6 +31,8 @@ export default function NewArrivals() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const { t } = useLang();
+  const { user } = useAuth();
+  const audience = pricingAudience(user);
   const woo = hasWooCommerceConfig();
   const { products, loading, error } = useProductCatalog();
   const [cloudItems, setCloudItems] = useState<WooProduct[] | null>(null);
@@ -50,7 +54,7 @@ export default function NewArrivals() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [audience]);
 
   const catalogNewest = useMemo(() => (woo ? sortNewest(products) : []), [woo, products]);
 

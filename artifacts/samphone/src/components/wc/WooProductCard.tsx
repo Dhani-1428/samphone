@@ -12,7 +12,7 @@ import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
-import { seesWholesalePrices } from "@/lib/customer-price";
+import { canSeePrices, seesWholesalePrices } from "@/lib/customer-price";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import CatalogImage from "@/components/CatalogImage";
@@ -41,7 +41,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const [loc] = useLocation();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
-  const showPrice = catalogCents > 0 || hasCustomPrice;
+  const loggedIn = canSeePrices(user);
+  const showPrice = loggedIn && (catalogCents > 0 || hasCustomPrice);
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const variantImage = swatches[colorIdx]?.image;
@@ -52,7 +53,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const title = product.name?.trim() || "Product";
   const inStock = product.stock_status !== "outofstock";
   const canAdd = Boolean(user && showPrice && canBuyDealer);
-  const showLoginBuy = Boolean(!user && showPrice && canBuyDealer);
+  const showLoginBuy = Boolean(!user && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
 
@@ -116,7 +117,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <ProductCardWriting href={productHref} title={title} />
 
         <div className="flex items-center justify-between gap-1">
-          {showPrice && priceLabel ? (
+          {!loggedIn ? (
+            <span className="text-[12px] font-medium leading-tight text-[#5B6B86]">{t("loginForPricing")}</span>
+          ) : showPrice && priceLabel ? (
             <span className="product-card-price tabular-nums leading-none">
               {priceLabel}
             </span>

@@ -84,7 +84,7 @@ export function useCustomerProductPrice(product: WooProduct | null, quantity = 1
   const { resolveForProduct, enabled } = useCustomerPricing();
 
   const catalogCents = useMemo(() => {
-    if (!product) return 0;
+    if (!product || !user) return 0;
     return eurosToCents(catalogUnitPrice(product, user));
   }, [product, user]);
 
@@ -107,11 +107,13 @@ export function useCustomerProductPrice(product: WooProduct | null, quantity = 1
     loading: query.isLoading,
     displayCents,
     displayFormatted:
-      personalized?.displayFormatted ??
-      new Intl.NumberFormat(user?.email?.endsWith(".pt") ? "pt-PT" : "pt-PT", {
-        style: "currency",
-        currency: "EUR",
-      }).format(displayCents / 100),
+      catalogCents <= 0 && !personalized
+        ? ""
+        : personalized?.displayFormatted ??
+          new Intl.NumberFormat(user?.email?.endsWith(".pt") ? "pt-PT" : "pt-PT", {
+            style: "currency",
+            currency: "EUR",
+          }).format(displayCents / 100),
     hasCustomPrice,
     source: personalized?.resolved.source ?? "catalog",
     catalogCents,

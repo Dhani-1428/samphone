@@ -3,6 +3,8 @@ import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { pricingAudience } from "@/lib/customer-price";
 import { fetchCloudHomeRails, fetchCloudProductList, type CloudHomeRails } from "@/lib/samphone-cloud";
 import { pickHomeRailItems, type HomeRailKey } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -34,6 +36,8 @@ function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 14)
 
 export default function HomeCloudRails() {
   const { t } = useLang();
+  const { user } = useAuth();
+  const audience = pricingAudience(user);
   const [best, setBest] = useState<WooProduct[]>([]);
   const [bestPending, setBestPending] = useState(true);
   const [rows, setRows] = useState<RailRow[]>(() =>
@@ -85,7 +89,7 @@ export default function HomeCloudRails() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [audience]);
 
   const label = t("woo_price_na");
   const cards = (items: WooProduct[]) =>

@@ -17,13 +17,13 @@ import {
 import { fetchCloudProductList } from "@/lib/samphone-cloud";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
-import { filterCatalogForCustomer } from "@/lib/customer-price";
+import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
 import { productMatchesSearchQuery, productSearchHaystack, searchTokenMatchesText } from "@/lib/woo-product-filters";
 import { parseSearchQuery, searchCatalogProducts } from "@/lib/model-search";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
-const CACHE_KEY = "samphone-products-cache-json-v6-cloud";
-const CACHE_META_KEY = "samphone-products-cache-meta-v5-cloud";
+const CACHE_KEY = "samphone-products-cache-json-v7-cloud";
+const CACHE_META_KEY = "samphone-products-cache-meta-v7-cloud";
 const PER_PAGE = 200;
 const CAT_CACHE_KEY = "samphone-woo-categories-cache-v2-cloud";
 const CAT_META_KEY = "samphone-woo-categories-meta-v2-cloud";
@@ -67,6 +67,7 @@ function normalizeQuery(q: string): string[] {
 
 export function ProductCatalogProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuth();
+  const audience = pricingAudience(user);
   const [products, setProducts] = useState<WooProduct[]>([]);
   const [categories, setCategories] = useState<WooCategory[]>([]);
   /** True until first catalog paint when Woo is configured (avoids empty flash before effect). */
@@ -83,8 +84,10 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
 
   const readCache = useCallback((): WooProduct[] | null => {
     try {
-      const raw = sessionStorage.getItem(CACHE_KEY) ?? localStorage.getItem(CACHE_KEY);
-      const metaRaw = sessionStorage.getItem(CACHE_META_KEY) ?? localStorage.getItem(CACHE_META_KEY);
+      const key = `${CACHE_KEY}-${audience}`;
+      const metaKey = `${CACHE_META_KEY}-${audience}`;
+      const raw = sessionStorage.getItem(key) ?? localStorage.getItem(key);
+      const metaRaw = sessionStorage.getItem(metaKey) ?? localStorage.getItem(metaKey);
       if (!raw || !metaRaw) return null;
       const meta = JSON.parse(metaRaw) as { at: number };
       const items = JSON.parse(raw) as WooProduct[];
@@ -93,22 +96,24 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
     } catch {
       return null;
     }
-  }, []);
+  }, [audience]);
 
   const writeCache = useCallback((items: WooProduct[]) => {
     const at = Date.now();
     const json = JSON.stringify(items);
     const meta = JSON.stringify({ at });
+    const key = `${CACHE_KEY}-${audience}`;
+    const metaKey = `${CACHE_META_KEY}-${audience}`;
     try {
-      sessionStorage.setItem(CACHE_KEY, json);
-      sessionStorage.setItem(CACHE_META_KEY, meta);
-      localStorage.setItem(CACHE_KEY, json);
-      localStorage.setItem(CACHE_META_KEY, meta);
+      sessionStorage.setItem(key, json);
+      sessionStorage.setItem(metaKey, meta);
+      localStorage.setItem(key, json);
+      localStorage.setItem(metaKey, meta);
     } catch {
       /* ignore quota */
     }
     setLastUpdated(at);
-  }, []);
+  }, [audience]);
 
   const readCategoryCache = useCallback((): WooCategory[] | null => {
     try {
@@ -230,7 +235,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
         if (mounted.current) setSyncingMore(false);
       }
     },
-    [writeCache, writeCategoryCache],
+    [writeCache, writeCategoryCache, audience],
   );
 
   useEffect(() => {
@@ -251,7 +256,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       mounted.current = false;
       fetchAbortRef.current?.abort();
     };
-  }, [readCache, readCategoryCache, refreshNow, isAuthenticated]);
+  }, [readCache, readCategoryCache, refreshNow, isAuthenticated, audience]);
 
   const searchProducts = useCallback(
     (q: string, limit = 10): WooProduct[] => {

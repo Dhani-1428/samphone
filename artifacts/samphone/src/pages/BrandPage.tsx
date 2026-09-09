@@ -21,7 +21,7 @@ import {
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel, fetchCloudAllProducts } from "@/lib/samphone-cloud";
 import { modelSearchNames, productBelongsToModel, splitModelCatalog } from "@/lib/model-catalog";
-import { filterCatalogForCustomer } from "@/lib/customer-price";
+import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
 import {
   familiesForBrandSlug,
   familySearchQuery,
@@ -334,6 +334,7 @@ export default function BrandPage() {
   const brandLabel = toTitleCase(brandSlug);
   const { t } = useLang();
   const { user } = useAuth();
+  const audience = pricingAudience(user);
   const woo = hasWooCommerceConfig();
   const { products, loading, syncingMore } = useProductCatalog();
 
@@ -391,7 +392,7 @@ export default function BrandPage() {
     return () => {
       alive = false;
     };
-  }, [brandSlug, brandLabel]);
+  }, [brandSlug, brandLabel, audience]);
 
   useEffect(() => {
     if (!activeFamily || filters.model) return;
@@ -410,7 +411,7 @@ export default function BrandPage() {
     return () => {
       alive = false;
     };
-  }, [activeFamily, filters.model, brandSlug, brandLabel]);
+  }, [activeFamily, filters.model, brandSlug, brandLabel, audience]);
 
   const selectedModel = useMemo(() => {
     if (!filters.model) return null;
@@ -448,7 +449,7 @@ export default function BrandPage() {
     return () => {
       alive = false;
     };
-  }, [selectedModel, routeBrand]);
+  }, [selectedModel, routeBrand, audience]);
 
   const catalogBrandProducts = useMemo(
     () => (woo ? filterProductsByBrandKeyword(products, brandSlug || brandLabel) : []),

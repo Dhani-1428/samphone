@@ -36,7 +36,7 @@ import {
 } from "@/lib/model-catalog";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { filterCatalogForCustomer } from "@/lib/customer-price";
+import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
 
 function parseModelName(slug: string): string {
   if (slug === "iphones") return "iPhones";
@@ -211,6 +211,7 @@ export default function ModelCatalogPage() {
   const model = params.family ? params.model : undefined;
   const { t } = useLang();
   const { user } = useAuth();
+  const audience = pricingAudience(user);
   const { products, loading: catalogLoading, error: catalogError } = useProductCatalog();
   const [remote, setRemote] = useState<WooProduct[] | null>(null);
   const [modelFetching, setModelFetching] = useState(() => Boolean(params.family && params.model));
@@ -251,7 +252,7 @@ export default function ModelCatalogPage() {
     return () => {
       alive = false;
     };
-  }, [brand, model]);
+  }, [brand, model, audience]);
 
   const modelProducts = useMemo(() => {
     const raw = (() => {

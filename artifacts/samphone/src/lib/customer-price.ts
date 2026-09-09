@@ -12,6 +12,9 @@ export type PersonalPricingRule = {
 };
 
 export type PriceUser = {
+  email?: string;
+  role?: string;
+  accountType?: string;
   isWholesale?: boolean;
   wholesaleStatus?: string;
   /** Flat % off catalog base for this account (admin-set). Replaces dealer tiers. */
@@ -21,11 +24,24 @@ export type PriceUser = {
 
 const BLOCKED_WHOLESALE = new Set(["pending", "rejected", "suspended", "denied", "blocked", "inactive"]);
 
+/** Guests must not see any catalog amounts. */
+export function canSeePrices(user: PriceUser): boolean {
+  return Boolean(user);
+}
+
+export function pricingAudience(user: PriceUser): "guest" | "b2c" | "b2b" {
+  if (!canSeePrices(user)) return "guest";
+  return seesWholesalePrices(user) ? "b2b" : "b2c";
+}
+
 export function seesWholesalePrices(user: PriceUser): boolean {
-  if (!user?.isWholesale) return false;
-  const status = (user.wholesaleStatus || "approved").trim().toLowerCase();
-  if (!status) return true;
-  return !BLOCKED_WHOLESALE.has(status);
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  const status = (user.wholesaleStatus || "").trim().toLowerCase();
+  if (BLOCKED_WHOLESALE.has(status)) return false;
+  if (status === "approved") return true;
+  const type = (user.accountType || "").trim().toLowerCase();
+  return Boolean(user.isWholesale) && (type === "b2b" || !type) && !status;
 }
 
 export function parseMoney(value: string | number | null | undefined): number | null {
@@ -72,6 +88,7 @@ function applyAccountDiscount(unit: number | null, user: PriceUser): number | nu
 }
 
 export function catalogUnitPrice(product: WooProduct, user: PriceUser): number | null {
+  if (!canSeePrices(user)) return null;
   const base = seesWholesalePrices(user) ? wholesaleAmount(product) : retailAmount(product);
   const withAccount = applyAccountDiscount(base, user);
   return applyPersonalPricing(withAccount, product, user);

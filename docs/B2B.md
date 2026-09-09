@@ -13,8 +13,9 @@
 - Sees retail (public) prices.
 - Accessories, Hoco, glass/covers, tools: cost mapped through public price bands on the API (e.g. €0.99–1.90 → €4.90, €50–60 → €89.90).
 - Phone repair parts (screens, batteries, cameras, etc.): keep the live/API price, not accessory bands.
-- Wholesale fields (`wholesalePrice`, account discounts, etc.) are stripped from the API for public responses.
-- Guest browsing uses the same public prices (unless `REQUIRE_AUTH_FOR_PRICES=1` on the API).
+- Wholesale fields (`wholesalePrice`, account discounts, etc.) are stripped from the API for public/B2C responses.
+
+Guests (not logged in) never see prices on the site or in the public catalog API.
 
 ## Business / B2B (wholesale)
 

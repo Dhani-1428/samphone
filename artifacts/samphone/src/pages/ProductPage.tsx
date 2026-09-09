@@ -10,7 +10,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
 import { fetchProductById, fetchRelatedProducts, type WooProduct } from "@/lib/woocommerce";
-import { catalogCompareAtPrice, seesWholesalePrices } from "@/lib/customer-price";
+import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
 import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
@@ -54,6 +54,7 @@ function groupHref(group?: string | null): string | undefined {
 export default function ProductPage() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const audience = pricingAudience(user);
   const { t, lang } = useLang();
   const { recordView } = useRecentlyViewed();
   const { products: wooCatalogProducts } = useProductCatalog();
@@ -116,7 +117,7 @@ export default function ProductPage() {
     return () => {
       alive = false;
     };
-  }, [wooId, wooCatalogProducts]);
+  }, [wooId, wooCatalogProducts, audience]);
 
   if (isWooProduct) {
     if (wooLoading) {
@@ -187,8 +188,8 @@ export default function ProductPage() {
       gallery={gallery}
       cartKey={cartKey}
       inStock
-      priceLabel={formatEuro(product.price)}
-      oldPriceLabel={!seesWholesalePrices(user) && product.oldPrice != null ? formatEuro(product.oldPrice) : null}
+      priceLabel={user ? formatEuro(product.price) : null}
+      oldPriceLabel={user && !seesWholesalePrices(user) && product.oldPrice != null ? formatEuro(product.oldPrice) : null}
       vatNote
       descriptionHtml={copy.html}
       below={
@@ -328,8 +329,8 @@ function WooProductView({
       cartKey={cartKey}
       inStock={inStock}
       restockProductId={wooProduct.cloudId || String(wooProduct.id)}
-      priceLabel={catalogPrice}
-      oldPriceLabel={compareAt != null ? formatEuro(compareAt) : null}
+      priceLabel={user ? catalogPrice : null}
+      oldPriceLabel={user && compareAt != null ? formatEuro(compareAt) : null}
       vatNote
       swatches={
         swatches.length > 0 ? (

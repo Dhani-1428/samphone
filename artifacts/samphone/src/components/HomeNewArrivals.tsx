@@ -3,11 +3,15 @@ import CatalogLoading from "@/components/CatalogLoading";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { pricingAudience } from "@/lib/customer-price";
 import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function HomeNewArrivals() {
   const { t } = useLang();
+  const { user } = useAuth();
+  const audience = pricingAudience(user);
   const [wooRows, setWooRows] = useState<WooProduct[] | null>(null);
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export default function HomeNewArrivals() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [audience]);
 
   if (wooRows == null) {
     return (

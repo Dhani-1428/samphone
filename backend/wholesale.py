@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import re
 from copy import deepcopy
 from typing import Any, Optional
@@ -262,16 +261,29 @@ def default_wholesale_user_fields() -> dict[str, Any]:
     }
 
 
+_BLOCKED_WHOLESALE_STATUS = {
+    "pending",
+    "rejected",
+    "denied",
+    "blocked",
+    "inactive",
+    "suspended",
+}
+
+
 def is_wholesale_approved(user: Optional[dict]) -> bool:
     """requireWholesaleApproval middleware helper."""
     if not user:
         return False
     if user.get("role") == "admin":
         return True
-    status = user.get("wholesaleStatus")
-    if status == "suspended":
+    status = str(user.get("wholesaleStatus") or "").strip().lower()
+    if status in _BLOCKED_WHOLESALE_STATUS:
         return False
-    return bool(user.get("isWholesale")) and status == "approved"
+    if status == "approved":
+        return True
+    account = str(user.get("accountType") or "").strip().lower()
+    return bool(user.get("isWholesale")) and account in {"b2b", ""}
 
 
 def can_see_business_pricing(user: Optional[dict]) -> bool:
@@ -403,12 +415,16 @@ def sanitize_product(product: dict, user: Optional[dict]) -> dict:
         p.pop(field, None)
     p["retailPrice"] = round(retail, 2)
     p["price"] = p["retailPrice"]
-    # Optional: match "Login to see price" UX by stripping amounts for guests
-    if not user and os.environ.get("REQUIRE_AUTH_FOR_PRICES", "0") == "1":
+    # Guests never receive amounts — login required for public or business prices.
+    if not user:
         p["price"] = None
         p["retailPrice"] = None
         p["regularPrice"] = None
+        p["compareAtPrice"] = None
         p["price_hidden"] = True
+        p.pop("b2b_price", None)
+        p.pop("b2c_override", None)
+        p.pop("b2c_price", None)
         return p
     p.pop("b2b_price", None)
     p.pop("b2c_override", None)
