@@ -88,15 +88,25 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           </span>
         ) : null}
 
-        <Link href={productHref} className="absolute inset-0 z-10 block">
+        <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden">
           <CatalogImage
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-            className="h-full w-full object-contain object-center"
+            className={cn(
+              "h-full w-full object-contain object-center transition-[filter,transform]",
+              !inStock && "scale-105 blur-[3px]",
+            )}
             loading="lazy"
             onError={() => setImgOk(false)}
           />
         </Link>
+        {!inStock ? (
+          <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-black/20">
+            <span className="px-2 text-center text-[12px] font-extrabold uppercase leading-tight tracking-wide text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+              {t("pdp_out_of_stock")}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <div className={cn("relative z-20 flex shrink-0 flex-col gap-1 bg-white", compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5")}>
@@ -143,15 +153,17 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           )}
         </div>
 
-        <div className="flex h-9 shrink-0 gap-1 overflow-hidden">
-          <Link
-            href={productHref}
-            className="product-card-copy flex h-9 min-w-0 flex-1 items-center justify-center gap-1 border-2 border-brand bg-white px-2 text-xs font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
-          >
-            <Eye className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
-            <span className="truncate">{t("card_view_details")}</span>
-          </Link>
-        </div>
+        {inStock ? (
+          <div className="flex h-9 shrink-0 gap-1 overflow-hidden">
+            <Link
+              href={productHref}
+              className="product-card-copy flex h-9 min-w-0 flex-1 items-center justify-center gap-1 border-2 border-brand bg-white px-2 text-xs font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
+            >
+              <Eye className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
+              <span className="truncate">{t("card_view_details")}</span>
+            </Link>
+          </div>
+        ) : null}
       </div>
     </article>
   );
