@@ -381,9 +381,8 @@ function mapItems(raw: unknown): WooProduct[] {
 }
 
 export async function fetchCloudProductsPage(offset: number, limit = 100): Promise<WooProduct[]> {
-  const qs = new URLSearchParams({ limit: String(limit), offset: String(Math.max(0, offset)) });
-  const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/products?${qs.toString()}`);
-  return mapItems(data);
+  const page = await fetchCloudProductList({ offset: String(Math.max(0, offset)) }, limit);
+  return page.items;
 }
 
 export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
@@ -525,17 +524,11 @@ export async function fetchCloudProductsByCategory(categoryId: number, categoryN
   if (!Number.isFinite(categoryId) || categoryId <= 0) {
     throw new WooCommerceFetchError("Invalid category ID.");
   }
-  const byModel = await cloudFetchJson<ListEnvelope<CloudProduct>>(
-    `/products?model_wc_id=${categoryId}&limit=100&offset=0`,
-  );
-  const modelItems = mapItems(byModel);
-  if (modelItems.length > 0) return modelItems;
+  const byModel = await fetchCloudAllProducts({ model_wc_id: String(categoryId) });
+  if (byModel.length > 0) return byModel;
   const name = categoryName?.trim();
   if (!name) return [];
-  const byName = await cloudFetchJson<ListEnvelope<CloudProduct>>(
-    `/products?category=${encodeURIComponent(name)}&limit=100&offset=0`,
-  );
-  return mapItems(byName);
+  return fetchCloudAllProducts({ category: name });
 }
 
 export async function searchCloudProducts(query: string, limit = 20): Promise<WooProduct[]> {
@@ -763,7 +756,7 @@ export async function fetchCloudAllProducts(
     if (all.length === before) break;
     if (!hasMore) break;
     if (catalogTotal > 0 && offset + rawCount >= catalogTotal) break;
-    offset += pageSize;
+    offset += rawCount;
   }
   return all;
 }

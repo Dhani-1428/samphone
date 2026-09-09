@@ -623,5 +623,8 @@
   "cat_not_found": "زمرہ نہیں ملا۔",
   "search_accessories": "لوازمات تلاش کریں…",
   "accessory_no_match": "آپ کے فلٹرز سے کوئی زمرہ نہیں ملتا۔",
-  "cart_each": "فی"
+  "cart_each": "فی",
+  "catalog_page_prev": "پچھلا",
+  "catalog_page_next": "اگلا",
+  "catalog_page_status": "صفحہ {page} از {pages}"
 }

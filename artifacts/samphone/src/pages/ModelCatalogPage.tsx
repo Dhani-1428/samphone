@@ -22,6 +22,7 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import CatalogLoading from "@/components/CatalogLoading";
+import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
@@ -137,17 +138,21 @@ function GroupedProductGrid({
 }
 
 function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty: string; priceLabel: string }) {
+  const pager = usePagedItems(items, `${items.length}:${items[0]?.id ?? "empty"}`);
   if (items.length === 0) {
     return <p className="py-8 text-sm text-muted-foreground">{empty}</p>;
   }
   return (
-    <ul className="grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4">
-      {items.map((p) => (
-        <li key={p.cloudId || p.id}>
-          <WooProductCard product={p} priceUnavailableLabel={priceLabel} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4">
+        {pager.slice.map((p) => (
+          <li key={p.cloudId || p.id}>
+            <WooProductCard product={p} priceUnavailableLabel={priceLabel} />
+          </li>
+        ))}
+      </ul>
+      <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
+    </>
   );
 }
 

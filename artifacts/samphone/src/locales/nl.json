@@ -623,5 +623,8 @@
   "cat_not_found": "Categorie niet gevonden.",
   "search_accessories": "Accessoires zoeken…",
   "accessory_no_match": "Geen categorieën komen overeen met je filters.",
-  "cart_each": "per stuk"
+  "cart_each": "per stuk",
+  "catalog_page_prev": "Vorige",
+  "catalog_page_next": "Volgende",
+  "catalog_page_status": "Pagina {page} van {pages}"
 }

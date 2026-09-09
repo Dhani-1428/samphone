@@ -623,5 +623,8 @@
   "cat_not_found": "ਸ਼੍ਰੇਣੀ ਨਹੀਂ ਮਿਲੀ।",
   "search_accessories": "ਐਕਸੈਸਰੀਜ਼ ਖੋਜੋ…",
   "accessory_no_match": "ਤੁਹਾਡੇ ਫਿਲਟਰਾਂ ਨਾਲ ਕੋਈ ਸ਼੍ਰੇਣੀ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।",
-  "cart_each": "ਹਰੇਕ"
+  "cart_each": "ਹਰੇਕ",
+  "catalog_page_prev": "ਪਿਛਲਾ",
+  "catalog_page_next": "ਅਗਲਾ",
+  "catalog_page_status": "ਪੰਨਾ {page} / {pages}"
 }

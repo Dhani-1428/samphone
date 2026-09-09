@@ -623,5 +623,8 @@
   "cat_not_found": "Categoria não encontrada.",
   "search_accessories": "Procurar acessórios…",
   "accessory_no_match": "Nenhuma categoria corresponde aos filtros.",
-  "cart_each": "cada"
+  "cart_each": "cada",
+  "catalog_page_prev": "Anterior",
+  "catalog_page_next": "Seguinte",
+  "catalog_page_status": "Página {page} de {pages}"
 }

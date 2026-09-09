@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
+import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -513,6 +514,11 @@ export default function BrandPage() {
     [filteredProducts, selectedModel],
   );
 
+  const filterKey = `${brandSlug}:${selectedModel?.id ?? "all"}:${sort}:${filters.inStock}:${filters.onSale}:${filters.minPrice ?? ""}:${filters.maxPrice ?? ""}:${filters.model ?? ""}`;
+  const brandPager = usePagedItems(filteredProducts, filterKey);
+  const partsPager = usePagedItems(modelParts, `parts:${filterKey}`);
+  const accPager = usePagedItems(modelAccessories, `acc:${filterKey}`);
+
   const waiting =
     !selectedModel && filteredProducts.length === 0 && (brandLoading || loading);
 
@@ -565,18 +571,21 @@ export default function BrandPage() {
                   <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
                 )
               ) : (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
-                >
-                  {modelParts.map((p) => (
-                    <motion.div key={productKey(p)} variants={itemVariants}>
-                      <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <>
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+                  >
+                    {partsPager.slice.map((p) => (
+                      <motion.div key={productKey(p)} variants={itemVariants}>
+                        <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                  <CatalogPager page={partsPager.page} pageCount={partsPager.pageCount} onPage={partsPager.setPage} />
+                </>
               )}
             </section>
             <section
@@ -599,34 +608,40 @@ export default function BrandPage() {
                   <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
                 )
               ) : (
-                <motion.div
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
-                >
-                  {modelAccessories.map((p) => (
-                    <motion.div key={productKey(p)} variants={itemVariants}>
-                      <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-                    </motion.div>
-                  ))}
-                </motion.div>
+                <>
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+                  >
+                    {accPager.slice.map((p) => (
+                      <motion.div key={productKey(p)} variants={itemVariants}>
+                        <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                  <CatalogPager page={accPager.page} pageCount={accPager.pageCount} onPage={accPager.setPage} />
+                </>
               )}
             </section>
           </div>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
-          >
-            {filteredProducts.map((p) => (
-              <motion.div key={productKey(p)} variants={itemVariants}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.div>
-            ))}
-          </motion.div>
+          <>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
+            >
+              {brandPager.slice.map((p) => (
+                <motion.div key={productKey(p)} variants={itemVariants}>
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                </motion.div>
+              ))}
+            </motion.div>
+            <CatalogPager page={brandPager.page} pageCount={brandPager.pageCount} onPage={brandPager.setPage} />
+          </>
         )}
           </div>
         </div>

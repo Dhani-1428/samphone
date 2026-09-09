@@ -623,5 +623,8 @@
   "cat_not_found": "श्रेणी नहीं मिली।",
   "search_accessories": "एक्सेसरीज़ खोजें…",
   "accessory_no_match": "आपके फ़िल्टर से कोई श्रेणी मेल नहीं खाती।",
-  "cart_each": "प्रति"
+  "cart_each": "प्रति",
+  "catalog_page_prev": "पिछला",
+  "catalog_page_next": "अगला",
+  "catalog_page_status": "पृष्ठ {page} / {pages}"
 }

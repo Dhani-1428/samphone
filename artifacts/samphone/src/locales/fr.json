@@ -623,5 +623,8 @@
   "cat_not_found": "Catégorie introuvable.",
   "search_accessories": "Rechercher des accessoires…",
   "accessory_no_match": "Aucune catégorie ne correspond à vos filtres.",
-  "cart_each": "pièce"
+  "cart_each": "pièce",
+  "catalog_page_prev": "Précédent",
+  "catalog_page_next": "Suivant",
+  "catalog_page_status": "Page {page} sur {pages}"
 }

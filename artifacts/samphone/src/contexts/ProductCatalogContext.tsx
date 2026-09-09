@@ -10,12 +10,11 @@ import {
 } from "react";
 import {
   fetchCategories,
-  fetchProductsFirstBatch,
-  fetchProductsPage,
   WooCommerceFetchError,
   type WooCategory,
   type WooProduct,
 } from "@/lib/woocommerce";
+import { fetchCloudProductList } from "@/lib/samphone-cloud";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
@@ -151,16 +150,22 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       setCategoriesError(null);
 
       let firstBatch: WooProduct[] = [];
+      let catalogTotal = 0;
+      let firstRaw = 0;
+      let firstHasMore = false;
 
       try {
         const [cr, first] = await Promise.allSettled([
           fetchCategories(),
-          fetchProductsFirstBatch(PER_PAGE),
+          fetchCloudProductList({ offset: "0" }, PER_PAGE),
         ]);
         if (ac.signal.aborted || !mounted.current) return;
 
         if (first.status === "fulfilled") {
-          firstBatch = first.value;
+          firstBatch = first.value.items;
+          catalogTotal = first.value.total;
+          firstRaw = first.value.rawCount;
+          firstHasMore = first.value.hasMore;
           setProducts(firstBatch);
           writeCache(firstBatch);
         } else {
@@ -192,19 +197,23 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
         if (mounted.current && blocking) setLoading(false);
       }
 
-      if (ac.signal.aborted || !mounted.current || firstBatch.length < PER_PAGE) return;
+      const more =
+        firstHasMore ||
+        (catalogTotal > 0 && firstRaw < catalogTotal) ||
+        firstRaw >= PER_PAGE;
+      if (ac.signal.aborted || !mounted.current || firstBatch.length === 0 || !more) return;
 
       setSyncingMore(true);
       try {
         let acc = [...firstBatch];
         const seen = new Set(acc.map((p) => p.id));
-        let page = 2;
+        let offset = firstRaw;
         while (!ac.signal.aborted && mounted.current) {
-          const batch = await fetchProductsPage(page, PER_PAGE);
+          const page = await fetchCloudProductList({ offset: String(offset) }, PER_PAGE);
           if (ac.signal.aborted || !mounted.current) return;
-          if (!batch.length) break;
+          if (page.rawCount === 0) break;
           let added = 0;
-          for (const p of batch) {
+          for (const p of page.items) {
             if (seen.has(p.id)) continue;
             seen.add(p.id);
             acc.push(p);
@@ -213,8 +222,9 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
           if (added === 0) break;
           setProducts([...acc]);
           writeCache(acc);
-          if (batch.length < PER_PAGE) break;
-          page += 1;
+          offset += page.rawCount;
+          if (!page.hasMore) break;
+          if (catalogTotal > 0 && offset >= catalogTotal) break;
         }
       } finally {
         if (mounted.current) setSyncingMore(false);

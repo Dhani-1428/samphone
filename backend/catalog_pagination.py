@@ -4,8 +4,8 @@ from __future__ import annotations
 from typing import Any
 
 DEFAULT_PRODUCT_PAGE = 50
-MAX_PRODUCT_PAGE = 50
-MODEL_PRODUCT_PAGE = 100
+MAX_PRODUCT_PAGE = 200
+MODEL_PRODUCT_PAGE = 200
 
 
 def clamp_page(limit: int | None = None, offset: int | None = None, *, model_query: bool = False) -> tuple[int, int]:

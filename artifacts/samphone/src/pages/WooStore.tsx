@@ -5,6 +5,7 @@ import PageVideoHero from "@/components/PageVideoHero";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
+import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 
 export default function WooStore() {
@@ -12,6 +13,7 @@ export default function WooStore() {
   const { products, loading, error, refreshNow, lastUpdated, hasCache, syncingMore } = useProductCatalog();
   const configured = hasWooCommerceConfig();
   const showBlockingLoader = loading && !hasCache;
+  const pager = usePagedItems(products, "store");
 
   return (
     <div className="min-h-screen">
@@ -75,13 +77,16 @@ export default function WooStore() {
         )}
 
         {!showBlockingLoader && !error && products.length > 0 && (
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5">
-            {products.map((p) => (
-              <li key={p.id}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5">
+              {pager.slice.map((p) => (
+                <li key={p.id}>
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                </li>
+              ))}
+            </ul>
+            <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
+          </>
         )}
       </div>
     </div>

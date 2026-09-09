@@ -18,6 +18,7 @@ import {
 } from "@/data/accessory-pages";
 import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
 import { sortByPrice } from "@/lib/woo-product-filters";
+import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import type { WooProduct } from "@/lib/woocommerce";
 
 function shopHref(forcedGroup: string | undefined, group: string, subtype?: string): string {
@@ -99,6 +100,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
   };
 
   const headingHint = items == null ? t("woo_loading") : countLabel;
+  const pager = usePagedItems(visible, `${fetchGroup}:${subtype?.label ?? ""}`);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8] pb-28">
@@ -141,16 +143,19 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
           ) : visible.length === 0 ? (
             <p className="py-16 text-center text-sm text-muted-foreground">{t("productNotFound")}</p>
           ) : (
-            <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-              {visible.map((p) => (
-                <WooProductCard
-                  key={p.cloudId || `${p.id}-${p.slug}`}
-                  product={p}
-                  priceUnavailableLabel={t("woo_price_na")}
-                  compact
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+                {pager.slice.map((p) => (
+                  <WooProductCard
+                    key={p.cloudId || `${p.id}-${p.slug}`}
+                    product={p}
+                    priceUnavailableLabel={t("woo_price_na")}
+                    compact
+                  />
+                ))}
+              </div>
+              <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
+            </>
           )}
         </div>
       </div>
