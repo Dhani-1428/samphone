@@ -21,6 +21,7 @@ type Props = {
   onExport?: () => void;
   onDeleteAccount?: () => void;
   onCancelOrder?: (id: string) => void;
+  onReorder?: (id: string) => void;
   onRemoveRestockAlert?: (productId: string) => void;
 };
 
@@ -44,6 +45,7 @@ export default function AccountSectionPanels({
   onExport,
   onDeleteAccount,
   onCancelOrder,
+  onReorder,
   onRemoveRestockAlert,
 }: Props) {
   const { t } = useLang();
@@ -206,6 +208,11 @@ export default function AccountSectionPanels({
                   ) : null}
                 </div>
                 <div className="flex gap-2">
+                  {onReorder ? (
+                    <Button variant="outline" size="sm" type="button" onClick={() => onReorder(o.id)}>
+                      {t("account_reorder")}
+                    </Button>
+                  ) : null}
                   <Button variant="outline" size="sm" asChild>
                     <Link href={`/track?q=${encodeURIComponent(o.id)}`}>{t("account_track_link")}</Link>
                   </Button>
@@ -230,6 +237,7 @@ export default function AccountSectionPanels({
   if (section === "invoices") {
     return (
       <Panel title={t("account_nav_invoices")}>
+        <p className="mb-4 text-sm text-muted-foreground">{t("account_invoices_note")}</p>
         {orders.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("account_invoices_empty")}</p>
         ) : (
@@ -240,8 +248,8 @@ export default function AccountSectionPanels({
                 <span className="text-muted-foreground">
                   {new Date(o.createdAt).toLocaleDateString()}
                 </span>
-                <Button variant="outline" size="sm" type="button">
-                  {t("account_download_invoice")}
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/contact">{t("nav_contact")}</Link>
                 </Button>
               </li>
             ))}

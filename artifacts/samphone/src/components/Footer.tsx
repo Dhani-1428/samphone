@@ -27,6 +27,7 @@ import {
   Truck,
   User,
   UserPlus,
+  Building2,
   Wrench,
 } from "lucide-react";
 import { FaCcAmex, FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
@@ -43,6 +44,7 @@ import {
 } from "@/config/samphone";
 import BrandLogo from "@/components/BrandLogo";
 import { whatsappChatHref } from "@/lib/whatsapp";
+import { openCookieSettings } from "@/lib/cookie-consent";
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
@@ -140,7 +142,8 @@ export default function Footer() {
     { href: "/track", label: t("footer_orders_payments"), Icon: Receipt },
     { href: "/account", label: t("footer_account_mgmt"), Icon: User },
     { href: "/track", label: t("footer_shipping"), Icon: Truck },
-    { href: "/contact", label: t("footer_warranty"), Icon: ShieldCheck },
+    { href: LEGAL_LINKS.warranty, label: t("footer_warranty"), Icon: ShieldCheck },
+    { href: "/faq", label: t("footer_faq"), Icon: FileText },
     { href: "/diagnostics", label: t("nav_diagnostics"), Icon: Search },
     { href: user ? "/account" : "/register", label: t("footer_onboarding"), Icon: UserPlus },
   ];
@@ -153,13 +156,19 @@ export default function Footer() {
     { href: "/cards", label: t("footer_shop_cards"), Icon: CreditCard },
     { href: "/new", label: t("footer_shop_new"), Icon: Star },
     { href: "/multi-brand", label: t("footer_shop_multibrand"), Icon: LayoutGrid },
+    { href: "/b2b", label: t("footer_b2b"), Icon: Building2 },
   ];
 
   const policyLinks = [
     { href: LEGAL_LINKS.terms, label: t("footer_terms"), Icon: FileText },
     { href: LEGAL_LINKS.refunds, label: t("footer_refunds"), Icon: RotateCcw },
     { href: LEGAL_LINKS.shipping, label: t("footer_shipping_policy"), Icon: Truck },
+    { href: LEGAL_LINKS.warranty, label: t("footer_warranty"), Icon: ShieldCheck },
     { href: LEGAL_LINKS.privacy, label: t("footer_privacy"), Icon: ShieldCheck },
+    { href: LEGAL_LINKS.cookies, label: t("footer_cookies"), Icon: FileText },
+    { href: LEGAL_LINKS.legal, label: t("footer_legal_info"), Icon: FileText },
+    { href: LEGAL_LINKS.complaints, label: t("footer_complaints"), Icon: FileText },
+    { href: LEGAL_LINKS.b2bTerms, label: t("footer_b2b_terms"), Icon: Building2 },
   ];
 
   const benefits = [
@@ -341,6 +350,10 @@ export default function Footer() {
           })}
         </div>
         <div className="border-t border-white/15 px-5 py-3 text-center text-[12px] font-semibold text-white/75">
+          <button type="button" className="hover:text-white" onClick={() => openCookieSettings()}>
+            {t("footer_cookie_settings")}
+          </button>
+          <span className="mx-2 text-white/30">·</span>
           <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
             {t("footer_livro")}
           </a>

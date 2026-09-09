@@ -7,6 +7,7 @@ import AddedToCartPopup from "@/components/AddedToCartPopup";
 import CartSider from "@/components/CartSider";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 import WholesaleStatusBanner from "@/components/WholesaleStatusBanner";
+import CookieConsent from "@/components/CookieConsent";
 
 export default function Layout({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
@@ -42,6 +43,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <WhatsAppButton />
       <BackToTopButton />
       <AddedToCartPopup />
+      <CookieConsent />
     </div>
   );
 }

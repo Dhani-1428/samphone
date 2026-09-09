@@ -49,6 +49,8 @@ import AdminCatalog from "@/pages/admin/AdminCatalog";
 import LegalPage from "@/pages/LegalPage";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/Layout";
+import WholesalePage from "@/pages/WholesalePage";
+import FaqPage from "@/pages/FaqPage";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import SiteLockGate from "@/components/SiteLockGate";
@@ -96,6 +98,45 @@ function Router() {
       </Route>
       <Route path="/contact">
         <Layout><Contact /></Layout>
+      </Route>
+      <Route path="/faq">
+        <Layout><FaqPage /></Layout>
+      </Route>
+      <Route path="/b2b">
+        <Layout><WholesalePage /></Layout>
+      </Route>
+      <Route path="/wholesale">
+        <Layout><WholesalePage /></Layout>
+      </Route>
+      <Route path="/terms-and-conditions">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/cookie-policy">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/cookies">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/warranty">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/legal-information">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/legal">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/complaints">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/adr">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/b2b-terms">
+        <Layout><LegalPage /></Layout>
+      </Route>
+      <Route path="/returns">
+        <Layout><LegalPage /></Layout>
       </Route>
       <Route path="/terms-conditions">
         <Layout><LegalPage /></Layout>
@@ -190,7 +231,9 @@ function Router() {
       <Route path="/admin/catalog">
         <AdminCatalog />
       </Route>
-      <Route component={NotFound} />
+      <Route>
+        <Layout><NotFound /></Layout>
+      </Route>
     </Switch>
   );
 }

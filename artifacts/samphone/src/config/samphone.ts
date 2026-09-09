@@ -39,6 +39,11 @@ export const LEGAL_LINKS = {
   terms: "/terms-conditions",
   refunds: "/refund-return-policy",
   shipping: "/shipping-policy",
+  cookies: "/cookie-policy",
+  warranty: "/warranty",
+  legal: "/legal-information",
+  complaints: "/complaints",
+  b2bTerms: "/b2b-terms",
   livro: "https://www.livroreclamacoes.pt/Inicio",
 } as const;
 

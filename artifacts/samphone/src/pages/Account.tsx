@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Account() {
   const { t, lang } = useLang();
   const { user, logout } = useAuth();
-  const { items, clearCart } = useCart();
+  const { items, clearCart, increment } = useCart();
   const search = useSearch();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -200,6 +200,20 @@ export default function Account() {
     }
   };
 
+  const handleReorder = (id: string) => {
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
+    const usable = order.lines.filter((l) => l.cartKey && !l.cartKey.startsWith("api:"));
+    if (usable.length === 0) {
+      toast({ title: t("account_reorder_unavailable") });
+      return;
+    }
+    for (const line of usable) {
+      for (let i = 0; i < line.qty; i += 1) increment(line.cartKey);
+    }
+    setLocation("/cart");
+  };
+
   const cartItemCount = Object.values(items).filter((q) => q > 0).length;
 
   if (!user) {
@@ -256,6 +270,7 @@ export default function Account() {
                 onExport={handleExport}
                 onDeleteAccount={handleDeleteAccount}
                 onCancelOrder={handleCancelOrder}
+                onReorder={handleReorder}
                 onRemoveRestockAlert={handleRemoveRestockAlert}
               />
             )}

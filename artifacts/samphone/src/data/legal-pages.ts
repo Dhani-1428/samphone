@@ -489,14 +489,205 @@ export const LEGAL_PAGES: LegalDoc[] = [
       },
     ],
   },
+  {
+    slug: "cookie-policy",
+    path: "/cookie-policy",
+    eyebrowEn: "Home / Cookies",
+    eyebrowPt: "Início / Cookies",
+    titleEn: "Cookie policy",
+    titlePt: "Política de cookies",
+    descriptionEn:
+      "This page describes cookies and similar technologies actually used on this Samphone.eu storefront. It is an informational draft — have it reviewed by a qualified Portuguese/EU professional before relying on it as legal advice.",
+    descriptionPt:
+      "Esta página descreve cookies e tecnologias semelhantes realmente usadas nesta loja Samphone.eu. É um rascunho informativo — deve ser revisto por um profissional qualificado em Portugal/UE.",
+    blocks: [
+      {
+        type: "p",
+        text: "This website is a React storefront (samphone.eu) that talks to Samphone Cloud / WooCommerce APIs. We did not find Google Analytics, Google Tag Manager, Meta Pixel, Google Ads, or similar advertising pixels in this codebase. Optional analytics/marketing categories in the consent banner are stored for a future tool — they do not currently load extra tracking scripts.",
+      },
+      { type: "h", text: "Necessary" },
+      {
+        type: "ul",
+        items: [
+          "samphone_cookie_consent_v1 (localStorage) — stores your cookie preference, categories, timestamp, and policy version.",
+          "samphone-lang (localStorage) — language.",
+          "samphone-theme / similar theme keys — display preference.",
+          "samphone-cart-items-v1 — shopping cart.",
+          "samphone-orders — local order tracking fallback.",
+          "samphone-api-jwt (session/local storage) — API session after login.",
+          "samphone_preview_unlock (sessionStorage) — preview lock on this deployment, if used.",
+          "Clerk authentication cookies/storage — sign-in session (clerk.samphone.cloud) when Clerk is enabled.",
+          "Stripe — payment fields and checkout are processed by Stripe; card numbers are not stored on this website.",
+        ],
+      },
+      { type: "h", text: "Preferences / analytics / marketing" },
+      {
+        type: "p",
+        text: "No first-party analytics or marketing pixels are installed in this project at the time this page was written. If those tools are added later, they must only load after the matching consent category is accepted.",
+      },
+      { type: "h", text: "Change your choice" },
+      {
+        type: "p",
+        text: "Use Cookie Settings in the footer at any time. Consent is stored locally in your browser (status, categories, timestamp, version). We do not send that record to an extra logging server from this storefront.",
+      },
+    ],
+  },
+  {
+    slug: "warranty",
+    path: "/warranty",
+    eyebrowEn: "Home / Warranty",
+    eyebrowPt: "Início / Garantia",
+    titleEn: "Warranty & legal guarantee",
+    titlePt: "Garantia e garantia legal",
+    descriptionEn:
+      "Draft information only. Consumer guarantee periods and remedies under Portuguese/EU law must be confirmed by a qualified lawyer. This page does not add extra commercial warranty months unless they are written on a specific product.",
+    descriptionPt:
+      "Informação em rascunho. Prazos e direitos da garantia legal em Portugal/UE devem ser confirmados por um jurista. Esta página não acrescenta meses de garantia comercial extra, salvo se constarem no produto.",
+    blocks: [
+      { type: "h", text: "B2C — consumers" },
+      {
+        type: "p",
+        text: "If you buy as a consumer, Portuguese and EU rules on legal conformity (legal guarantee) may apply to the goods. Those rights do not depend on this website’s marketing copy. Keep your proof of purchase. Contact us with the order number, product, and a description of the defect.",
+      },
+      { type: "h", text: "Commercial warranty" },
+      {
+        type: "p",
+        text: "Any extra commercial warranty applies only if it is stated on the product, packing, or a written confirmation from Samphone. Do not assume a duration that is not written there.",
+      },
+      { type: "h", text: "B2B — businesses" },
+      {
+        type: "p",
+        text: "Purchases as a business/wholesale customer are not automatically covered by the same consumer rules. Defective or non-conforming goods should be reported promptly with photos and the invoice/order number. Remedies follow the order terms and applicable commercial law — not consumer withdrawal rules.",
+      },
+      { type: "h", text: "How to claim" },
+      {
+        type: "ul",
+        items: [
+          "Email samphone.pt@gmail.com or use the contact form.",
+          "Include order number, SKU if known, and photos.",
+          "We may ask you to return the item for inspection. Return shipping for warranty claims is confirmed case by case.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "legal-information",
+    path: "/legal-information",
+    eyebrowEn: "Home / Legal information",
+    eyebrowPt: "Início / Informação legal",
+    titleEn: "Legal information",
+    titlePt: "Informação legal",
+    descriptionEn: "Company details taken from this project. Fields marked [TO FILL] are not in the codebase — do not treat placeholders as official registry data.",
+    descriptionPt: "Dados da empresa obtidos neste projeto. Campos [A PREENCHER] não estão no código — não os trate como dados oficiais de registo.",
+    blocks: [
+      { type: "h", text: "Trader information on this website" },
+      {
+        type: "ul",
+        items: [
+          "Trading name: SAMPHONE / Samphone.eu",
+          "Store address (as published in this project): Rua da Palma N.221-223, 1100-391 Lisboa, Portugal",
+          "Email: samphone.pt@gmail.com",
+          "Telephone: +351 937 119 295",
+          "Legal company name: [TO FILL]",
+          "VAT / NIF: [TO FILL]",
+          "Company registration / CRC: [TO FILL]",
+          "Share capital (if required on invoices): [TO FILL]",
+        ],
+      },
+      {
+        type: "p",
+        text: "These pages are storefront copy. Final legal identity, VAT number, and registrations must match official Portuguese filings and invoices.",
+      },
+    ],
+  },
+  {
+    slug: "complaints",
+    path: "/complaints",
+    eyebrowEn: "Home / Complaints",
+    eyebrowPt: "Início / Reclamações",
+    titleEn: "Complaints and consumer disputes",
+    titlePt: "Reclamações e resolução de conflitos",
+    descriptionEn:
+      "Informational summary for consumers in Portugal. Confirm ADR adhesion and any mandatory notices with a Portuguese lawyer. We do not invent an adhesion protocol that is not recorded in this project.",
+    descriptionPt:
+      "Resumo informativo para consumidores em Portugal. Confirme a adesão a RAL e avisos obrigatórios com um jurista. Não inventamos um protocolo de adesão que não conste neste projeto.",
+    blocks: [
+      { type: "h", text: "1. Contact us first" },
+      {
+        type: "p",
+        text: "Please write to samphone.pt@gmail.com or use the Contact page with your order number. Many issues can be resolved directly with the store.",
+      },
+      { type: "h", text: "2. Electronic complaints book (Livro de Reclamações)" },
+      {
+        type: "p",
+        text: "In Portugal, consumers can use the official electronic complaints book: https://www.livroreclamacoes.pt/Inicio . Physical books may also be available at the shop in Lisbon where required.",
+      },
+      { type: "h", text: "3. Alternative dispute resolution (ADR / RAL)" },
+      {
+        type: "p",
+        text: "Portuguese law (including Law 144/2015) provides a framework for out-of-court consumer dispute resolution. Official orientation: https://www2.gov.pt/en/fichas-de-enquadramento/resolucao-de-conflitos-de-consumo",
+      },
+      {
+        type: "p",
+        text: "This codebase does not record whether Samphone has adhered to a specific arbitration centre. Consumers in Lisbon may contact the Lisbon Consumer Conflict Arbitration Centre (https://www.centroarbitragemlisboa.pt) and can seek national information via CNIACC (https://www.cniacc.pt). The competent centre depends on the dispute and the trader’s adhesion — confirm before filing.",
+      },
+      { type: "h", text: "4. B2B" },
+      {
+        type: "p",
+        text: "Business-to-business disputes are not consumer ADR cases. Use the contact details above and the B2B terms.",
+      },
+    ],
+  },
+  {
+    slug: "b2b-terms",
+    path: "/b2b-terms",
+    eyebrowEn: "Home / B2B terms",
+    eyebrowPt: "Início / Termos B2B",
+    titleEn: "B2B / wholesale terms (draft)",
+    titlePt: "Termos B2B / grossista (rascunho)",
+    descriptionEn:
+      "Draft commercial terms for business accounts. This is not legal advice and must be reviewed before use as a binding contract.",
+    descriptionPt:
+      "Rascunho de condições comerciais para contas empresariais. Não constitui aconselhamento jurídico e deve ser revisto antes de ser usado como contrato.",
+    blocks: [
+      {
+        type: "p",
+        text: "Wholesale prices on this website are shown only after a business account is approved. Guests and B2C customers see retail prices. Pending, rejected, or suspended B2B accounts keep retail pricing until status changes.",
+      },
+      { type: "h", text: "Account" },
+      {
+        type: "ul",
+        items: [
+          "Apply via Create B2B account. Approval is decided by Samphone staff in the existing admin tools.",
+          "You must provide accurate company, VAT/NIF, and contact data.",
+          "Login is required to add products to the cart and to check out.",
+        ],
+      },
+      { type: "h", text: "Orders and VAT" },
+      {
+        type: "p",
+        text: "Invoices, VAT treatment (including possible intra-EU B2B rules), and credit terms follow the tax configuration of the shop and the data you provide at checkout. This website does not invent reverse-charge or exemption rules. Ask your accountant if you need a specific VAT setup.",
+      },
+      { type: "h", text: "Returns" },
+      {
+        type: "p",
+        text: "Consumer withdrawal rights generally do not apply to B2B purchases in the same way as B2C. Returns of wholesale goods are handled as commercial claims (wrong item, defect, shortage) as described in the returns policy.",
+      },
+    ],
+  },
 ];
 
 const LEGAL_ALIASES: Record<string, string> = {
   "/terms": "/terms-conditions",
+  "/terms-and-conditions": "/terms-conditions",
   "/privacy": "/privacy-policy",
   "/privacy-policy-and-data-protection": "/privacy-policy",
   "/refunds": "/refund-return-policy",
+  "/returns": "/refund-return-policy",
   "/shipping": "/shipping-policy",
+  "/cookies": "/cookie-policy",
+  "/legal": "/legal-information",
+  "/adr": "/complaints",
 };
 
 export function legalPageByPath(path: string): LegalDoc | undefined {
