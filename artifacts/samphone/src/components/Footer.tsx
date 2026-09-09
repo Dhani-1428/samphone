@@ -300,7 +300,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 bg-brand-dark">
+      <div className="border-t border-white/15 bg-brand">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-3 px-5 py-4 sm:px-8 md:flex-row md:px-10 lg:px-14 xl:px-16">
           <p className="text-center text-[12px] font-semibold text-white/65 md:text-left">
             © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
@@ -315,17 +315,17 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-sam text-brand">
+      <div className="border-t border-white/15 bg-brand text-white">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
           {benefits.map((item) => {
             const body = (
               <>
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-white">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sam text-white">
                   <item.Icon className="h-4 w-4" strokeWidth={1.8} />
                 </span>
                 <span>
-                  <span className="block text-[13.5px] font-bold leading-tight">{item.title}</span>
-                  <span className="mt-0.5 block text-[12px] text-brand/75">{item.sub}</span>
+                  <span className="block text-[13.5px] font-bold leading-tight text-white">{item.title}</span>
+                  <span className="mt-0.5 block text-[12px] text-white/70">{item.sub}</span>
                 </span>
               </>
             );
@@ -340,17 +340,17 @@ export default function Footer() {
             );
           })}
         </div>
-        <div className="border-t border-brand/20 px-5 py-3 text-center text-[12px] font-semibold text-brand/80">
-          <a href={LEGAL_LINKS.livro} className="hover:text-brand-dark" target="_blank" rel="noreferrer">
+        <div className="border-t border-white/15 px-5 py-3 text-center text-[12px] font-semibold text-white/75">
+          <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
             {t("footer_livro")}
           </a>
-          <span className="mx-2 text-brand/30">·</span>
+          <span className="mx-2 text-white/30">·</span>
           {t("footer_developed_by")}{" "}
           <a
             href="https://bonusitsolutions.com/"
             target="_blank"
             rel="noreferrer"
-            className="text-brand underline decoration-brand/40 underline-offset-2 hover:decoration-brand-dark"
+            className="text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
           >
             Bonus IT Solutions
           </a>
