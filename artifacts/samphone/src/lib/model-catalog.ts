@@ -78,7 +78,9 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
     id: "housing",
     label: "Housing / Frame",
     kind: "part",
-    match: (h) => /\b(housing|frame|chassis)\b/i.test(h),
+    match: (h) =>
+      /\b(housing|chassis)\b/i.test(h) ||
+      (/\bframe\b/i.test(h) && !/\b(case|cover|jelly|silicone?|magsafe|bumper)\b/i.test(h)),
   },
   {
     id: "front-cam",
@@ -109,7 +111,8 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
     label: "Speaker / Earpiece",
     kind: "part",
     match: (h) =>
-      /\b(earpiece|loudspeaker|buzzer|speaker)\b/i.test(h) && !/\b(bluetooth speaker|bt speaker)\b/i.test(h),
+      /\b(earpiece|loudspeaker|buzzer)\b/i.test(h) ||
+      (/\bspeaker\b/i.test(h) && !/\b(bluetooth|bt speaker|headset|earphone|tws)\b/i.test(h)),
   },
   {
     id: "fingerprint",
@@ -361,22 +364,19 @@ const ACCESSORY_MATCH_ORDER = [
 ];
 
 export function classifyModelProduct(p: WooProduct): { kind: ModelTypeKind; typeId: string } {
-  const cls = classifyCatalogProduct(p);
-  const kind: ModelTypeKind = cls.category === "parts" ? "part" : "accessory";
   const h = p.name;
-  if (kind === "accessory") {
-    for (const id of ACCESSORY_MATCH_ORDER) {
-      const bucket = MODEL_ACCESSORY_TYPES.find((t) => t.id === id);
-      if (bucket?.match(h)) return { kind: "accessory", typeId: id };
-    }
-    return { kind, typeId: cls.typeId };
+  for (const id of ACCESSORY_MATCH_ORDER) {
+    const bucket = MODEL_ACCESSORY_TYPES.find((t) => t.id === id);
+    if (bucket?.match(h)) return { kind: "accessory", typeId: id };
   }
   for (const bucket of MODEL_PART_TYPES) {
     if (bucket.match(h)) return { kind: "part", typeId: bucket.id };
   }
+  const cls = classifyCatalogProduct(p);
+  const kind: ModelTypeKind = cls.category === "parts" ? "part" : "accessory";
   const fromApi = bucketFromApiLabel(catalogTypeLabel(p));
-  if (fromApi?.kind === "part") return fromApi;
-  return { kind, typeId: cls.typeId };
+  if (fromApi?.kind === kind) return fromApi;
+  return { kind, typeId: cls.typeId || (kind === "part" ? "other-parts" : "other-accessories") };
 }
 
 function typeIndex(typeId: string, buckets: ModelTypeBucket[]): number {
@@ -417,7 +417,10 @@ export function groupProductsByType(
 ): { id: string; label: string; count: number; items: WooProduct[] }[] {
   return typesWithCounts(products, kind).map((chip) => ({
     ...chip,
-    items: products.filter((p) => classifyModelProduct(p).typeId === chip.id),
+    items: products.filter((p) => {
+      const c = classifyModelProduct(p);
+      return c.kind === kind && c.typeId === chip.id;
+    }),
   }));
 }
 

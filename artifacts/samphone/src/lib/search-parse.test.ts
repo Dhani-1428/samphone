@@ -45,6 +45,30 @@ describe("catalog taxonomy", () => {
     assert.equal(lcd.subcategory, "screen");
   });
 
+  it("keeps parts and accessories in their own sections even with mixed API tags", () => {
+    assert.equal(
+      classifyCatalogProduct({ name: "Touch + LCD OLED iPhone 17 Pro Max", catalogGroup: "Original Accessories" }).category,
+      "parts",
+    );
+    assert.equal(classifyCatalogProduct({ name: "Battery iPhone 17 Pro Max", catalogGroup: "Accessories" }).category, "parts");
+    assert.equal(
+      classifyCatalogProduct({ name: "Silicon Soft Jelly Cover iPhone 17 Pro Max", catalogGroup: "Phone Parts" }).category,
+      "accessories",
+    );
+    assert.equal(
+      classifyCatalogProduct({ name: "Tempered Glass iPhone 17 Pro Max", catalogGroup: "Phone Parts" }).category,
+      "accessories",
+    );
+    assert.equal(classifyCatalogProduct({ name: "Back Cover iPhone 17 Pro Max Black", catalogGroup: "Phone Parts" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "MagSafe Case iPhone 17 Pro Max", catalogGroup: "Phone Parts" }).category, "accessories");
+    assert.equal(
+      classifyCatalogProduct({ name: "Charging Port Flex iPhone 17 Pro Max", catalogGroup: "Original Accessories" }).category,
+      "parts",
+    );
+    assert.equal(classifyCatalogProduct({ name: "Bumper Frame Case iPhone 17 Pro Max" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max Housing", catalogGroup: "Phone Parts" }).category, "parts");
+  });
+
   it("treats case and back cover as distinct", () => {
     assert.equal(classifyCatalogProduct({ name: "MagSafe Case iPhone 17 Pro Max" }).subcategory, "case");
     assert.equal(classifyCatalogProduct({ name: "Back Cover iPhone 17 Pro Max" }).subcategory, "back-cover");

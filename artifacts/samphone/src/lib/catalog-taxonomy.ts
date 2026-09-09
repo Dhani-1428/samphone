@@ -80,10 +80,30 @@ function hay(p: TaxonomyProduct): string {
 }
 
 const ACCESSORY_RE =
-  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphone|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover)\b/i;
+  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphone|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|capinha|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover|pel[ií]cula)\b/i;
 
 const PART_RE =
-  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|display assembly|\bbattery\b|front camera|rear camera|back camera|charging (flex|port|board)|sim tray|frame|housing|chassis|buzzer|vibrator|earpiece|loudspeaker|motherboard|back glass|rear glass|flex cable|volume flex|power flex)\b/i;
+  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|display assembly|replacement screen|\bscreen\b|\bbattery\b|front camera|rear camera|back camera|charging (flex|port|board)|sim tray|housing|chassis|buzzer|vibrator|earpiece|loudspeaker|motherboard|back glass|rear glass|flex cable|volume flex|power flex|peças?)\b/i;
+
+const ACCESSORY_GROUP_RE = /original accessor|\baccessories\b|\bhoco\b|charger|cables?|headphone|power ?bank|\bcards\b/i;
+const PART_GROUP_RE = /phone part|peças?|pecas?|spare part/i;
+
+function isAccessoryName(n: string): boolean {
+  if (!ACCESSORY_RE.test(n)) return false;
+  if (/\b(tempered|protector|full glue|privacy|pel[ií]cula|jelly|silicone?|magsafe|case|cover|capa|capinha)\b/i.test(n)) {
+    if (/\b(lcd|oled|incell|digitizer|service pack)\b/i.test(n)) return false;
+    return true;
+  }
+  if (/\b(charging (port|flex|board)|housing|chassis|back glass|rear glass)\b/i.test(n)) return false;
+  return true;
+}
+
+function isPartName(n: string): boolean {
+  if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n)) return false;
+  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing)\b/i.test(n)) return false;
+  if (/\bscreen\b/i.test(n) && /\bprotect/i.test(n)) return false;
+  return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|cover|bumper)\b/i.test(n));
+}
 
 function accessorySub(h: string): AccessoriesSubcategory {
   if (/\b(tempered|privacy glass|full glue|screen protect|normal glass|curved glass|pel[ií]cula|vidro templado)\b/i.test(h) && !/\b(lcd|oled|digitizer)\b/i.test(h)) {
@@ -120,7 +140,9 @@ function partSub(h: string): PartsSubcategory {
     return "speaker";
   }
   if (/\b(flex|volume flex|power flex|main flex|side button)\b/i.test(h)) return "flex-cable";
-  if (/\b(housing|frame|chassis)\b/i.test(h)) return "housing";
+  if (/\b(housing|chassis)\b/i.test(h) || (/\bframe\b/i.test(h) && !/\b(case|cover|bumper)\b/i.test(h))) {
+    return "housing";
+  }
   return "other-parts";
 }
 
@@ -168,17 +190,20 @@ export function classifyCatalogProduct(p: TaxonomyProduct): CatalogClassificatio
   const apiType = (p.partType || p.specs?.Type || "").trim();
 
   const n = nameHay(p);
-  const accessoryNamed =
-    ACCESSORY_RE.test(n) &&
-    !/\b(lcd|oled|incell|digitizer|charging (port|flex)|housing|frame|chassis|back glass|rear glass)\b/i.test(n);
-  const partNamed = PART_RE.test(n) && !accessoryNamed && !/\bpower bank\b/i.test(n);
+  const accessoryNamed = isAccessoryName(n);
+  const partNamed = isPartName(n) && !/\bpower bank\b/i.test(n);
 
   let category: CatalogTopCategory;
-  if (accessoryNamed) category = "accessories";
+  if (accessoryNamed && partNamed) {
+    category = /\b(lcd|oled|incell|digitizer|charging (port|flex)|back glass|rear glass|housing)\b/i.test(n)
+      ? "parts"
+      : "accessories";
+  } else if (accessoryNamed) category = "accessories";
   else if (partNamed) category = "parts";
-  else if (/original accessor|accessor/i.test(group)) category = "accessories";
-  else if (/phone part|peça|repair/i.test(group)) category = "parts";
-  else category = ACCESSORY_RE.test(h) ? "accessories" : partNamed ? "parts" : "accessories";
+  else if (PART_GROUP_RE.test(group)) category = "parts";
+  else if (ACCESSORY_GROUP_RE.test(group)) category = "accessories";
+  else if (isPartName(h) && !isAccessoryName(h)) category = "parts";
+  else category = isAccessoryName(h) || ACCESSORY_RE.test(h) ? "accessories" : "parts";
 
   const subcategory = category === "parts" ? partSub(h) : accessorySub(h);
 
