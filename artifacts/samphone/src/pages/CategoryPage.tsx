@@ -55,7 +55,7 @@ function filterSyntheticProducts(products: WooProduct[], parsed: { kind: "access
 export default function CategoryPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug ?? "";
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const configured = hasWooCommerceConfig();
   const { products, categories, loading: catalogLoading, error: catalogError, refreshNow } = useProductCatalog();
   const synthetic = parseSyntheticBrandCategory(slug);
@@ -128,7 +128,7 @@ export default function CategoryPage() {
       ? `${syntheticBrandName} ${humanizeSlug(synthetic.kind)}`
       : null;
   const label = syntheticLabel ?? wooMeta?.name ?? staticMeta?.label ?? humanizeSlug(slug);
-  const parent = syntheticBrandName ?? parentFromWoo ?? staticMeta?.parent ?? "Shop";
+  const parent = syntheticBrandName ?? parentFromWoo ?? staticMeta?.parent ?? t("footer_shop");
 
   const showWooGrid = configured && wooList.length > 0;
   const showWooEmpty =
@@ -181,15 +181,13 @@ export default function CategoryPage() {
 
         {!wooLoading && showWooEmpty && (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            {lang === "pt"
-              ? "Sem produtos nesta categoria na loja."
-              : "No products are listed in this category on the store yet."}
+            {t("cat_empty")}
           </p>
         )}
 
         {!wooLoading && showNotFound && (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            {lang === "pt" ? "Categoria não encontrada." : "Category not found."}
+            {t("cat_not_found")}
           </p>
         )}
       </div>

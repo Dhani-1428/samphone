@@ -615,5 +615,13 @@
   "about_phone_label": "فون",
   "about_hours": "گھنٹے",
   "about_hours_value": "پیر تا ہفتہ: صبح 9:00 سے شام 7:00 بجے تک",
-  "about_directions": "ہدایات حاصل کریں۔"
+  "about_directions": "ہدایات حاصل کریں۔",
+  "footer_newsletter": "نیوز لیٹر",
+  "footer_subscribed": "آپ سبسکرائب ہو گئے ہیں!",
+  "footer_email_placeholder": "آپ کا ای میل",
+  "cat_empty": "اس زمرے میں ابھی کوئی مصنوعات نہیں ہیں۔",
+  "cat_not_found": "زمرہ نہیں ملا۔",
+  "search_accessories": "لوازمات تلاش کریں…",
+  "accessory_no_match": "آپ کے فلٹرز سے کوئی زمرہ نہیں ملتا۔",
+  "cart_each": "فی"
 }

@@ -17,6 +17,56 @@ function cacheKey(lang: Lang, text: string) {
   return `${lang}\0${text}`;
 }
 
+async function translateViaGoogle(texts: string[], lang: Lang): Promise<string[]> {
+  const out: string[] = [];
+  for (const text of texts) {
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(lang)}&dt=t&q=${encodeURIComponent(text)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        out.push(text);
+        continue;
+      }
+      const data: unknown = await res.json();
+      const chunks = Array.isArray(data) && Array.isArray(data[0]) ? data[0] : [];
+      const joined = chunks
+        .map((row) => (Array.isArray(row) && typeof row[0] === "string" ? row[0] : ""))
+        .join("");
+      out.push(joined.trim() ? joined : text);
+    } catch {
+      out.push(text);
+    }
+  }
+  return out;
+}
+
+async function translateBatch(texts: string[], lang: Lang): Promise<string[]> {
+  let translated: string[] = texts;
+  try {
+    translated = await translateCloudTexts(texts, lang);
+  } catch {
+    translated = texts;
+  }
+  const needFallback: number[] = [];
+  translated.forEach((dst, i) => {
+    const src = texts[i];
+    if (dst && dst !== src) return;
+    if (lang !== "pt") {
+      needFallback.push(i);
+      return;
+    }
+    if (/^[\x00-\x7F]+$/.test(src) && /[A-Za-z]{4,}/.test(src)) needFallback.push(i);
+  });
+  if (needFallback.length === 0) return translated;
+  const fallbackSrc = needFallback.map((i) => texts[i]);
+  const fallbackDst = await translateViaGoogle(fallbackSrc, lang);
+  const next = [...translated];
+  needFallback.forEach((i, j) => {
+    if (fallbackDst[j]) next[i] = fallbackDst[j];
+  });
+  return next;
+}
+
 function flush() {
   timer = null;
   const batch = queue;
@@ -40,8 +90,7 @@ function flush() {
       for (let i = 0; i < unique.length; i += 30) {
         const slice = unique.slice(i, i + 30).map((s) => s.slice(0, 4000));
         try {
-          const translated = await translateCloudTexts(slice, lang);
-          chunks.push(...translated);
+          chunks.push(...(await translateBatch(slice, lang)));
         } catch {
           chunks.push(...slice);
         }
@@ -73,7 +122,7 @@ function translateLater(text: string, lang: Lang): Promise<string> {
 function skipTranslate(text: string): boolean {
   const t = text.trim();
   if (!t) return true;
-  if (t.length < 3) return true;
+  if (t.length < 2) return true;
   if (/^[\d\s.,+\-€$£#/]+$/.test(t)) return true;
   return false;
 }

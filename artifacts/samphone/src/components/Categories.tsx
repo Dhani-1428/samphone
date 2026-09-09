@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { groupIcon } from "@/components/AccessoryFilterChip";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import {
   ACCESSORY_NAV_PAGES,
   accessoryPageHref,
@@ -77,6 +78,7 @@ function AccessoriesHeroBanner() {
 
 function AccessoryCircle({ page, index }: { page: AccessoryNavPage; index: number }) {
   const Icon = groupIcon(page.group);
+  const label = useTranslatedText(page.label);
 
   return (
     <Link
@@ -88,7 +90,7 @@ function AccessoryCircle({ page, index }: { page: AccessoryNavPage; index: numbe
         <Icon className="h-8 w-8 sm:h-9 sm:w-9" strokeWidth={1.7} />
       </span>
       <span className="max-w-[6.75rem] text-center text-[12px] font-semibold leading-tight text-brand sm:text-[13px]">
-        {page.label}
+        {label}
       </span>
     </Link>
   );
@@ -103,6 +105,7 @@ export default function Categories({
 }) {
   const [query, setQuery] = useState("");
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const { t } = useLang();
 
   const visiblePages = useMemo(() => {
     if (!showFilters) return ACCESSORY_NAV_PAGES;
@@ -128,17 +131,17 @@ export default function Categories({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search accessories…"
+                placeholder={t("search_accessories")}
                 autoComplete="off"
                 className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-sam/30"
-                aria-label="Search accessories"
+                aria-label={t("search_accessories")}
               />
               {query ? (
                 <button
                   type="button"
                   onClick={() => setQuery("")}
                   className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
-                  aria-label="Clear search"
+                  aria-label={t("smartphones_search_clear")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -147,7 +150,7 @@ export default function Categories({
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <CatalogTypeChip active={activeGroup == null} onClick={() => setActiveGroup(null)}>
-                All
+                {t("accessory_filter_all")}
               </CatalogTypeChip>
               {ACCESSORY_NAV_PAGES.map((page) => (
                 <CatalogTypeChip
@@ -164,7 +167,7 @@ export default function Categories({
         ) : null}
 
         {visiblePages.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">No categories match your filters.</p>
+          <p className="py-12 text-center text-sm text-muted-foreground">{t("accessory_no_match")}</p>
         ) : (
           <div className="relative px-8 sm:px-10">
             <Carousel opts={{ align: "start", loop: true, dragFree: true }} className="w-full">

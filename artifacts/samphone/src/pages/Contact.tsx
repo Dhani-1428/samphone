@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useState, type TextareaHTMLAttributes } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, MessageCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiWhatsapp, SiInstagram, SiFacebook } from "react-icons/si";
 import PageVideoHero from "@/components/PageVideoHero";
 import { submitContactLead } from "@/lib/samphone-cloud";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
+import TranslatedText from "@/components/TranslatedText";
+
+function Opt({ value, text }: { value: string; text: string }) {
+  const label = useTranslatedText(text);
+  return <option value={value}>{label}</option>;
+}
+
+function SendLabel({ sending }: { sending: boolean }) {
+  const sendingText = useTranslatedText("Sending…");
+  const sendText = useTranslatedText("Send Message");
+  return <>{sending ? sendingText : sendText}</>;
+}
+
+function PhArea({ text, ...rest }: { text: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const placeholder = useTranslatedText(text);
+  return <textarea {...rest} placeholder={placeholder} />;
+}
 
 const contactInfo = [
   { icon: MapPin, label: "Address", value: "Rua da Palma N.221–223, 1100-391 Lisboa, Portugal", link: "https://maps.google.com/?q=Rua+da+Palma+221+Lisboa+Portugal" },
@@ -59,50 +77,72 @@ export default function Contact() {
       <div className="mx-auto w-full max-w-[1600px] px-5 py-10 sm:px-8 md:px-10 lg:px-14">
         <div className="grid lg:grid-cols-2 gap-10 mb-14">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            <h2 className="text-2xl font-display font-bold text-foreground mb-6">Send us a Message</h2>
+            <h2 className="text-2xl font-display font-bold text-foreground mb-6">
+              <TranslatedText text="Send us a Message" />
+            </h2>
             {submitted ? (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-16 text-center">
                 <CheckCircle className="w-16 h-16 text-[#111111] mb-4" />
-                <h3 className="text-xl font-display font-bold text-foreground mb-2">Message Sent!</h3>
-                <p className="text-muted-foreground">We'll get back to you within 24 hours.</p>
+                <h3 className="text-xl font-display font-bold text-foreground mb-2">
+                  <TranslatedText text="Message Sent!" />
+                </h3>
+                <p className="text-muted-foreground">
+                  <TranslatedText text="We'll get back to you within 24 hours." />
+                </p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1.5 block">Your Name</label>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">
+                      <TranslatedText text="Your Name" />
+                    </label>
                     <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ana Rodrigues" className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" required />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1.5 block">Email Address</label>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">
+                      <TranslatedText text="Email Address" />
+                    </label>
                     <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ana@example.com" className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" required />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Subject</label>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">
+                    <TranslatedText text="Subject" />
+                  </label>
                   <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    <option value="">Select a subject...</option>
-                    <option>Order Inquiry</option><option>Wholesale / Bulk Order</option><option>Product Question</option><option>Returns & Warranty</option><option>Other</option>
+                    <Opt value="" text="Select a subject..." />
+                    <Opt value="Order Inquiry" text="Order Inquiry" />
+                    <Opt value="Wholesale / Bulk Order" text="Wholesale / Bulk Order" />
+                    <Opt value="Product Question" text="Product Question" />
+                    <Opt value="Returns & Warranty" text="Returns & Warranty" />
+                    <Opt value="Other" text="Other" />
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Message</label>
-                  <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="How can we help you?" rows={5} className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" required />
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">
+                    <TranslatedText text="Message" />
+                  </label>
+                  <PhArea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} text="How can we help you?" rows={5} className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" required />
                 </div>
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
-                <Button type="submit" size="lg" disabled={sending} className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12"><Send className="w-4 h-4" /> {sending ? "Sending…" : "Send Message"}</Button>
+                <Button type="submit" size="lg" disabled={sending} className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground h-12"><Send className="w-4 h-4" /> <SendLabel sending={sending} /></Button>
               </form>
             )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.15 }}>
-            <h2 className="text-2xl font-display font-bold text-foreground mb-6">Get in Touch</h2>
+            <h2 className="text-2xl font-display font-bold text-foreground mb-6">
+              <TranslatedText text="Get in Touch" />
+            </h2>
             <div className="space-y-4 mb-6">
               {contactInfo.map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 bg-white ring-1 ring-black/[0.04] rounded-xl">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shrink-0"><item.icon className="w-5 h-5" /></div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-0.5">{item.label}</p>
+                    <p className="text-xs text-muted-foreground mb-0.5">
+                      <TranslatedText text={item.label} />
+                    </p>
                     {item.link ? (
                       <a href={item.link} target={item.link.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:text-primary transition-colors">{item.value}</a>
                     ) : (
@@ -115,8 +155,12 @@ export default function Contact() {
             <a href="https://wa.me/351937119295" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-4 bg-white ring-1 ring-black/[0.04] rounded-xl hover:shadow-sm transition-colors mb-6">
               <SiWhatsapp className="w-8 h-8 text-[#25D366]" />
               <div>
-                <p className="font-semibold text-foreground text-sm">Chat on WhatsApp</p>
-                <p className="text-muted-foreground text-xs">Typical reply in under 10 min</p>
+                <p className="font-semibold text-foreground text-sm">
+                  <TranslatedText text="Chat on WhatsApp" />
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  <TranslatedText text="Typical reply in under 10 min" />
+                </p>
               </div>
             </a>
             <div className="flex gap-3">
@@ -127,17 +171,23 @@ export default function Contact() {
         </div>
 
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-display font-bold text-foreground mb-6 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-display font-bold text-foreground mb-6 text-center">
+            <TranslatedText text="Frequently Asked Questions" />
+          </h2>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="border border-border rounded-2xl overflow-hidden">
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left hover:bg-muted/50 transition-colors">
-                  <span className="font-semibold text-foreground text-sm md:text-base">{faq.q}</span>
+                  <span className="font-semibold text-foreground text-sm md:text-base">
+                    <TranslatedText text={faq.q} />
+                  </span>
                   <MessageCircle className={`w-5 h-5 text-muted-foreground shrink-0 ml-4 transition-colors ${openFaq === i ? "text-primary" : ""}`} />
                 </button>
                 {openFaq === i && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="px-5 pb-5 text-muted-foreground text-sm leading-relaxed border-t border-border">
-                    <div className="pt-4">{faq.a}</div>
+                    <div className="pt-4">
+                      <TranslatedText text={faq.a} />
+                    </div>
                   </motion.div>
                 )}
               </motion.div>

@@ -615,5 +615,13 @@
   "about_phone_label": "Téléphone",
   "about_hours": "Horaires",
   "about_hours_value": "Lun–Sam : 9h00 – 19h00",
-  "about_directions": "Itinéraire"
+  "about_directions": "Itinéraire",
+  "footer_newsletter": "Newsletter",
+  "footer_subscribed": "Vous êtes inscrit !",
+  "footer_email_placeholder": "Votre e-mail",
+  "cat_empty": "Aucun produit dans cette catégorie pour le moment.",
+  "cat_not_found": "Catégorie introuvable.",
+  "search_accessories": "Rechercher des accessoires…",
+  "accessory_no_match": "Aucune catégorie ne correspond à vos filtres.",
+  "cart_each": "pièce"
 }

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link, useLocation } from "wouter";
 import { Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { useAuth } from "@/contexts/AuthContext";
 import type { SearchHit } from "@/data/search-index";
 import ProductCartControls from "@/components/ProductCartControls";
@@ -57,6 +58,8 @@ function mergeHits(list: SearchHit[]): SearchHit[] {
 
 function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) => void }) {
   const { t } = useLang();
+  const name = useTranslatedText(hit.name);
+  const subtitle = useTranslatedText(hit.subtitle);
   const [imgOk, setImgOk] = useState(true);
 
   const price = hit.priceText ? (
@@ -95,9 +98,9 @@ function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) 
       >
         {thumb}
         <div className="min-w-0 flex-1">
-          <span className="line-clamp-2 text-sm font-bold leading-snug text-black">{hit.name}</span>
-          {hit.subtitle ? (
-            <span className="mt-0.5 block truncate text-xs font-semibold text-neutral-700">{hit.subtitle}</span>
+          <span className="line-clamp-2 text-sm font-bold leading-snug text-black">{name}</span>
+          {subtitle ? (
+            <span className="mt-0.5 block truncate text-xs font-semibold text-neutral-700">{subtitle}</span>
           ) : null}
         </div>
       </Link>

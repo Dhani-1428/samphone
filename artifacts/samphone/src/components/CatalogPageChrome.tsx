@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { cn } from "@/lib/utils";
 
 export function CatalogBackLink() {
@@ -17,6 +18,9 @@ export function CatalogSectionHeading({
   hint?: string;
 }) {
   const large = Boolean(highlight);
+  const heading = useTranslatedText(title);
+  const mark = useTranslatedText(highlight);
+  const note = useTranslatedText(hint);
   return (
     <div className="mb-4 flex items-start gap-3">
       <span
@@ -34,14 +38,14 @@ export function CatalogSectionHeading({
         >
           {highlight ? (
             <>
-              {title}{" "}
-              <span className="text-sam underline decoration-sam decoration-[3px] underline-offset-4">{highlight}</span>
+              {heading}{" "}
+              <span className="text-sam underline decoration-sam decoration-[3px] underline-offset-4">{mark}</span>
             </>
           ) : (
-            title
+            heading
           )}
         </h2>
-        {hint ? <p className="mt-0.5 text-sm font-semibold text-neutral-700">{hint}</p> : null}
+        {note ? <p className="mt-0.5 text-sm font-semibold text-neutral-700">{note}</p> : null}
       </div>
     </div>
   );
@@ -58,6 +62,7 @@ export function CatalogTypeChip({
   icon?: LucideIcon;
   children: string;
 }) {
+  const label = useTranslatedText(children);
   return (
     <button
       type="button"
@@ -72,7 +77,7 @@ export function CatalogTypeChip({
     >
       {active ? <span className="absolute inset-x-0 bottom-0 h-[3px] bg-sam" aria-hidden /> : null}
       {Icon ? <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} /> : null}
-      {children}
+      {label}
     </button>
   );
 }

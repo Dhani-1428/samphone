@@ -125,7 +125,7 @@ function SocialButton({
 }
 
 export default function Footer() {
-  const { lang, t } = useLang();
+  const { t } = useLang();
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -252,11 +252,11 @@ export default function Footer() {
               </a>
             </div>
             <div className="mt-5 bg-sam p-4">
-              <p className="mb-1.5 typo-newsletter-title text-[#111111]">Newsletter</p>
+              <p className="mb-1.5 typo-newsletter-title text-[#111111]">{t("footer_newsletter")}</p>
               <p className="mb-3 text-[13px] leading-5 text-[#333333]">{t("footer_newsletter_sub")}</p>
               {subscribed ? (
                 <p className="text-[13px] font-normal leading-5 text-brand-dark">
-                  {lang === "pt" ? "Subscrição ativa!" : "You're subscribed!"}
+                  {t("footer_subscribed")}
                 </p>
               ) : (
                 <>
@@ -281,7 +281,7 @@ export default function Footer() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={lang === "pt" ? "O seu email" : "Your email"}
+                    placeholder={t("footer_email_placeholder")}
                     className="h-11 min-w-0 flex-1 bg-transparent px-4 typo-input text-[#333333] outline-none placeholder:text-[#8B93A3]"
                     data-testid="input-newsletter"
                   />

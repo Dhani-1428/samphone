@@ -6,6 +6,7 @@ import CatalogImage from "@/components/CatalogImage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 import { fetchCloudProductByWcId } from "@/lib/samphone-cloud";
@@ -41,6 +42,7 @@ export default function AddedToCartPopup() {
     fetched?.name ||
     catalogLine?.name ||
     "";
+  const displayName = useTranslatedText(name);
   const img =
     lastAdded?.img ||
     fetched?.img ||
@@ -119,7 +121,7 @@ export default function AddedToCartPopup() {
             >
               <CatalogImage
                 src={img || PLACEHOLDER}
-                alt={name}
+                alt={displayName}
                 className="h-full w-full object-contain p-1"
               />
             </Link>
@@ -129,7 +131,7 @@ export default function AddedToCartPopup() {
                 onClick={dismissAdded}
                 className="line-clamp-2 text-sm font-semibold leading-snug text-[#111111] hover:underline"
               >
-                {name || t("cart_added_title")}
+                {displayName || t("cart_added_title")}
               </Link>
               <Link
                 href="/cart"

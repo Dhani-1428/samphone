@@ -615,5 +615,13 @@
   "about_phone_label": "Phone",
   "about_hours": "Hours",
   "about_hours_value": "Mon–Sat: 9:00 AM – 7:00 PM",
-  "about_directions": "Get Directions"
+  "about_directions": "Get Directions",
+  "footer_newsletter": "Newsletter",
+  "footer_subscribed": "You're subscribed!",
+  "footer_email_placeholder": "Your email",
+  "cat_empty": "No products are listed in this category on the store yet.",
+  "cat_not_found": "Category not found.",
+  "search_accessories": "Search accessories…",
+  "accessory_no_match": "No categories match your filters.",
+  "cart_each": "each"
 }

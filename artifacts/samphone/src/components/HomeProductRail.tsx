@@ -9,6 +9,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { cn } from "@/lib/utils";
 
 const navInset = "w-full max-w-[1600px] mx-auto px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16";
@@ -28,6 +29,8 @@ export default function HomeProductRail({
   children: ReactNode;
 }) {
   const { t } = useLang();
+  const heading = useTranslatedText(title);
+  const sub = useTranslatedText(subtitle);
   const [api, setApi] = useState<CarouselApi>();
   const [pageIndex, setPageIndex] = useState(1);
   const [pageTotal, setPageTotal] = useState(1);
@@ -64,9 +67,9 @@ export default function HomeProductRail({
       <div className={navInset}>
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand md:text-[2.15rem]">{title}</h2>
+            <h2 className="font-display text-[1.65rem] font-extrabold tracking-tight text-brand md:text-[2.15rem]">{heading}</h2>
             <span className="mt-2 block h-[4px] w-12 rounded-full bg-sam" />
-            {subtitle ? <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p> : null}
+            {sub ? <p className="mt-2 text-sm text-muted-foreground">{sub}</p> : null}
           </div>
           <div className="flex shrink-0 items-center gap-4">
             <span className="hidden text-sm tabular-nums text-muted-foreground sm:inline">

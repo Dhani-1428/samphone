@@ -615,5 +615,13 @@
   "about_phone_label": "ਫ਼ੋਨ",
   "about_hours": "ਘੰਟੇ",
   "about_hours_value": "ਸੋਮ-ਸ਼ਨਿ: ਸਵੇਰੇ 9:00 ਤੋਂ ਸ਼ਾਮ 7:00 ਵਜੇ ਤੱਕ",
-  "about_directions": "ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼ ਪ੍ਰਾਪਤ ਕਰੋ"
+  "about_directions": "ਦਿਸ਼ਾ-ਨਿਰਦੇਸ਼ ਪ੍ਰਾਪਤ ਕਰੋ",
+  "footer_newsletter": "ਨਿਊਜ਼ਲੈਟਰ",
+  "footer_subscribed": "ਤੁਸੀਂ ਗਾਹਕ ਬਣ ਗਏ ਹੋ!",
+  "footer_email_placeholder": "ਤੁਹਾਡੀ ਈਮੇਲ",
+  "cat_empty": "ਇਸ ਸ਼੍ਰੇਣੀ ਵਿੱਚ ਹਾਲੇ ਕੋਈ ਉਤਪਾਦ ਨਹੀਂ ਹਨ।",
+  "cat_not_found": "ਸ਼੍ਰੇਣੀ ਨਹੀਂ ਮਿਲੀ।",
+  "search_accessories": "ਐਕਸੈਸਰੀਜ਼ ਖੋਜੋ…",
+  "accessory_no_match": "ਤੁਹਾਡੇ ਫਿਲਟਰਾਂ ਨਾਲ ਕੋਈ ਸ਼੍ਰੇਣੀ ਮੇਲ ਨਹੀਂ ਖਾਂਦੀ।",
+  "cart_each": "ਹਰੇਕ"
 }

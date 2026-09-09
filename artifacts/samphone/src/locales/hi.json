@@ -615,5 +615,13 @@
   "about_phone_label": "फ़ोन",
   "about_hours": "घंटे",
   "about_hours_value": "सोम-शनि: सुबह 9:00 बजे - शाम 7:00 बजे",
-  "about_directions": "दिशा - निर्देश प्राप्त करें"
+  "about_directions": "दिशा - निर्देश प्राप्त करें",
+  "footer_newsletter": "न्यूज़लेटर",
+  "footer_subscribed": "आप सब्सक्राइब हो गए हैं!",
+  "footer_email_placeholder": "आपका ईमेल",
+  "cat_empty": "इस श्रेणी में अभी कोई उत्पाद नहीं है।",
+  "cat_not_found": "श्रेणी नहीं मिली।",
+  "search_accessories": "एक्सेसरीज़ खोजें…",
+  "accessory_no_match": "आपके फ़िल्टर से कोई श्रेणी मेल नहीं खाती।",
+  "cart_each": "प्रति"
 }

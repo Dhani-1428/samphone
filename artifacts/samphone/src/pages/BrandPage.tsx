@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type InputHTMLAttributes } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
@@ -7,6 +7,8 @@ import CatalogLoading from "@/components/CatalogLoading";
 import { CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
+import TranslatedText from "@/components/TranslatedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import {
@@ -101,6 +103,11 @@ function modelsFromProducts(products: WooProduct[], family: BrandNavFamily | nul
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
+function Ph({ text, ...rest }: { text: string } & InputHTMLAttributes<HTMLInputElement>) {
+  const placeholder = useTranslatedText(text);
+  return <input {...rest} placeholder={placeholder} />;
+}
+
 function FilterSection({
   title,
   children,
@@ -111,6 +118,7 @@ function FilterSection({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const heading = useTranslatedText(title);
   return (
     <div className="border-b border-black/[0.07] pb-4">
       <button
@@ -118,7 +126,7 @@ function FilterSection({
         className="flex w-full items-center justify-between py-3 text-[13px] font-bold uppercase tracking-wide text-black"
         onClick={() => setOpen((v) => !v)}
       >
-        {title}
+        {heading}
         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
       {open && <div className="mt-1 space-y-2">{children}</div>}
@@ -189,11 +197,11 @@ function Sidebar({
           <FilterSection title="Model" defaultOpen>
             <label className="relative mb-2 block">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-              <input
+              <Ph
                 type="search"
+                text="Search models"
                 value={modelQuery}
                 onChange={(e) => setModelQuery(e.target.value)}
-                placeholder="Search models"
                 className="w-full rounded-md border border-black/[0.12] py-1.5 pl-8 pr-2 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
               />
             </label>
@@ -206,7 +214,7 @@ function Sidebar({
                   onChange={() => onChange({ ...filters, model: null })}
                   className="accent-sam"
                 />
-                <span>All models</span>
+                <span><TranslatedText text="All models" /></span>
               </label>
               {visibleModels.map((m) => (
                 <label key={m.id} className="flex cursor-pointer items-start gap-2 rounded-lg border border-black/[0.08] bg-white px-3 py-1.5 text-sm">
@@ -233,7 +241,7 @@ function Sidebar({
                 onChange={(e) => onChange({ ...filters, inStock: e.target.checked })}
                 className="accent-sam"
               />
-              In stock only
+              <TranslatedText text="In stock only" />
             </label>
             <label className="flex cursor-pointer items-center gap-2 text-sm">
               <input
@@ -242,16 +250,16 @@ function Sidebar({
                 onChange={(e) => onChange({ ...filters, onSale: e.target.checked })}
                 className="accent-sam"
               />
-              On sale
+              <TranslatedText text="On sale" />
             </label>
           </div>
         </FilterSection>
 
         <FilterSection title="Price range">
           <div className="flex items-center gap-2">
-            <input
+            <Ph
               type="number"
-              placeholder="Min"
+              text="Min"
               value={filters.minPrice ?? ""}
               onChange={(e) =>
                 onChange({
@@ -262,9 +270,9 @@ function Sidebar({
               className="w-full rounded-md border border-black/[0.12] px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
             />
             <span className="text-muted-foreground">–</span>
-            <input
+            <Ph
               type="number"
-              placeholder="Max"
+              text="Max"
               value={filters.maxPrice ?? ""}
               onChange={(e) =>
                 onChange({
@@ -282,6 +290,11 @@ function Sidebar({
 
 type SortKey = "newest" | "price-asc" | "price-desc" | "name-asc";
 
+function Opt({ value, text }: { value: string; text: string }) {
+  const label = useTranslatedText(text);
+  return <option value={value}>{label}</option>;
+}
+
 function SortBar({
   sort,
   onSort,
@@ -291,22 +304,23 @@ function SortBar({
   onSort: (s: SortKey) => void;
   total: number;
 }) {
+  const { t } = useLang();
   return (
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted-foreground">
-        <strong className="font-semibold text-black">{total}</strong> products
-      </p>
+      <p className="text-sm text-muted-foreground">{t("accessory_product_count", { count: total })}</p>
       <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Sort:</span>
+        <span className="text-sm text-muted-foreground">
+          <TranslatedText text="Sort:" />
+        </span>
         <select
           value={sort}
           onChange={(e) => onSort(e.target.value as SortKey)}
           className="rounded-md border border-black/[0.12] bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
         >
-          <option value="newest">Newest</option>
-          <option value="price-asc">Price: low → high</option>
-          <option value="price-desc">Price: high → low</option>
-          <option value="name-asc">Name A–Z</option>
+          <Opt value="newest" text="Newest" />
+          <Opt value="price-asc" text="Price: low → high" />
+          <Opt value="price-desc" text="Price: high → low" />
+          <Opt value="name-asc" text="Name A–Z" />
         </select>
       </div>
     </div>
@@ -522,17 +536,17 @@ export default function BrandPage() {
           <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
         ) : !woo ? (
           <p className="py-16 text-center text-muted-foreground">
-            No store connected yet.
+            <TranslatedText text="No store connected yet." />
           </p>
         ) : filteredProducts.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-muted-foreground">No products match your filters.</p>
+            <p className="text-muted-foreground"><TranslatedText text="No products match your filters." /></p>
             <button
               type="button"
               className="mt-3 text-sm text-sam hover:underline"
               onClick={() => setFilters({ ...EMPTY_FILTERS })}
             >
-              Clear filters
+              <TranslatedText text="Clear filters" />
             </button>
           </div>
         ) : selectedModel ? (

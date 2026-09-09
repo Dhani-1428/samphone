@@ -615,5 +615,13 @@
   "about_phone_label": "Telefoon",
   "about_hours": "Openingstijden",
   "about_hours_value": "Ma–za: 9:00 – 19:00",
-  "about_directions": "Routebeschrijving"
+  "about_directions": "Routebeschrijving",
+  "footer_newsletter": "Nieuwsbrief",
+  "footer_subscribed": "Je bent geabonneerd!",
+  "footer_email_placeholder": "Je e-mail",
+  "cat_empty": "Er staan nog geen producten in deze categorie.",
+  "cat_not_found": "Categorie niet gevonden.",
+  "search_accessories": "Accessoires zoeken…",
+  "accessory_no_match": "Geen categorieën komen overeen met je filters.",
+  "cart_each": "per stuk"
 }

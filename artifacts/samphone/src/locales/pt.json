@@ -615,5 +615,13 @@
   "about_phone_label": "Telefone",
   "about_hours": "Horário",
   "about_hours_value": "Seg–Sáb: 9:00 – 19:00",
-  "about_directions": "Como chegar"
+  "about_directions": "Como chegar",
+  "footer_newsletter": "Newsletter",
+  "footer_subscribed": "Subscrição ativa!",
+  "footer_email_placeholder": "O seu email",
+  "cat_empty": "Sem produtos nesta categoria na loja.",
+  "cat_not_found": "Categoria não encontrada.",
+  "search_accessories": "Procurar acessórios…",
+  "accessory_no_match": "Nenhuma categoria corresponde aos filtros.",
+  "cart_each": "cada"
 }

@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowLeft, ShoppingBag, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,11 @@ import { cn } from "@/lib/utils";
 import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
 import EmptyCartHero from "@/components/EmptyCartHero";
 
+function CartLineName({ name }: { name: string }) {
+  const label = useTranslatedText(name);
+  return <>{label}</>;
+}
+
 const PLACEHOLDER =
   "data:image/svg+xml," +
   encodeURIComponent(
@@ -32,7 +38,7 @@ const PLACEHOLDER =
 
 export default function CartPage() {
   const { items, removeLine, clearCart, totalItems } = useCart();
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { user } = useAuth();
   const { products: wooProducts } = useProductCatalog();
   const wooById = useMemo(() => buildWooProductMap(wooProducts), [wooProducts]);
@@ -239,21 +245,23 @@ export default function CartPage() {
                         />
                       </div>
                       <div className="min-w-0 sm:hidden">
-                        <p className="font-semibold text-foreground line-clamp-2">{line.name}</p>
+                        <p className="font-semibold text-foreground line-clamp-2">
+                          <CartLineName name={line.name} />
+                        </p>
                         {line.unitPrice != null && (
                           <p className="mt-1 text-sm text-muted-foreground">
-                            €{line.unitPrice.toFixed(2)} {lang === "pt" ? "cada" : "each"}
+                            €{line.unitPrice.toFixed(2)} {t("cart_each")}
                           </p>
                         )}
                       </div>
                     </Link>
                     <div className="min-w-0 flex-1 max-sm:hidden">
                       <Link href={line.href} className="font-semibold text-foreground hover:text-primary line-clamp-2">
-                        {line.name}
+                        <CartLineName name={line.name} />
                       </Link>
                       {line.unitPrice != null && (
                         <p className="mt-1 text-sm text-muted-foreground">
-                          €{line.unitPrice.toFixed(2)} {lang === "pt" ? "cada" : "each"}
+                          €{line.unitPrice.toFixed(2)} {t("cart_each")}
                         </p>
                       )}
                     </div>
