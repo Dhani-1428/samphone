@@ -47,6 +47,7 @@ import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
 import AdminCatalog from "@/pages/admin/AdminCatalog";
 import LegalPage from "@/pages/LegalPage";
+import NotFound from "@/pages/not-found";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
