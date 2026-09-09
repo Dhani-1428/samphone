@@ -28,7 +28,6 @@ import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
   classifyModelProduct,
   displayBrandName,
-  groupProductsByType,
   modelSearchNames,
   productBelongsToModel,
   splitModelCatalog,
@@ -110,31 +109,6 @@ function typeChipIcon(id: string): LucideIcon {
     default:
       return LayoutGrid;
   }
-}
-
-function GroupedProductGrid({
-  groups,
-  empty,
-  priceLabel,
-}: {
-  groups: { id: string; label: string; items: WooProduct[] }[];
-  empty: string;
-  priceLabel: string;
-}) {
-  const items = groups.flatMap((g) => g.items);
-  if (items.length === 0) {
-    return <p className="py-8 text-sm text-muted-foreground">{empty}</p>;
-  }
-  return (
-    <div className="space-y-8">
-      {groups.map((g) => (
-        <div key={g.id}>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-neutral-600">{g.label}</h3>
-          <ProductGrid items={g.items} empty={empty} priceLabel={priceLabel} />
-        </div>
-      ))}
-    </div>
-  );
 }
 
 function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty: string; priceLabel: string }) {
@@ -296,8 +270,6 @@ export default function ModelCatalogPage() {
     () => (accType ? accessories.filter((p) => classifyModelProduct(p).typeId === accType) : accessories),
     [accessories, accType],
   );
-  const partGroups = useMemo(() => groupProductsByType(visibleParts, "part"), [visibleParts]);
-  const accGroups = useMemo(() => groupProductsByType(visibleAccessories, "accessory"), [visibleAccessories]);
 
   const brandName = displayBrandName(brand);
   const familyName = parseModelName(family);
@@ -342,11 +314,7 @@ export default function ModelCatalogPage() {
                 onSelect={setPartType}
                 chips={partChips}
               />
-              {partType ? (
-                <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
-              ) : (
-                <GroupedProductGrid groups={partGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
-              )}
+              <ProductGrid items={visibleParts} empty={t("woo_empty")} priceLabel={priceLabel} />
             </section>
             <section
               data-catalog-section="accessories"
@@ -363,11 +331,7 @@ export default function ModelCatalogPage() {
                 onSelect={setAccType}
                 chips={accChips}
               />
-              {accType ? (
-                <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
-              ) : (
-                <GroupedProductGrid groups={accGroups} empty={t("woo_empty")} priceLabel={priceLabel} />
-              )}
+              <ProductGrid items={visibleAccessories} empty={t("woo_empty")} priceLabel={priceLabel} />
             </section>
           </div>
         ) : null}
