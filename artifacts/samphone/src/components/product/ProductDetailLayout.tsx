@@ -15,6 +15,7 @@ import {
 import ProductImageGallery from "@/components/product/ProductImageGallery";
 import ProductReviews, { ProductRatingRow } from "@/components/product/ProductReviews";
 import { CardQtyStepper } from "@/components/ProductCartControls";
+import NotifyMeButton from "@/components/NotifyMeButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -42,6 +43,7 @@ export default function ProductDetailLayout({
   preferredSrc,
   cartKey,
   inStock,
+  restockProductId,
   priceLabel,
   oldPriceLabel,
   vatNote,
@@ -61,6 +63,7 @@ export default function ProductDetailLayout({
   preferredSrc?: string | null;
   cartKey: string;
   inStock: boolean;
+  restockProductId?: string;
   priceLabel?: string | null;
   oldPriceLabel?: string | null;
   vatNote?: boolean;
@@ -179,7 +182,9 @@ export default function ProductDetailLayout({
                 </div>
               ) : null}
 
-              {user ? (
+              {!inStock && restockProductId ? (
+                <NotifyMeButton productId={restockProductId} size="page" />
+              ) : user ? (
                 inStock ? (
                   <CardQtyStepper cartKey={cartKey} />
                 ) : (
@@ -231,7 +236,7 @@ export default function ProductDetailLayout({
                 </div>
               </div>
 
-              {!user ? (
+              {!user && inStock ? (
                 <div className="flex items-start gap-2.5 border border-black/[0.08] bg-neutral-100 p-3 text-sm text-[#5B6B86]">
                   <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#111111]" />
                   <span>{t("pdp_login_cart_hint")}</span>

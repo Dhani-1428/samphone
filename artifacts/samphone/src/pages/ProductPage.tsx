@@ -9,10 +9,8 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { Button } from "@/components/ui/button";
 import { fetchProductById, fetchRelatedProducts, type WooProduct } from "@/lib/woocommerce";
 import { catalogCompareAtPrice, seesWholesalePrices } from "@/lib/customer-price";
-import { notifyStock } from "@/lib/samphone-cloud";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
 import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
@@ -71,8 +69,6 @@ export default function ProductPage() {
   const [wooProduct, setWooProduct] = useState<WooProduct | null>(null);
   const [wooLoading, setWooLoading] = useState(() => Boolean(isWooProduct));
   const [related, setRelated] = useState<WooProduct[]>([]);
-  const [notifyEmail, setNotifyEmail] = useState("");
-  const [notifyMsg, setNotifyMsg] = useState<string | null>(null);
   const [colorIdx, setColorIdx] = useState(0);
 
   useEffect(() => {
@@ -144,11 +140,6 @@ export default function ProductPage() {
         catalog={wooCatalogProducts}
         colorIdx={colorIdx}
         setColorIdx={setColorIdx}
-        notifyEmail={notifyEmail}
-        setNotifyEmail={setNotifyEmail}
-        notifyMsg={notifyMsg}
-        setNotifyMsg={setNotifyMsg}
-        userEmail={user?.email}
       />
     );
   }
@@ -235,11 +226,6 @@ function WooProductView({
   catalog,
   colorIdx,
   setColorIdx,
-  notifyEmail,
-  setNotifyEmail,
-  notifyMsg,
-  setNotifyMsg,
-  userEmail,
 }: {
   cartKey: string;
   wooProduct: WooProduct;
@@ -247,11 +233,6 @@ function WooProductView({
   catalog: WooProduct[];
   colorIdx: number;
   setColorIdx: (n: number) => void;
-  notifyEmail: string;
-  setNotifyEmail: (s: string) => void;
-  notifyMsg: string | null;
-  setNotifyMsg: (s: string | null) => void;
-  userEmail?: string;
 }) {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -334,33 +315,6 @@ function WooProductView({
     });
   }
 
-  const notifyForm = !inStock ? (
-    <form
-      className="space-y-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const email = notifyEmail.trim() || userEmail || "";
-        if (!email || !wooProduct.cloudId) return;
-        void notifyStock(wooProduct.cloudId, email)
-          .then(() => setNotifyMsg(t("notify_stock_ok")))
-          .catch((err) => setNotifyMsg(err instanceof Error ? err.message : t("notify_stock")));
-      }}
-    >
-      <input
-        type="email"
-        required
-        value={notifyEmail}
-        onChange={(e) => setNotifyEmail(e.target.value)}
-        placeholder={userEmail || "email"}
-        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-      />
-      <Button type="submit" variant="outline" className="w-full">
-        {t("notify_stock")}
-      </Button>
-      {notifyMsg ? <p className="text-xs text-muted-foreground">{notifyMsg}</p> : null}
-    </form>
-  ) : null;
-
   return (
     <ProductDetailLayout
       crumbs={crumbs}
@@ -373,6 +327,7 @@ function WooProductView({
       preferredSrc={preferredSrc}
       cartKey={cartKey}
       inStock={inStock}
+      restockProductId={wooProduct.cloudId || String(wooProduct.id)}
       priceLabel={catalogPrice}
       oldPriceLabel={compareAt != null ? formatEuro(compareAt) : null}
       vatNote
@@ -385,7 +340,6 @@ function WooProductView({
         ) : null
       }
       descriptionHtml={copy.html}
-      buyExtra={notifyForm}
       below={
         <WooRelatedAccessoriesSlider
           currentProductId={wooProduct.id}

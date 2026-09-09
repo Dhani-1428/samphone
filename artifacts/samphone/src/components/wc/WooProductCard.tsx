@@ -19,6 +19,7 @@ import CatalogImage from "@/components/CatalogImage";
 import ColorSwatches from "@/components/wc/ColorSwatches";
 import ProductCardWriting from "@/components/ProductCardWriting";
 import { CardQtyStepper } from "@/components/ProductCartControls";
+import NotifyMeButton from "@/components/NotifyMeButton";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -125,25 +126,35 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               {priceUnavailableLabel}
             </span>
           )}
-          {showPrice && inStock ? (
+          {inStock ? (
+            showPrice ? (
             <span className="inline-flex items-center gap-1 text-[13px] font-semibold uppercase text-brand">
               <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
               {t("product_in_stock")}
             </span>
-          ) : null}
+            ) : null
+          ) : (
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold uppercase text-sam">
+              {t("pdp_out_of_stock")}
+            </span>
+          )}
         </div>
 
         <div className="flex gap-1">
-          {canAdd ? (
-            <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
-          ) : showLoginBuy ? (
-            <Link
-              href={loginHref}
-              className="product-card-add flex h-9 min-w-0 flex-1 items-center justify-center px-2 text-xs transition-colors hover:bg-[#1a4499]"
-            >
-              <span className="truncate">{t("addToCart")}</span>
-            </Link>
-          ) : null}
+          {inStock ? (
+            canAdd ? (
+              <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
+            ) : showLoginBuy ? (
+              <Link
+                href={loginHref}
+                className="product-card-add flex h-9 min-w-0 flex-1 items-center justify-center px-2 text-xs transition-colors hover:bg-[#1a4499]"
+              >
+                <span className="truncate">{t("addToCart")}</span>
+              </Link>
+            ) : null
+          ) : (
+            <NotifyMeButton productId={String(product.cloudId || product.id)} />
+          )}
           <Link
             href={productHref}
             className="product-card-copy flex h-9 min-w-0 flex-1 items-center justify-center gap-1 border-2 border-brand bg-white px-2 text-xs font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
