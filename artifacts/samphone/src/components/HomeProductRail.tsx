@@ -95,8 +95,8 @@ export default function HomeProductRail({
             <Carousel setApi={setApi} opts={{ align: "start", loop: true, duration: 55 }} className="w-full">
               <CarouselContent className="-ml-2 md:-ml-2.5">
                 {items.map((child, i) => (
-                  <CarouselItem key={i} className={cn("min-w-0 overflow-visible pl-2 md:pl-2.5", itemBasis)}>
-                    <div className="relative z-0 h-full origin-center will-change-transform transition-[transform,box-shadow] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_22px_44px_rgba(36,63,159,0.22)]">
+                  <CarouselItem key={i} className={cn("flex min-w-0 overflow-visible pl-2 md:pl-2.5", itemBasis)}>
+                    <div className="relative z-0 flex h-full w-full origin-center will-change-transform transition-[transform,box-shadow] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_22px_44px_rgba(36,63,159,0.22)]">
                       {child}
                     </div>
                   </CarouselItem>

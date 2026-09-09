@@ -30,7 +30,7 @@ export default function ColorSwatches({
   const dim = size === "md" ? "h-6 w-6" : "h-4 w-4";
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="list">
+    <div className="flex h-4 w-full flex-nowrap items-center gap-1.5 overflow-hidden" role="list">
       {shown.map((s, i) => {
         const active = i === selected;
         return (

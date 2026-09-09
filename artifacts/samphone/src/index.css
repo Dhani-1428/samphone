@@ -279,13 +279,14 @@
 
 .product-card {
   border-radius: 0;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 5;
   width: 100%;
   height: auto;
+  min-height: 0;
 }
 
 .product-card.product-card-square {
-  aspect-ratio: auto;
+  aspect-ratio: 3 / 5;
 }
 
 .catalog-product-grid {
@@ -295,6 +296,18 @@
   gap: 0.5rem;
   padding: 0;
   margin: 0;
+  align-items: stretch;
+}
+
+.catalog-product-grid > * {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.catalog-product-grid .product-card {
+  height: 100%;
 }
 
 @media (min-width: 640px) {

@@ -3,7 +3,7 @@ import { useTranslatedText } from "@/hooks/useTranslatedText";
 
 /** Roboto-Medium (family Roboto, PostScript Roboto-Medium). */
 export const PRODUCT_DESC_TYPE =
-  "product-card-copy text-[13px] uppercase leading-4 tracking-normal text-black sm:text-[14px] sm:leading-[1.15]";
+  "product-card-copy min-h-[2.05rem] text-[13px] uppercase leading-[1.025rem] tracking-normal text-black sm:min-h-[2.3rem] sm:text-[14px] sm:leading-[1.15rem]";
 
 export default function ProductCardWriting({
   href,
