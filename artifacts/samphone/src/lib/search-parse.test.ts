@@ -84,8 +84,8 @@ describe("search parser", () => {
       assert.equal(parsed.type?.id, "back-cover");
       const hits = rankSearchResults(q, catalog);
       assert.ok(hits.length >= 1);
-      assert.ok(hits.every((p) => /17 pro max/i.test(p.name) && /cover/i.test(p.name)));
-      assert.ok(!hits.some((p) => /jelly|lcd|17 pro[^ ]/i.test(p.name) && !/17 pro max/i.test(p.name)));
+      assert.ok(hits.every((p) => /17 pro max/i.test(p.name) && /cover|case|jelly|capa/i.test(p.name)));
+      assert.ok(!hits.some((p) => /lcd/i.test(p.name)));
     }
   });
 
@@ -122,7 +122,30 @@ describe("search parser", () => {
     assert.equal(parsed.type?.id, "back-cover");
     const hits = rankSearchResults("covers", catalog);
     assert.ok(hits.length >= 4);
-    assert.ok(hits.every((p) => /cover/i.test(p.name)));
+    assert.ok(hits.every((p) => /cover|case|jelly|capa|magsafe/i.test(p.name)));
+  });
+
+  it("matches generation numbers and translated cover words", () => {
+    assert.equal(parseSearchQuery("17").model, null);
+    const seventeen = rankSearchResults("17", catalog);
+    assert.ok(seventeen.some((p) => /iphone 17/i.test(p.name)));
+    assert.ok(seventeen.some((p) => /17 pro max/i.test(p.name)));
+    assert.ok(seventeen.every((p) => /(?:^|[^0-9])17(?:[^0-9]|$)/.test(p.name)));
+
+    const capas = rankSearchResults("capas", catalog);
+    assert.ok(capas.length >= 4);
+    assert.ok(capas.every((p) => /cover|case|jelly|capa|magsafe/i.test(p.name)));
+    assert.ok(!capas.some((p) => /\blcd\b/i.test(p.name)));
+
+    const ordered = rankSearchResults("17", [
+      { name: "Back Cover Galaxy S17" },
+      { name: "Back Cover iPhone 17" },
+      { name: "Back Cover Redmi 17" },
+    ]);
+    assert.deepEqual(
+      ordered.map((p) => p.name),
+      ["Back Cover iPhone 17", "Back Cover Galaxy S17", "Back Cover Redmi 17"],
+    );
   });
 
   it("compound queries per model stay on that model and type", () => {

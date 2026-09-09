@@ -12,7 +12,7 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { ProductCatalogProvider } from "@/contexts/ProductCatalogContext";
 import { CustomerPricingProvider } from "@/contexts/CustomerPricingContext";
-import NotFound from "@/pages/not-found";
+import SearchPage from "@/pages/SearchPage";
 import Home from "@/pages/Home";
 import Accessories from "@/pages/Accessories";
 import Smartphones from "@/pages/Smartphones";
@@ -57,6 +57,9 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
+      <Route path="/search">
+        <Layout><SearchPage /></Layout>
+      </Route>
       <Route path="/">
         <Layout><Home /></Layout>
       </Route>

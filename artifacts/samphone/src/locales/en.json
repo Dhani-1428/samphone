@@ -421,6 +421,7 @@
   "search_suggestions": "Suggestions",
   "search_type_only_hint": "Showing this product type across all models. Add a model name (for example iPhone 17 Pro Max) to narrow results.",
   "search_open_model_catalog": "Open {model} catalog",
+  "search_see_all_results": "See all results",
   "account_orders": "Your orders",
   "account_track_link": "Track shipment",
   "account_create_order": "Create order from cart",

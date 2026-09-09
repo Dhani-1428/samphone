@@ -191,19 +191,15 @@ export default function SmartSearch({
       setModelHref(parsed.model ? { href: parsed.model.href, label: parsed.model.label } : null);
       setTypeOnlyHint(parsed.type && !parsed.model ? parsed.type.id : null);
 
-      const local = products.length > 0 ? searchProducts(trimmed, 40).map((p) => toHit(p, user)) : [];
+      const local = products.length > 0 ? searchProducts(trimmed, 24).map((p) => toHit(p, user)) : [];
       setHits(local);
       setSearching(true);
 
-      void searchProductsRemote(trimmed, 40)
+      void searchProductsRemote(trimmed, 80)
         .then((remote) => {
           if (cancelled) return;
-          const filteredRemote =
-            parsed.model || parsed.type
-              ? remote.filter((p) => catalogProductMatchesParsedQuery(p, parsed))
-              : remote;
-          const useRemote = filteredRemote.length > 0 ? filteredRemote : remote;
-          const merged = mergeHits([...useRemote.map((p) => toHit(p, user)), ...local]);
+          const filteredRemote = remote.filter((p) => catalogProductMatchesParsedQuery(p, parsed));
+          const merged = mergeHits([...filteredRemote.map((p) => toHit(p, user)), ...local]);
           setHits(merged);
           logSearchAnalytics({
             at: new Date().toISOString(),
@@ -237,6 +233,13 @@ export default function SmartSearch({
     setOpen(false);
     setQ("");
     navigate(href);
+  };
+
+  const goToResults = () => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    setOpen(false);
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   const panel =
@@ -276,6 +279,15 @@ export default function SmartSearch({
                   ))}
                 </ul>
               )}
+              {q.trim().length >= 1 ? (
+                <button
+                  type="button"
+                  className="block w-full border-t border-black/[0.08] px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-brand hover:bg-[#F3F5F8]"
+                  onClick={goToResults}
+                >
+                  {t("search_see_all_results")}
+                </button>
+              ) : null}
             </div>
           </div>,
           document.body,
@@ -310,6 +322,12 @@ export default function SmartSearch({
             setOpen(true);
             placePanel();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              goToResults();
+            }
+          }}
           placeholder={placeholder ?? t("searchPlaceholder")}
           className={cn(
             "min-w-0 flex-1 bg-transparent focus:outline-none [&::-webkit-search-cancel-button]:appearance-none",
@@ -334,8 +352,7 @@ export default function SmartSearch({
             )}
             data-testid="button-search"
             onClick={() => {
-              inputRef.current?.focus();
-              setOpen(true);
+              goToResults();
             }}
             aria-label={t("searchPlaceholder")}
           >

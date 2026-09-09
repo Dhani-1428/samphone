@@ -18,8 +18,7 @@ import { fetchCloudProductList } from "@/lib/samphone-cloud";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
-import { productMatchesSearchQuery, productSearchHaystack, searchTokenMatchesText } from "@/lib/woo-product-filters";
-import { parseSearchQuery, searchCatalogProducts } from "@/lib/model-search";
+import { searchCatalogProducts } from "@/lib/model-search";
 
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
 const CACHE_KEY = "samphone-products-cache-json-v7-cloud";
@@ -56,14 +55,6 @@ const DEFAULT_PRODUCT_CATALOG_VALUE: ProductCatalogValue = {
 };
 
 const ProductCatalogContext = createContext<ProductCatalogValue>(DEFAULT_PRODUCT_CATALOG_VALUE);
-
-function normalizeQuery(q: string): string[] {
-  return q
-    .toLowerCase()
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-}
 
 export function ProductCatalogProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, user } = useAuth();
@@ -261,32 +252,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
   const searchProducts = useCallback(
     (q: string, limit = 10): WooProduct[] => {
       const visible = filterCatalogForCustomer(products, user);
-      const parsed = parseSearchQuery(q);
-      if (parsed.model || parsed.type) {
-        const smart = searchCatalogProducts(q, visible, limit);
-        if (smart.length > 0) return smart;
-      }
-      const tokens = normalizeQuery(q);
-      if (tokens.length === 0) return [];
-      const score = (p: WooProduct): number => {
-        const name = (p.name ?? "").toLowerCase();
-        const hay = productSearchHaystack(p);
-        if (!productMatchesSearchQuery(p, q)) return 0;
-        let s = 4;
-        for (const t of tokens) {
-          if (name === t) s += 80;
-          else if (name.startsWith(t) || name.includes(` ${t}`)) s += 30;
-          else if (searchTokenMatchesText(name, t)) s += 20;
-          else if (searchTokenMatchesText(hay, t)) s += 8;
-        }
-        return s;
-      };
-      return visible
-        .map((p) => ({ p, s: score(p) }))
-        .filter(({ s }) => s > 0)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, limit)
-        .map(({ p }) => p);
+      return searchCatalogProducts(q, visible, limit);
     },
     [products, user],
   );

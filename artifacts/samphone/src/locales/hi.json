@@ -421,6 +421,7 @@
   "search_suggestions": "सुझाव",
   "search_type_only_hint": "सभी मॉडलों में इस उत्पाद का प्रकार दिखाया जा रहा है। परिणामों को संकीर्ण करने के लिए एक मॉडल नाम (उदाहरण के लिए iPhone 17 Pro Max) जोड़ें।",
   "search_open_model_catalog": "{model} कैटलॉग खोलें",
+  "search_see_all_results": "सभी परिणाम देखें",
   "account_orders": "आपके ऑर्डर",
   "account_track_link": "शिपमेंट ट्रैक करें",
   "account_create_order": "कार्ट से ऑर्डर बनाएँ",

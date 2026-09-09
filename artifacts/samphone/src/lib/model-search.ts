@@ -4,7 +4,10 @@ import {
   parseSearchQuery,
   productNameMatchesModel,
   productTypeMatchesParsed,
+  queryTokenGroups,
   rankSearchResults as rankByName,
+  searchBrandRank,
+  textMatchesTokenGroups,
   type ParsedSearchQuery,
 } from "@/lib/search-parse";
 
@@ -23,13 +26,16 @@ export {
 
 export function catalogProductMatchesParsedQuery(p: WooProduct, parsed: ParsedSearchQuery): boolean {
   if (!parsed.raw) return true;
+  const groups = queryTokenGroups(parsed.raw);
+  const hay = `${p.name} ${p.brand ?? ""} ${p.sku ?? ""} ${p.modelLabel ?? ""} ${p.catalogGroup ?? ""}`;
+  if (textMatchesTokenGroups(hay, groups) || textMatchesTokenGroups(p.name, groups)) return true;
   if (!productTypeMatchesParsed(p, parsed)) return false;
   if (parsed.model) {
     const labels = [parsed.model.label, parsed.model.slug.replace(/-/g, " "), ...parsed.model.aliases];
     const strict = labels.some((n) => productBelongsToModel(p, n, parsed.model?.brand ?? ""));
     if (!strict && !productNameMatchesModel(p.name, parsed.model)) return false;
   }
-  return true;
+  return Boolean(parsed.model || parsed.type);
 }
 
 export type SearchAnalyticsEvent = {
@@ -63,9 +69,14 @@ export function readSearchAnalytics(): SearchAnalyticsEvent[] {
 
 export function searchCatalogProducts(query: string, products: WooProduct[], limit = 40): WooProduct[] {
   const parsed = parseSearchQuery(query);
-  if (parsed.model || parsed.type) {
-    const matched = products.filter((p) => catalogProductMatchesParsedQuery(p, parsed));
-    return rankByName(query, matched).slice(0, limit);
-  }
-  return rankByName(query, products).slice(0, limit);
+  const matched = products.filter((p) => catalogProductMatchesParsedQuery(p, parsed));
+  const ranked = rankByName(query, matched);
+  return [...ranked]
+    .sort((a, b) => {
+      const brand =
+        searchBrandRank(`${a.brand ?? ""} ${a.name}`) - searchBrandRank(`${b.brand ?? ""} ${b.name}`);
+      if (brand !== 0) return brand;
+      return 0;
+    })
+    .slice(0, limit);
 }

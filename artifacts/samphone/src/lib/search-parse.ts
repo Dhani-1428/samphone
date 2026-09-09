@@ -116,9 +116,9 @@ export type ProductTypeSynonym = {
   tokens: string[];
 };
 
-/** Cases and covers stay distinct subcategories. */
+/** Cases and covers stay distinct subcategories, but search treats them as one family. */
 export const PRODUCT_TYPE_SYNONYMS: ProductTypeSynonym[] = [
-  { id: "back-cover", category: "accessories", tokens: ["back cover", "back covers", "covers", "cover", "tampa", "tampas"] },
+  { id: "back-cover", category: "accessories", tokens: ["back cover", "back covers", "covers", "cover", "tampa", "tampas", "capa", "capas", "funda", "fundas", "capinha", "hoesje", "coque"] },
   { id: "case", category: "accessories", tokens: ["magsafe", "jelly", "cases", "case", "capa", "capas", "funda", "fundas"] },
   {
     id: "screen-protector",
@@ -135,6 +135,110 @@ export const PRODUCT_TYPE_SYNONYMS: ProductTypeSynonym[] = [
   { id: "speaker", category: "parts", tokens: ["earpiece", "speaker"] },
   { id: "flex-cable", category: "parts", tokens: ["flex cable", "flex"] },
 ];
+
+const COVER_FAMILY = new Set(["back-cover", "case"]);
+
+/** Navbar brand order: iPhone first, then Samsung, Xiaomi, and the rest. */
+export const SEARCH_BRAND_ORDER = [
+  "iphone",
+  "ipad",
+  "apple watch",
+  "iwatch",
+  "apple",
+  "samsung",
+  "galaxy",
+  "xiaomi",
+  "redmi",
+  "poco",
+  "honor",
+  "oppo",
+  "realme",
+  "huawei",
+  "oneplus",
+  "one plus",
+  "motorola",
+  "vivo",
+  "alcatel",
+  "tcl",
+  "zte",
+  "nokia",
+  "pixel",
+  "google",
+  "lg",
+] as const;
+
+const SYNONYM_GROUPS: string[][] = [
+  [
+    "cover",
+    "covers",
+    "case",
+    "cases",
+    "capa",
+    "capas",
+    "capinha",
+    "capinhas",
+    "tampa",
+    "tampas",
+    "funda",
+    "fundas",
+    "coque",
+    "coques",
+    "hoes",
+    "hoesje",
+    "hulle",
+    "hülle",
+    "jelly",
+    "silicone",
+    "silicon",
+    "magsafe",
+    "antishock",
+  ],
+  ["protector", "protectors", "tempered", "pelicula", "película", "vidro", "verre", "schutzfolie", "protecteur"],
+  ["battery", "batteries", "bateria", "baterias", "batterie", "batterien"],
+  ["charger", "chargers", "carregador", "carregadores", "chargeur", "ladegerat", "ladegerät", "adaptador"],
+  ["cable", "cables", "cabo", "cabos", "cable", "kabel"],
+  ["screen", "lcd", "oled", "display", "ecran", "écran", "tela", "pantalla"],
+  ["earphone", "earphones", "headset", "earbuds", "tws", "auscultadores", "ecouteurs", "écouteurs"],
+];
+
+function foldToken(tok: string): string {
+  return tok.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+}
+
+export function queryTokenGroups(raw: string): string[][] {
+  return spaced(raw)
+    .split(" ")
+    .filter(Boolean)
+    .map((tok) => {
+      const folded = foldToken(tok);
+      for (const group of SYNONYM_GROUPS) {
+        if (group.some((g) => foldToken(g) === folded)) return group;
+      }
+      return [tok];
+    });
+}
+
+export function tokenInHaystack(haystack: string, tok: string): boolean {
+  const h = haystack.toLowerCase();
+  const t = foldToken(tok);
+  if (!t) return true;
+  if (/^\d{1,4}$/.test(t)) {
+    return new RegExp(`(?:^|[^0-9])${t}(?:[^0-9]|$)`).test(h);
+  }
+  return h.includes(t) || h.includes(tok.toLowerCase());
+}
+
+export function textMatchesTokenGroups(haystack: string, groups: string[][]): boolean {
+  if (groups.length === 0) return true;
+  const hay = haystack.toLowerCase();
+  return groups.every((group) => group.some((syn) => tokenInHaystack(hay, syn)));
+}
+
+export function searchBrandRank(text: string): number {
+  const h = text.toLowerCase();
+  const i = SEARCH_BRAND_ORDER.findIndex((b) => h.includes(b));
+  return i < 0 ? SEARCH_BRAND_ORDER.length : i;
+}
 
 export function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
@@ -172,6 +276,7 @@ function hasPhrase(query: string, phrase: string): boolean {
 }
 
 function aliasHits(query: string): { model: CanonicalModel; exact: boolean } | null {
+  if (/^\d{1,4}$/.test(spaced(query))) return null;
   const qn = spaced(query);
   const qc = compact(query);
   const models = getCanonicalModels();
@@ -259,14 +364,18 @@ export function productTypeMatchesParsed(p: TaxonomyProduct, parsed: ParsedSearc
   if (!parsed.type) return true;
   const cls = classifyCatalogProduct(p);
   if (cls.subcategory === parsed.type.id) return true;
-  if (parsed.type.id === "back-cover" && cls.subcategory === "case" && /\bcovers?\b/i.test(p.name)) return true;
+  if (COVER_FAMILY.has(parsed.type.id) && COVER_FAMILY.has(cls.subcategory)) return true;
+  if (COVER_FAMILY.has(parsed.type.id) && textMatchesTokenGroups(p.name, [SYNONYM_GROUPS[0]])) return true;
   return false;
 }
 
 export function productMatchesParsedQuery(p: TaxonomyProduct, parsed: ParsedSearchQuery): boolean {
   if (!parsed.raw) return true;
+  const groups = queryTokenGroups(parsed.raw);
+  if (textMatchesTokenGroups(p.name, groups)) return true;
   if (!productTypeMatchesParsed(p, parsed)) return false;
   if (parsed.model && !productNameMatchesModel(p.name, parsed.model)) return false;
+  if (!parsed.model && !parsed.type) return false;
   return true;
 }
 
@@ -277,7 +386,7 @@ export function rankSearchResults<T extends TaxonomyProduct>(query: string, prod
     .map((p) => {
       const cls = classifyCatalogProduct(p);
       const modelOk = parsed.model ? productNameMatchesModel(p.name, parsed.model) : false;
-      const typeOk = parsed.type ? cls.subcategory === parsed.type.id : false;
+      const typeOk = parsed.type ? cls.subcategory === parsed.type.id || (COVER_FAMILY.has(parsed.type.id) && COVER_FAMILY.has(cls.subcategory)) : false;
       let rank = 80;
       if (parsed.model && parsed.type && modelOk && typeOk && parsed.modelExact && parsed.typeExact) rank = 1;
       else if (parsed.model && parsed.type && modelOk && typeOk && parsed.modelExact) rank = 2;
@@ -288,7 +397,10 @@ export function rankSearchResults<T extends TaxonomyProduct>(query: string, prod
       else if (parsed.model && modelOk) rank = 10;
       else if (parsed.type && typeOk) rank = 20;
       else rank = 50;
-      return { p, rank };
+      const brand = searchBrandRank(`${p.name}`);
+      return { p, rank, brand };
     });
-  return scored.sort((a, b) => a.rank - b.rank).map((r) => r.p);
+  return scored
+    .sort((a, b) => a.brand - b.brand || a.rank - b.rank)
+    .map((r) => r.p);
 }
