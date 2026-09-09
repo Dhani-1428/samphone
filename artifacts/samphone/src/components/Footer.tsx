@@ -170,7 +170,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer id="footer" className="bg-brand text-white">
+    <footer id="footer" className="bg-[#16233F] text-white">
       <div className="h-1.5 w-full bg-sam" />
       <div className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 md:px-10 lg:px-14 xl:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -287,7 +287,7 @@ export default function Footer() {
                   />
                   <button
                     type="submit"
-                    className="h-11 bg-brand px-4 typo-subscribe uppercase text-white hover:bg-brand-dark"
+                    className="h-11 bg-[#16233F] px-4 typo-subscribe uppercase text-white hover:bg-[#101C34]"
                     data-testid="button-subscribe"
                   >
                     {t("footer_subscribe")}
@@ -300,7 +300,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/15 bg-brand">
+      <div className="border-t border-white/10 bg-[#132038]">
         <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-3 px-5 py-4 sm:px-8 md:flex-row md:px-10 lg:px-14 xl:px-16">
           <p className="text-center text-[12px] font-semibold text-white/65 md:text-left">
             © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
@@ -315,7 +315,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/15 bg-brand text-white">
+      <div className="border-t border-white/10 bg-[#101C34] text-white">
         <div className="mx-auto grid w-full max-w-[1600px] grid-cols-1 gap-6 px-5 py-5 sm:grid-cols-2 sm:px-8 md:grid-cols-4 md:px-10 lg:px-14 xl:px-16">
           {benefits.map((item) => {
             const body = (
