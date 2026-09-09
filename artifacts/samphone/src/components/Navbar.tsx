@@ -941,10 +941,6 @@ export default function Navbar() {
               <Gift className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
               {t("welcome")}
             </span>
-            <span className="hidden text-[#4A4A4A] dark:text-[#C5D0E8] sm:inline">·</span>
-            <Link href="/b2b" className="hidden hover:text-brand dark:hover:text-white sm:inline">
-              {t("announce_wholesale")}
-            </Link>
           </div>
           <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             <a href="tel:+351937119295" className="typo-phone inline-flex items-center gap-1.5 text-[#333333] hover:text-brand dark:hover:text-white">
@@ -1173,13 +1169,6 @@ export default function Navbar() {
                 onClick={closeMenu}
               >
                 Tools
-              </Link>
-              <Link
-                href="/b2b"
-                className={navItemClass(location.startsWith("/b2b") || location.startsWith("/wholesale"))}
-                onClick={closeMenu}
-              >
-                {t("nav_b2b")}
               </Link>
             </div>
           </div>

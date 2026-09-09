@@ -316,7 +316,6 @@ export default function MobileNavDrawer({
                 { href: "/phones", label: t("nav_smartphones") },
                 { href: "/cards", label: "Cards" },
                 { href: "/tools", label: "Tools" },
-                { href: "/b2b", label: t("nav_b2b") },
                 { href: "/book-repair", label: t("nav_book_repair") },
               ] as const
             ).map((item) => (
