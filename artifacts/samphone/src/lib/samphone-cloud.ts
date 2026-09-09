@@ -105,7 +105,8 @@ function isPublicAuthPath(path: string): boolean {
     p === "/auth/mfa/verify" ||
     p === "/contact" ||
     p === "/newsletter" ||
-    p.startsWith("/leads/")
+    p.startsWith("/leads/") ||
+    p === "/translate"
   );
 }
 
@@ -852,6 +853,18 @@ export async function notifyStock(productId: string, email: string): Promise<voi
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ product_id: productId, email }),
   });
+}
+
+export async function translateCloudTexts(texts: string[], target: string): Promise<string[]> {
+  const clean = texts.map((s) => (typeof s === "string" ? s : "")).slice(0, 40);
+  if (clean.length === 0) return [];
+  const data = await cloudFetchJson<{ texts?: string[] }>("/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ texts: clean, target }),
+  });
+  const out = Array.isArray(data.texts) ? data.texts : [];
+  return clean.map((s, i) => (typeof out[i] === "string" && out[i].trim() ? out[i] : s));
 }
 
 export type CloudNotificationPrefs = {

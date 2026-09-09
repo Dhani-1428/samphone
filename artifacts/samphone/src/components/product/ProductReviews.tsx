@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { buildProductReviews, type ProductReview } from "@/lib/product-reviews";
 
 function Stars5({ className = "h-4 w-4" }: { className?: string }) {
@@ -22,6 +23,9 @@ function initials(name: string): string {
 }
 
 function ReviewCard({ review, verified }: { review: ProductReview; verified: string }) {
+  const title = useTranslatedText(review.title);
+  const body = useTranslatedText(review.body);
+  const date = useTranslatedText(review.date);
   return (
     <article className="product-page-copy border border-black/[0.08] bg-[#FAFBFC] p-4 sm:p-5">
       <div className="flex items-start gap-3">
@@ -31,7 +35,7 @@ function ReviewCard({ review, verified }: { review: ProductReview; verified: str
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[15px] font-medium text-black">{review.name}</p>
-            <time className="text-xs text-[#5B6B86]">{review.date}</time>
+            <time className="text-xs text-[#5B6B86]">{date}</time>
           </div>
           <p className="mt-0.5 text-xs text-[#5B6B86]">
             {review.city} · {verified}
@@ -39,8 +43,8 @@ function ReviewCard({ review, verified }: { review: ProductReview; verified: str
           <div className="mt-2">
             <Stars5 />
           </div>
-          <h3 className="mt-2 text-[15px] font-medium uppercase tracking-[0.06em] text-black">{review.title}</h3>
-          <p className="mt-1.5 text-sm font-medium leading-relaxed text-[#222222]">{review.body}</p>
+          <h3 className="mt-2 text-[15px] font-medium uppercase tracking-[0.06em] text-black">{title}</h3>
+          <p className="mt-1.5 text-sm font-medium leading-relaxed text-[#222222]">{body}</p>
         </div>
       </div>
     </article>

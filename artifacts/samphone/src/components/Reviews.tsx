@@ -1,14 +1,15 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { Star, BadgeCheck } from "lucide-react";
+import { useLang, type TranslationKey } from "@/contexts/LanguageContext";
 
-const reviews = [
-  { name: "Ana Rodrigues", date: "March 2025", rating: 5, text: "Ordered a replacement screen for my iPhone 14 and it arrived the next day in perfect condition. The quality is excellent — identical to the original. Highly recommend SAMPHONE!", avatar: "https://i.pravatar.cc/100?img=5" },
-  { name: "Miguel Santos", date: "February 2025", rating: 5, text: "I'm a technician and I buy parts here weekly. The prices are fair, the quality is consistent, and the team always helps me find the right part. Best supplier in Lisbon.", avatar: "https://i.pravatar.cc/100?img=8" },
-  { name: "Sofia Pereira", date: "January 2025", rating: 5, text: "Bought a case for my Samsung S24 and a charger. Fast delivery and great packaging. The case fits perfectly and feels premium. Will definitely order again.", avatar: "https://i.pravatar.cc/100?img=9" },
-  { name: "James Thompson", date: "March 2025", rating: 4, text: "Tourist who needed a charging cable urgently. Found SAMPHONE online, ordered, and it arrived within hours. Saved my trip! Great service.", avatar: "https://i.pravatar.cc/100?img=12" },
-  { name: "Carlos Ferreira", date: "December 2024", rating: 5, text: "A battery replacement for my Xiaomi that works perfectly. I was skeptical about the price but the quality surpassed my expectations. Legit shop.", avatar: "https://i.pravatar.cc/100?img=15" },
-  { name: "Beatriz Lopes", date: "February 2025", rating: 5, text: "The Bluetooth earphones I bought are incredible for the price. Crystal clear audio. SAMPHONE has become my go-to for all accessories.", avatar: "https://i.pravatar.cc/100?img=16" },
+const reviews: { name: string; dateKey: TranslationKey; rating: number; textKey: TranslationKey; avatar: string }[] = [
+  { name: "Ana Rodrigues", dateKey: "review_date_1", rating: 5, textKey: "review_text_1", avatar: "https://i.pravatar.cc/100?img=5" },
+  { name: "Miguel Santos", dateKey: "review_date_2", rating: 5, textKey: "review_text_2", avatar: "https://i.pravatar.cc/100?img=8" },
+  { name: "Sofia Pereira", dateKey: "review_date_3", rating: 5, textKey: "review_text_3", avatar: "https://i.pravatar.cc/100?img=9" },
+  { name: "James Thompson", dateKey: "review_date_4", rating: 4, textKey: "review_text_4", avatar: "https://i.pravatar.cc/100?img=12" },
+  { name: "Carlos Ferreira", dateKey: "review_date_5", rating: 5, textKey: "review_text_5", avatar: "https://i.pravatar.cc/100?img=15" },
+  { name: "Beatriz Lopes", dateKey: "review_date_6", rating: 5, textKey: "review_text_6", avatar: "https://i.pravatar.cc/100?img=16" },
 ];
 
 const containerVariants = {
@@ -24,6 +25,7 @@ const cardVariants = {
 export default function Reviews() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
+  const { t } = useLang();
 
   return (
     <section id="reviews" className="py-20 bg-muted/30">
@@ -36,10 +38,10 @@ export default function Reviews() {
           className="text-center mb-12"
         >
           <span className="inline-block px-3 py-1 rounded-full bg-sam/20 text-brand text-sm font-medium mb-4">
-            Customer Reviews
+            {t("reviews_badge")}
           </span>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-brand mb-4">
-            What Our Customers Say
+            {t("reviews_title")}
           </h2>
           <div className="flex items-center justify-center gap-2 mb-2">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -47,7 +49,7 @@ export default function Reviews() {
             ))}
             <span className="text-2xl font-display font-bold text-foreground ml-1">4.9/5</span>
           </div>
-          <p className="text-muted-foreground">Based on 600+ verified reviews</p>
+          <p className="text-muted-foreground">{t("reviews_based_on")}</p>
         </motion.div>
 
         <motion.div
@@ -70,7 +72,7 @@ export default function Reviews() {
                     <p className="font-semibold text-foreground text-sm truncate">{review.name}</p>
                     <BadgeCheck className="w-4 h-4 text-brand shrink-0" />
                   </div>
-                  <p className="text-xs text-muted-foreground">{review.date}</p>
+                  <p className="text-xs text-muted-foreground">{t(review.dateKey)}</p>
                 </div>
                 <div className="flex gap-0.5 shrink-0">
                   {Array.from({ length: review.rating }).map((_, j) => (
@@ -78,7 +80,7 @@ export default function Reviews() {
                   ))}
                 </div>
               </div>
-              <p className="text-foreground/80 text-sm leading-relaxed flex-1">"{review.text}"</p>
+              <p className="text-foreground/80 text-sm leading-relaxed flex-1">"{t(review.textKey)}"</p>
             </motion.div>
           ))}
         </motion.div>

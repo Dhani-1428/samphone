@@ -88,8 +88,6 @@ def translate_text(text: str, target: str = "pt") -> str:
     if not text or not str(text).strip():
         return text
     code = _normalize_target(target)
-    if code in ("en",):
-        return text
     key = f"{code}:{text}"
     if key in _cache:
         return _cache[key]

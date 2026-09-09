@@ -19,6 +19,7 @@ import NotifyMeButton from "@/components/NotifyMeButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { useTranslatedHtml, useTranslatedText } from "@/hooks/useTranslatedText";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { whatsappChatHref } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
@@ -74,6 +75,9 @@ export default function ProductDetailLayout({
   buyExtra?: ReactNode;
 }) {
   const { t } = useLang();
+  const displayTitle = useTranslatedText(title);
+  const displayExcerpt = useTranslatedText(excerpt);
+  const displayHtml = useTranslatedHtml(descriptionHtml);
   const { user } = useAuth();
   const { toggle: wishToggle, has: wishHas } = useWishlist();
   const [loc] = useLocation();
@@ -95,7 +99,7 @@ export default function ProductDetailLayout({
                 —
               </div>
             ) : (
-              <ProductImageGallery images={gallery} productName={title} preferredSrc={preferredSrc} />
+              <ProductImageGallery images={gallery} productName={displayTitle} preferredSrc={preferredSrc} />
             )}
           </div>
 
@@ -106,12 +110,12 @@ export default function ProductDetailLayout({
               </span>
             ) : null}
             <h1 className="product-card-copy text-2xl uppercase leading-tight tracking-[0.08em] text-black md:text-[1.75rem] lg:text-[2rem]">
-              {title}
+              {displayTitle}
             </h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
               <button type="button" onClick={() => setTab("reviews")} className="text-left">
-                <ProductRatingRow seed={cartKey} productName={title} />
+                <ProductRatingRow seed={cartKey} productName={displayTitle} />
               </button>
               <button
                 type="button"
@@ -123,9 +127,9 @@ export default function ProductDetailLayout({
               </button>
             </div>
 
-            {excerpt ? (
+            {displayExcerpt ? (
               <p className="product-card-copy mt-4 text-[15px] uppercase leading-relaxed tracking-[0.08em] text-black">
-                {excerpt}
+                {displayExcerpt}
               </p>
             ) : null}
 
@@ -310,10 +314,10 @@ export default function ProductDetailLayout({
           </div>
 
           {tab === "desc" ? (
-            descriptionHtml ? (
+            displayHtml ? (
               <div
                 className="product-page-copy prose prose-neutral max-w-none text-[15px] font-medium leading-relaxed text-black prose-headings:font-[Roboto] prose-headings:text-[15px] prose-headings:font-medium prose-headings:uppercase prose-headings:tracking-[0.08em] prose-headings:text-black prose-p:text-[15px] prose-p:font-medium prose-p:text-black prose-li:text-[15px] prose-li:font-medium prose-li:text-black prose-strong:font-medium prose-strong:text-black prose-a:text-black prose-li:marker:text-black"
-                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+                dangerouslySetInnerHTML={{ __html: displayHtml }}
               />
             ) : (
               <p className="text-sm text-muted-foreground">{t("pdp_no_description")}</p>
@@ -338,7 +342,7 @@ export default function ProductDetailLayout({
             ))
           ) : null}
 
-          {tab === "reviews" ? <ProductReviews seed={cartKey} productName={title} /> : null}
+          {tab === "reviews" ? <ProductReviews seed={cartKey} productName={displayTitle} /> : null}
         </section>
 
         {below}

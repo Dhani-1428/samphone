@@ -3657,8 +3657,6 @@ async def translate_texts(body: TranslateBody):
     import asyncio
 
     target = normalize_language(body.target)
-    if target == "en":
-        return {"texts": body.texts}
     cleaned = [translate_service.clean_description(t) if t else "" for t in body.texts]
     texts = await asyncio.to_thread(translate_service.translate_batch, cleaned, target)
     return {"texts": texts}
