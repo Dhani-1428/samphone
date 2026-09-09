@@ -25,7 +25,7 @@ import { parseSearchQuery, searchCatalogProducts } from "@/lib/model-search";
 /** Bump when product payload shape changes (e.g. gallery normalization for GSMArena viewer). */
 const CACHE_KEY = "samphone-products-cache-json-v6-cloud";
 const CACHE_META_KEY = "samphone-products-cache-meta-v5-cloud";
-const PER_PAGE = 100;
+const PER_PAGE = 200;
 const CAT_CACHE_KEY = "samphone-woo-categories-cache-v2-cloud";
 const CAT_META_KEY = "samphone-woo-categories-meta-v2-cloud";
 
@@ -197,19 +197,21 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       setSyncingMore(true);
       try {
         let acc = [...firstBatch];
+        const seen = new Set(acc.map((p) => p.id));
         let page = 2;
         while (!ac.signal.aborted && mounted.current) {
           const batch = await fetchProductsPage(page, PER_PAGE);
           if (ac.signal.aborted || !mounted.current) return;
           if (!batch.length) break;
-          const seen = new Set(acc.map((p) => p.id));
+          let added = 0;
           for (const p of batch) {
-            if (!seen.has(p.id)) {
-              seen.add(p.id);
-              acc.push(p);
-            }
+            if (seen.has(p.id)) continue;
+            seen.add(p.id);
+            acc.push(p);
+            added += 1;
           }
-          setProducts(acc);
+          if (added === 0) break;
+          setProducts([...acc]);
           writeCache(acc);
           if (batch.length < PER_PAGE) break;
           page += 1;

@@ -224,8 +224,8 @@ export async function fetchAllProducts(): Promise<WooProduct[]> {
   const all: WooProduct[] = [];
   const seen = new Set<number>();
   let offset = 0;
-  const perPage = 100;
-  for (let i = 0; i < 80; i += 1) {
+  const perPage = 200;
+  for (let i = 0; i < 250; i += 1) {
     const batch = await cloud.fetchCloudProductsPage(offset, perPage);
     if (!batch.length) break;
     for (const p of batch) {

@@ -16,7 +16,7 @@ import {
   textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
-import { fetchCloudProductList, fetchCloudProductsForModel } from "@/lib/samphone-cloud";
+import { fetchCloudProductsForModel, fetchCloudAllProducts } from "@/lib/samphone-cloud";
 import { modelSearchNames, productBelongsToModel, splitModelCatalog } from "@/lib/model-catalog";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
 import {
@@ -355,8 +355,12 @@ export default function BrandPage() {
     void Promise.all(
       needles.map(async (q) => {
         try {
-          const page = await fetchCloudProductList({ q }, 80);
-          return page.items;
+          return await fetchCloudAllProducts({ q }, 250, (items) => {
+            if (!alive) return;
+            setRemoteBrand((prev) =>
+              filterProductsByBrandKeyword(mergeProducts(prev, items), brandSlug || brandLabel),
+            );
+          });
         } catch {
           return [] as WooProduct[];
         }
@@ -378,11 +382,11 @@ export default function BrandPage() {
     if (!activeFamily || filters.model) return;
     let alive = true;
     const q = familySearchQuery(activeFamily);
-    void fetchCloudProductList({ q }, 80)
-      .then((page) => {
+    void fetchCloudAllProducts({ q })
+      .then((items) => {
         if (!alive) return;
         setRemoteBrand((prev) =>
-          filterProductsByBrandKeyword(mergeProducts(prev, page.items), brandSlug || brandLabel),
+          filterProductsByBrandKeyword(mergeProducts(prev, items), brandSlug || brandLabel),
         );
       })
       .catch(() => {

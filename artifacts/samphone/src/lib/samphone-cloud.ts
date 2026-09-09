@@ -730,17 +730,22 @@ function mergeWooProducts(lists: WooProduct[][]): WooProduct[] {
   return out;
 }
 
+/** API caps `limit` at 200 (`backend/server.py`). */
+const CLOUD_PAGE_SIZE = 200;
+const CLOUD_LIST_MAX_PAGES = 250;
+
 export async function fetchCloudAllProducts(
   query: Record<string, string>,
-  maxPages = 8,
+  maxPages = CLOUD_LIST_MAX_PAGES,
   onProgress?: (items: WooProduct[], total: number) => void,
 ): Promise<WooProduct[]> {
   const all: WooProduct[] = [];
   const seen = new Set<string>();
   let offset = 0;
-  const pageSize = 50;
+  const pageSize = CLOUD_PAGE_SIZE;
   let catalogTotal = 0;
   for (let i = 0; i < maxPages; i += 1) {
+    const before = all.length;
     const { items, total, hasMore, rawCount } = await fetchCloudProductList(
       { ...query, offset: String(offset) },
       pageSize,
@@ -754,6 +759,7 @@ export async function fetchCloudAllProducts(
     }
     onProgress?.(all, catalogTotal || all.length);
     if (rawCount === 0) break;
+    if (all.length === before) break;
     if (!hasMore) break;
     if (catalogTotal > 0 && offset + rawCount >= catalogTotal) break;
     offset += pageSize;
@@ -769,7 +775,7 @@ export async function fetchCloudMergedProducts(
   const unique = queries.filter((q) => Object.keys(q).length > 0);
   if (unique.length === 0) return [];
   if (unique.length === 1) {
-    return fetchCloudAllProducts(unique[0], 8, onProgress);
+    return fetchCloudAllProducts(unique[0], CLOUD_LIST_MAX_PAGES, onProgress);
   }
   const bags: WooProduct[][] = unique.map(() => []);
   const totals = unique.map(() => 0);
@@ -780,7 +786,7 @@ export async function fetchCloudMergedProducts(
   await Promise.all(
     unique.map(async (query, i) => {
       try {
-        const list = await fetchCloudAllProducts(query, 8, (items, total) => {
+        const list = await fetchCloudAllProducts(query, CLOUD_LIST_MAX_PAGES, (items, total) => {
           bags[i] = items;
           totals[i] = total;
           emit();
@@ -824,8 +830,7 @@ export async function fetchCloudProductsForModel(names: string[], brand?: string
   const bags = await Promise.all(
     queries.map(async (q) => {
       try {
-        const page = await fetchCloudProductList({ q }, 80);
-        return page.items;
+        return await fetchCloudAllProducts({ q }, CLOUD_LIST_MAX_PAGES);
       } catch {
         return [] as WooProduct[];
       }
