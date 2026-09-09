@@ -1,5 +1,5 @@
 import { type MouseEvent } from "react";
-import { Eye, Heart, Package, Star } from "lucide-react";
+import { Eye, Heart, Star } from "lucide-react";
 import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -86,27 +86,22 @@ export default function ProductCard({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="product-card-price tabular-nums leading-none">
+        <div className="mt-auto flex items-center gap-2 pt-1">
+          <span className="product-card-price shrink-0 tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
           </span>
-          <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[13px] font-semibold uppercase text-brand">
-            <Package className="h-4 w-4" strokeWidth={2.2} />
-            {t("product_in_stock")}
-          </span>
-        </div>
-
-        <div className="mt-auto flex flex-col gap-2 pt-1">
           {user ? (
             <CardQtyStepper cartKey={cartKey} />
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
-              className="product-card-add flex h-11 w-full items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
+              className="product-card-add flex h-11 min-w-0 flex-1 items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
             >
               <span className="truncate">{t("addToCart")}</span>
             </Link>
           )}
+        </div>
+        <div className="flex flex-col gap-2">
           <Link
             href={productHref}
             className="product-card-copy flex h-11 w-full items-center justify-center gap-2 border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"

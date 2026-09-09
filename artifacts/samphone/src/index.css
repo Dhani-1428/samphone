@@ -340,10 +340,10 @@
 .product-card .product-card-price,
 .product-card-price {
   font-family: "Roboto-Medium", "Roboto", sans-serif;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   letter-spacing: 0;
-  color: #243F9F;
+  color: #F2AA3E;
 }
 
 .nav-bar-item {

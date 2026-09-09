@@ -3,7 +3,6 @@ import {
   AlertCircle,
   Eye,
   Heart,
-  Package,
   Store,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -117,32 +116,17 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <ProductCardWriting href={productHref} title={title} />
 
-        <div className="mt-auto flex h-5 shrink-0 items-center justify-between gap-1 overflow-hidden">
+        <div className="mt-auto flex h-9 shrink-0 items-center gap-1 overflow-hidden">
           {showPrice && priceLabel ? (
-            <span className="product-card-price truncate tabular-nums leading-none">
+            <span className="product-card-price shrink-0 truncate tabular-nums leading-none">
               {priceLabel}
             </span>
           ) : (
-            <span className="inline-flex min-w-0 items-center gap-1 truncate text-[13px] font-medium text-sam">
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[13px] font-medium text-sam">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
               <span className="truncate">{priceUnavailableLabel}</span>
             </span>
           )}
-          {inStock ? (
-            showPrice ? (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold uppercase text-brand">
-              <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
-              {t("product_in_stock")}
-            </span>
-            ) : null
-          ) : (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold uppercase text-sam">
-              {t("pdp_out_of_stock")}
-            </span>
-          )}
-        </div>
-
-        <div className="flex h-9 shrink-0 gap-1 overflow-hidden">
           {inStock ? (
             canAdd ? (
               <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} />
@@ -157,6 +141,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : (
             <NotifyMeButton productId={String(product.cloudId || product.id)} />
           )}
+        </div>
+
+        <div className="flex h-9 shrink-0 gap-1 overflow-hidden">
           <Link
             href={productHref}
             className="product-card-copy flex h-9 min-w-0 flex-1 items-center justify-center gap-1 border-2 border-brand bg-white px-2 text-xs font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
