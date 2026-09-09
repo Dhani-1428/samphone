@@ -516,10 +516,17 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
       );
     case "power-bank":
       return /\b(power\s*bank|powerbank|carregador\s*port[aá]til)\b/i.test(hay) && !/\bbattery\s*for\b/i.test(hay);
-    case "wireless-headsets":
-      return /\b(headphone|earphones?|headset|earbuds|tws|neck\s*earphone|bluetooth\s*(headset|earphone)|wireless\s*(headset|earphone))\b/i.test(
-        hay,
+    case "wireless-headsets": {
+      if (/\bheadphone\s*jack\b/i.test(hay)) return false;
+      const fromGroup = /\b(headphones?|earphones?|headset|audio)\b/i.test(
+        `${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${(p.categories ?? []).map((c) => `${c.name} ${c.slug}`).join(" ")}`,
       );
+      const fromTitle =
+        /\b(headphones?|earphones?|headsets?|earbuds?|airpods?|\btws\b|fones?(?:\s+de\s+ouvido)?|auriculares?|auscultadores?|neck\s*earphone|bluetooth\s*(headset|earphones?|headphones?)|wireless\s*(headset|earphones?|headphones?))\b/i.test(
+          hay,
+        );
+      return fromGroup || fromTitle;
+    }
     case "car-support":
       return /\b(car\s*(support|mount|holder|stand|charger)|dashboard\s*mount|vent\s*mount)\b/i.test(hay);
     case "memory-cards":

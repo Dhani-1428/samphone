@@ -5,6 +5,7 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
+import { shopGroupFetchQueries } from "@/data/accessory-pages";
 import { fetchCloudHomeRails, fetchCloudProductList, type CloudHomeRails } from "@/lib/samphone-cloud";
 import { pickHomeRailItems, type HomeRailKey } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -32,6 +33,48 @@ type RailRow = { key: HomeRailKey; title: string; group: string; items: WooProdu
 
 function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 18): WooProduct[] {
   return pickHomeRailItems(items ?? [], key, limit);
+}
+
+function mergeRailProducts(bags: WooProduct[][]): WooProduct[] {
+  const out: WooProduct[] = [];
+  const seen = new Set<string>();
+  for (const bag of bags) {
+    for (const p of bag) {
+      const key = String(p.cloudId || p.id || p.slug || "");
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(p);
+    }
+  }
+  return out;
+}
+
+async function loadRailProducts(g: (typeof HOME_CATEGORY_RAILS)[number]): Promise<WooProduct[]> {
+  const headphoneRail = g.key === "wireless-headsets";
+  const queries = headphoneRail ? shopGroupFetchQueries(g.group) : [g.query];
+  const pageSize = headphoneRail ? 48 : 24;
+  const bags = await Promise.all(
+    queries.map((query) =>
+      fetchCloudProductList(query, pageSize)
+        .then((page) => page.items)
+        .catch(() => [] as WooProduct[]),
+    ),
+  );
+  let pool = mergeRailProducts(bags);
+  let items = takeRail(pool, g.key);
+  if (headphoneRail && items.length < 8) {
+    try {
+      const extra = await fetchCloudProductList({ q: "headphones" }, 48);
+      pool = mergeRailProducts([pool, extra.items]);
+      items = takeRail(pool, g.key);
+    } catch {
+      /* keep what we have */
+    }
+  }
+  if (headphoneRail && items.length < 8) {
+    items = pool.slice(0, 18);
+  }
+  return items;
 }
 
 export default function HomeCloudRails() {
@@ -63,8 +106,7 @@ export default function HomeCloudRails() {
       HOME_CATEGORY_RAILS.map(async (g) => {
         let items: WooProduct[] = [];
         try {
-          const page = await fetchCloudProductList(g.query, 24);
-          items = takeRail(page.items, g.key);
+          items = await loadRailProducts(g);
         } catch {
           items = [];
         }
