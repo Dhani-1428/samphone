@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
-import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -515,13 +514,9 @@ export default function BrandPage() {
     [filteredProducts, selectedModel],
   );
 
-  const filterKey = `${brandSlug}:${selectedModel?.id ?? "all"}:${sort}:${filters.inStock}:${filters.onSale}:${filters.minPrice ?? ""}:${filters.maxPrice ?? ""}:${filters.model ?? ""}`;
-  const brandPager = usePagedItems(filteredProducts, filterKey);
-  const partsPager = usePagedItems(modelParts, `parts:${filterKey}`);
-  const accPager = usePagedItems(modelAccessories, `acc:${filterKey}`);
-
   const waiting =
-    !selectedModel && filteredProducts.length === 0 && (brandLoading || loading);
+    filteredProducts.length === 0 &&
+    (selectedModel ? modelLoading || brandLoading || loading : brandLoading || loading);
 
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
@@ -567,7 +562,7 @@ export default function BrandPage() {
               <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_parts_hint")}</p>
               {modelParts.length === 0 ? (
                 modelLoading ? (
-                  <CatalogLoading compact className="rounded-xl bg-white" />
+                  <CatalogLoading className="rounded-xl bg-white" />
                 ) : (
                   <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
                 )
@@ -579,13 +574,12 @@ export default function BrandPage() {
                     animate="visible"
                     className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5"
                   >
-                    {partsPager.slice.map((p) => (
+                    {modelParts.map((p) => (
                       <motion.div key={productKey(p)} variants={itemVariants}>
                         <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                       </motion.div>
                     ))}
                   </motion.div>
-                  <CatalogPager page={partsPager.page} pageCount={partsPager.pageCount} onPage={partsPager.setPage} />
                 </>
               )}
             </section>
@@ -604,7 +598,7 @@ export default function BrandPage() {
               <p className="mb-4 -mt-2 text-sm font-semibold text-neutral-600">{t("model_accessories_section_hint")}</p>
               {modelAccessories.length === 0 ? (
                 modelLoading ? (
-                  <CatalogLoading compact className="rounded-xl bg-white" />
+                  <CatalogLoading className="rounded-xl bg-white" />
                 ) : (
                   <p className="py-8 text-sm text-muted-foreground">{t("woo_empty")}</p>
                 )
@@ -616,13 +610,12 @@ export default function BrandPage() {
                     animate="visible"
                     className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5"
                   >
-                    {accPager.slice.map((p) => (
+                    {modelAccessories.map((p) => (
                       <motion.div key={productKey(p)} variants={itemVariants}>
                         <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                       </motion.div>
                     ))}
                   </motion.div>
-                  <CatalogPager page={accPager.page} pageCount={accPager.pageCount} onPage={accPager.setPage} />
                 </>
               )}
             </section>
@@ -635,13 +628,12 @@ export default function BrandPage() {
               animate="visible"
               className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"
             >
-              {brandPager.slice.map((p) => (
+              {filteredProducts.map((p) => (
                 <motion.div key={productKey(p)} variants={itemVariants}>
                   <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
                 </motion.div>
               ))}
             </motion.div>
-            <CatalogPager page={brandPager.page} pageCount={brandPager.pageCount} onPage={brandPager.setPage} />
           </>
         )}
           </div>

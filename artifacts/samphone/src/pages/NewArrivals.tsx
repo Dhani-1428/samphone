@@ -8,7 +8,6 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
-import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { sortNewest } from "@/lib/woo-product-filters";
 import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -64,7 +63,6 @@ export default function NewArrivals() {
   }, [cloudItems, catalogNewest]);
 
   const busy = cloudLoading || (woo && loading && list.length === 0);
-  const pager = usePagedItems(list, "new-arrivals");
 
   const grid = (
     <>
@@ -78,23 +76,20 @@ export default function NewArrivals() {
         <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
       ) : null}
 
-      {list.length > 0 ? (
-        <>
-          <motion.ul
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? "visible" : "hidden"}
-            className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-4"
-          >
-            {pager.slice.map((p) => (
-              <motion.li key={p.id} variants={itemVariants}>
-                <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
-              </motion.li>
-            ))}
-          </motion.ul>
-          <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
-        </>
+      {!busy && list.length > 0 ? (
+        <motion.ul
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-4"
+        >
+          {list.map((p) => (
+            <motion.li key={p.id} variants={itemVariants}>
+              <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+            </motion.li>
+          ))}
+        </motion.ul>
       ) : null}
     </>
   );

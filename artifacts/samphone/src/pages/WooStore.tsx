@@ -5,7 +5,6 @@ import PageVideoHero from "@/components/PageVideoHero";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
-import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 
 export default function WooStore() {
@@ -13,7 +12,6 @@ export default function WooStore() {
   const { products, loading, error, refreshNow, lastUpdated, hasCache, syncingMore } = useProductCatalog();
   const configured = hasWooCommerceConfig();
   const showBlockingLoader = loading && !hasCache;
-  const pager = usePagedItems(products, "store");
 
   return (
     <div className="min-h-screen">
@@ -56,6 +54,9 @@ export default function WooStore() {
         )}
 
         {showBlockingLoader ? <CatalogLoading /> : null}
+        {!showBlockingLoader && (loading || syncingMore) ? (
+          <CatalogLoading compact className="mb-4" />
+        ) : null}
 
         {!showBlockingLoader && error && (
           <div
@@ -72,20 +73,19 @@ export default function WooStore() {
           </div>
         )}
 
-        {!showBlockingLoader && !error && products.length === 0 && (
+        {!showBlockingLoader && !error && products.length === 0 && !loading && (
           <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
         )}
 
         {!showBlockingLoader && !error && products.length > 0 && (
           <>
             <ul className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5">
-              {pager.slice.map((p) => (
+              {products.map((p) => (
                 <li key={p.id}>
                   <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
                 </li>
               ))}
             </ul>
-            <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
           </>
         )}
       </div>

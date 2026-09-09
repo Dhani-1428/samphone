@@ -22,7 +22,6 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import CatalogLoading from "@/components/CatalogLoading";
-import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
 import {
@@ -112,21 +111,17 @@ function typeChipIcon(id: string): LucideIcon {
 }
 
 function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty: string; priceLabel: string }) {
-  const pager = usePagedItems(items, `${items.length}:${items[0]?.id ?? "empty"}`);
   if (items.length === 0) {
     return <p className="py-8 text-sm text-muted-foreground">{empty}</p>;
   }
   return (
-    <>
-      <ul className="grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5">
-        {pager.slice.map((p) => (
-          <li key={p.cloudId || p.id}>
-            <WooProductCard product={p} priceUnavailableLabel={priceLabel} compact />
-          </li>
-        ))}
-      </ul>
-      <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
-    </>
+    <ul className="grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5">
+      {items.map((p) => (
+        <li key={p.cloudId || p.id}>
+          <WooProductCard product={p} priceUnavailableLabel={priceLabel} compact />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -294,7 +289,7 @@ export default function ModelCatalogPage() {
         <CatalogBackLink />
 
         {loading && modelProducts.length === 0 ? (
-          <CatalogLoading compact className="mb-8 rounded-xl border border-black/[0.06] bg-white shadow-sm" />
+          <CatalogLoading className="mb-8 rounded-xl border border-black/[0.06] bg-white shadow-sm" />
         ) : null}
 
         {error ? <p className="py-8 text-sm text-destructive">{error}</p> : null}

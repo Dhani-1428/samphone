@@ -16,7 +16,6 @@ import {
 import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
-import CatalogPager, { usePagedItems } from "@/components/CatalogPager";
 import { CatalogBackLink } from "@/components/CatalogPageChrome";
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -135,7 +134,6 @@ export default function CategoryPage() {
   const showWooEmpty =
     configured && !wooLoading && !catalogError && wooList.length === 0;
   const showNotFound = !configured && !staticMeta && !wooLoading;
-  const pager = usePagedItems(wooList, slug);
 
   const heroDescription = configured && wooList.length > 0
     ? `${wooList.length} products`
@@ -164,24 +162,22 @@ export default function CategoryPage() {
           </div>
         )}
 
-        {wooLoading ? <CatalogLoading /> : null}
+        {wooLoading && !showWooGrid ? <CatalogLoading /> : null}
+        {wooLoading && showWooGrid ? <CatalogLoading compact className="mb-4" /> : null}
 
         {showWooGrid ? (
-          <>
-            <motion.ul
+          <motion.ul
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5"
             >
-              {pager.slice.map((p) => (
+              {wooList.map((p) => (
                 <motion.li key={p.id} variants={cardVariants}>
                   <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
                 </motion.li>
               ))}
             </motion.ul>
-            <CatalogPager page={pager.page} pageCount={pager.pageCount} onPage={pager.setPage} />
-          </>
         ) : null}
 
         {!wooLoading && showWooEmpty && (
