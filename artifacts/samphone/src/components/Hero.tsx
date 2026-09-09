@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
 import {
   Carousel,
   CarouselContent,
@@ -13,20 +12,21 @@ import { useLang } from "@/contexts/LanguageContext";
 import { fetchHeroBanners } from "@/lib/woocommerce";
 import CatalogImage from "@/components/CatalogImage";
 
-type Slide = { key: string; src: string };
+type Slide = { key: string; src: string; alt: string };
 
-function siteBannerSlides(): Slide[] {
+function siteBannerSlides(lang: string): Slide[] {
+  const alt = lang === "pt" ? "SAMPHONE — destaques da loja" : "SAMPHONE — store highlights";
   return SITE_HOME_BANNERS.map((src, i) => ({
     key: `site-${i}`,
     src,
+    alt,
   }));
 }
 
 export default function Hero() {
-  const { t } = useLang();
+  const { lang } = useLang();
   const [api, setApi] = useState<CarouselApi>();
-  const [slides, setSlides] = useState<Slide[]>(() => siteBannerSlides());
-  const alt = t("hero_badge");
+  const [slides, setSlides] = useState<Slide[]>(() => siteBannerSlides(lang));
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +37,7 @@ export default function Hero() {
           banners.map((b) => ({
             key: `woo-${b.id}`,
             src: b.src,
+            alt: b.alt || (lang === "pt" ? "SAMPHONE" : "SAMPHONE"),
           })),
         );
       })
@@ -46,7 +47,7 @@ export default function Hero() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (!api) return;
@@ -68,37 +69,13 @@ export default function Hero() {
                 <div className="relative aspect-[5/2] w-full overflow-hidden bg-brand">
                   <CatalogImage
                     src={slide.src}
-                    alt={alt}
-                    className="h-full w-full object-cover object-center"
+                    alt={slide.alt}
+                    className="h-full w-full object-contain object-center"
                     decoding="async"
                     fetchPriority={i === 0 ? "high" : "low"}
                     loading={i === 0 ? "eager" : "lazy"}
                     sizes="(min-width: 1600px) 1600px, 100vw"
                   />
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1A2F7A]/95 via-[#243F9F]/70 to-[#243F9F]/10"
-                  />
-                  <div className="absolute inset-0 z-10 flex items-center">
-                    <div className="max-w-[min(100%,38rem)] px-12 sm:px-16 md:px-20 lg:px-24">
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-sam sm:text-xs">
-                        {t("hero_badge")}
-                      </p>
-                      <p className="font-display text-[1.35rem] font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl md:text-4xl lg:text-[2.75rem]">
-                        {t("hero_line1")} {t("hero_line2")}{" "}
-                        <span className="text-sam">{t("hero_line3")}</span>
-                      </p>
-                      <p className="mt-2 hidden max-w-md text-[12px] font-medium leading-snug text-white/90 sm:mt-3 sm:block sm:text-sm md:text-[15px]">
-                        {t("hero_sub")}
-                      </p>
-                      <Link
-                        href="/store"
-                        className="mt-3 inline-flex items-center rounded-full bg-sam px-4 py-2 text-[12px] font-bold uppercase tracking-wide text-brand shadow-sm transition-colors hover:bg-white sm:mt-5 sm:px-5 sm:py-2.5 sm:text-sm"
-                      >
-                        {t("hero_shop")}
-                      </Link>
-                    </div>
-                  </div>
                 </div>
               </CarouselItem>
             ))}
