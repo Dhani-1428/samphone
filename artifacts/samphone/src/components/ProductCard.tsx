@@ -1,5 +1,5 @@
 import { type MouseEvent } from "react";
-import { Eye, Heart, Star } from "lucide-react";
+import { Heart, ShoppingBag, Star } from "lucide-react";
 import { Link } from "wouter";
 import { hrefForCartKey } from "@/data/catalog";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -91,24 +91,16 @@ export default function ProductCard({
             €{price.toFixed(2).replace(".", ",")}
           </span>
           {user ? (
-            <CardQtyStepper cartKey={cartKey} />
+            <CardQtyStepper cartKey={cartKey} iconOnly />
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
-              className="product-card-add flex h-11 min-w-0 flex-1 items-center justify-center px-3 text-sm transition-colors hover:bg-[#1a4499]"
+              className="product-card-add flex h-9 w-9 shrink-0 items-center justify-center transition-colors hover:bg-[#1a4499]"
+              aria-label={t("addToCart")}
             >
-              <span className="truncate">{t("addToCart")}</span>
+              <ShoppingBag className="h-4 w-4" strokeWidth={2.2} />
             </Link>
           )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <Link
-            href={productHref}
-            className="product-card-copy flex h-11 w-full items-center justify-center gap-2 border-2 border-brand bg-white px-3 text-sm font-medium uppercase text-brand transition-colors hover:border-[#2050b3] hover:bg-[#2050b3] hover:text-white"
-          >
-            <Eye className="h-4 w-4 shrink-0" strokeWidth={2.2} />
-            <span className="truncate">{t("card_view_details")}</span>
-          </Link>
         </div>
       </div>
     </article>

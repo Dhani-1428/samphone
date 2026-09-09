@@ -14,9 +14,11 @@ type Size = "sm" | "md";
 export function CardQtyStepper({
   cartKey,
   minQty = 1,
+  iconOnly = false,
 }: {
   cartKey: string;
   minQty?: number;
+  iconOnly?: boolean;
 }) {
   const { t } = useLang();
   const { getQty, increment, decrement } = useCart();
@@ -43,18 +45,29 @@ export function CardQtyStepper({
     return (
       <button
         type="button"
-        className="product-card-add flex h-9 min-w-0 flex-1 items-center justify-center px-3 text-xs transition-colors hover:bg-[#1a4499]"
+        className={cn(
+          "product-card-add flex items-center justify-center transition-colors hover:bg-[#1a4499]",
+          iconOnly ? "h-9 w-9 shrink-0" : "h-9 min-w-0 flex-1 px-3 text-xs",
+        )}
         onClick={addToCart}
         data-testid={`add-cart-${cartKey}`}
+        aria-label={t("addToCart")}
       >
-        <span className="truncate">{t("addToCart")}</span>
+        {iconOnly ? (
+          <ShoppingBag className="h-4 w-4" strokeWidth={2.2} />
+        ) : (
+          <span className="truncate">{t("addToCart")}</span>
+        )}
       </button>
     );
   }
 
   return (
     <div
-      className="product-card-add flex h-9 min-w-0 flex-1 items-center"
+      className={cn(
+        "product-card-add flex h-9 items-center",
+        iconOnly ? "w-auto shrink-0" : "min-w-0 flex-1",
+      )}
       onClick={(e) => e.stopPropagation()}
     >
       <button
