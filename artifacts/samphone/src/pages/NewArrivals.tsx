@@ -82,11 +82,11 @@ export default function NewArrivals() {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-4"
+          className="catalog-product-grid"
         >
           {list.map((p) => (
             <motion.li key={p.id} variants={itemVariants}>
-              <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+              <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
             </motion.li>
           ))}
         </motion.ul>

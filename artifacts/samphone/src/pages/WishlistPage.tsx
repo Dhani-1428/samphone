@@ -28,7 +28,7 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen py-10">
-      <div className="container mx-auto max-w-5xl px-4 md:px-6">
+      <div className="container mx-auto max-w-[1600px] px-4 md:px-6">
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
@@ -57,7 +57,7 @@ export default function WishlistPage() {
             </Button>
           </div>
         ) : (
-          <ul className="grid list-none grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 p-0">
+          <ul className="catalog-product-grid">
             {rows.map((row) => (
               <li
                 key={row.cartKey}

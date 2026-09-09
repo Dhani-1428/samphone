@@ -170,11 +170,11 @@ export default function CategoryPage() {
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5"
+              className="catalog-product-grid"
             >
               {wooList.map((p) => (
                 <motion.li key={p.id} variants={cardVariants}>
-                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 </motion.li>
               ))}
             </motion.ul>

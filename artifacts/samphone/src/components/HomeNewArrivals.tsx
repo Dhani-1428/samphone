@@ -16,7 +16,7 @@ export default function HomeNewArrivals() {
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudNewArrivals(14)
+    void fetchCloudNewArrivals(12)
       .then((rows) => {
         if (alive) setWooRows(rows);
       })
@@ -49,7 +49,7 @@ export default function HomeNewArrivals() {
       seeAllHref="/new"
     >
       {wooRows.map((product) => (
-        <WooProductCard key={product.cloudId || product.id} product={product} priceUnavailableLabel={t("woo_price_na")} />
+        <WooProductCard key={product.cloudId || product.id} product={product} priceUnavailableLabel={t("woo_price_na")} compact />
       ))}
     </HomeProductRail>
   );

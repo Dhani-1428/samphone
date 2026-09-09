@@ -82,7 +82,7 @@ export default function SearchPage() {
         ) : null}
 
         {results.length > 0 ? (
-          <ul className="mt-8 grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5">
+          <ul className="catalog-product-grid mt-8">
             {results.map((p) => (
               <li key={p.cloudId || p.id}>
                 <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />

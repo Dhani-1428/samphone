@@ -30,7 +30,7 @@ const HOME_CATEGORY_RAILS: {
 
 type RailRow = { key: HomeRailKey; title: string; group: string; items: WooProduct[] };
 
-function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 14): WooProduct[] {
+function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 12): WooProduct[] {
   return pickHomeRailItems(items ?? [], key, limit);
 }
 
@@ -48,7 +48,7 @@ export default function HomeCloudRails() {
   useEffect(() => {
     let alive = true;
 
-    void fetchCloudHomeRails(14, "priority")
+    void fetchCloudHomeRails(12, "priority")
       .then((r: CloudHomeRails) => {
         if (alive && r.best.length) setBest(r.best);
       })
@@ -93,7 +93,9 @@ export default function HomeCloudRails() {
 
   const label = t("woo_price_na");
   const cards = (items: WooProduct[]) =>
-    items.map((p) => <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} />);
+    items.map((p) => (
+      <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={label} compact />
+    ));
 
   return (
     <>

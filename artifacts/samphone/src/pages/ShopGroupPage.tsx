@@ -144,7 +144,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
           ) : (
             <>
               {loadingMore ? <CatalogLoading compact className="mb-4 rounded-xl bg-white" /> : null}
-              <div className="grid grid-cols-2 items-stretch gap-3 sm:grid-cols-2 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="catalog-product-grid">
                 {visible.map((p) => (
                   <WooProductCard
                     key={p.cloudId || `${p.id}-${p.slug}`}

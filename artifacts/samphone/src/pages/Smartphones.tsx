@@ -262,10 +262,10 @@ export default function Smartphones() {
           ) : null}
 
           {woo && !showSearchSpinner && !showCatalogSpinner && displayList.length > 0 ? (
-            <ul className="grid list-none grid-cols-2 gap-4 p-0 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4 xl:grid-cols-4">
+            <ul className="catalog-product-grid">
               {displayList.map((p) => (
                 <li key={p.cloudId || `${p.id}-${p.slug}`}>
-                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 </li>
               ))}
             </ul>

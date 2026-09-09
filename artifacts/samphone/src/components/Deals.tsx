@@ -16,10 +16,10 @@ export default function Deals() {
     if (!woo) return [];
     const reservedIds = new Set(sortNewest(products).slice(0, 28).map((p) => p.id));
     const onSale = filterOnSale(products).filter((p) => !reservedIds.has(p.id));
-    if (onSale.length > 0) return onSale.slice(0, 14);
+    if (onSale.length > 0) return onSale.slice(0, 12);
     const fallbackSale = filterOnSale(products);
-    if (fallbackSale.length > 0) return fallbackSale.slice(0, 14);
-    return products.filter((p) => !reservedIds.has(p.id)).slice(0, 14);
+    if (fallbackSale.length > 0) return fallbackSale.slice(0, 12);
+    return products.filter((p) => !reservedIds.has(p.id)).slice(0, 12);
   }, [woo, products]);
 
   if (woo && loading && deals.length === 0) {
@@ -38,7 +38,7 @@ export default function Deals() {
     <div id="deals">
       <HomeProductRail title={t("crazy_deals_title")} seeAllHref="/accessories">
         {deals.map((p) => (
-          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+          <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} compact />
         ))}
       </HomeProductRail>
     </div>

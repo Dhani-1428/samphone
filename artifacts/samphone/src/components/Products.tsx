@@ -16,7 +16,7 @@ export default function Products() {
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudFeatured(14)
+    void fetchCloudFeatured(12)
       .then((rows) => {
         if (alive) setFeatured(rows);
       })
@@ -44,7 +44,7 @@ export default function Products() {
     <div id="products">
       <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
         {featured.map((p) => (
-          <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+          <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} compact />
         ))}
       </HomeProductRail>
     </div>

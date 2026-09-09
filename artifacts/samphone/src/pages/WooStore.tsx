@@ -79,10 +79,10 @@ export default function WooStore() {
 
         {!showBlockingLoader && !error && products.length > 0 && (
           <>
-            <ul className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 md:gap-5">
+            <ul className="catalog-product-grid">
               {products.map((p) => (
                 <li key={p.id}>
-                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} />
+                  <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 </li>
               ))}
             </ul>

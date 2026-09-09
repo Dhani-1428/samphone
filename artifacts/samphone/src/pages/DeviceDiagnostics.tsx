@@ -154,9 +154,9 @@ export default function DeviceDiagnostics() {
           {parts && parts.length > 0 && (
             <div className="mt-8">
               <h2 className="font-display text-lg font-bold mb-4">{t("diag_parts")}</h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="catalog-product-grid">
                 {parts.map((p) => (
-                  <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+                  <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 ))}
               </div>
             </div>

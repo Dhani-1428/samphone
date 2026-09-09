@@ -64,8 +64,7 @@ export default function WooRelatedAccessoriesSlider({
   }, [api]);
 
   /** ~6 cards visible on wide screens (reference layout). */
-  const itemBasis =
-    "basis-[86%] min-[420px]:basis-[56%] sm:basis-[42%] md:basis-[34%] lg:basis-[28%] xl:basis-[24%] 2xl:basis-[22%]";
+  const itemBasis = "basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6";
 
   if (related.length === 0) return null;
 
@@ -90,7 +89,7 @@ export default function WooRelatedAccessoriesSlider({
           <CarouselContent className="-ml-3 md:-ml-4">
             {related.map((p) => (
               <CarouselItem key={p.id} className={cn("pl-3 md:pl-4", itemBasis)}>
-                <WooProductCard product={p} priceUnavailableLabel={priceUnavailableLabel} />
+                <WooProductCard product={p} priceUnavailableLabel={priceUnavailableLabel} compact />
               </CarouselItem>
             ))}
           </CarouselContent>

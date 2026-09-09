@@ -21,7 +21,7 @@ export default function RecommendedSection() {
         : products.filter((p) => p.on_sale).length > 0
           ? products.filter((p) => p.on_sale)
           : products;
-    return sortNewest(pool).slice(0, 14);
+    return sortNewest(pool).slice(0, 12);
   }, [woo, products]);
 
   if (woo && loading && wooSlice.length === 0) {
@@ -45,7 +45,7 @@ export default function RecommendedSection() {
       seeAllHref="/accessories"
     >
       {wooSlice.map((p) => (
-        <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} />
+        <WooProductCard key={p.id} product={p} priceUnavailableLabel={t("woo_price_na")} compact />
       ))}
     </HomeProductRail>
   );
