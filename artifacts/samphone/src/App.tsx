@@ -50,6 +50,7 @@ import LegalPage from "@/pages/LegalPage";
 import Layout from "@/components/Layout";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
+import SiteLockGate from "@/components/SiteLockGate";
 
 const queryClient = new QueryClient();
 
@@ -228,12 +229,14 @@ function AppShell({ clerk }: { clerk: boolean }) {
 
 function App() {
   const clerk = isClerkEnabled();
-  if (!clerk) return <AppShell clerk={false} />;
-  return (
+  const shell = !clerk ? (
+    <AppShell clerk={false} />
+  ) : (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
       <AppShell clerk />
     </ClerkProvider>
   );
+  return <SiteLockGate>{shell}</SiteLockGate>;
 }
 
 export default App;
