@@ -284,6 +284,10 @@
   height: auto;
 }
 
+.product-card.product-card-square {
+  aspect-ratio: auto;
+}
+
 .product-card-add {
   text-transform: uppercase;
   letter-spacing: 0;

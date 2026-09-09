@@ -69,10 +69,10 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         "product-card group relative flex w-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
-        compact && "text-[12px]",
+        compact && "product-card-square text-[12px]",
       )}
     >
-      <div className="relative min-h-0 flex-1 bg-[#F7F8FA]">
+      <div className={cn("relative bg-[#F7F8FA]", compact ? "aspect-square w-full" : "min-h-0 flex-1")}>
         <button
           type="button"
           onClick={toggleWish}
@@ -101,7 +101,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         </Link>
       </div>
 
-      <div className="relative z-20 flex shrink-0 flex-col gap-1 bg-white px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5">
+      <div className={cn("relative z-20 flex shrink-0 flex-col gap-1 bg-white", compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5")}>
         {swatches.length > 0 ? (
           <ColorSwatches
             swatches={swatches}

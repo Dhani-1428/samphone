@@ -144,10 +144,10 @@ function ProductGrid({ items, empty, priceLabel }: { items: WooProduct[]; empty:
   }
   return (
     <>
-      <ul className="grid list-none grid-cols-2 gap-3 p-0 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 md:gap-4">
+      <ul className="grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 lg:gap-2.5">
         {pager.slice.map((p) => (
           <li key={p.cloudId || p.id}>
-            <WooProductCard product={p} priceUnavailableLabel={priceLabel} />
+            <WooProductCard product={p} priceUnavailableLabel={priceLabel} compact />
           </li>
         ))}
       </ul>
