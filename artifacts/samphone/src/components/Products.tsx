@@ -16,7 +16,7 @@ export default function Products() {
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudFeatured(12)
+    void fetchCloudFeatured(18)
       .then((rows) => {
         if (alive) setFeatured(rows);
       })

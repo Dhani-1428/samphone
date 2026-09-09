@@ -16,10 +16,10 @@ export default function Deals() {
     if (!woo) return [];
     const reservedIds = new Set(sortNewest(products).slice(0, 28).map((p) => p.id));
     const onSale = filterOnSale(products).filter((p) => !reservedIds.has(p.id));
-    if (onSale.length > 0) return onSale.slice(0, 12);
+    if (onSale.length > 0) return onSale.slice(0, 18);
     const fallbackSale = filterOnSale(products);
-    if (fallbackSale.length > 0) return fallbackSale.slice(0, 12);
-    return products.filter((p) => !reservedIds.has(p.id)).slice(0, 12);
+    if (fallbackSale.length > 0) return fallbackSale.slice(0, 18);
+    return products.filter((p) => !reservedIds.has(p.id)).slice(0, 18);
   }, [woo, products]);
 
   if (woo && loading && deals.length === 0) {

@@ -21,7 +21,7 @@ export default function RecommendedSection() {
         : products.filter((p) => p.on_sale).length > 0
           ? products.filter((p) => p.on_sale)
           : products;
-    return sortNewest(pool).slice(0, 12);
+    return sortNewest(pool).slice(0, 18);
   }, [woo, products]);
 
   if (woo && loading && wooSlice.length === 0) {

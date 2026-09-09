@@ -11,7 +11,7 @@ export default function RecentlyViewedSection() {
 
   return (
     <HomeProductRail title={t("recently_viewed_title")} seeAllHref="/wishlist">
-      {products.slice(0, 12).map((p) => (
+      {products.slice(0, 18).map((p) => (
         <ProductCard key={p.cartKey} {...p} testPrefix="recent" />
       ))}
     </HomeProductRail>

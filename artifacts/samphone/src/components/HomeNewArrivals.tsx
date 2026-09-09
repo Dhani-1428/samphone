@@ -16,7 +16,7 @@ export default function HomeNewArrivals() {
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudNewArrivals(12)
+    void fetchCloudNewArrivals(18)
       .then((rows) => {
         if (alive) setWooRows(rows);
       })
