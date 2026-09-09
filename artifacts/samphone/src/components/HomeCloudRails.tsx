@@ -15,12 +15,12 @@ const HOME_CATEGORY_RAILS: {
   group: string;
   query: Record<string, string>;
 }[] = [
+  { key: "wireless-headsets", title: "Headphones", group: "Headphones", query: { category_group: "Headphones" } },
   { key: "repair-tools", title: "Repair Tools", group: "Repairing Tools", query: { category_group: "Repairing Tools" } },
   { key: "memory-cards", title: "Memory Cards", group: "Cards", query: { category_group: "Cards" } },
   { key: "adapters", title: "Adapters", group: "Chargers", query: { leaf_category: "Adapters" } },
   { key: "car-support", title: "Mobile Car Support", group: "Mobile Car Support", query: { category_group: "Mobile Car" } },
   { key: "magsafe-covers", title: "MagSafe Covers", group: "Original Accessories", query: { q: "magsafe cover" } },
-  { key: "wireless-headsets", title: "Wireless Headsets", group: "Headphones", query: { category_group: "Headphones" } },
   { key: "power-bank", title: "Power Bank", group: "Powerbanks", query: { category_group: "Powerbanks" } },
   { key: "cables", title: "Cables", group: "Cables", query: { category_group: "Cables" } },
   { key: "screen-protectors", title: "Screen Protectors", group: "Original Accessories", query: { q: "tempered glass" } },

@@ -471,6 +471,7 @@ const TITLE_TO_RAIL: Record<string, HomeRailKey> = {
   "mobile car support": "car-support",
   "magsafe covers": "magsafe-covers",
   "wireless headsets": "wireless-headsets",
+  headphones: "wireless-headsets",
   "power bank": "power-bank",
   cables: "cables",
   "screen protectors": "screen-protectors",
@@ -516,7 +517,7 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
     case "power-bank":
       return /\b(power\s*bank|powerbank|carregador\s*port[aá]til)\b/i.test(hay) && !/\bbattery\s*for\b/i.test(hay);
     case "wireless-headsets":
-      return /\b(wireless\s*(headset|earphone|earbuds)|bluetooth\s*(headset|earphone)|tws|earbuds|neck\s*earphone)\b/i.test(
+      return /\b(headphone|earphones?|headset|earbuds|tws|neck\s*earphone|bluetooth\s*(headset|earphone)|wireless\s*(headset|earphone))\b/i.test(
         hay,
       );
     case "car-support":
