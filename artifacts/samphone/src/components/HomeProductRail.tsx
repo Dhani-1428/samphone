@@ -54,7 +54,7 @@ export default function HomeProductRail({
   }, [api]);
 
   useEffect(() => {
-    if (!api || items.length < 7 || paused) return;
+    if (!api || items.length < 3 || paused) return;
     const id = window.setInterval(() => {
       api.scrollNext();
     }, 4200);
