@@ -225,8 +225,8 @@ export function RegisterShell({
   return (
     <div className="bg-white">
       <div className="mx-auto grid min-h-[calc(100dvh-var(--site-header-h,9rem))] w-full max-w-[1400px] lg:grid-cols-2">
-        <div className="relative hidden min-h-full flex-col bg-[#F7F8FA] lg:flex">
-          <div className="relative min-h-0 flex-1">
+        <div className="relative hidden min-h-full flex-col overflow-hidden bg-[#F7F8FA] lg:flex">
+          <div className="relative min-h-0 flex-1 overflow-hidden">
             <video
               src="/video/register-boy.mp4"
               autoPlay
@@ -235,7 +235,7 @@ export function RegisterShell({
               playsInline
               preload="metadata"
               aria-hidden
-              className="absolute inset-0 h-full w-full object-contain object-center"
+              className="absolute left-0 top-0 h-full w-[220%] max-w-none origin-left object-cover object-left"
             />
           </div>
           <p className="shrink-0 px-8 pb-8 pt-2 text-center text-sm font-medium text-neutral-500">
@@ -243,7 +243,7 @@ export function RegisterShell({
           </p>
         </div>
 
-        <div className="relative mx-auto mt-4 aspect-[4/5] w-full max-w-sm bg-[#F7F8FA] lg:hidden">
+        <div className="relative mx-auto mt-4 aspect-[4/5] w-full max-w-sm overflow-hidden bg-[#F7F8FA] lg:hidden">
           <video
             src="/video/register-boy.mp4"
             autoPlay
@@ -252,7 +252,7 @@ export function RegisterShell({
             playsInline
             preload="metadata"
             aria-hidden
-            className="h-full w-full object-contain object-center"
+            className="absolute left-0 top-0 h-full w-[220%] max-w-none object-cover object-left"
           />
         </div>
 
