@@ -120,14 +120,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               {priceLabel}
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-sam">
-              <AlertCircle className="h-3 w-3" strokeWidth={2.4} />
+            <span className="inline-flex items-center gap-1 text-[13px] font-medium text-sam">
+              <AlertCircle className="h-3.5 w-3.5" strokeWidth={2.4} />
               {priceUnavailableLabel}
             </span>
           )}
           {showPrice && inStock ? (
-            <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase text-brand">
-              <Package className="h-3 w-3" strokeWidth={2.2} />
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold uppercase text-brand">
+              <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
               {t("product_in_stock")}
             </span>
           ) : null}

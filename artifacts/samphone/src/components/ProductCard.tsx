@@ -90,8 +90,8 @@ export default function ProductCard({
           <span className="product-card-price tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
           </span>
-          <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[11px] font-medium uppercase text-brand">
-            <Package className="h-3.5 w-3.5" strokeWidth={2.2} />
+          <span className="inline-flex items-center gap-1.5 bg-brand/10 px-2.5 py-1 text-[13px] font-semibold uppercase text-brand">
+            <Package className="h-4 w-4" strokeWidth={2.2} />
             {t("product_in_stock")}
           </span>
         </div>
