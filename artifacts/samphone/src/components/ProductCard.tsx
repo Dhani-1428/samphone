@@ -74,7 +74,7 @@ export default function ProductCard({
         </Link>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-1 px-3.5 pb-2.5 pt-1 sm:px-4">
+      <div className="flex shrink-0 flex-col gap-1 px-3.5 pb-1.5 pt-1 sm:px-4">
         <div className="flex items-center justify-between gap-2">
           <span className="product-card-price shrink-0 tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}

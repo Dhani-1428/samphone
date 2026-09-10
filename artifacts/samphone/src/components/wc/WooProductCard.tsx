@@ -256,7 +256,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       <div
         className={cn(
           "relative z-20 flex shrink-0 flex-col gap-1 bg-white",
-          compact ? "px-1.5 pb-2 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5",
+          compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-1.5 pt-1 sm:px-2.5",
         )}
       >
         <div className="flex h-7 shrink-0 items-center justify-between gap-1">
