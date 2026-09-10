@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getPrimaryImageUrl, mapSwatchImageUrls, wooCartKey, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,6 @@ import { seesWholesalePrices } from "@/lib/customer-price";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { useLang } from "@/contexts/LanguageContext";
 import CatalogImage from "@/components/CatalogImage";
-import ColorSwatches from "@/components/wc/ColorSwatches";
 import ProductCardWriting from "@/components/ProductCardWriting";
 import { CardQtyStepper } from "@/components/ProductCartControls";
 import NotifyMeButton from "@/components/NotifyMeButton";
@@ -126,7 +125,6 @@ async function coverPhotoScale(displayed: HTMLImageElement, src: string): Promis
 
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
-  const [colorIdx, setColorIdx] = useState(0);
   const [coverScale, setCoverScale] = useState(1);
   const { user } = useAuth();
   const { t } = useLang();
@@ -135,14 +133,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
-  const swatches = product.colorSwatches ?? [];
-  const hasVariants = swatches.length > 0;
   const coverSub = classifyCatalogProduct(product).subcategory;
   const isCover = coverSub === "back-cover" || coverSub === "case";
-  const swatchImages = mapSwatchImageUrls(swatches, product.images);
-  const imageUrl = swatchImages[colorIdx] || getPrimaryImageUrl(product);
+  const imageUrl = getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
-  const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
+  const cartKey = wooCartKey(product.id);
   const wishKey = `woo:${product.id}`;
   const wishlisted = wishHas(wishKey);
   const title = product.name?.trim() || "Product";
@@ -155,15 +150,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   useEffect(() => {
     setImgOk(true);
     setCoverScale(isCover ? (imageUrl ? coverScaleCache.get(imageUrl) || COVER_FALLBACK_SCALE : 1) : 1);
-  }, [colorIdx, imageUrl, isCover]);
-
-  useEffect(() => {
-    for (const src of swatchImages) {
-      if (!src) continue;
-      const pre = new Image();
-      pre.src = src;
-    }
-  }, [swatchImages.join("|")]);
+  }, [imageUrl, isCover]);
 
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
@@ -195,19 +182,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           href={productHref}
           className={cn(
             "absolute inset-0 z-10 block overflow-hidden bg-white",
-            isCover
-              ? hasVariants
-                ? "pb-1.5 pl-7 pr-1.5 pt-2"
-                : "px-1.5 pb-1.5 pt-2"
-              : hasVariants
-                ? "px-2 py-2 pl-7"
-                : "p-2",
+            isCover ? "px-1.5 pb-1.5 pt-2" : "p-2",
           )}
         >
           <CatalogImage
-            key={`${colorIdx}:${imageUrl || "placeholder"}`}
+            key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
+            alt={product.images?.[0]?.alt || product.name}
             className={cn(
               "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "blur-[3px]",
@@ -224,26 +205,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           />
         </Link>
 
-        {hasVariants ? (
-          <div
-            className="pointer-events-auto absolute inset-y-0 left-0 z-50 flex w-7 justify-center bg-white pt-2 pb-2"
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerUp={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ColorSwatches
-              swatches={swatches}
-              selected={colorIdx}
-              onSelect={(i) => {
-                setColorIdx(i);
-                setImgOk(true);
-              }}
-              size="sm"
-              direction="col"
-              max={0}
-            />
-          </div>
-        ) : null}
         {!inStock ? (
           <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-black/20">
             <span className="px-2 text-center text-[12px] font-extrabold uppercase leading-tight tracking-wide text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
