@@ -32,9 +32,102 @@ interface WooProductCardProps {
   compact?: boolean;
 }
 
+const coverScaleCache = new Map<string, number>();
+const COVER_FALLBACK_SCALE = 1.72;
+
+function isLightPixel(r: number, g: number, b: number, a: number): boolean {
+  if (a < 16) return true;
+  return r > 238 && g > 238 && b > 238;
+}
+
+function subjectBox(img: HTMLImageElement): { w: number; h: number } | null {
+  const nw = img.naturalWidth;
+  const nh = img.naturalHeight;
+  if (nw < 8 || nh < 8) return null;
+  const max = 140;
+  const s = Math.min(1, max / Math.max(nw, nh));
+  const cw = Math.max(1, Math.round(nw * s));
+  const ch = Math.max(1, Math.round(nh * s));
+  const canvas = document.createElement("canvas");
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+  try {
+    ctx.drawImage(img, 0, 0, cw, ch);
+    const { data } = ctx.getImageData(0, 0, cw, ch);
+    let minX = cw;
+    let minY = ch;
+    let maxX = 0;
+    let maxY = 0;
+    for (let y = 0; y < ch; y += 1) {
+      for (let x = 0; x < cw; x += 1) {
+        const i = (y * cw + x) * 4;
+        if (isLightPixel(data[i], data[i + 1], data[i + 2], data[i + 3])) continue;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+    if (maxX < minX) return null;
+    const inv = 1 / s;
+    return { w: (maxX - minX + 1) * inv, h: (maxY - minY + 1) * inv };
+  } catch {
+    return null;
+  }
+}
+
+function scaleFromBox(img: HTMLImageElement, box: HTMLElement, sub: { w: number; h: number }): number {
+  const bw = box.clientWidth;
+  const bh = box.clientHeight;
+  const nw = img.naturalWidth;
+  const nh = img.naturalHeight;
+  if (bw < 8 || bh < 8 || nw < 8 || nh < 8 || sub.w < 8 || sub.h < 8) return COVER_FALLBACK_SCALE;
+  const area = (sub.w * sub.h) / (nw * nh);
+  if (area < 0.06) return COVER_FALLBACK_SCALE;
+  if (area > 0.88) return 1.08;
+  const fitted = Math.min(bw / nw, bh / nh);
+  const dw = sub.w * fitted;
+  const dh = sub.h * fitted;
+  if (dw < 1 || dh < 1) return COVER_FALLBACK_SCALE;
+  return Math.min(Math.max((Math.min(bw / dw, bh / dh) * 0.9), 1.05), 2.05);
+}
+
+function loadImageForMeasure(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.crossOrigin = "anonymous";
+    im.referrerPolicy = "no-referrer";
+    im.onload = () => resolve(im);
+    im.onerror = () => resolve(null);
+    im.src = src;
+  });
+}
+
+async function coverPhotoScale(displayed: HTMLImageElement, src: string): Promise<number> {
+  const cached = coverScaleCache.get(src);
+  if (cached) return cached;
+  const box = displayed.parentElement;
+  let scale = COVER_FALLBACK_SCALE;
+  const fromDisplayed = subjectBox(displayed);
+  if (box && fromDisplayed) {
+    scale = scaleFromBox(displayed, box, fromDisplayed);
+  } else {
+    const independent = await loadImageForMeasure(src);
+    const sub = independent ? subjectBox(independent) : null;
+    if (box && independent && sub) {
+      scale = scaleFromBox(displayed, box, sub);
+    }
+  }
+  coverScaleCache.set(src, scale);
+  return scale;
+}
+
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
   const [colorIdx, setColorIdx] = useState(0);
+  const [coverScale, setCoverScale] = useState(1);
   const { user } = useAuth();
   const { t } = useLang();
   const [loc] = useLocation();
@@ -61,7 +154,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
   useEffect(() => {
     setImgOk(true);
-  }, [colorIdx, imageUrl]);
+    setCoverScale(isCover ? (imageUrl ? coverScaleCache.get(imageUrl) || COVER_FALLBACK_SCALE : 1) : 1);
+  }, [colorIdx, imageUrl, isCover]);
 
   useEffect(() => {
     for (const src of swatchImages) {
@@ -103,8 +197,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             "absolute inset-0 z-10 block overflow-hidden bg-white",
             isCover
               ? hasVariants
-                ? "pb-2 pl-7 pr-2 pt-3"
-                : "px-2 pb-2 pt-3"
+                ? "pb-1.5 pl-7 pr-1.5 pt-2"
+                : "px-1.5 pb-1.5 pt-2"
               : hasVariants
                 ? "px-2 py-2 pl-7"
                 : "p-2",
@@ -115,11 +209,17 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-contain object-center transition-[filter,opacity] duration-200",
+              "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "blur-[3px]",
             )}
+            style={isCover ? { transform: `scale(${coverScale})` } : undefined}
             loading="eager"
             decoding="async"
+            onLoad={(e) => {
+              if (!isCover || !imageUrl) return;
+              const el = e.currentTarget;
+              void coverPhotoScale(el, imageUrl).then(setCoverScale);
+            }}
             onError={() => setImgOk(false)}
           />
         </Link>
