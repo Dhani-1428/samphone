@@ -85,12 +85,12 @@ export default function NotifyMeButton({
       <p
         className={cn(
           "flex items-center justify-center font-medium text-brand",
-          tall ? "h-12 min-w-0 flex-1 gap-1 px-2 text-center text-sm" : "h-9 w-9 shrink-0",
+          tall ? "h-12 min-w-0 flex-1 gap-1 px-2 text-center text-sm" : "h-7 w-7 shrink-0",
           className,
         )}
         title={t("notify_stock_ok")}
       >
-        <Bell className={tall ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} fill="currentColor" />
+        <Bell className={tall ? "h-5 w-5" : "h-4 w-4"} strokeWidth={2} fill="currentColor" />
         {tall ? <span>{t("notify_stock_ok")}</span> : <span className="sr-only">{t("notify_stock_ok")}</span>}
       </p>
     );
@@ -99,7 +99,7 @@ export default function NotifyMeButton({
   if (askEmail) {
     return (
       <form
-        className={cn("flex min-w-0 flex-col gap-1", tall ? "flex-1" : "relative w-9", className)}
+        className={cn("flex min-w-0 flex-col gap-1", tall ? "flex-1" : "relative w-7", className)}
         onClick={(e) => e.stopPropagation()}
         onSubmit={onSubmit}
       >
@@ -120,11 +120,11 @@ export default function NotifyMeButton({
           disabled={busy}
           className={cn(
             "product-card-add inline-flex items-center justify-center disabled:opacity-60",
-            tall ? "h-11 gap-1 px-2 text-xs uppercase" : "h-9 w-9 shrink-0",
+            tall ? "h-11 gap-1 px-2 text-xs uppercase" : "h-7 w-7 shrink-0",
           )}
           aria-label={t("notify_me")}
         >
-          <Bell className={tall ? "h-4 w-4" : "h-6 w-6"} strokeWidth={2} />
+          <Bell className={tall ? "h-4 w-4" : "h-4 w-4"} strokeWidth={2} />
           {tall ? <span>{busy ? "…" : t("notify_me")}</span> : <span className="sr-only">{busy ? "…" : t("notify_me")}</span>}
         </button>
         {error ? <p className="text-[10px] leading-tight text-destructive">{error}</p> : null}
@@ -140,11 +140,11 @@ export default function NotifyMeButton({
         onClick={onButton}
         className={cn(
           "product-card-add inline-flex items-center justify-center disabled:opacity-60",
-          tall ? "h-12 w-full gap-1.5 px-2 text-sm uppercase" : "h-9 w-9 shrink-0",
+          tall ? "h-12 w-full gap-1.5 px-2 text-sm uppercase" : "h-7 w-7 shrink-0",
         )}
         aria-label={t("notify_me")}
       >
-        <Bell className={tall ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
+        <Bell className={tall ? "h-5 w-5" : "h-4 w-4"} strokeWidth={2} />
         {tall ? <span className="truncate">{t("notify_me")}</span> : <span className="sr-only">{t("notify_me")}</span>}
       </button>
       {error ? <p className="text-[10px] leading-tight text-destructive">{error}</p> : null}

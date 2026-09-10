@@ -279,19 +279,26 @@
 
 .product-card {
   border-radius: 0;
-  aspect-ratio: 3 / 5;
+  aspect-ratio: auto;
   width: 100%;
   height: auto;
   min-height: 0;
+  overflow: visible;
 }
 
 .product-card.product-card-square {
-  aspect-ratio: 3 / 5;
+  aspect-ratio: auto;
+}
+
+.product-card-media {
+  aspect-ratio: 1 / 1;
+  flex: none;
+  overflow: hidden;
 }
 
 /* No color dots: drop the reserved swatch band so price sits under the photo. */
 .product-card.product-card-no-variants {
-  aspect-ratio: 3 / 4.5;
+  aspect-ratio: auto;
   height: auto;
 }
 
@@ -346,12 +353,12 @@
 .product-card .product-card-price,
 .product-card-price {
   font-family: "Roboto", sans-serif;
-  font-size: 23px;
+  font-size: 18px;
   font-weight: 900;
   letter-spacing: 0;
   color: #C47A12;
-  -webkit-text-stroke: 0.35px currentColor;
-  padding-left: 0.7rem;
+  -webkit-text-stroke: 0.25px currentColor;
+  padding-left: 0.45rem;
 }
 
 .nav-bar-item {

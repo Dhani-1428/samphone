@@ -50,13 +50,13 @@ export default function ProductCard({
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full flex-col overflow-hidden bg-white",
+        "product-card group relative flex h-auto flex-col overflow-visible bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-[#F7F8FA]">
+      <div className="product-card-media relative min-h-0 overflow-hidden bg-[#F7F8FA]">
         <button
           type="button"
           onClick={toggleWish}
@@ -84,10 +84,10 @@ export default function ProductCard({
           ) : (
             <Link
               href={`/login?next=${encodeURIComponent(productHref)}`}
-              className="product-card-add flex h-9 w-9 shrink-0 items-center justify-center transition-colors hover:bg-[#1a4499]"
+              className="product-card-add flex h-7 w-7 shrink-0 items-center justify-center transition-colors hover:bg-[#1a4499]"
               aria-label={t("addToCart")}
             >
-              <ShoppingBag className="h-6 w-6" strokeWidth={2} />
+              <ShoppingBag className="h-4 w-4" strokeWidth={2} />
             </Link>
           )}
         </div>
