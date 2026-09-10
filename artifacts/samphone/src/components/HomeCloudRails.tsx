@@ -25,7 +25,6 @@ const HOME_CATEGORY_RAILS: {
   { key: "power-bank", title: "Power Bank", group: "Powerbanks", query: { category_group: "Powerbanks" } },
   { key: "cables", title: "Cables", group: "Cables", query: { category_group: "Cables" } },
   { key: "screen-protectors", title: "Screen Protectors", group: "Original Accessories", query: { q: "tempered glass" } },
-  { key: "phone-cases", title: "Phone Cases", group: "Original Accessories", query: { q: "phone case" } },
   { key: "chargers", title: "Chargers", group: "Chargers", query: { category_group: "Chargers" } },
 ];
 
