@@ -8,7 +8,6 @@ import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
 import { getPrimaryImageUrl, mapSwatchImageUrls, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { seesWholesalePrices } from "@/lib/customer-price";
@@ -44,8 +43,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
-  const coverSub = classifyCatalogProduct(product).subcategory;
-  const fillCover = coverSub === "back-cover" || coverSub === "case";
   const swatchImages = mapSwatchImageUrls(swatches, product.images);
   const imageUrl =
     swatches[colorIdx]?.image ||
@@ -83,13 +80,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full w-full flex-col overflow-hidden bg-white",
+        "product-card group relative flex h-auto w-full flex-col bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
         compact && "product-card-square text-[12px]",
       )}
     >
-      <div className="product-card-media relative min-h-0 w-full flex-1 bg-white">
+      <div className="product-card-media relative w-full bg-white">
         <button
           type="button"
           onClick={toggleWish}
@@ -103,14 +100,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <Link
           href={productHref}
           className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white",
-            fillCover
-              ? hasVariants
-                ? "pl-7 pr-1.5"
-                : "px-1.5"
-              : hasVariants
-                ? "py-1.5 pl-8 pr-2.5"
-                : "px-2.5 py-1.5",
+            "absolute inset-0 z-10 block overflow-hidden bg-white py-1",
+            hasVariants ? "pl-7 pr-2" : "px-2",
           )}
         >
           <CatalogImage
@@ -118,9 +109,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
-              fillCover && (inStock ? "scale-[1.72]" : "scale-[1.78] blur-[3px]"),
-              !fillCover && !inStock && "scale-105 blur-[3px]",
+              "h-full w-full object-contain object-center transition-[filter,opacity] duration-200",
+              !inStock && "blur-[3px]",
             )}
             loading="eager"
             decoding="async"
@@ -160,7 +150,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       <div
         className={cn(
           "relative z-20 flex shrink-0 flex-col gap-0.5 bg-white",
-          compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5 sm:pb-2",
+          compact ? "px-1.5 pb-1.5 pt-0" : "px-2 pb-2 pt-0 sm:px-2.5 sm:pb-1.5",
         )}
       >
         <div className="flex h-7 shrink-0 items-center justify-between gap-1">

@@ -50,13 +50,13 @@ export default function ProductCard({
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full flex-col overflow-hidden bg-white",
+        "product-card group relative flex h-auto flex-col bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="product-card-media relative min-h-0 flex-1 overflow-hidden bg-white">
+      <div className="product-card-media relative overflow-hidden bg-white">
         <button
           type="button"
           onClick={toggleWish}
@@ -65,16 +65,16 @@ export default function ProductCard({
         >
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
-        <Link href={productHref} className="absolute inset-0 z-10 block">
+        <Link href={productHref} className="absolute inset-0 z-10 block p-2">
           <img
             src={img}
             alt={name}
-            className="h-full w-full object-cover object-center"
+            className="h-full w-full object-contain object-center"
           />
         </Link>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
+      <div className="flex shrink-0 flex-col gap-1 px-3.5 pb-3 pt-0 sm:px-4 sm:pb-3">
         <div className="flex items-center justify-between gap-2">
           <span className="product-card-price shrink-0 tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
