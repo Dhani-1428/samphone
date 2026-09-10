@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type InputHTMLAttributes } from "react";
+import { useEffect, useMemo, useRef, useState, type InputHTMLAttributes } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
@@ -29,8 +29,8 @@ import {
 } from "@/data/brand-nav-families";
 
 const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.04 } },
+  hidden: { opacity: 1 },
+  visible: { opacity: 1, transition: { staggerChildren: 0 } },
 };
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -61,6 +61,65 @@ function mergeProducts(...lists: WooProduct[][]): WooProduct[] {
     }
   }
   return out;
+}
+
+type SortKey = "newest" | "price-asc" | "price-desc" | "name-asc";
+
+function sortProducts(list: WooProduct[], sort: SortKey): WooProduct[] {
+  switch (sort) {
+    case "price-asc":
+      return [...list].sort((a, b) => getPrice(a) - getPrice(b));
+    case "price-desc":
+      return [...list].sort((a, b) => getPrice(b) - getPrice(a));
+    case "name-asc":
+      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+    default:
+      return list;
+  }
+}
+
+/** Keep already-rendered cards in place; only add newly loaded products at the end. */
+function useAppendOnlyProducts(incoming: WooProduct[], sort: SortKey, resetKey: string): WooProduct[] {
+  const [ordered, setOrdered] = useState<WooProduct[]>(incoming);
+  const seenRef = useRef<Set<string>>(new Set());
+  const resetRef = useRef(resetKey);
+  const sortRef = useRef(sort);
+  const bootRef = useRef(true);
+
+  useEffect(() => {
+    const reset = bootRef.current || resetRef.current !== resetKey || sortRef.current !== sort;
+    bootRef.current = false;
+    if (reset) {
+      resetRef.current = resetKey;
+      sortRef.current = sort;
+      const next = sortProducts(incoming, sort);
+      seenRef.current = new Set(next.map(productKey));
+      setOrdered(next);
+      return;
+    }
+
+    const incomingKeys = new Set(incoming.map(productKey));
+    const additions: WooProduct[] = [];
+    for (const p of incoming) {
+      const key = productKey(p);
+      if (seenRef.current.has(key)) continue;
+      seenRef.current.add(key);
+      additions.push(p);
+    }
+    let dropped = false;
+    for (const key of [...seenRef.current]) {
+      if (incomingKeys.has(key)) continue;
+      seenRef.current.delete(key);
+      dropped = true;
+    }
+    if (!dropped && additions.length === 0) return;
+    setOrdered((prev) => {
+      const kept = dropped ? prev.filter((p) => incomingKeys.has(productKey(p))) : prev;
+      return additions.length ? [...kept, ...additions] : kept;
+    });
+  }, [incoming, sort, resetKey]);
+
+  return ordered;
 }
 
 function catalogBrandRoute(slug: string): string {
@@ -288,8 +347,6 @@ function Sidebar({
   );
 }
 
-type SortKey = "newest" | "price-asc" | "price-desc" | "name-asc";
-
 function Opt({ value, text }: { value: string; text: string }) {
   const label = useTranslatedText(text);
   return <option value={value}>{label}</option>;
@@ -335,7 +392,7 @@ export default function BrandPage() {
   const { user } = useAuth();
   const audience = pricingAudience(user);
   const woo = hasWooCommerceConfig();
-  const { products, loading, syncingMore } = useProductCatalog();
+  const { products, loading } = useProductCatalog();
 
   const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [sort, setSort] = useState<SortKey>("newest");
@@ -383,7 +440,9 @@ export default function BrandPage() {
     )
       .then((lists) => {
         if (!alive) return;
-        setRemoteBrand(filterProductsByBrandKeyword(mergeProducts(...lists), brandSlug || brandLabel));
+        setRemoteBrand((prev) =>
+          filterProductsByBrandKeyword(mergeProducts(prev, ...lists), brandSlug || brandLabel),
+        );
       })
       .finally(() => {
         if (alive) setBrandLoading(false);
@@ -456,7 +515,7 @@ export default function BrandPage() {
   );
 
   const brandProducts = useMemo(() => {
-    const merged = mergeProducts(catalogBrandProducts, remoteBrand, remoteModel ?? []);
+    const merged = mergeProducts(remoteBrand, remoteModel ?? [], catalogBrandProducts);
     return filterCatalogForCustomer(merged, user);
   }, [catalogBrandProducts, remoteBrand, remoteModel, user]);
 
@@ -492,30 +551,27 @@ export default function BrandPage() {
     if (filters.maxPrice != null)
       list = list.filter((p) => getPrice(p) <= (filters.maxPrice ?? Infinity));
 
-    switch (sort) {
-      case "price-asc":
-        list = [...list].sort((a, b) => getPrice(a) - getPrice(b));
-        break;
-      case "price-desc":
-        list = [...list].sort((a, b) => getPrice(b) - getPrice(a));
-        break;
-      case "name-asc":
-        list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      default:
-        break;
-    }
-
     return list;
-  }, [brandProducts, activeFamily, selectedModel, filters, sort, routeBrand]);
+  }, [brandProducts, activeFamily, selectedModel, filters, routeBrand]);
+
+  const displayResetKey = [
+    brandSlug,
+    filters.family ?? "",
+    filters.model ?? "",
+    String(filters.inStock),
+    String(filters.onSale),
+    String(filters.minPrice ?? ""),
+    String(filters.maxPrice ?? ""),
+  ].join("|");
+  const displayProducts = useAppendOnlyProducts(filteredProducts, sort, displayResetKey);
 
   const { parts: modelParts, accessories: modelAccessories } = useMemo(
-    () => (selectedModel ? splitModelCatalog(filteredProducts) : { parts: [], accessories: [] }),
-    [filteredProducts, selectedModel],
+    () => (selectedModel ? splitModelCatalog(displayProducts) : { parts: [], accessories: [] }),
+    [displayProducts, selectedModel],
   );
 
   const waiting =
-    filteredProducts.length === 0 &&
+    displayProducts.length === 0 &&
     (selectedModel ? modelLoading || brandLoading || loading : brandLoading || loading);
 
   return (
@@ -532,7 +588,7 @@ export default function BrandPage() {
           </aside>
 
           <div className="min-w-0 flex-1">
-        <SortBar sort={sort} onSort={setSort} total={filteredProducts.length} />
+        <SortBar sort={sort} onSort={setSort} total={displayProducts.length} />
 
         {waiting ? (
           <CatalogLoading className="rounded-xl border border-black/[0.06] bg-white shadow-sm" />
@@ -540,7 +596,7 @@ export default function BrandPage() {
           <p className="py-16 text-center text-muted-foreground">
             <TranslatedText text="No store connected yet." />
           </p>
-        ) : filteredProducts.length === 0 ? (
+        ) : displayProducts.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-muted-foreground"><TranslatedText text="No products match your filters." /></p>
             <button
@@ -575,7 +631,7 @@ export default function BrandPage() {
                     className="catalog-product-grid"
                   >
                     {modelParts.map((p) => (
-                      <motion.div key={productKey(p)} variants={itemVariants}>
+                      <motion.div key={productKey(p)} variants={itemVariants} layout={false}>
                         <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                       </motion.div>
                     ))}
@@ -611,7 +667,7 @@ export default function BrandPage() {
                     className="catalog-product-grid"
                   >
                     {modelAccessories.map((p) => (
-                      <motion.div key={productKey(p)} variants={itemVariants}>
+                      <motion.div key={productKey(p)} variants={itemVariants} layout={false}>
                         <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                       </motion.div>
                     ))}
@@ -628,8 +684,8 @@ export default function BrandPage() {
               animate="visible"
               className="catalog-product-grid"
             >
-              {filteredProducts.map((p) => (
-                <motion.div key={productKey(p)} variants={itemVariants}>
+              {displayProducts.map((p) => (
+                <motion.div key={productKey(p)} variants={itemVariants} layout={false}>
                   <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 </motion.div>
               ))}
