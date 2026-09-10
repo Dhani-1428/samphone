@@ -27,7 +27,8 @@ export default function ColorSwatches({
   direction?: "row" | "col";
 }) {
   if (swatches.length === 0) return null;
-  const shown = swatches.slice(0, max);
+  const cap = max == null || max <= 0 ? swatches.length : max;
+  const shown = swatches.slice(0, cap);
   const extra = swatches.length - shown.length;
   const dim = size === "md" ? "h-6 w-6" : "h-4 w-4";
   const vertical = direction === "col";
@@ -37,7 +38,7 @@ export default function ColorSwatches({
       className={cn(
         "flex items-center",
         vertical
-          ? "w-auto flex-col gap-1.5 py-0"
+          ? "max-h-full w-auto flex-col gap-1 overflow-y-auto py-0"
           : "min-h-7 w-full flex-wrap gap-2.5 py-0.5",
       )}
       role="list"

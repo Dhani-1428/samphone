@@ -96,7 +96,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         {hasVariants ? (
           <div
-            className="absolute left-1 top-2 z-30 flex flex-col"
+            className="absolute bottom-2 left-1 top-2 z-30 flex"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
@@ -109,7 +109,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               }}
               size="sm"
               direction="col"
-              max={6}
+              max={0}
             />
           </div>
         ) : null}
