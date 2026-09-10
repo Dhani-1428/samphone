@@ -101,7 +101,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           href={productHref}
           className={cn(
             "absolute inset-0 z-10 block overflow-hidden bg-white",
-            hasVariants ? "pb-2 pl-7 pr-2 pt-2" : "p-1.5",
+            hasVariants && "pb-2 pl-7 pr-2 pt-2",
           )}
         >
           <CatalogImage
@@ -109,7 +109,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
+              "h-full w-full object-center transition-[filter,transform,opacity] duration-200",
+              hasVariants ? "object-contain" : "object-cover",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="eager"
