@@ -33,9 +33,12 @@ export default function SiteLockGate({ children }: { children: ReactNode }) {
     setError(true);
   };
 
-  if (unlocked) return <>{children}</>;
-
   return (
+    <>
+      <div className={unlocked ? undefined : "hidden"} aria-hidden={!unlocked}>
+        {children}
+      </div>
+      {unlocked ? null : (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-white">
       <form
         onSubmit={submit}
@@ -75,5 +78,7 @@ export default function SiteLockGate({ children }: { children: ReactNode }) {
         </button>
       </form>
     </div>
+      )}
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -54,6 +55,7 @@ import FaqPage from "@/pages/FaqPage";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import SiteLockGate from "@/components/SiteLockGate";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -276,14 +278,21 @@ function AppShell({ clerk }: { clerk: boolean }) {
 
 function App() {
   const clerk = isClerkEnabled();
-  const shell = !clerk ? (
-    <AppShell clerk={false} />
+  const withoutClerk = <AppShell clerk={false} />;
+  const tree = clerk ? (
+    <Suspense fallback={withoutClerk}>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
+        <AppShell clerk />
+      </ClerkProvider>
+    </Suspense>
   ) : (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <AppShell clerk />
-    </ClerkProvider>
+    withoutClerk
   );
-  return <SiteLockGate>{shell}</SiteLockGate>;
+  return (
+    <SiteLockGate>
+      <AppErrorBoundary fallback={withoutClerk}>{tree}</AppErrorBoundary>
+    </SiteLockGate>
+  );
 }
 
 export default App;
