@@ -104,9 +104,10 @@ export function normalizeCatalogImageUrl(src: string | null | undefined): string
   try {
     const u = new URL(raw, "https://www.samphone.pt");
     if (u.hostname === "samphone.pt") u.hostname = "www.samphone.pt";
-    return u.toString();
+    return preferOriginalUpload(u.toString());
   } catch {
-    return raw.startsWith("http") ? raw : null;
+    const cleaned = preferOriginalUpload(raw);
+    return cleaned.startsWith("http") ? cleaned : null;
   }
 }
 

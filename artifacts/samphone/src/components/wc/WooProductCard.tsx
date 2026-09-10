@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import {
   AlertCircle,
   Heart,
@@ -8,7 +8,6 @@ import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
 import { getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { seesWholesalePrices } from "@/lib/customer-price";
@@ -31,101 +30,8 @@ interface WooProductCardProps {
   compact?: boolean;
 }
 
-const coverScaleCache = new Map<string, number>();
-const COVER_FALLBACK_SCALE = 1.72;
-
-function isLightPixel(r: number, g: number, b: number, a: number): boolean {
-  if (a < 16) return true;
-  return r > 238 && g > 238 && b > 238;
-}
-
-function subjectBox(img: HTMLImageElement): { w: number; h: number } | null {
-  const nw = img.naturalWidth;
-  const nh = img.naturalHeight;
-  if (nw < 8 || nh < 8) return null;
-  const max = 140;
-  const s = Math.min(1, max / Math.max(nw, nh));
-  const cw = Math.max(1, Math.round(nw * s));
-  const ch = Math.max(1, Math.round(nh * s));
-  const canvas = document.createElement("canvas");
-  canvas.width = cw;
-  canvas.height = ch;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return null;
-  try {
-    ctx.drawImage(img, 0, 0, cw, ch);
-    const { data } = ctx.getImageData(0, 0, cw, ch);
-    let minX = cw;
-    let minY = ch;
-    let maxX = 0;
-    let maxY = 0;
-    for (let y = 0; y < ch; y += 1) {
-      for (let x = 0; x < cw; x += 1) {
-        const i = (y * cw + x) * 4;
-        if (isLightPixel(data[i], data[i + 1], data[i + 2], data[i + 3])) continue;
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-      }
-    }
-    if (maxX < minX) return null;
-    const inv = 1 / s;
-    return { w: (maxX - minX + 1) * inv, h: (maxY - minY + 1) * inv };
-  } catch {
-    return null;
-  }
-}
-
-function scaleFromBox(img: HTMLImageElement, box: HTMLElement, sub: { w: number; h: number }): number {
-  const bw = box.clientWidth;
-  const bh = box.clientHeight;
-  const nw = img.naturalWidth;
-  const nh = img.naturalHeight;
-  if (bw < 8 || bh < 8 || nw < 8 || nh < 8 || sub.w < 8 || sub.h < 8) return COVER_FALLBACK_SCALE;
-  const area = (sub.w * sub.h) / (nw * nh);
-  if (area < 0.06) return COVER_FALLBACK_SCALE;
-  if (area > 0.88) return 1.08;
-  const fitted = Math.min(bw / nw, bh / nh);
-  const dw = sub.w * fitted;
-  const dh = sub.h * fitted;
-  if (dw < 1 || dh < 1) return COVER_FALLBACK_SCALE;
-  return Math.min(Math.max((Math.min(bw / dw, bh / dh) * 0.9), 1.05), 2.05);
-}
-
-function loadImageForMeasure(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const im = new Image();
-    im.crossOrigin = "anonymous";
-    im.referrerPolicy = "no-referrer";
-    im.onload = () => resolve(im);
-    im.onerror = () => resolve(null);
-    im.src = src;
-  });
-}
-
-async function coverPhotoScale(displayed: HTMLImageElement, src: string): Promise<number> {
-  const cached = coverScaleCache.get(src);
-  if (cached) return cached;
-  const box = displayed.parentElement;
-  let scale = COVER_FALLBACK_SCALE;
-  const fromDisplayed = subjectBox(displayed);
-  if (box && fromDisplayed) {
-    scale = scaleFromBox(displayed, box, fromDisplayed);
-  } else {
-    const independent = await loadImageForMeasure(src);
-    const sub = independent ? subjectBox(independent) : null;
-    if (box && independent && sub) {
-      scale = scaleFromBox(displayed, box, sub);
-    }
-  }
-  coverScaleCache.set(src, scale);
-  return scale;
-}
-
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
-  const [coverScale, setCoverScale] = useState(1);
   const { user } = useAuth();
   const { t } = useLang();
   const [loc] = useLocation();
@@ -133,8 +39,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
-  const coverSub = classifyCatalogProduct(product).subcategory;
-  const isCover = coverSub === "back-cover" || coverSub === "case";
   const imageUrl = getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = wooCartKey(product.id);
@@ -146,11 +50,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const showLoginBuy = Boolean(!user && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
-
-  useEffect(() => {
-    setImgOk(true);
-    setCoverScale(isCover ? (imageUrl ? coverScaleCache.get(imageUrl) || COVER_FALLBACK_SCALE : 1) : 1);
-  }, [imageUrl, isCover]);
 
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
@@ -178,29 +77,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
 
-        <Link
-          href={productHref}
-          className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white",
-            isCover ? "px-1.5 pb-1.5 pt-2" : "p-2",
-          )}
-        >
+        <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden bg-white">
           <CatalogImage
             key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={product.images?.[0]?.alt || product.name}
-            className={cn(
-              "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
-              !inStock && "blur-[3px]",
-            )}
-            style={isCover ? { transform: `scale(${coverScale})` } : undefined}
+            className={cn("h-full w-full", !inStock && "blur-[3px]")}
             loading="eager"
             decoding="async"
-            onLoad={(e) => {
-              if (!isCover || !imageUrl) return;
-              const el = e.currentTarget;
-              void coverPhotoScale(el, imageUrl).then(setCoverScale).catch(() => setCoverScale(COVER_FALLBACK_SCALE));
-            }}
             onError={() => setImgOk(false)}
           />
         </Link>

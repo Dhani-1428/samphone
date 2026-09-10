@@ -65,12 +65,8 @@ export default function ProductCard({
         >
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
-        <Link href={productHref} className="absolute inset-0 z-10 block px-1.5">
-          <img
-            src={img}
-            alt={name}
-            className="h-full w-full object-contain object-center"
-          />
+        <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden bg-white">
+          <img src={img} alt={name} className="h-full w-full" />
         </Link>
       </div>
 
