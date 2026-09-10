@@ -32,26 +32,9 @@ interface WooProductCardProps {
   compact?: boolean;
 }
 
-function scaleToFillBox(img: HTMLImageElement, extra = 1): number {
-  const box = img.parentElement;
-  if (!box) return extra;
-  const bw = box.clientWidth;
-  const bh = box.clientHeight;
-  const nw = img.naturalWidth;
-  const nh = img.naturalHeight;
-  if (bw < 8 || bh < 8 || nw < 8 || nh < 8) return extra;
-  const fitted = Math.min(bw / nw, bh / nh);
-  const dw = nw * fitted;
-  const dh = nh * fitted;
-  if (dw < 1 || dh < 1) return extra;
-  const cover = Math.max(bw / dw, bh / dh) * 0.97;
-  return Math.min(Math.max(cover, 1) * extra, 2.2);
-}
-
 export default function WooProductCard({ product, priceUnavailableLabel, compact = false }: WooProductCardProps) {
   const [imgOk, setImgOk] = useState(true);
   const [colorIdx, setColorIdx] = useState(0);
-  const [imgScale, setImgScale] = useState(1);
   const { user } = useAuth();
   const { t } = useLang();
   const [loc] = useLocation();
@@ -62,7 +45,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
   const coverSub = classifyCatalogProduct(product).subcategory;
-  const coverBoost = coverSub === "back-cover" || coverSub === "case" ? 1.62 : 1;
+  const isCover = coverSub === "back-cover" || coverSub === "case";
   const swatchImages = mapSwatchImageUrls(swatches, product.images);
   const imageUrl = swatchImages[colorIdx] || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
@@ -78,8 +61,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
   useEffect(() => {
     setImgOk(true);
-    setImgScale(coverBoost);
-  }, [colorIdx, imageUrl, coverBoost]);
+  }, [colorIdx, imageUrl]);
 
   useEffect(() => {
     for (const src of swatchImages) {
@@ -98,13 +80,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "product-card group relative flex h-fit w-full flex-col self-start bg-white",
+        "product-card group relative flex h-full w-full flex-col bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
         compact && "product-card-square text-[12px]",
       )}
     >
-      <div className="product-card-media relative w-full bg-white">
+      <div className="product-card-media relative min-h-0 w-full flex-1 bg-white">
         <button
           type="button"
           onClick={toggleWish}
@@ -119,7 +101,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           href={productHref}
           className={cn(
             "absolute inset-0 z-10 block overflow-hidden bg-white",
-            hasVariants ? "pl-7 pr-1.5" : "px-1.5",
+            isCover
+              ? hasVariants
+                ? "pb-2 pl-7 pr-2 pt-3"
+                : "px-2 pb-2 pt-3"
+              : hasVariants
+                ? "px-2 py-2 pl-7"
+                : "p-2",
           )}
         >
           <CatalogImage
@@ -127,13 +115,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
+              "h-full w-full object-contain object-center transition-[filter,opacity] duration-200",
               !inStock && "blur-[3px]",
             )}
-            style={{ transform: `scale(${imgScale})` }}
             loading="eager"
             decoding="async"
-            onLoad={(e) => setImgScale(scaleToFillBox(e.currentTarget, coverBoost))}
             onError={() => setImgOk(false)}
           />
         </Link>
@@ -169,7 +155,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
       <div
         className={cn(
-          "relative z-20 flex h-auto shrink-0 flex-col gap-1.5 bg-white",
+          "relative z-20 flex shrink-0 flex-col gap-1 bg-white",
           compact ? "px-1.5 pb-2 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5",
         )}
       >
