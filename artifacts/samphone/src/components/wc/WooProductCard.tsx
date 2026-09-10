@@ -42,6 +42,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
+  const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
   const variantImage = swatches[colorIdx]?.image;
   const imageUrl = variantImage || getPrimaryImageUrl(product);
