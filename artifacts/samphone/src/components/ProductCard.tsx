@@ -50,7 +50,7 @@ export default function ProductCard({
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full flex-col bg-white",
+        "product-card group relative flex h-auto flex-col bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}

@@ -174,7 +174,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full w-full flex-col bg-white",
+        "product-card group relative flex h-auto w-full flex-col bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
         compact && "product-card-square text-[12px]",
@@ -218,7 +218,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             onLoad={(e) => {
               if (!isCover || !imageUrl) return;
               const el = e.currentTarget;
-              void coverPhotoScale(el, imageUrl).then(setCoverScale);
+              void coverPhotoScale(el, imageUrl).then(setCoverScale).catch(() => setCoverScale(COVER_FALLBACK_SCALE));
             }}
             onError={() => setImgOk(false)}
           />
