@@ -77,12 +77,12 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
 
-        <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden bg-white">
+        <Link href={productHref} className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden bg-white">
           <CatalogImage
             key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={product.images?.[0]?.alt || product.name}
-            className={cn("h-full w-full", !inStock && "blur-[3px]")}
+            className={cn("max-h-full max-w-full object-contain object-center", !inStock && "blur-[3px]")}
             loading="eager"
             decoding="async"
             onError={() => setImgOk(false)}
