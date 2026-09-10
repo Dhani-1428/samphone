@@ -98,6 +98,7 @@ export default function ProductImageGallery({
             {main ? (
               <Lens hovering={hovering} setHovering={setHovering} zoomFactor={1.85} lensSize={200}>
                 <CatalogImage
+                  key={main}
                   src={main}
                   alt={productName}
                   className={cn(

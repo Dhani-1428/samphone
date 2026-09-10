@@ -611,7 +611,7 @@ class WooCommerceAPI:
         if not images:
             images = [_normalize_image_url(_default_product_image())]
 
-        color_variants = extract_color_variants(row)
+        color_variants = extract_color_variants(row, row.get("variations") or None)
         variant_labels = [v["label"] for v in color_variants]
 
         stock_quantity, in_stock = self._product_stock(row)

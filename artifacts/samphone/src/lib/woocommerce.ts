@@ -63,31 +63,77 @@ function colorToken(label: string): string {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
-/** Pick a gallery photo for a swatch: explicit image, name match, then same-index gallery shot. */
+function gallerySrcs(images: WooProduct["images"] | undefined): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const img of images ?? []) {
+    const src = normalizeCatalogImageUrl(img.src) || img.src;
+    if (!src || seen.has(src)) continue;
+    seen.add(src);
+    out.push(src);
+  }
+  return out;
+}
+
+/** One URL per swatch. Ignores a shared fallback so picking a color can actually change the photo. */
+export function mapSwatchImageUrls(
+  swatches: ProductColorSwatch[] | undefined,
+  images: WooProduct["images"] | undefined,
+): string[] {
+  const list = swatches ?? [];
+  const gallery = gallerySrcs(images);
+  const n = list.length;
+  if (n === 0) return gallery.slice(0, 1);
+
+  const explicit = list.map((s) => (normalizeCatalogImageUrl(s.image) || s.image || "").trim());
+  const distinctExplicit = [...new Set(explicit.filter(Boolean))];
+  const useExplicit = distinctExplicit.length > 1;
+
+  const out: string[] = Array.from({ length: n }, () => "");
+  if (useExplicit) {
+    for (let i = 0; i < n; i += 1) {
+      if (explicit[i]) out[i] = explicit[i];
+    }
+  }
+
+  for (let i = 0; i < n; i += 1) {
+    if (out[i]) continue;
+    const needle = colorToken(list[i].label);
+    if (needle.length < 3) continue;
+    const named = (images ?? []).find((img) => {
+      const blob = colorToken(`${img.src} ${img.alt ?? ""} ${img.name ?? ""}`);
+      return blob.includes(needle);
+    });
+    const namedSrc = named ? normalizeCatalogImageUrl(named.src) || named.src : "";
+    if (namedSrc) out[i] = namedSrc;
+  }
+
+  for (let i = 0; i < n; i += 1) {
+    if (!out[i] && gallery[i]) out[i] = gallery[i];
+  }
+
+  const used = new Set(out.filter(Boolean));
+  const leftover = gallery.filter((g) => !used.has(g));
+  let li = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (out[i]) continue;
+    if (li < leftover.length) {
+      out[i] = leftover[li];
+      li += 1;
+    }
+  }
+
+  const fallback = gallery[0] || distinctExplicit[0] || "";
+  return out.map((u) => u || fallback);
+}
+
 export function resolveSwatchImage(
   swatches: ProductColorSwatch[] | undefined,
   images: WooProduct["images"] | undefined,
   index: number,
 ): string | null {
-  const list = swatches ?? [];
-  const gallery = (images ?? [])
-    .map((img) => normalizeCatalogImageUrl(img.src) || img.src)
-    .filter((src): src is string => Boolean(src));
-  const swatch = list[index];
-  if (!swatch) return gallery[0] ?? null;
-  const explicit = normalizeCatalogImageUrl(swatch.image) || swatch.image;
-  if (explicit) return explicit;
-  const needle = colorToken(swatch.label);
-  if (needle.length >= 3) {
-    const named = (images ?? []).find((img) => {
-      const blob = colorToken(`${img.src} ${img.alt ?? ""} ${img.name ?? ""}`);
-      return blob.includes(needle);
-    });
-    const namedSrc = named ? normalizeCatalogImageUrl(named.src) || named.src : null;
-    if (namedSrc) return namedSrc;
-  }
-  if (gallery[index]) return gallery[index];
-  return gallery[0] ?? null;
+  const mapped = mapSwatchImageUrls(swatches, images);
+  return mapped[index] || mapped[0] || null;
 }
 
 export function fillColorSwatchImages(
@@ -95,9 +141,10 @@ export function fillColorSwatchImages(
   images: WooProduct["images"] | undefined,
 ): ProductColorSwatch[] {
   const list = swatches ?? [];
+  const mapped = mapSwatchImageUrls(list, images);
   return list.map((s, i) => ({
     ...s,
-    image: resolveSwatchImage(list, images, i),
+    image: mapped[i] || s.image,
   }));
 }
 

@@ -1463,6 +1463,7 @@ class ProductRepository:
                     if key == "_thumbnail_id" and val.isdigit():
                         thumb_ids.append(int(val))
 
+                attached_file: dict[int, str] = {}
                 if thumb_ids:
                     tph = ",".join(["%s"] * len(thumb_ids))
                     cur.execute(
@@ -1471,7 +1472,18 @@ class ProductRepository:
                     )
                     for t in cur.fetchall():
                         thumb_guid[int(t["ID"])] = (t.get("guid") or "").strip()
+                    cur.execute(
+                        f"""
+                        SELECT post_id, meta_value
+                        FROM `{self._t('postmeta')}`
+                        WHERE post_id IN ({tph}) AND meta_key='_wp_attached_file'
+                        """,
+                        thumb_ids,
+                    )
+                    for t in cur.fetchall():
+                        attached_file[int(t["post_id"])] = (t.get("meta_value") or "").strip()
 
+                uploads = f"{self.site_url().rstrip('/')}/wp-content/uploads/"
                 for vid, meta in meta_by_var.items():
                     parent = parent_of.get(vid)
                     if parent is None:
@@ -1485,9 +1497,17 @@ class ProductRepository:
                     thumb = meta.get("_thumbnail_id") or ""
                     image = None
                     if thumb.isdigit():
-                        guid = thumb_guid.get(int(thumb))
-                        if guid:
-                            image = {"src": guid}
+                        tid = int(thumb)
+                        file_path = attached_file.get(tid) or ""
+                        src = ""
+                        if file_path.startswith("http"):
+                            src = file_path
+                        elif file_path:
+                            src = uploads + file_path.lstrip("/")
+                        elif thumb_guid.get(tid) and "wp-content/uploads" in thumb_guid[tid]:
+                            src = thumb_guid[tid]
+                        if src:
+                            image = {"src": src}
                     variations_by_parent.setdefault(parent, []).append(
                         {
                             "id": vid,

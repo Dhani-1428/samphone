@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getPrimaryImageUrl, resolveSwatchImage, wooCartKey, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, mapSwatchImageUrls, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
@@ -43,8 +43,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
-  const variantImage = resolveSwatchImage(swatches, product.images, colorIdx);
-  const imageUrl = variantImage || getPrimaryImageUrl(product);
+  const swatchImages = mapSwatchImageUrls(swatches, product.images);
+  const imageUrl = swatchImages[colorIdx] || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
   const wishKey = `woo:${product.id}`;
@@ -59,6 +59,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   useEffect(() => {
     setImgOk(true);
   }, [colorIdx, imageUrl]);
+
+  useEffect(() => {
+    for (const src of swatchImages) {
+      if (!src) continue;
+      const pre = new Image();
+      pre.src = src;
+    }
+  }, [swatchImages.join("|")]);
 
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
@@ -87,7 +95,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         </button>
 
         {hasVariants ? (
-          <div className="absolute left-1.5 top-2 z-20 rounded-full bg-white/85 px-1 py-1.5 shadow-sm backdrop-blur-[2px]">
+          <div
+            className="absolute left-1.5 top-2 z-30 rounded-full bg-white/85 px-1 py-1.5 shadow-sm backdrop-blur-[2px]"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <ColorSwatches
               swatches={swatches}
               selected={colorIdx}
@@ -111,7 +123,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               "h-full w-full object-cover object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
             onError={() => setImgOk(false)}
           />
         </Link>

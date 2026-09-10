@@ -9,7 +9,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { fetchProductById, fetchRelatedProducts, resolveSwatchImage, wooCartKey, type WooProduct } from "@/lib/woocommerce";
+import { fetchProductById, fetchRelatedProducts, mapSwatchImageUrls, resolveSwatchImage, wooCartKey, type WooProduct } from "@/lib/woocommerce";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
@@ -240,12 +240,10 @@ function WooProductView({
   const { displayFormatted } = useCustomerProductPrice(wooProduct);
   const swatches = wooProduct.colorSwatches ?? [];
   const preferredSrc = resolveSwatchImage(swatches, wooProduct.images, colorIdx);
-  const gallery = (wooProduct.images ?? [])
-    .map((img) => img.src)
-    .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src));
-  if (preferredSrc && !gallery.includes(preferredSrc) && !/woocommerce-placeholder/i.test(preferredSrc)) {
-    gallery.unshift(preferredSrc);
-  }
+  const gallery = [
+    ...mapSwatchImageUrls(swatches, wooProduct.images),
+    ...(wooProduct.images ?? []).map((img) => img.src),
+  ].filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
   const catalogPrice = displayFormatted;
   const compareAt = catalogCompareAtPrice(wooProduct, user);
   const inStock = wooProduct.stock_status !== "outofstock";

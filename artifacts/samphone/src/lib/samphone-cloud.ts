@@ -327,15 +327,20 @@ function parseColorSwatches(raw: unknown): WooProduct["colorSwatches"] {
     const label = (o.label || o.name || o.title || o.color || "").trim();
     if (!label) continue;
     const key = label.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
     const hex = /^#?[0-9a-f]{3,8}$/i.test(o.color || "")
       ? o.color!.startsWith("#")
         ? o.color!
         : `#${o.color}`
       : hexFromLabel(label);
-    const image = normalizeCatalogImageUrl(o.image || o.src || o.url || o.img) || null;
-    out.push({ label, hex, image });
+    const image = normalizeCatalogImageUrl(o.image || o.src || o.url || o.img) || o.image || o.src || o.url || o.img || null;
+    const normalizedImage = typeof image === "string" && image.trim() ? (normalizeCatalogImageUrl(image) || image) : null;
+    const existing = out.find((s) => s.label.toLowerCase() === key);
+    if (existing) {
+      if (!existing.image && normalizedImage) existing.image = normalizedImage;
+      continue;
+    }
+    seen.add(key);
+    out.push({ label, hex, image: normalizedImage });
   }
   return out.length ? out : undefined;
 }

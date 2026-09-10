@@ -364,7 +364,10 @@ class CatalogService:
         from product_variants import extract_color_variants
 
         color_variants = extract_color_variants(
-            {"attributes": row.get("attributes") or []},
+            {
+                "attributes": row.get("attributes") or [],
+                "images": [{"src": u} for u in images],
+            },
             row.get("variations") or None,
         )
         variant_labels = [v["label"] for v in color_variants]

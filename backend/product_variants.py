@@ -136,59 +136,64 @@ def attributes_from_pa_terms(terms: list[dict[str, Any]]) -> list[dict[str, Any]
     return list(by_tax.values())
 
 
+def _variant_image_url(raw: Any) -> str:
+    u = ""
+    if isinstance(raw, str):
+        u = raw.strip()
+    elif isinstance(raw, dict):
+        u = str(raw.get("src") or raw.get("url") or "").strip()
+    if not u:
+        return ""
+    if u.startswith("//"):
+        u = "https:" + u
+    u = re.sub(r"^http://", "https://", u, flags=re.I)
+    u = re.sub(r"^https://samphone\.pt/", "https://www.samphone.pt/", u, flags=re.I)
+    return u
+
+
 def extract_color_variants(row: dict[str, Any], variations: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     by_label: dict[str, dict[str, Any]] = {}
+
+    def upsert(label: str) -> dict[str, Any]:
+        text = _normalize_label(label)
+        key = re.sub(r"[^a-z0-9]+", "", text.lower())
+        if not key:
+            return {}
+        prev = by_label.get(key)
+        if prev:
+            return prev
+        entry = {"label": text, "color": color_hex_for_label(text)}
+        by_label[key] = entry
+        return entry
 
     for attr in row.get("attributes") or []:
         if not _is_color_attribute(str(attr.get("name") or ""), str(attr.get("slug") or "")):
             continue
         for opt in attr.get("options") or []:
-            label = _normalize_label(str(opt))
-            if not label:
-                continue
-            by_label.setdefault(
-                label,
-                {"label": label, "color": color_hex_for_label(label)},
-            )
+            upsert(str(opt))
 
     if variations:
         for var in variations:
             for attr in var.get("attributes") or []:
-                if not _is_color_attribute(str(attr.get("name") or "")):
+                if not _is_color_attribute(str(attr.get("name") or ""), str(attr.get("slug") or "")):
                     continue
-                label = _normalize_label(str(attr.get("option") or ""))
-                if not label:
+                entry = upsert(str(attr.get("option") or ""))
+                if not entry:
                     continue
-                entry = by_label.setdefault(
-                    label,
-                    {"label": label, "color": color_hex_for_label(label)},
-                )
-                img = (var.get("image") or {}).get("src")
+                img = _variant_image_url(var.get("image"))
                 if img:
-                    u = str(img).strip()
-                    if u.startswith("//"):
-                        u = "https:" + u
-                    u = re.sub(r"^http://", "https://", u, flags=re.I)
-                    u = re.sub(r"^https://samphone\.pt/", "https://www.samphone.pt/", u, flags=re.I)
-                    entry["image"] = u
+                    entry["image"] = img
                 if var.get("id"):
-                    entry["wc_variation_id"] = int(var["id"])
+                    try:
+                        entry["wc_variation_id"] = int(var["id"])
+                    except (TypeError, ValueError):
+                        pass
                 entry["in_stock"] = str(var.get("stock_status") or "").lower() == "instock"
 
     gallery: list[str] = []
     for img in row.get("images") or []:
-        src = ""
-        if isinstance(img, str):
-            src = img.strip()
-        elif isinstance(img, dict):
-            src = str(img.get("src") or img.get("url") or "").strip()
-        if not src:
-            continue
-        if src.startswith("//"):
-            src = "https:" + src
-        src = re.sub(r"^http://", "https://", src, flags=re.I)
-        src = re.sub(r"^https://samphone\.pt/", "https://www.samphone.pt/", src, flags=re.I)
-        if src not in gallery:
+        src = _variant_image_url(img)
+        if src and src not in gallery:
             gallery.append(src)
     if gallery:
         for i, entry in enumerate(by_label.values()):
@@ -196,10 +201,17 @@ def extract_color_variants(row: dict[str, Any], variations: list[dict[str, Any]]
                 continue
             label_key = re.sub(r"[^a-z0-9]+", "", entry["label"].lower())
             named = next(
-                (u for u in gallery if label_key and label_key in re.sub(r"[^a-z0-9]+", "", u.lower())),
+                (
+                    u
+                    for u in gallery
+                    if label_key and len(label_key) >= 3 and label_key in re.sub(r"[^a-z0-9]+", "", u.lower())
+                ),
                 None,
             )
-            entry["image"] = named or (gallery[i] if i < len(gallery) else gallery[0])
+            if named:
+                entry["image"] = named
+            elif i < len(gallery):
+                entry["image"] = gallery[i]
 
     return list(by_label.values())
 
