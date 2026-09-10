@@ -60,7 +60,11 @@ export default function ColorSwatches({
             className={cn(
               "shrink-0 rounded-full border shadow-sm",
               dim,
-              active ? "ring-2 ring-sam ring-offset-2 ring-offset-white" : "border-black/15",
+              active
+                ? vertical
+                  ? "ring-1 ring-sam ring-offset-1 ring-offset-white"
+                  : "ring-2 ring-sam ring-offset-2 ring-offset-white"
+                : "border-black/15",
               isLight(s.hex) ? "border-black/25" : "border-black/20",
             )}
             style={{ backgroundColor: s.hex }}
