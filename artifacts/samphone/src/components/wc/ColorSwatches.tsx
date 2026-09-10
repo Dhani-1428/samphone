@@ -17,20 +17,31 @@ export default function ColorSwatches({
   onSelect,
   max = 8,
   size = "sm",
+  direction = "row",
 }: {
   swatches: ProductColorSwatch[];
   selected?: number;
   onSelect?: (index: number) => void;
   max?: number;
   size?: "sm" | "md";
+  direction?: "row" | "col";
 }) {
   if (swatches.length === 0) return null;
   const shown = swatches.slice(0, max);
   const extra = swatches.length - shown.length;
-  const dim = size === "md" ? "h-6 w-6" : "h-5 w-5";
+  const dim = size === "md" ? "h-6 w-6" : "h-4 w-4";
+  const vertical = direction === "col";
 
   return (
-    <div className="flex min-h-7 w-full flex-wrap items-center gap-2.5 py-0.5" role="list">
+    <div
+      className={cn(
+        "flex items-center",
+        vertical
+          ? "w-auto flex-col gap-1.5 py-0"
+          : "min-h-7 w-full flex-wrap gap-2.5 py-0.5",
+      )}
+      role="list"
+    >
       {shown.map((s, i) => {
         const active = i === selected;
         return (

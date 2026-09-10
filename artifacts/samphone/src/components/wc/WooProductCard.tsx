@@ -88,10 +88,26 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         </button>
 
         {product.dealerOnly ? (
-          <span className="absolute left-2 top-2 z-20 inline-flex items-center gap-1 bg-white/95 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-normal text-brand shadow-sm">
+          <span className="absolute right-2 top-11 z-20 inline-flex items-center gap-1 bg-white/95 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-normal text-brand shadow-sm">
             <Store className="h-3 w-3" strokeWidth={2.2} />
             {t("dealer_only")}
           </span>
+        ) : null}
+
+        {hasVariants ? (
+          <div className="absolute left-1.5 top-2 z-20 rounded-full bg-white/85 px-1 py-1.5 shadow-sm backdrop-blur-[2px]">
+            <ColorSwatches
+              swatches={swatches}
+              selected={colorIdx}
+              onSelect={(i) => {
+                setColorIdx(i);
+                setImgOk(true);
+              }}
+              size="sm"
+              direction="col"
+              max={6}
+            />
+          </div>
         ) : null}
 
         <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden">
@@ -149,18 +165,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             <NotifyMeButton productId={String(product.cloudId || product.id)} />
           )}
         </div>
-
-        {hasVariants ? (
-          <ColorSwatches
-            swatches={swatches}
-            selected={colorIdx}
-            onSelect={(i) => {
-              setColorIdx(i);
-              setImgOk(true);
-            }}
-            size="sm"
-          />
-        ) : null}
 
         <ProductCardWriting href={productHref} title={title} />
       </div>
