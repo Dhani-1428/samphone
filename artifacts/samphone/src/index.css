@@ -289,6 +289,12 @@
   aspect-ratio: 3 / 5;
 }
 
+/* No color dots: drop the reserved swatch band so price sits under the photo. */
+.product-card.product-card-no-variants {
+  aspect-ratio: 3 / 4.5;
+  height: auto;
+}
+
 .catalog-product-grid {
   display: grid;
   list-style: none;
@@ -296,18 +302,18 @@
   gap: 0.5rem;
   padding: 0;
   margin: 0;
-  align-items: stretch;
+  align-items: start;
 }
 
 .catalog-product-grid > * {
   min-width: 0;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
 }
 
 .catalog-product-grid .product-card {
-  height: 100%;
+  height: auto;
 }
 
 @media (min-width: 640px) {

@@ -42,7 +42,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const { displayFormatted, hasCustomPrice, catalogCents } = useCustomerProductPrice(product);
   const showPrice = catalogCents > 0 || hasCustomPrice;
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
-  const swatches = product.colorSwatches ?? [];
+  const hasVariants = swatches.length > 0;
   const variantImage = swatches[colorIdx]?.image;
   const imageUrl = variantImage || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
@@ -65,10 +65,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "product-card group relative flex h-full w-full flex-col overflow-hidden bg-white",
+        "product-card group relative flex w-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
         compact && "product-card-square text-[12px]",
+        hasVariants ? "h-full" : "product-card-no-variants h-auto self-start",
       )}
     >
       <div className="relative min-h-0 w-full flex-1 bg-[#F7F8FA]">
@@ -110,20 +111,24 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         ) : null}
       </div>
 
-      <div className={cn("relative z-20 flex shrink-0 flex-col gap-1 bg-white", compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5")}>
-        <div className="min-h-7 shrink-0">
-          {swatches.length > 0 ? (
-            <ColorSwatches
-              swatches={swatches}
-              selected={colorIdx}
-              onSelect={(i) => {
-                setColorIdx(i);
-                setImgOk(true);
-              }}
-              size="sm"
-            />
-          ) : null}
-        </div>
+      <div
+        className={cn(
+          "relative z-20 flex shrink-0 flex-col bg-white",
+          compact ? "px-1.5 pb-1.5" : "px-2 pb-2 sm:px-2.5 sm:pb-2.5",
+          hasVariants ? "gap-1 pt-1.5" : "gap-0.5 pt-1",
+        )}
+      >
+        {hasVariants ? (
+          <ColorSwatches
+            swatches={swatches}
+            selected={colorIdx}
+            onSelect={(i) => {
+              setColorIdx(i);
+              setImgOk(true);
+            }}
+            size="sm"
+          />
+        ) : null}
 
         <div className="flex h-9 shrink-0 items-center justify-between gap-1 overflow-hidden">
           {showPrice && priceLabel ? (
