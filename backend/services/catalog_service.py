@@ -107,6 +107,23 @@ def _parse_int(value: Any, default: int = 0) -> int:
         return default
 
 
+def _iso_dt(value: Any) -> str | None:
+    if value is None or value == "":
+        return None
+    try:
+        from datetime import datetime, timezone
+
+        if isinstance(value, datetime):
+            dt = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+            return dt.isoformat()
+        raw = str(value).strip()
+        if not raw or raw.startswith("0000"):
+            return None
+        return raw
+    except Exception:
+        return None
+
+
 def _is_new_arrival(created_at: Any, *, days: int = 365) -> bool:
     """True when the product is recent. Missing dates stay eligible so just-added items are not dropped."""
     if created_at is None or created_at == "":
@@ -417,7 +434,7 @@ class CatalogService:
             "best_seller": _parse_int(row.get("total_sales")) >= 5,
             # Recent catalog items — used by home New Arrivals + filters.
             "new_arrival": _is_new_arrival(row.get("updated_at") or row.get("created_at")),
-            "created_at": row.get("created_at"),
+            "created_at": _iso_dt(row.get("created_at") or row.get("updated_at")),
             "rating": round(_parse_float(row.get("wc_average_rating")), 1),
             "reviews": _parse_int(row.get("wc_review_count")),
             "description": description,
@@ -977,20 +994,14 @@ class CatalogService:
         return self.filter_products(best_seller=True, limit=limit, offset=0, user=user, sort="sales_desc")
 
     def new_arrivals(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
+        """Newest published products by Woo ID — not a calendar/new_arrival flag."""
         cap = max(1, int(limit or 50))
-        flagged = self.filter_products(new_arrival=True, limit=cap, offset=0, user=user, sort="date_desc")
         newest = self.filter_products(limit=cap, offset=0, user=user, sort="date_desc")
-        items: list[dict] = []
-        seen: set[Any] = set()
-        for p in list(newest.get("items") or []) + list(flagged.get("items") or []):
-            wid = p.get("wc_id")
-            if wid in seen:
-                continue
-            seen.add(wid)
-            items.append(p)
-        items.sort(key=lambda p: int(p.get("wc_id") or 0), reverse=True)
-        flagged["items"] = items[:cap]
-        return flagged
+        items = list(newest.get("items") or [])
+        for p in items:
+            p["new_arrival"] = True
+        newest["items"] = items
+        return newest
 
     def home_rails(
         self,
@@ -1024,7 +1035,7 @@ class CatalogService:
         }
         if part_key in {"all", "priority"}:
             payload["best"] = _items(best_seller=True, sort="sales_desc")
-            payload["fresh"] = _items(new_arrival=True, sort="date_desc")
+            payload["fresh"] = _items(sort="date_desc")
         if part_key in {"all", "sections"}:
             sections: list[dict[str, Any]] = []
             for key, title, group, query in HOME_RAIL_SECTIONS:

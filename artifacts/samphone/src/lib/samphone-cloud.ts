@@ -122,7 +122,7 @@ function cloudRequestUrls(path: string): string[] {
   return [primary, absolute];
 }
 
-const CLOUD_FETCH_TIMEOUT_MS = 12_000;
+const CLOUD_FETCH_TIMEOUT_MS = 20_000;
 
 async function fetchWithTimeout(url: string, init: RequestInit, ms = CLOUD_FETCH_TIMEOUT_MS): Promise<Response> {
   const ctrl = new AbortController();
@@ -254,6 +254,19 @@ function parsePositiveInt(v: unknown): number {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+function isoDate(v: unknown): string | undefined {
+  if (v == null || v === "") return undefined;
+  if (typeof v === "string") {
+    const s = v.trim();
+    return s && !s.startsWith("0000") ? s : undefined;
+  }
+  if (typeof v === "number" && Number.isFinite(v)) {
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+  }
+  return undefined;
+}
+
 export function mapCloudProduct(p: CloudProduct): WooProduct | null {
   const wcId = parsePositiveInt(p.wc_id);
   const uuid = typeof p.id === "string" ? p.id : "";
@@ -289,7 +302,7 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     images: imageList(p),
     sku: p.sku,
     description: p.description,
-    date_created: (p.created_at || p.createdAt || p.date_created || "").trim() || undefined,
+    date_created: isoDate(p.created_at || p.createdAt || p.date_created),
     on_sale: Boolean(money(p.compareAtPrice)),
     stock_status: p.in_stock === false ? "outofstock" : "instock",
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
@@ -405,15 +418,16 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
 }
 
 export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
-  const cap = Math.max(8, limit);
-  try {
-    const items = mapItems(await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${cap}`));
-    if (items.length) return items;
-  } catch {
-    /* fall through to newest catalog page */
-  }
+  const cap = Math.max(8, Math.min(limit, 50));
+  // Newest published SKUs (Woo ID desc). Do not use /new-arrivals first: live
+  // that route still filters a stale new_arrival flag and hides just-added items.
   const page = await fetchCloudProductList({ sort: "date_desc" }, cap);
-  return page.items;
+  if (page.items.length) return page.items;
+  try {
+    return mapItems(await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${cap}`));
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchCloudFeatured(limit = 24): Promise<WooProduct[]> {

@@ -677,6 +677,19 @@ class WooCommerceAPI:
         for p in by_new[:24]:
             p["new_arrival"] = True
 
+    def new_arrivals(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
+        from catalog_pagination import clamp_page, product_page
+
+        lim, off = clamp_page(limit, 0)
+        snap = self._catalog_cache
+        if snap and snap.products:
+            ranked = sorted(snap.products, key=lambda p: int(p.get("wc_id") or 0), reverse=True)
+            page = self._prepare_products(ranked[off : off + lim], user)
+            for p in page:
+                p["new_arrival"] = True
+            return product_page(page, len(ranked), limit=lim, offset=off)
+        return self.filter_products(limit=lim, offset=0, user=user)
+
     def _enrich_missing_images(self, products: list[dict]) -> None:
         """Fill products that have no WooCommerce image using similar catalog items."""
         by_model_leaf: dict[tuple[Any, str], str] = {}

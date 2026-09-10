@@ -40,12 +40,12 @@ export default function NewArrivals() {
   useEffect(() => {
     let alive = true;
     setCloudLoading(true);
-    void fetchCloudNewArrivals(120)
+    void fetchCloudNewArrivals(50)
       .then((items) => {
         if (alive) setCloudItems(items);
       })
       .catch(() => {
-        if (alive) setCloudItems([]);
+        if (alive) setCloudItems(null);
       })
       .finally(() => {
         if (alive) setCloudLoading(false);
@@ -59,10 +59,10 @@ export default function NewArrivals() {
 
   const list = useMemo(() => {
     if (cloudItems && cloudItems.length > 0) return cloudItems;
-    return catalogNewest;
+    return catalogNewest.slice(0, 50);
   }, [cloudItems, catalogNewest]);
 
-  const busy = cloudLoading || (woo && loading && list.length === 0);
+  const busy = (cloudLoading && list.length === 0) || (woo && loading && list.length === 0);
 
   const grid = (
     <>
