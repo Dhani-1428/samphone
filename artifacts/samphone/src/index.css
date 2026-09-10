@@ -279,27 +279,21 @@
 
 .product-card {
   border-radius: 0;
-  aspect-ratio: auto;
+  aspect-ratio: 3 / 5;
   width: 100%;
-  height: auto;
+  height: 100%;
   min-height: 0;
-  overflow: visible;
-}
-
-.product-card.product-card-square {
-  aspect-ratio: auto;
-}
-
-.product-card-media {
-  aspect-ratio: 1 / 1;
-  flex: none;
   overflow: hidden;
 }
 
-/* No color dots: drop the reserved swatch band so price sits under the photo. */
-.product-card.product-card-no-variants {
-  aspect-ratio: auto;
-  height: auto;
+.product-card.product-card-square {
+  aspect-ratio: 3 / 5;
+}
+
+.product-card-media {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .catalog-product-grid {
@@ -309,18 +303,18 @@
   gap: 0.5rem;
   padding: 0;
   margin: 0;
-  align-items: start;
+  align-items: stretch;
 }
 
 .catalog-product-grid > * {
   min-width: 0;
-  height: auto;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .catalog-product-grid .product-card {
-  height: auto;
+  height: 100%;
 }
 
 @media (min-width: 640px) {

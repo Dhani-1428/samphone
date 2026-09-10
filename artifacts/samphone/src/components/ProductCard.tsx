@@ -50,13 +50,13 @@ export default function ProductCard({
   return (
     <article
       className={cn(
-        "product-card group relative flex h-auto flex-col overflow-visible bg-white",
+        "product-card group relative flex h-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="product-card-media relative min-h-0 overflow-hidden bg-[#F7F8FA]">
+      <div className="product-card-media relative min-h-0 flex-1 overflow-hidden bg-[#F7F8FA]">
         <button
           type="button"
           onClick={toggleWish}

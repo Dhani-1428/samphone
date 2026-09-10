@@ -1,9 +1,9 @@
 import { Link } from "wouter";
 import { useTranslatedText } from "@/hooks/useTranslatedText";
 
-/** Roboto-Medium (family Roboto, PostScript Roboto-Medium). */
+/** Three lines reserved so every card footer is the same height. */
 export const PRODUCT_DESC_TYPE =
-  "product-card-copy whitespace-normal break-words text-[12px] uppercase leading-[1.15rem] tracking-normal text-black sm:text-[13px] sm:leading-[1.2rem]";
+  "product-card-copy line-clamp-3 min-h-[2.25rem] whitespace-normal break-words text-[12px] uppercase leading-[1.15rem] tracking-normal text-black sm:min-h-[2.7rem] sm:text-[13px] sm:leading-[1.2rem]";
 
 export default function ProductCardWriting({
   href,

@@ -70,14 +70,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   return (
     <article
       className={cn(
-        "product-card group relative flex w-full flex-col overflow-visible bg-white",
+        "product-card group relative flex h-full w-full flex-col overflow-hidden bg-white",
         "shadow-[0_10px_28px_rgba(36,63,159,0.12)] transition-all duration-300",
         "hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(36,63,159,0.18)]",
         compact && "product-card-square text-[12px]",
-        hasVariants ? "h-full" : "product-card-no-variants h-auto self-start",
       )}
     >
-      <div className="product-card-media relative min-h-0 w-full bg-[#F7F8FA]">
+      <div className="product-card-media relative min-h-0 w-full flex-1 bg-[#F7F8FA]">
         <button
           type="button"
           onClick={toggleWish}
@@ -119,23 +118,10 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
       <div
         className={cn(
-          "relative z-20 flex shrink-0 flex-col bg-white",
-          compact ? "px-1.5 pb-1.5" : "px-2 pb-2 sm:px-2.5 sm:pb-2.5",
-          hasVariants ? "gap-1 pt-1.5" : "gap-0.5 pt-1",
+          "relative z-20 flex shrink-0 flex-col gap-1 bg-white",
+          compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5 sm:pb-2.5",
         )}
       >
-        {hasVariants ? (
-          <ColorSwatches
-            swatches={swatches}
-            selected={colorIdx}
-            onSelect={(i) => {
-              setColorIdx(i);
-              setImgOk(true);
-            }}
-            size="sm"
-          />
-        ) : null}
-
         <div className="flex h-7 shrink-0 items-center justify-between gap-1">
           {showPrice && priceLabel ? (
             <span className="product-card-price min-w-0 tabular-nums leading-none">
@@ -162,6 +148,20 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : (
             <NotifyMeButton productId={String(product.cloudId || product.id)} />
           )}
+        </div>
+
+        <div className="flex min-h-7 shrink-0 items-center">
+          {hasVariants ? (
+            <ColorSwatches
+              swatches={swatches}
+              selected={colorIdx}
+              onSelect={(i) => {
+                setColorIdx(i);
+                setImgOk(true);
+              }}
+              size="sm"
+            />
+          ) : null}
         </div>
 
         <ProductCardWriting href={productHref} title={title} />
