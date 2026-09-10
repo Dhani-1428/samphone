@@ -35,13 +35,17 @@ export default function ProductImageGallery({
   const [hovering, setHovering] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
 
+  const imageKey = images.join("\n");
+
   useEffect(() => {
-    if (!preferredSrc) return;
+    if (!preferredSrc) {
+      setActive(0);
+      return;
+    }
     const want = normalizeCatalogImageUrl(preferredSrc) || preferredSrc;
     const i = images.findIndex((src) => (normalizeCatalogImageUrl(src) || src) === want);
-    if (i >= 0) setActive(i);
-    else setActive(0);
-  }, [preferredSrc, images]);
+    setActive(i >= 0 ? i : 0);
+  }, [preferredSrc, imageKey]);
 
   const main = images[active] ?? images[0];
   const extra = Math.max(0, images.length - VISIBLE_THUMBS);

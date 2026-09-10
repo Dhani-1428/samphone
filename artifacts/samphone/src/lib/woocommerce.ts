@@ -75,7 +75,7 @@ function gallerySrcs(images: WooProduct["images"] | undefined): string[] {
   return out;
 }
 
-/** One URL per swatch. Ignores a shared fallback so picking a color can actually change the photo. */
+/** One URL per swatch. Shared fallbacks are ignored so picking a color changes the photo. */
 export function mapSwatchImageUrls(
   swatches: ProductColorSwatch[] | undefined,
   images: WooProduct["images"] | undefined,
@@ -85,10 +85,23 @@ export function mapSwatchImageUrls(
   const n = list.length;
   if (n === 0) return gallery.slice(0, 1);
 
-  const explicit = list.map((s) => (normalizeCatalogImageUrl(s.image) || s.image || "").trim());
   const out: string[] = Array.from({ length: n }, () => "");
+  const used = new Set<string>();
+  const take = (i: number, src: string) => {
+    if (out[i] || !src || used.has(src)) return;
+    out[i] = src;
+    used.add(src);
+  };
+
+  const explicit = list.map((s) => (normalizeCatalogImageUrl(s.image) || s.image || "").trim());
+  const explicitCount = new Map<string, number>();
+  for (const u of explicit) {
+    if (!u) continue;
+    explicitCount.set(u, (explicitCount.get(u) || 0) + 1);
+  }
   for (let i = 0; i < n; i += 1) {
-    if (explicit[i]) out[i] = explicit[i];
+    const u = explicit[i];
+    if (u && (explicitCount.get(u) || 0) === 1) take(i, u);
   }
 
   for (let i = 0; i < n; i += 1) {
@@ -96,26 +109,19 @@ export function mapSwatchImageUrls(
     const needle = colorToken(list[i].label);
     if (needle.length < 3) continue;
     const named = (images ?? []).find((img) => {
+      const src = (normalizeCatalogImageUrl(img.src) || img.src || "").trim();
+      if (!src || used.has(src)) return false;
       const blob = colorToken(`${img.src} ${img.alt ?? ""} ${img.name ?? ""}`);
       return blob.includes(needle);
     });
-    const namedSrc = named ? normalizeCatalogImageUrl(named.src) || named.src : "";
-    if (namedSrc) out[i] = namedSrc;
+    if (named) take(i, (normalizeCatalogImageUrl(named.src) || named.src || "").trim());
   }
 
-  for (let i = 0; i < n; i += 1) {
-    if (!out[i] && gallery[i]) out[i] = gallery[i];
-  }
-
-  const used = new Set(out.filter(Boolean));
   const leftover = gallery.filter((g) => !used.has(g));
   let li = 0;
   for (let i = 0; i < n; i += 1) {
     if (out[i]) continue;
-    if (li < leftover.length) {
-      out[i] = leftover[li];
-      li += 1;
-    }
+    if (li < leftover.length) take(i, leftover[li++]);
   }
 
   const fallback = gallery.find(Boolean) || explicit.find(Boolean) || "";
@@ -139,7 +145,7 @@ export function fillColorSwatchImages(
   const mapped = mapSwatchImageUrls(list, images);
   return list.map((s, i) => ({
     ...s,
-    image: s.image || mapped[i] || null,
+    image: mapped[i] || s.image || null,
   }));
 }
 

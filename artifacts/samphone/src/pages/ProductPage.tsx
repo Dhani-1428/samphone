@@ -10,6 +10,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
 import { fetchProductById, fetchRelatedProducts, mapSwatchImageUrls, resolveSwatchImage, wooCartKey, type WooProduct } from "@/lib/woocommerce";
+import { normalizeCatalogImageUrl } from "@/config/samphone";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
@@ -239,11 +240,17 @@ function WooProductView({
   const { user } = useAuth();
   const { displayFormatted } = useCustomerProductPrice(wooProduct);
   const swatches = wooProduct.colorSwatches ?? [];
+  const swatchImages = mapSwatchImageUrls(swatches, wooProduct.images);
   const preferredSrc = resolveSwatchImage(swatches, wooProduct.images, colorIdx);
-  const gallery = [
-    ...mapSwatchImageUrls(swatches, wooProduct.images),
-    ...(wooProduct.images ?? []).map((img) => img.src),
-  ].filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
+  const colorPhotos = new Set(swatchImages.filter(Boolean));
+  const extraShots = (wooProduct.images ?? [])
+    .map((img) => normalizeCatalogImageUrl(img.src) || img.src)
+    .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && !colorPhotos.has(src));
+  const gallery = (
+    swatches.length > 0
+      ? [preferredSrc, ...extraShots]
+      : (wooProduct.images ?? []).map((img) => normalizeCatalogImageUrl(img.src) || img.src)
+  ).filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
   const catalogPrice = displayFormatted;
   const compareAt = catalogCompareAtPrice(wooProduct, user);
   const inStock = wooProduct.stock_status !== "outofstock";

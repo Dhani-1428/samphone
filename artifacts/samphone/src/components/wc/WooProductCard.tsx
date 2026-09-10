@@ -44,10 +44,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
   const swatchImages = mapSwatchImageUrls(swatches, product.images);
-  const imageUrl =
-    swatches[colorIdx]?.image ||
-    swatchImages[colorIdx] ||
-    getPrimaryImageUrl(product);
+  const imageUrl = swatchImages[colorIdx] || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
   const wishKey = `woo:${product.id}`;
