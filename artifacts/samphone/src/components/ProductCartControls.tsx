@@ -54,7 +54,7 @@ export function CardQtyStepper({
         aria-label={t("addToCart")}
       >
         {iconOnly ? (
-          <ShoppingBag className="h-4 w-4" strokeWidth={2.2} />
+          <ShoppingBag className="h-6 w-6" strokeWidth={2} />
         ) : (
           <span className="truncate">{t("addToCart")}</span>
         )}

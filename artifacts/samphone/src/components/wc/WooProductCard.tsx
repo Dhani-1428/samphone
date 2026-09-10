@@ -150,7 +150,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
                 className="product-card-add flex h-9 w-9 shrink-0 items-center justify-center transition-colors hover:bg-[#1a4499]"
                 aria-label={t("addToCart")}
               >
-                <ShoppingBag className="h-4 w-4" strokeWidth={2.2} />
+                <ShoppingBag className="h-6 w-6" strokeWidth={2} />
               </Link>
             ) : null
           ) : (
