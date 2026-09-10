@@ -60,6 +60,7 @@ async function proxy(target, method, headers, body) {
     method,
     headers,
     body: payload && payload.length > 0 ? payload : undefined,
+    signal: AbortSignal.timeout(20_000),
   });
   return {
     status: upstream.status,
