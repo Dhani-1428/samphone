@@ -8,6 +8,7 @@ import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
 import { getPrimaryImageUrl, mapSwatchImageUrls, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
+import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { seesWholesalePrices } from "@/lib/customer-price";
@@ -43,6 +44,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
+  const coverSub = classifyCatalogProduct(product).subcategory;
+  const fillCover = coverSub === "back-cover" || coverSub === "case";
   const swatchImages = mapSwatchImageUrls(swatches, product.images);
   const imageUrl =
     swatches[colorIdx]?.image ||
@@ -100,8 +103,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <Link
           href={productHref}
           className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white py-1.5",
-            hasVariants ? "pl-8 pr-2.5" : "px-2.5",
+            "absolute inset-0 z-10 block overflow-hidden bg-white",
+            fillCover
+              ? hasVariants
+                ? "pl-7 pr-1.5"
+                : "px-1.5"
+              : hasVariants
+                ? "py-1.5 pl-8 pr-2.5"
+                : "px-2.5 py-1.5",
           )}
         >
           <CatalogImage
@@ -109,8 +118,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
-              !inStock && "scale-105 blur-[3px]",
+              "h-full w-full origin-center object-contain object-center transition-[filter,transform,opacity] duration-200",
+              fillCover && (inStock ? "scale-[1.72]" : "scale-[1.78] blur-[3px]"),
+              !fillCover && !inStock && "scale-105 blur-[3px]",
             )}
             loading="eager"
             decoding="async"
