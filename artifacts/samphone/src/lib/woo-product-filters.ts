@@ -510,9 +510,7 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
       return /\b(adapter|adaptor|adaptador)\b/i.test(hay) && !FLEX_OR_PORT_PART.test(hay) && !LCD_DISPLAY_PART.test(hay);
     case "cables":
       return (
-        /\b((usb[-\s]*c|lightning|hdmi|type[-\s]*c|micro\s*usb)\s*(cable|cabo)|data\s*cable|charging\s*cable|\bcables?\b|\bcabos?\b)\b/i.test(
-          hay,
-        ) &&
+        /\b(cables?|cabos?|usb[-\s]*c|lightning|hdmi|type[-\s]*c|micro\s*usb|data\s*cable|charging\s*cable)\b/i.test(hay) &&
         !FLEX_OR_PORT_PART.test(hay) &&
         !/\b(tempered|privacy\s*glass|full\s*glue|screen\s*protect|back\s*cover|wallet\s*case|phone\s*case|jelly)\b/i.test(
           hay,
@@ -534,7 +532,7 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
     case "car-support":
       return /\b(car\s*(support|mount|holder|stand|charger)|dashboard\s*mount|vent\s*mount)\b/i.test(hay);
     case "memory-cards":
-      return /\b(memory\s*card|micro\s*sd|microsd|sd\s*card|tf\s*card|sdhc|sdxc)\b/i.test(hay);
+      return /\b(memory\s*card|micro\s*sd|microsd|sd\s*card|tf\s*card|sdhc|sdxc|sim\s*card|nano\s*sim)\b/i.test(hay);
     case "repair-tools":
       return (
         /\b(repair(ing)?\s*tool|screwdriver|spudger|opening\s*tool|suction\s*cup|tweezer|pry\s*tool|iflx|mechanic\s*tool)\b/i.test(
@@ -553,6 +551,15 @@ export function pickHomeRailItems(products: WooProduct[], key: HomeRailKey, limi
     if (out.length >= limit) break;
     if (seen.has(p.id)) continue;
     if (!productMatchesHomeRail(p, key)) continue;
+    seen.add(p.id);
+    out.push(p);
+  }
+  if (out.length >= Math.min(4, products.length) || products.length === 0) return out;
+  for (const p of products) {
+    if (out.length >= limit) break;
+    if (seen.has(p.id)) continue;
+    const hay = productSearchHaystack(p);
+    if (LCD_DISPLAY_PART.test(hay) && (key === "screen-protectors" || key === "cables" || key === "chargers")) continue;
     seen.add(p.id);
     out.push(p);
   }

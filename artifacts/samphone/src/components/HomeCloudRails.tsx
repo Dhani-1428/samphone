@@ -28,6 +28,24 @@ const HOME_CATEGORY_RAILS: {
   { key: "chargers", title: "Chargers", group: "Chargers", query: { category_group: "Chargers" } },
 ];
 
+function sectionMatchesRail(
+  section: { key: string; title: string; group?: string },
+  rail: (typeof HOME_CATEGORY_RAILS)[number],
+): boolean {
+  const key = (section.key || "").toLowerCase().replace(/\s+/g, "-");
+  const title = (section.title || "").toLowerCase();
+  const group = (section.group || "").toLowerCase();
+  return (
+    key === rail.key ||
+    key === rail.group.toLowerCase().replace(/\s+/g, "-") ||
+    title === rail.title.toLowerCase() ||
+    group === rail.group.toLowerCase() ||
+    (rail.key === "wireless-headsets" && (key === "headphones" || title === "headphones")) ||
+    (rail.key === "power-bank" && (key === "powerbanks" || title === "powerbanks")) ||
+    (rail.key === "memory-cards" && (key === "cards" || title === "cards" || group === "cards"))
+  );
+}
+
 type RailRow = { key: HomeRailKey; title: string; group: string; items: WooProduct[] };
 
 function takeRail(items: WooProduct[] | undefined, key: HomeRailKey, limit = 18): WooProduct[] {
@@ -90,15 +108,52 @@ export default function HomeCloudRails() {
   useEffect(() => {
     let alive = true;
 
-    void fetchCloudHomeRails(18, "priority")
+    const applyItems = (key: HomeRailKey, items: WooProduct[]) => {
+      if (!alive) return;
+      setRows((prev) =>
+        prev.map((row) => {
+          if (row.key !== key) return row;
+          if (items.length === 0) return row;
+          if (row.items.length >= items.length) return row;
+          return { ...row, items };
+        }),
+      );
+      setPendingKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    };
+
+    let seededBest: WooProduct[] = [];
+    void fetchCloudHomeRails(18, "all")
       .then((r: CloudHomeRails) => {
-        if (alive && r.best.length) setBest(r.best);
+        if (!alive) return;
+        seededBest = r.best;
+        if (r.best.length) setBest(r.best);
+        for (const g of HOME_CATEGORY_RAILS) {
+          const section = r.sections.find((s) => sectionMatchesRail(s, g));
+          const pool = section?.items ?? [];
+          if (!pool.length) continue;
+          applyItems(g.key, takeRail(pool, g.key));
+        }
       })
       .catch(() => {
-        /* category rows still render */
+        /* per-rail fetches still run */
       })
       .finally(() => {
-        if (alive) setBestPending(false);
+        void (async () => {
+          if (!alive) return;
+          if (seededBest.length === 0) {
+            try {
+              const page = await fetchCloudProductList({ best_seller: "true" }, 18);
+              if (alive && page.items.length) setBest(page.items);
+            } catch {
+              /* keep empty */
+            }
+          }
+          if (alive) setBestPending(false);
+        })();
       });
 
     void Promise.allSettled(
@@ -117,13 +172,14 @@ export default function HomeCloudRails() {
             /* keep what we have */
           }
         }
-        if (!alive) return;
-        setRows((prev) => prev.map((row) => (row.key === g.key ? { ...row, items } : row)));
-        setPendingKeys((prev) => {
-          const next = new Set(prev);
-          next.delete(g.key);
-          return next;
-        });
+        applyItems(g.key, items);
+        if (alive) {
+          setPendingKeys((prev) => {
+            const next = new Set(prev);
+            next.delete(g.key);
+            return next;
+          });
+        }
       }),
     );
 
