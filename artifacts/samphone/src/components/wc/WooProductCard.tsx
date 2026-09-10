@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getPrimaryImageUrl, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
@@ -46,8 +46,9 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const variantImage = swatches[colorIdx]?.image;
   const imageUrl = variantImage || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
-  const cartKey = `woo:${product.id}`;
-  const wishlisted = wishHas(cartKey);
+  const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
+  const wishKey = `woo:${product.id}`;
+  const wishlisted = wishHas(wishKey);
   const title = product.name?.trim() || "Product";
   const inStock = product.stock_status !== "outofstock";
   const canAdd = Boolean(user && showPrice && canBuyDealer);
@@ -58,7 +59,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    wishToggle(cartKey);
+    wishToggle(wishKey);
   };
 
   return (
@@ -110,7 +111,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
       </div>
 
       <div className={cn("relative z-20 flex shrink-0 flex-col gap-1 bg-white", compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5")}>
-        <div className="h-4 shrink-0">
+        <div className="min-h-7 shrink-0">
           {swatches.length > 0 ? (
             <ColorSwatches
               swatches={swatches}

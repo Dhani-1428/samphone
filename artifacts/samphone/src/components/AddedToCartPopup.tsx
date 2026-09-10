@@ -10,7 +10,7 @@ import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
 import { fetchCloudProductByWcId } from "@/lib/samphone-cloud";
-import { getPrimaryImageUrl } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, parseWooCartKey } from "@/lib/woocommerce";
 import { hrefForCartKey } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,8 @@ export default function AddedToCartPopup() {
     const addedName = lastAdded.name?.trim() ?? "";
     const hasName = addedName.length > 0 && !addedName.startsWith("Product #");
     if (hasName && lastAdded.img) return;
-    const id = Number(lastAdded.cartKey.slice(4));
+    const parsed = parseWooCartKey(lastAdded.cartKey);
+    const id = parsed?.id ?? 0;
     if (!Number.isFinite(id) || id <= 0) return;
     let alive = true;
     void fetchCloudProductByWcId(id)

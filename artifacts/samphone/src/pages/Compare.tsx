@@ -14,6 +14,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { Button } from "@/components/ui/button";
 import type { WooProduct } from "@/lib/woocommerce";
+import { parseWooCartKey } from "@/lib/woocommerce";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -31,10 +32,11 @@ export default function Compare() {
     return keys
       .map((cartKey) => {
         if (cartKey.startsWith("woo:")) {
-          const id = Number(cartKey.slice(4));
-          const woo = Number.isFinite(id) ? products.find((p) => p.id === id) ?? null : null;
+          const parsed = parseWooCartKey(cartKey);
+          const id = parsed?.id;
+          const woo = id != null ? products.find((p) => p.id === id) ?? null : null;
           const specs = getCompareSpecsForProduct(cartKey, woo);
-          const name = woo?.name ?? (Number.isFinite(id) ? `Product #${id}` : cartKey);
+          const name = woo?.name ?? (id != null ? `Product #${id}` : cartKey);
           const img = woo?.images?.[0]?.src ?? PLACEHOLDER;
           return { cartKey, productName: name, img, href: hrefForCartKey(cartKey), specs };
         }

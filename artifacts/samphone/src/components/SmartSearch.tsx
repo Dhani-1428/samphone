@@ -9,7 +9,7 @@ import type { SearchHit } from "@/data/search-index";
 import ProductCartControls from "@/components/ProductCartControls";
 import { cn } from "@/lib/utils";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { getPrimaryImageUrl, searchProductsRemote, wooProductHref, type WooProduct } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, parseWooCartKey, searchProductsRemote, wooProductHref, type WooProduct } from "@/lib/woocommerce";
 import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 import CatalogImage from "@/components/CatalogImage";
 import { normalizeCatalogImageUrl } from "@/config/samphone";
@@ -26,7 +26,7 @@ type Props = {
 
 function resolveHitHref(hit: SearchHit): string {
   if (hit.cartKey.startsWith("woo:")) {
-    const id = Number(hit.cartKey.slice(4));
+    const id = parseWooCartKey(hit.cartKey)?.id ?? 0;
     if (Number.isFinite(id) && id > 0) return wooProductHref(id);
   }
   if (!hit.href.startsWith("http")) return hit.href;

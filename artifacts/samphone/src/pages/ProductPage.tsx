@@ -9,7 +9,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { fetchProductById, fetchRelatedProducts, type WooProduct } from "@/lib/woocommerce";
+import { fetchProductById, fetchRelatedProducts, wooCartKey, type WooProduct } from "@/lib/woocommerce";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
@@ -326,7 +326,7 @@ function WooProductView({
       compatibility={compatibility}
       gallery={gallery}
       preferredSrc={preferredSrc}
-      cartKey={cartKey}
+      cartKey={wooCartKey(wooProduct.id, swatches[colorIdx]?.label)}
       inStock={inStock}
       restockProductId={wooProduct.cloudId || String(wooProduct.id)}
       priceLabel={catalogPrice || null}

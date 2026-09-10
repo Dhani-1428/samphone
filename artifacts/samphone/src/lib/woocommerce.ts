@@ -323,3 +323,27 @@ export function getPrimaryImageUrl(product: WooProduct): string | null {
 export function wooProductHref(productId: number): string {
   return `/product/woo/${productId}`;
 }
+
+export function colorCartSlug(label: string): string {
+  const slug = label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug || "color";
+}
+
+export function wooCartKey(productId: number, colorLabel?: string | null): string {
+  const slug = colorLabel ? colorCartSlug(colorLabel) : "";
+  return slug ? `woo:${productId}:c:${slug}` : `woo:${productId}`;
+}
+
+export function parseWooCartKey(cartKey: string): { id: number; colorSlug?: string } | null {
+  if (!cartKey.startsWith("woo:")) return null;
+  const rest = cartKey.slice(4);
+  const match = rest.match(/^(\d+)(?:\:c\:(.+))?$/);
+  if (!match) return null;
+  const id = Number(match[1]);
+  if (!Number.isFinite(id) || id <= 0) return null;
+  return { id, colorSlug: match[2] || undefined };
+}

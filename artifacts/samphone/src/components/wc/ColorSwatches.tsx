@@ -27,10 +27,10 @@ export default function ColorSwatches({
   if (swatches.length === 0) return null;
   const shown = swatches.slice(0, max);
   const extra = swatches.length - shown.length;
-  const dim = size === "md" ? "h-6 w-6" : "h-4 w-4";
+  const dim = size === "md" ? "h-6 w-6" : "h-5 w-5";
 
   return (
-    <div className="flex h-4 w-full flex-nowrap items-center gap-1.5 overflow-hidden" role="list">
+    <div className="flex min-h-7 w-full flex-wrap items-center gap-2.5 py-0.5" role="list">
       {shown.map((s, i) => {
         const active = i === selected;
         return (
@@ -46,11 +46,10 @@ export default function ColorSwatches({
               e.stopPropagation();
               onSelect?.(i);
             }}
-            onMouseEnter={() => onSelect?.(i)}
             className={cn(
-              "rounded-full border shadow-sm transition-transform",
+              "shrink-0 rounded-full border shadow-sm",
               dim,
-              active ? "scale-110 ring-2 ring-offset-1 ring-sam" : "border-black/15",
+              active ? "ring-2 ring-sam ring-offset-2 ring-offset-white" : "border-black/15",
               isLight(s.hex) ? "border-black/25" : "border-black/20",
             )}
             style={{ backgroundColor: s.hex }}

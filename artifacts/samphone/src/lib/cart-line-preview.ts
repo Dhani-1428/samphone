@@ -1,5 +1,5 @@
 import { hrefForCartKey, resolveCatalogProduct } from "@/data/catalog";
-import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
+import { colorCartSlug, getPrimaryImageUrl, parseWooCartKey, type WooProduct } from "@/lib/woocommerce";
 import { catalogUnitPrice, type PriceUser } from "@/lib/customer-price";
 
 export type CartLinePreview = {
@@ -26,19 +26,23 @@ export function buildCartLinePreview(
   user?: PriceUser,
 ): CartLinePreview {
   const href = hrefForCartKey(cartKey);
-  if (cartKey.startsWith("woo:")) {
-    const id = Number(cartKey.slice(4));
-    const w = Number.isFinite(id) ? wooById.get(id) : undefined;
+  const wooKey = parseWooCartKey(cartKey);
+  if (wooKey) {
+    const w = wooById.get(wooKey.id);
+    const swatch = wooKey.colorSlug
+      ? w?.colorSwatches?.find((s) => colorCartSlug(s.label) === wooKey.colorSlug)
+      : undefined;
     const unit = w ? catalogUnitPrice(w, user) : null;
+    const colorName = swatch?.label ? ` — ${swatch.label}` : "";
     return {
       cartKey,
       qty,
-      name: w?.name ?? `Product #${id}`,
-      img: w ? getPrimaryImageUrl(w) : null,
+      name: `${w?.name ?? `Product #${wooKey.id}`}${colorName}`,
+      img: swatch?.image || (w ? getPrimaryImageUrl(w) : null),
       href,
       unitPrice: unit,
       isWoo: true,
-      productId: w?.cloudId || (Number.isFinite(id) ? String(id) : null),
+      productId: w?.cloudId || String(wooKey.id),
       minOrderQty: w?.minOrderQty,
       dealerOnly: w?.dealerOnly,
     };
