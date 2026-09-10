@@ -281,9 +281,10 @@
   border-radius: 1rem;
   aspect-ratio: auto;
   width: 100%;
-  height: auto;
+  height: fit-content;
   min-height: 0;
   overflow: hidden;
+  align-self: start;
 }
 
 .product-card.product-card-square {
@@ -317,7 +318,7 @@
 }
 
 .catalog-product-grid .product-card {
-  height: auto;
+  height: fit-content;
 }
 
 @media (min-width: 640px) {

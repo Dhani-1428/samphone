@@ -88,7 +88,7 @@ export default function WooRelatedAccessoriesSlider({
         <Carousel setApi={setApi} opts={{ align: "start", loop: false, dragFree: false }} className="w-full">
           <CarouselContent className="-ml-3 md:-ml-4">
             {related.map((p) => (
-              <CarouselItem key={p.id} className={cn("flex pl-3 md:pl-4", itemBasis)}>
+              <CarouselItem key={p.id} className={cn("flex items-start self-start pl-3 md:pl-4", itemBasis)}>
                 <WooProductCard product={p} priceUnavailableLabel={priceUnavailableLabel} compact />
               </CarouselItem>
             ))}

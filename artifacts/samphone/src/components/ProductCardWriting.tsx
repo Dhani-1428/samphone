@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { useTranslatedText } from "@/hooks/useTranslatedText";
 
 export const PRODUCT_DESC_TYPE =
-  "product-card-copy whitespace-normal break-words text-[12px] uppercase leading-[1.15rem] tracking-normal text-black sm:text-[13px] sm:leading-[1.2rem]";
+  "product-card-copy h-auto whitespace-normal break-words text-[12px] uppercase leading-[1.15rem] tracking-normal text-black sm:text-[13px] sm:leading-[1.2rem]";
 
 export default function ProductCardWriting({
   href,
