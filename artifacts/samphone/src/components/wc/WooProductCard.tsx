@@ -99,14 +99,17 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <Link
           href={productHref}
-          className="absolute inset-0 z-10 block overflow-hidden bg-white"
+          className={cn(
+            "absolute inset-0 z-10 block overflow-hidden bg-white py-1.5",
+            hasVariants ? "pl-8 pr-2.5" : "px-2.5",
+          )}
         >
           <CatalogImage
             key={`${colorIdx}:${imageUrl || "placeholder"}`}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-cover object-center transition-[filter,transform,opacity] duration-200",
+              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="eager"
