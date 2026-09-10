@@ -297,11 +297,16 @@
   background: #ffffff;
 }
 
+.product-card-media a {
+  padding: 2px;
+  box-sizing: border-box;
+}
+
 .product-card-media img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
 }
 

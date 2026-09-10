@@ -510,9 +510,13 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
       return /\b(adapter|adaptor|adaptador)\b/i.test(hay) && !FLEX_OR_PORT_PART.test(hay) && !LCD_DISPLAY_PART.test(hay);
     case "cables":
       return (
-        /\b(usb[-\s]*c|lightning|hdmi|type[-\s]*c|micro\s*usb|data\s*cable|charging\s*cable|\bcable\b|\bcabo\b)\b/i.test(
+        /\b((usb[-\s]*c|lightning|hdmi|type[-\s]*c|micro\s*usb)\s*(cable|cabo)|data\s*cable|charging\s*cable|\bcables?\b|\bcabos?\b)\b/i.test(
           hay,
-        ) && !FLEX_OR_PORT_PART.test(hay)
+        ) &&
+        !FLEX_OR_PORT_PART.test(hay) &&
+        !/\b(tempered|privacy\s*glass|full\s*glue|screen\s*protect|back\s*cover|wallet\s*case|phone\s*case|jelly)\b/i.test(
+          hay,
+        )
       );
     case "power-bank":
       return /\b(power\s*bank|powerbank|carregador\s*port[aá]til)\b/i.test(hay) && !/\bbattery\s*for\b/i.test(hay);

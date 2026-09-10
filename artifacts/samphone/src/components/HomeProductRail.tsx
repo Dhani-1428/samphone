@@ -88,7 +88,7 @@ export default function HomeProductRail({
           <div>{items}</div>
         ) : (
           <div
-            className="relative px-8 sm:px-10"
+            className="relative px-12 sm:px-14"
             onPointerEnter={() => setPaused(true)}
             onPointerLeave={() => setPaused(false)}
           >
@@ -108,14 +108,14 @@ export default function HomeProductRail({
               <CarouselContent className="-ml-2 md:-ml-2.5">
                 {items.map((child, i) => (
                   <CarouselItem key={i} className={cn("flex min-w-0 pl-2 md:pl-2.5", itemBasis)}>
-                    <div className="relative z-0 flex h-auto w-full origin-center will-change-transform transition-[transform,box-shadow] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.035] hover:shadow-[0_22px_44px_rgba(36,63,159,0.22)]">
+                    <div className="relative z-0 flex h-auto w-full origin-center will-change-transform transition-[transform,box-shadow] duration-300 ease-out hover:z-20 hover:-translate-y-1 hover:shadow-[0_22px_44px_rgba(36,63,159,0.22)]">
                       {child}
                     </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="left-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
-              <CarouselNext className="right-0 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
+              <CarouselPrevious className="-left-11 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
+              <CarouselNext className="-right-11 top-[42%] z-20 h-10 w-10 -translate-y-1/2 rounded-full border-0 bg-brand text-white shadow-md hover:bg-brand-dark" />
             </Carousel>
           </div>
         )}
