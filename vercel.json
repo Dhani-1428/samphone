@@ -4,9 +4,6 @@
   "installCommand": "pnpm install",
   "buildCommand": "node scripts/vercel-build.mjs",
   "outputDirectory": "public",
-  "env": {
-    "NODE_OPTIONS": "--disable-warning=DEP0169"
-  },
   "rewrites": [
     {
       "source": "/cloud-api",

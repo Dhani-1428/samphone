@@ -108,8 +108,10 @@ export default function HomeCloudRails() {
   useEffect(() => {
     let alive = true;
 
+    const filled = new Set();
     const applyItems = (key: HomeRailKey, items: WooProduct[]) => {
       if (!alive) return;
+      if (items.length) filled.add(key);
       setRows((prev) =>
         prev.map((row) => {
           if (row.key !== key) return row;
@@ -125,9 +127,10 @@ export default function HomeCloudRails() {
       });
     };
 
-    let seededBest: WooProduct[] = [];
-    void fetchCloudHomeRails(18, "all")
-      .then((r: CloudHomeRails) => {
+    void (async () => {
+      let seededBest: WooProduct[] = [];
+      try {
+        const r = await fetchCloudHomeRails(18, "all");
         if (!alive) return;
         seededBest = r.best;
         if (r.best.length) setBest(r.best);
@@ -137,51 +140,52 @@ export default function HomeCloudRails() {
           if (!pool.length) continue;
           applyItems(g.key, takeRail(pool, g.key));
         }
-      })
-      .catch(() => {
-        /* per-rail fetches still run */
-      })
-      .finally(() => {
-        void (async () => {
-          if (!alive) return;
-          if (seededBest.length === 0) {
-            try {
-              const page = await fetchCloudProductList({ best_seller: "true" }, 18);
-              if (alive && page.items.length) setBest(page.items);
-            } catch {
-              /* keep empty */
-            }
-          }
-          if (alive) setBestPending(false);
-        })();
-      });
-
-    void Promise.allSettled(
-      HOME_CATEGORY_RAILS.map(async (g) => {
-        let items: WooProduct[] = [];
+      } catch {
+        /* fill remaining rails below */
+      }
+      if (!alive) return;
+      if (seededBest.length === 0) {
         try {
-          items = await loadRailProducts(g);
+          const page = await fetchCloudProductList({ best_seller: "true" }, 18);
+          if (alive && page.items.length) setBest(page.items);
         } catch {
-          items = [];
+          /* keep empty */
         }
-        if (items.length < 4 && g.query.q) {
-          try {
-            const page = await fetchCloudProductList({ q: g.title }, 24);
-            items = takeRail([...items, ...page.items], g.key);
-          } catch {
-            /* keep what we have */
-          }
-        }
-        applyItems(g.key, items);
-        if (alive) {
-          setPendingKeys((prev) => {
-            const next = new Set(prev);
-            next.delete(g.key);
-            return next;
-          });
-        }
-      }),
-    );
+      }
+      if (alive) setBestPending(false);
+
+      const leftover = HOME_CATEGORY_RAILS.filter((g) => !filled.has(g.key));
+      for (let i = 0; i < leftover.length; i += 2) {
+        if (!alive) return;
+        const batch = leftover.slice(i, i + 2);
+        await Promise.all(
+          batch.map(async (g) => {
+            let items: WooProduct[] = [];
+            try {
+              items = await loadRailProducts(g);
+            } catch {
+              items = [];
+            }
+            if (items.length < 4 && g.query.q) {
+              try {
+                const page = await fetchCloudProductList({ q: g.title }, 24);
+                items = takeRail([...items, ...page.items], g.key);
+              } catch {
+                /* keep what we have */
+              }
+            }
+            applyItems(g.key, items);
+            if (alive) {
+              setPendingKeys((prev) => {
+                const next = new Set(prev);
+                next.delete(g.key);
+                return next;
+              });
+            }
+          }),
+        );
+      }
+    })();
 
     return () => {
       alive = false;

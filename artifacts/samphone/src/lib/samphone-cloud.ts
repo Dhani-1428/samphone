@@ -154,7 +154,16 @@ async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
       res = await fetchWithTimeout(url, { ...init, headers });
     } catch {
       lastError = new WooCommerceFetchError(`Network request failed: ${url.split("?")[0]}`);
-      continue;
+      if (i === 0) {
+        await new Promise((r) => setTimeout(r, 350));
+        try {
+          res = await fetchWithTimeout(url, { ...init, headers });
+        } catch {
+          continue;
+        }
+      } else {
+        continue;
+      }
     }
     const text = await res.text().catch(() => "");
     const html = looksLikeHtml(text);

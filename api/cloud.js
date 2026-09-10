@@ -45,7 +45,7 @@ async function readBody(req) {
   try {
     for await (const chunk of req) {
       if (typeof chunk === "string") chunks.push(Buffer.from(chunk));
-      else if (Buffer.isBuffer(chunk)) chunks.push(chunk);
+      else if (Buffer.isBuffer(chunk)) chunks.push(Buffer.from(chunk));
       else if (chunk instanceof Uint8Array) chunks.push(Buffer.from(chunk));
     }
   } catch {
@@ -54,19 +54,45 @@ async function readBody(req) {
   return Buffer.concat(chunks);
 }
 
-async function proxy(target, method, headers, body) {
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function proxyOnce(target, method, headers, body) {
   const payload = method === "GET" || method === "HEAD" ? undefined : body;
-  const upstream = await fetch(target, {
-    method,
-    headers,
-    body: payload && payload.length > 0 ? payload : undefined,
-    signal: AbortSignal.timeout(20_000),
-  });
-  return {
-    status: upstream.status,
-    contentType: upstream.headers.get("content-type") || "application/json; charset=utf-8",
-    body: Buffer.from(await upstream.arrayBuffer()),
-  };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25_000);
+  try {
+    const upstream = await fetch(target, {
+      method,
+      headers,
+      body: payload && payload.length > 0 ? payload : undefined,
+      signal: controller.signal,
+      redirect: "follow",
+    });
+    return {
+      status: upstream.status,
+      contentType: upstream.headers.get("content-type") || "application/json; charset=utf-8",
+      body: Buffer.from(await upstream.arrayBuffer()),
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function proxy(target, method, headers, body) {
+  let last;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      last = await proxyOnce(target, method, headers, body);
+      if (last.status < 502 || method !== "GET") return last;
+    } catch (err) {
+      last = err;
+    }
+    if (attempt === 0) await sleep(350);
+  }
+  if (last && typeof last.status === "number") return last;
+  throw last || new Error("upstream failed");
 }
 
 module.exports = async function handler(req, res) {
@@ -88,7 +114,10 @@ module.exports = async function handler(req, res) {
 
   const target = `${UPSTREAM}/${path}${forwardSearch(req)}`;
   const body = method === "GET" || method === "HEAD" ? Buffer.alloc(0) : await readBody(req);
-  const headers = { Accept: header(req, "accept") || "application/json" };
+  const headers = {
+    Accept: header(req, "accept") || "application/json",
+    "User-Agent": "samphone-vercel-proxy",
+  };
   const contentType = header(req, "content-type");
   if (contentType) headers["Content-Type"] = contentType;
   const auth = header(req, "authorization");
