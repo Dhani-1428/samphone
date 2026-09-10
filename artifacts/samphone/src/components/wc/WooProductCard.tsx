@@ -44,7 +44,10 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
   const swatchImages = mapSwatchImageUrls(swatches, product.images);
-  const imageUrl = swatchImages[colorIdx] || getPrimaryImageUrl(product);
+  const imageUrl =
+    swatches[colorIdx]?.image ||
+    swatchImages[colorIdx] ||
+    getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
   const wishKey = `woo:${product.id}`;
@@ -94,10 +97,32 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
 
+        <Link
+          href={productHref}
+          className={cn(
+            "absolute inset-0 z-10 block overflow-hidden bg-white",
+            hasVariants ? "pb-2 pl-7 pr-2 pt-2" : "p-1.5",
+          )}
+        >
+          <CatalogImage
+            key={`${colorIdx}:${imageUrl || "placeholder"}`}
+            src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
+            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
+            className={cn(
+              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
+              !inStock && "scale-105 blur-[3px]",
+            )}
+            loading="eager"
+            decoding="async"
+            onError={() => setImgOk(false)}
+          />
+        </Link>
+
         {hasVariants ? (
           <div
-            className="absolute bottom-2 left-1 top-2 z-30 flex"
+            className="pointer-events-auto absolute bottom-2 left-1 top-2 z-50 flex"
             onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             <ColorSwatches
@@ -113,27 +138,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             />
           </div>
         ) : null}
-
-        <Link
-          href={productHref}
-          className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white",
-            hasVariants ? "pb-2 pl-7 pr-2 pt-2" : "p-1.5",
-          )}
-        >
-          <CatalogImage
-            key={imageUrl || "placeholder"}
-            src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
-            alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
-            className={cn(
-              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
-              !inStock && "scale-105 blur-[3px]",
-            )}
-            loading="eager"
-            decoding="async"
-            onError={() => setImgOk(false)}
-          />
-        </Link>
         {!inStock ? (
           <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-black/20">
             <span className="px-2 text-center text-[12px] font-extrabold uppercase leading-tight tracking-wide text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">

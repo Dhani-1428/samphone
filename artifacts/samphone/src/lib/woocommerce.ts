@@ -86,14 +86,9 @@ export function mapSwatchImageUrls(
   if (n === 0) return gallery.slice(0, 1);
 
   const explicit = list.map((s) => (normalizeCatalogImageUrl(s.image) || s.image || "").trim());
-  const distinctExplicit = [...new Set(explicit.filter(Boolean))];
-  const useExplicit = distinctExplicit.length > 1;
-
   const out: string[] = Array.from({ length: n }, () => "");
-  if (useExplicit) {
-    for (let i = 0; i < n; i += 1) {
-      if (explicit[i]) out[i] = explicit[i];
-    }
+  for (let i = 0; i < n; i += 1) {
+    if (explicit[i]) out[i] = explicit[i];
   }
 
   for (let i = 0; i < n; i += 1) {
@@ -123,7 +118,7 @@ export function mapSwatchImageUrls(
     }
   }
 
-  const fallback = gallery[0] || distinctExplicit[0] || "";
+  const fallback = gallery.find(Boolean) || explicit.find(Boolean) || "";
   return out.map((u) => u || fallback);
 }
 
@@ -144,7 +139,7 @@ export function fillColorSwatchImages(
   const mapped = mapSwatchImageUrls(list, images);
   return list.map((s, i) => ({
     ...s,
-    image: mapped[i] || s.image,
+    image: s.image || mapped[i] || null,
   }));
 }
 

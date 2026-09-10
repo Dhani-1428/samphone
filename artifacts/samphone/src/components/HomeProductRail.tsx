@@ -92,7 +92,19 @@ export default function HomeProductRail({
             onPointerEnter={() => setPaused(true)}
             onPointerLeave={() => setPaused(false)}
           >
-            <Carousel setApi={setApi} opts={{ align: "start", loop: true, duration: 55 }} className="w-full">
+            <Carousel
+              setApi={setApi}
+              opts={{
+                align: "start",
+                loop: true,
+                duration: 55,
+                watchDrag: (_api, event) => {
+                  const el = event.target as HTMLElement | null;
+                  return !el?.closest?.("button,[role='list']");
+                },
+              }}
+              className="w-full"
+            >
               <CarouselContent className="-ml-2 md:-ml-2.5">
                 {items.map((child, i) => (
                   <CarouselItem key={i} className={cn("flex min-w-0 overflow-visible pl-2 md:pl-2.5", itemBasis)}>

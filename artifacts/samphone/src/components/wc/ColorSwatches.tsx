@@ -58,8 +58,16 @@ export default function ColorSwatches({
               e.stopPropagation();
               onSelect?.(i);
             }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
+            onPointerUp={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect?.(i);
+            }}
             className={cn(
-              "shrink-0 rounded-full border shadow-sm",
+              "shrink-0 rounded-full border shadow-sm pointer-events-auto",
               dim,
               active
                 ? vertical

@@ -377,7 +377,9 @@ def _merge_cover_color_group(
             "label": label,
             "color": color_hex_for_label(label),
         }
-        if entry.get("image") and not prev.get("image"):
+        if entry.get("image") and (
+            not prev.get("image") or entry.get("wc_variation_id") or entry.get("wc_product_id")
+        ):
             prev["image"] = entry["image"]
         if entry.get("wc_variation_id") and not prev.get("wc_variation_id"):
             prev["wc_variation_id"] = entry["wc_variation_id"]
@@ -389,10 +391,8 @@ def _merge_cover_color_group(
         prev["color"] = prev.get("color") or color_hex_for_label(label)
         by_label[key] = prev
 
-    # Merge color_variants from every member (SILICON + SILICONE parents, etc.).
+    # SKU photos from titles first so MagSafe Black/Blue/Purple keep their own shots.
     for prod, color in members:
-        for v in prod.get("color_variants") or []:
-            upsert_variant(dict(v))
         if not color:
             continue
         label = _normalize_label(color)
@@ -413,16 +413,23 @@ def _merge_cover_color_group(
             entry["in_stock"] = bool(prod.get("in_stock"))
         upsert_variant(entry)
 
+    for prod, _color in members:
+        for v in prod.get("color_variants") or []:
+            upsert_variant(dict(v))
+
     variants = list(by_label.values())
     if variants:
         out["color_variants"] = variants
         out["variants"] = [v["label"] for v in variants]
-        first_img = next((v.get("image") for v in variants if v.get("image")), None)
-        if first_img and (parent_color or not _product_image(out)):
-            out["image"] = first_img
-            imgs = list(out.get("images") or [])
-            if first_img not in imgs:
-                out["images"] = [first_img, *[u for u in imgs if u != first_img]]
+        urls: list[str] = []
+        for v in variants:
+            u = str(v.get("image") or "").strip()
+            if u and u not in urls:
+                urls.append(u)
+        if urls:
+            parent_imgs = [str(u) for u in (out.get("images") or []) if u and str(u) not in urls]
+            out["images"] = urls + parent_imgs
+            out["image"] = urls[0]
     return out
 
 
