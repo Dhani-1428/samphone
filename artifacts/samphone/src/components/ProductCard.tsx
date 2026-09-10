@@ -75,18 +75,7 @@ export default function ProductCard({
       </div>
 
       <div className="flex shrink-0 flex-col gap-2.5 px-3.5 pb-3.5 pt-3 sm:px-4 sm:pb-4">
-        <ProductCardWriting href={productHref} title={name} />
-
-        <div className="flex items-center gap-2 product-card-copy text-[12px]">
-          <Star className="h-3.5 w-3.5 fill-sam text-sam" />
-          <span className="font-medium uppercase text-brand">{rating.toFixed(1)}</span>
-          <span className="h-3 w-px bg-brand/20" aria-hidden />
-          <span className="uppercase text-muted-foreground">
-            ({reviews} {t("card_reviews")})
-          </span>
-        </div>
-
-        <div className="mt-auto flex items-center gap-2 pt-1">
+        <div className="flex items-center justify-between gap-2">
           <span className="product-card-price shrink-0 tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
           </span>
@@ -101,6 +90,17 @@ export default function ProductCard({
               <ShoppingBag className="h-4 w-4" strokeWidth={2.2} />
             </Link>
           )}
+        </div>
+
+        <ProductCardWriting href={productHref} title={name} />
+
+        <div className="flex items-center gap-2 product-card-copy text-[12px]">
+          <Star className="h-3.5 w-3.5 fill-sam text-sam" />
+          <span className="font-medium uppercase text-brand">{rating.toFixed(1)}</span>
+          <span className="h-3 w-px bg-brand/20" aria-hidden />
+          <span className="uppercase text-muted-foreground">
+            ({reviews} {t("card_reviews")})
+          </span>
         </div>
       </div>
     </article>

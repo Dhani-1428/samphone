@@ -124,15 +124,13 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           ) : null}
         </div>
 
-        <ProductCardWriting href={productHref} title={title} />
-
-        <div className="mt-auto flex h-9 shrink-0 items-center justify-between gap-1 overflow-hidden">
+        <div className="flex h-9 shrink-0 items-center justify-between gap-1 overflow-hidden">
           {showPrice && priceLabel ? (
             <span className="product-card-price shrink-0 truncate tabular-nums leading-none">
               {priceLabel}
             </span>
           ) : (
-            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[13px] font-medium text-sam">
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[13px] font-medium text-neutral-800">
               <AlertCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
               <span className="truncate">{priceUnavailableLabel}</span>
             </span>
@@ -153,6 +151,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             <NotifyMeButton productId={String(product.cloudId || product.id)} />
           )}
         </div>
+
+        <ProductCardWriting href={productHref} title={title} />
       </div>
     </article>
   );
