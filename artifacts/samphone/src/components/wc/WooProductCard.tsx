@@ -3,7 +3,6 @@ import {
   AlertCircle,
   Heart,
   ShoppingBag,
-  Store,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -86,13 +85,6 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         >
           <Heart className={cn("h-4 w-4", wishlisted ? "fill-brand text-brand" : "")} strokeWidth={2.2} />
         </button>
-
-        {product.dealerOnly ? (
-          <span className="absolute right-2 top-11 z-20 inline-flex items-center gap-1 bg-white/95 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-normal text-brand shadow-sm">
-            <Store className="h-3 w-3" strokeWidth={2.2} />
-            {t("dealer_only")}
-          </span>
-        ) : null}
 
         {hasVariants ? (
           <div className="absolute left-1.5 top-2 z-20 rounded-full bg-white/85 px-1 py-1.5 shadow-sm backdrop-blur-[2px]">
