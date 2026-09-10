@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -129,8 +130,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const didRefresh = useRef(false);
   useEffect(() => {
-    if (getStoredApiJwt()) void refreshProfile();
+    if (didRefresh.current) return;
+    if (!getStoredApiJwt()) return;
+    didRefresh.current = true;
+    void refreshProfile();
   }, [refreshProfile]);
 
   const value = useMemo(

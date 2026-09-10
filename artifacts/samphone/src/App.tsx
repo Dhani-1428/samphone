@@ -294,19 +294,18 @@ function AppShell({ clerk }: { clerk: boolean }) {
 
 function App() {
   const clerk = isClerkEnabled();
-  const withoutClerk = <AppShell clerk={false} />;
   const tree = clerk ? (
-    <Suspense fallback={withoutClerk}>
+    <Suspense fallback={null}>
       <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
         <AppShell clerk />
       </ClerkProvider>
     </Suspense>
   ) : (
-    withoutClerk
+    <AppShell clerk={false} />
   );
   return (
     <SiteLockGate>
-      <AppErrorBoundary fallback={withoutClerk}>{tree}</AppErrorBoundary>
+      <AppErrorBoundary fallback={<AppShell clerk={false} />}>{tree}</AppErrorBoundary>
     </SiteLockGate>
   );
 }

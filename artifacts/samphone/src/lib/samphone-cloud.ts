@@ -931,17 +931,34 @@ export type CloudProfile = {
   personalPricing?: import("@/lib/customer-price").PersonalPricingRule[];
 };
 
+let meInflight: Promise<CloudProfile | null> | null = null;
+let meCache: { jwt: string; at: number; profile: CloudProfile | null } | null = null;
+const ME_CACHE_MS = 30_000;
+
 export async function fetchCloudMe(): Promise<CloudProfile | null> {
-  try {
-    const data = await cloudFetchJson<Record<string, unknown>>("/auth/me");
-    const parsed = parseAuthPayload(data, "");
-    return {
-      ...parsed,
-      postal_code: parsed.postalCode,
-    };
-  } catch {
-    return null;
+  const jwt = getStoredApiJwt();
+  if (!jwt) return null;
+  if (meCache && meCache.jwt === jwt && Date.now() - meCache.at < ME_CACHE_MS) {
+    return meCache.profile;
   }
+  if (meInflight) return meInflight;
+  meInflight = (async () => {
+    try {
+      const data = await cloudFetchJson<Record<string, unknown>>("/auth/me");
+      const parsed = parseAuthPayload(data, "");
+      const profile: CloudProfile = {
+        ...parsed,
+        postal_code: parsed.postalCode,
+      };
+      meCache = { jwt, at: Date.now(), profile };
+      return profile;
+    } catch {
+      return null;
+    } finally {
+      meInflight = null;
+    }
+  })();
+  return meInflight;
 }
 
 export async function patchCloudProfile(body: Record<string, string | boolean | number | undefined>): Promise<CloudProfile | null> {

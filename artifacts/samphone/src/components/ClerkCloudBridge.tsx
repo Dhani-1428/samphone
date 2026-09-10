@@ -12,6 +12,8 @@ export default function ClerkCloudBridge() {
   const { signOut } = useClerk();
   const { login, user: appUser } = useAuth();
   const lastToken = useRef<string | null>(null);
+  const appUserRef = useRef(appUser);
+  appUserRef.current = appUser;
 
   useEffect(() => {
     registerClerkSignOut(async () => {
@@ -32,12 +34,13 @@ export default function ClerkCloudBridge() {
       if (cancelled || !token || token.length < 20 || token === lastToken.current) return;
       lastToken.current = token;
       try {
+        const current = appUserRef.current;
         const clerkEmail = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() || "";
         if (
-          isAdminRole(appUser?.role) &&
-          appUser?.email &&
+          isAdminRole(current?.role) &&
+          current?.email &&
           clerkEmail &&
-          clerkEmail !== appUser.email.trim().toLowerCase()
+          clerkEmail !== current.email.trim().toLowerCase()
         ) {
           return;
         }
@@ -56,6 +59,11 @@ export default function ClerkCloudBridge() {
           business_type: typeof meta.businessType === "string" ? meta.businessType : undefined,
         });
         if (cancelled) return;
+        const sameSession =
+          current?.email === result.email &&
+          current?.role === result.role &&
+          (current?.token ?? "") === (result.token ?? "");
+        if (sameSession) return;
         login({
           email: result.email,
           name: result.name,
@@ -84,7 +92,7 @@ export default function ClerkCloudBridge() {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, getToken, login, user, appUser]);
+  }, [isSignedIn, getToken, login, user]);
 
   return null;
 }
