@@ -1,4 +1,4 @@
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
+import { classifyCatalogProduct, looksLikeFinishedDevice } from "@/lib/catalog-taxonomy";
 import { hayMatchesModel, modelSearchNames } from "@/lib/model-aliases";
 import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
@@ -260,6 +260,12 @@ export const MODEL_ACCESSORY_TYPES: ModelTypeBucket[] = [
     kind: "accessory",
     match: (h) => /\b(earphone|headset|earbuds|tws)\b/i.test(h),
   },
+  {
+    id: "phone",
+    label: "Mobile phones",
+    kind: "accessory",
+    match: (h) => looksLikeFinishedDevice(h),
+  },
 ];
 
 export const OTHER_PARTS_TYPE: ModelTypeBucket = {
@@ -310,6 +316,8 @@ const API_TYPE_ALIASES: Record<string, string> = {
   "charger": "charger",
   "cable": "cable",
   "earphones": "earphones",
+  "mobile phones": "phone",
+  "smartphone": "phone",
   "housing / frame": "housing",
   "front camera": "front-cam",
   "rear camera": "rear-cam",
@@ -361,6 +369,7 @@ const ACCESSORY_MATCH_ORDER = [
   "cable",
   "earphones",
   "normal-glass",
+  "phone",
 ];
 
 export function classifyModelProduct(p: WooProduct): { kind: ModelTypeKind; typeId: string } {

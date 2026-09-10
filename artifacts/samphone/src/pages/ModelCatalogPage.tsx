@@ -104,6 +104,7 @@ function typeChipIcon(id: string): LucideIcon {
     case "watch-glass":
       return Shield;
     case "other-accessories":
+    case "phone":
       return Sparkles;
     default:
       return LayoutGrid;

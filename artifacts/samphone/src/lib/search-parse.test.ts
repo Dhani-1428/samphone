@@ -69,6 +69,14 @@ describe("catalog taxonomy", () => {
     assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max Housing", catalogGroup: "Phone Parts" }).category, "parts");
   });
 
+  it("puts complete phones in Accessories, not Parts", () => {
+    assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max 256GB", catalogGroup: "Phone Parts" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max 256GB" }).subcategory, "device");
+    assert.equal(classifyCatalogProduct({ name: "Samsung Galaxy A15 128GB" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "Touch + LCD OLED iPhone 17 Pro Max" }).category, "parts");
+    assert.equal(classifyCatalogProduct({ name: "Battery iPhone 17 Pro Max" }).category, "parts");
+  });
+
   it("treats case and back cover as distinct", () => {
     assert.equal(classifyCatalogProduct({ name: "MagSafe Case iPhone 17 Pro Max" }).subcategory, "case");
     assert.equal(classifyCatalogProduct({ name: "Back Cover iPhone 17 Pro Max" }).subcategory, "back-cover");

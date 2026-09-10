@@ -28,6 +28,7 @@ export type AccessoriesSubcategory =
   | "charger"
   | "cable"
   | "earphones"
+  | "device"
   | "other-accessories";
 
 export type CatalogSubcategory = PartsSubcategory | AccessoriesSubcategory;
@@ -58,6 +59,7 @@ const ACC_SUBS = new Set<string>([
   "charger",
   "cable",
   "earphones",
+  "device",
   "other-accessories",
 ]);
 
@@ -87,6 +89,30 @@ const PART_RE =
 
 const ACCESSORY_GROUP_RE = /original accessor|\baccessories\b|\bhoco\b|charger|cables?|headphone|power ?bank|\bcards\b/i;
 const PART_GROUP_RE = /phone part|peças?|pecas?|spare part/i;
+const DEVICE_GROUP_RE = /\b(smartphones?|telem[oó]veis|mobile phones?|cell phones?)\b/i;
+
+function isPartName(n: string): boolean {
+  if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n)) return false;
+  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing)\b/i.test(n)) return false;
+  if (/\bscreen\b/i.test(n) && /\bprotect/i.test(n)) return false;
+  return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|cover|bumper)\b/i.test(n));
+}
+
+/**
+ * Complete phones / tablets / watches sold as-is (not a spare part or case).
+ */
+export function looksLikeFinishedDevice(name: string, extraHay = ""): boolean {
+  const h = `${name} ${extraHay}`.toLowerCase();
+  if (isPartName(h)) return false;
+  if (/\b(cover|case|jelly|capa|capinha|funda|tempered|protector|full glue|privacy glass|charger|carregador|cable|cabo|earphone|headset|earbuds|tws|power bank)\b/i.test(h)) {
+    return false;
+  }
+  if (/\b(sd|microsd|micro-sd|memory card|tf card|pendrive)\b/i.test(h)) return false;
+  if (DEVICE_GROUP_RE.test(h) && !PART_GROUP_RE.test(h)) return true;
+  return /\b(iphone|ipad|apple watch|iwatch|galaxy|pixel|redmi|poco|xiaomi|oppo|realme|huawei|honor|motorola|oneplus|nokia|vivo|alcatel|smartphone|telem[oó]vel|mobile phone|tablet)\b/i.test(
+    h,
+  );
+}
 
 function isAccessoryName(n: string): boolean {
   if (!ACCESSORY_RE.test(n)) return false;
@@ -98,14 +124,8 @@ function isAccessoryName(n: string): boolean {
   return true;
 }
 
-function isPartName(n: string): boolean {
-  if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n)) return false;
-  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing)\b/i.test(n)) return false;
-  if (/\bscreen\b/i.test(n) && /\bprotect/i.test(n)) return false;
-  return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|cover|bumper)\b/i.test(n));
-}
-
 function accessorySub(h: string): AccessoriesSubcategory {
+  if (looksLikeFinishedDevice(h)) return "device";
   if (/\b(tempered|privacy glass|full glue|screen protect|normal glass|curved glass|pel[ií]cula|vidro templado)\b/i.test(h) && !/\b(lcd|oled|digitizer)\b/i.test(h)) {
     return "screen-protector";
   }
@@ -166,6 +186,7 @@ function typeIdFor(category: CatalogTopCategory, subcategory: CatalogSubcategory
     if (subcategory === "charger") return "charger";
     if (subcategory === "cable") return "cable";
     if (subcategory === "earphones") return "earphones";
+    if (subcategory === "device") return "phone";
     return "other-accessories";
   }
   if (subcategory === "screen") return "screen";
@@ -192,18 +213,20 @@ export function classifyCatalogProduct(p: TaxonomyProduct): CatalogClassificatio
   const n = nameHay(p);
   const accessoryNamed = isAccessoryName(n);
   const partNamed = isPartName(n) && !/\bpower bank\b/i.test(n);
+  const finishedDevice = looksLikeFinishedDevice(n, h);
 
   let category: CatalogTopCategory;
   if (accessoryNamed && partNamed) {
     category = /\b(lcd|oled|incell|digitizer|charging (port|flex)|back glass|rear glass|housing)\b/i.test(n)
       ? "parts"
       : "accessories";
-  } else if (accessoryNamed) category = "accessories";
-  else if (partNamed) category = "parts";
-  else if (PART_GROUP_RE.test(group)) category = "parts";
-  else if (ACCESSORY_GROUP_RE.test(group)) category = "accessories";
-  else if (isPartName(h) && !isAccessoryName(h)) category = "parts";
-  else category = isAccessoryName(h) || ACCESSORY_RE.test(h) ? "accessories" : "parts";
+  } else if (partNamed && !finishedDevice) category = "parts";
+  else if (accessoryNamed) category = "accessories";
+  else if (finishedDevice) category = "accessories";
+  else if (PART_GROUP_RE.test(group) && !finishedDevice) category = "parts";
+  else if (ACCESSORY_GROUP_RE.test(group) || DEVICE_GROUP_RE.test(group)) category = "accessories";
+  else if (isPartName(h) && !isAccessoryName(h) && !finishedDevice) category = "parts";
+  else category = "accessories";
 
   const subcategory = category === "parts" ? partSub(h) : accessorySub(h);
 
