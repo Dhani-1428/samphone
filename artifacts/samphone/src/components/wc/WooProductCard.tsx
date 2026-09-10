@@ -99,18 +99,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <Link
           href={productHref}
-          className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white",
-            hasVariants && "pb-2 pl-7 pr-2 pt-2",
-          )}
+          className="absolute inset-0 z-10 block overflow-hidden bg-white"
         >
           <CatalogImage
             key={`${colorIdx}:${imageUrl || "placeholder"}`}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-center transition-[filter,transform,opacity] duration-200",
-              hasVariants ? "object-contain" : "object-cover",
+              "h-full w-full object-cover object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="eager"
@@ -121,7 +117,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         {hasVariants ? (
           <div
-            className="pointer-events-auto absolute bottom-2 left-1 top-2 z-50 flex"
+            className="pointer-events-auto absolute inset-y-0 left-0 z-50 flex w-7 justify-center bg-white pt-2 pb-2"
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
