@@ -26,8 +26,6 @@ const VISIBLE_THUMBS = 4;
 export default function ProductImageGallery({
   images,
   productName,
-  badge,
-  badgeClassName,
   preferredSrc,
 }: Props) {
   const { t } = useLang();
@@ -89,16 +87,6 @@ export default function ProductImageGallery({
         {thumbs(true)}
         <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl border border-black/[0.08] bg-white">
           <div className="relative aspect-square">
-            {badge ? (
-              <span
-                className={cn(
-                  "absolute left-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-bold",
-                  badgeClassName ?? "bg-primary text-primary-foreground",
-                )}
-              >
-                {badge}
-              </span>
-            ) : null}
             {main ? (
               <Lens hovering={hovering} setHovering={setHovering} zoomFactor={1.85} lensSize={200}>
                 <CatalogImage
@@ -106,7 +94,7 @@ export default function ProductImageGallery({
                   src={main}
                   alt={productName}
                   className={cn(
-                    "h-full w-full object-contain p-6 transition-transform duration-300",
+                    "h-full w-full object-contain px-1.5 py-1 transition-transform duration-300",
                     hovering ? "scale-[1.03]" : "scale-100",
                   )}
                   loading="eager"

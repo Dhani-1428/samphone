@@ -97,8 +97,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         <Link
           href={productHref}
           className={cn(
-            "absolute inset-0 z-10 block overflow-hidden bg-white py-1",
-            hasVariants ? "pl-7 pr-2" : "px-2",
+            "absolute inset-0 z-10 block overflow-hidden bg-white",
+            hasVariants ? "pl-7 pr-1.5" : "px-1.5",
           )}
         >
           <CatalogImage

@@ -35,7 +35,7 @@ export type ProductCrumb = { label: string; href?: string };
 
 export default function ProductDetailLayout({
   crumbs: _crumbs,
-  badge,
+  badge: _badge,
   title,
   excerpt,
   specRows,
@@ -104,11 +104,6 @@ export default function ProductDetailLayout({
           </div>
 
           <div className="min-w-0 lg:col-span-4">
-            {badge ? (
-              <span className="mb-3 inline-flex bg-[#2050B3] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-white">
-                {badge}
-              </span>
-            ) : null}
             <h1 className="product-card-copy text-2xl uppercase leading-tight tracking-[0.08em] text-black md:text-[1.75rem] lg:text-[2rem]">
               {displayTitle}
             </h1>

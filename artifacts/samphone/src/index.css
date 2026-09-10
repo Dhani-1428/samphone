@@ -278,12 +278,12 @@
 }
 
 .product-card {
-  border-radius: 0;
+  border-radius: 1rem;
   aspect-ratio: auto;
   width: 100%;
   height: auto;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .product-card.product-card-square {
@@ -291,7 +291,7 @@
 }
 
 .product-card-media {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   flex: 0 0 auto;
   width: 100%;
   min-height: 0;
