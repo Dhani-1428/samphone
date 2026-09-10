@@ -76,7 +76,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
         compact && "product-card-square text-[12px]",
       )}
     >
-      <div className="product-card-media relative min-h-0 w-full flex-1 bg-[#F7F8FA]">
+      <div className="product-card-media relative min-h-0 w-full flex-1 bg-white">
         <button
           type="button"
           onClick={toggleWish}
@@ -100,7 +100,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
+              "h-full w-full object-cover object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="lazy"
@@ -118,8 +118,8 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
       <div
         className={cn(
-          "relative z-20 flex shrink-0 flex-col gap-1 bg-white",
-          compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5 sm:pb-2.5",
+          "relative z-20 flex shrink-0 flex-col gap-0.5 bg-white",
+          compact ? "px-1.5 pb-1.5 pt-1" : "px-2 pb-2 pt-1 sm:px-2.5 sm:pb-2",
         )}
       >
         <div className="flex h-7 shrink-0 items-center justify-between gap-1">
@@ -150,19 +150,17 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           )}
         </div>
 
-        <div className="flex min-h-7 shrink-0 items-center">
-          {hasVariants ? (
-            <ColorSwatches
-              swatches={swatches}
-              selected={colorIdx}
-              onSelect={(i) => {
-                setColorIdx(i);
-                setImgOk(true);
-              }}
-              size="sm"
-            />
-          ) : null}
-        </div>
+        {hasVariants ? (
+          <ColorSwatches
+            swatches={swatches}
+            selected={colorIdx}
+            onSelect={(i) => {
+              setColorIdx(i);
+              setImgOk(true);
+            }}
+            size="sm"
+          />
+        ) : null}
 
         <ProductCardWriting href={productHref} title={title} />
       </div>

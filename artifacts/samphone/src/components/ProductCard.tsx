@@ -56,7 +56,7 @@ export default function ProductCard({
       )}
       data-testid={`card-${testPrefix}-${id}`}
     >
-      <div className="product-card-media relative min-h-0 flex-1 overflow-hidden bg-[#F7F8FA]">
+      <div className="product-card-media relative min-h-0 flex-1 overflow-hidden bg-white">
         <button
           type="button"
           onClick={toggleWish}
