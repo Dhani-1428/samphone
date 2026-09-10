@@ -68,6 +68,7 @@ _PREVIEW_KEYS = (
     "in_stock",
     "stock_quantity",
     "permalink",
+    "created_at",
 )
 
 
@@ -106,10 +107,10 @@ def _parse_int(value: Any, default: int = 0) -> int:
         return default
 
 
-def _is_new_arrival(created_at: Any, *, days: int = 120) -> bool:
-    """True when product was created within the last `days` days."""
+def _is_new_arrival(created_at: Any, *, days: int = 365) -> bool:
+    """True when the product is recent. Missing dates stay eligible so just-added items are not dropped."""
     if created_at is None or created_at == "":
-        return False
+        return True
     try:
         from datetime import datetime, timedelta, timezone
 
@@ -117,7 +118,6 @@ def _is_new_arrival(created_at: Any, *, days: int = 120) -> bool:
             dt = created_at
         else:
             raw = str(created_at).strip().replace("Z", "+00:00")
-            # MySQL often returns "YYYY-MM-DD HH:MM:SS"
             if " " in raw and "T" not in raw:
                 raw = raw.replace(" ", "T", 1)
             dt = datetime.fromisoformat(raw[:19])
@@ -128,7 +128,7 @@ def _is_new_arrival(created_at: Any, *, days: int = 120) -> bool:
             dt = dt.replace(tzinfo=timezone.utc)
         return dt >= now - timedelta(days=days)
     except Exception:
-        return False
+        return True
 
 
 class CatalogService:
@@ -415,8 +415,9 @@ class CatalogService:
             "images": images,
             "image_override": bool(override_img),
             "best_seller": _parse_int(row.get("total_sales")) >= 5,
-            # Recent catalog items (last ~120 days) — used by home New Arrivals + filters.
-            "new_arrival": _is_new_arrival(row.get("created_at")),
+            # Recent catalog items — used by home New Arrivals + filters.
+            "new_arrival": _is_new_arrival(row.get("updated_at") or row.get("created_at")),
+            "created_at": row.get("created_at"),
             "rating": round(_parse_float(row.get("wc_average_rating")), 1),
             "reviews": _parse_int(row.get("wc_review_count")),
             "description": description,
@@ -873,7 +874,7 @@ class CatalogService:
                 pass
             elif best_seller or new_arrival:
                 pass
-            elif sort in {"title_asc", "title_desc", "price_asc", "price_desc", "sales_desc", "date_asc"}:
+            elif sort in {"title_asc", "title_desc", "price_asc", "price_desc", "sales_desc", "date_asc", "date_desc"}:
                 # Explicit SQL sort (e.g. admin stock A→Z) — do not re-rank in Python.
                 if best_seller is not None:
                     products = [p for p in products if bool(p.get("best_seller")) == best_seller]
@@ -976,7 +977,20 @@ class CatalogService:
         return self.filter_products(best_seller=True, limit=limit, offset=0, user=user, sort="sales_desc")
 
     def new_arrivals(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
-        return self.filter_products(new_arrival=True, limit=limit, offset=0, user=user, sort="date_desc")
+        cap = max(1, int(limit or 50))
+        flagged = self.filter_products(new_arrival=True, limit=cap, offset=0, user=user, sort="date_desc")
+        newest = self.filter_products(limit=cap, offset=0, user=user, sort="date_desc")
+        items: list[dict] = []
+        seen: set[Any] = set()
+        for p in list(newest.get("items") or []) + list(flagged.get("items") or []):
+            wid = p.get("wc_id")
+            if wid in seen:
+                continue
+            seen.add(wid)
+            items.append(p)
+        items.sort(key=lambda p: int(p.get("wc_id") or 0), reverse=True)
+        flagged["items"] = items[:cap]
+        return flagged
 
     def home_rails(
         self,

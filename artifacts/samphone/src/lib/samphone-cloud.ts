@@ -57,6 +57,10 @@ type CloudProduct = {
   variants?: unknown[];
   in_stock?: boolean;
   on_sale?: boolean;
+  created_at?: string;
+  createdAt?: string;
+  date_created?: string;
+  new_arrival?: boolean;
   specs?: Record<string, string>;
   rating?: number;
   reviews?: number;
@@ -285,6 +289,7 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     images: imageList(p),
     sku: p.sku,
     description: p.description,
+    date_created: (p.created_at || p.createdAt || p.date_created || "").trim() || undefined,
     on_sale: Boolean(money(p.compareAtPrice)),
     stock_status: p.in_stock === false ? "outofstock" : "instock",
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
@@ -400,15 +405,31 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
 }
 
 export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
-  try {
-    const data = await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${limit}`);
-    const items = mapItems(data);
-    if (items.length) return items;
-  } catch {
-    /* /products still has the catalog when this route is 503 */
+  const cap = Math.max(8, limit);
+  const settled = await Promise.allSettled([
+    cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${cap}`).then(mapItems),
+    fetchCloudProductList({ sort: "date_desc" }, cap).then((page) => page.items),
+  ]);
+  const bags: WooProduct[] = [];
+  for (const row of settled) {
+    if (row.status === "fulfilled") bags.push(...row.value);
   }
-  const page = await fetchCloudProductList({ new_arrival: "true" }, limit);
-  return page.items;
+  const seen = new Set<string>();
+  const merged: WooProduct[] = [];
+  const ranked = [...bags].sort((a, b) => {
+    const da = a.date_created || "";
+    const db = b.date_created || "";
+    if (da && db && da !== db) return db.localeCompare(da);
+    return (b.id || 0) - (a.id || 0);
+  });
+  for (const p of ranked) {
+    const key = p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(p);
+    if (merged.length >= cap) break;
+  }
+  return merged;
 }
 
 export async function fetchCloudFeatured(limit = 24): Promise<WooProduct[]> {
