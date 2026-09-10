@@ -46,9 +46,18 @@ function isAllowedWooPath(path) {
   return normalized === "products" || normalized.startsWith("products/");
 }
 
-function httpGet(url) {
+function httpGet(href) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { headers: { Accept: "application/json" } }, (incoming) => {
+    const url = new URL(href);
+    const req = https.get(
+      {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: `${url.pathname}${url.search}`,
+        headers: { Accept: "application/json" },
+      },
+      (incoming) => {
       const chunks = [];
       incoming.on("data", (chunk) => chunks.push(chunk));
       incoming.on("end", () => {
