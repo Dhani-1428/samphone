@@ -21,8 +21,9 @@ type ClerkSetActive = (params: { session: string }) => Promise<void>;
 
 /**
  * Same identity as the Expo app:
- * 1) Prefer Clerk Production email/password → clerk-sync → app JWT
- * 2) Fall back to POST /auth/login (cloud / WordPress-imported users)
+ * 1) POST /auth/login first so ADMIN_EMAIL + ADMIN_PASSWORD open an admin session
+ *    even when Clerk has a different password for the same inbox.
+ * 2) Fall back to Clerk email/password → clerk-sync → app JWT.
  */
 export async function loginWithSharedIdentity(opts: {
   email: string;
@@ -40,6 +41,12 @@ export async function loginWithSharedIdentity(opts: {
     throw new WooCommerceFetchError("Email and password are required.");
   }
 
+  try {
+    return await cloudAuth("/auth/login", { email, password });
+  } catch (e) {
+    if (e instanceof CloudMfaRequiredError) throw e;
+  }
+
   if (opts.clerk?.isLoaded && opts.clerk.signIn && opts.clerk.setActive) {
     try {
       const attempt = await opts.clerk.signIn.create({ identifier: email, password });
@@ -52,7 +59,6 @@ export async function loginWithSharedIdentity(opts: {
       }
     } catch (e) {
       if (e instanceof CloudMfaRequiredError) throw e;
-      /* fall through to cloud login */
     }
   }
 

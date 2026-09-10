@@ -40,8 +40,8 @@ function ruleValue(rule: PersonalPricingRule): string {
 
 export default function AdminWholesale() {
   const { user } = useAuth();
-  const [token, setToken] = useState(() => getStoredApiJwt() ?? "");
-  const [authed, setAuthed] = useState(Boolean(token));
+  const [token, setToken] = useState(() => getStoredApiJwt() ?? user?.token ?? "");
+  const [authed, setAuthed] = useState(Boolean(getStoredApiJwt() ?? user?.token));
   const [users, setUsers] = useState<AdminWholesaleUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -83,6 +83,12 @@ export default function AdminWholesale() {
       setBusy(false);
     }
   }, [token, selectedId]);
+
+  useEffect(() => {
+    const jwt = getStoredApiJwt() ?? user?.token ?? "";
+    if (jwt && jwt !== token) setToken(jwt);
+    if (jwt) setAuthed(true);
+  }, [token, user?.token]);
 
   useEffect(() => {
     if (authed) void load();
@@ -184,28 +190,7 @@ export default function AdminWholesale() {
   if (!authed) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-        <div className="w-full max-w-md space-y-4 rounded-xl border bg-card p-8 shadow-lg">
-          <h1 className="text-xl font-bold">Wholesale admin</h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in with an admin Samphone account, or paste the FastAPI admin JWT.
-          </p>
-          <Label htmlFor="jwt">Admin JWT</Label>
-          <Input id="jwt" type="password" value={token} onChange={(e) => setToken(e.target.value)} />
-          <Button
-            className="w-full"
-            onClick={() => {
-              setAuthed(true);
-            }}
-          >
-            Continue
-          </Button>
-          <Link href="/admin/catalog" className="block text-center text-sm text-primary">
-            Catalog taxonomy
-          </Link>
-          <Link href="/admin/pricing" className="block text-center text-sm text-primary">
-            Product & category discounts
-          </Link>
-        </div>
+        <p className="text-sm text-muted-foreground">Opening wholesale admin…</p>
       </div>
     );
   }

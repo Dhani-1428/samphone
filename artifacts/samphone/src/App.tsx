@@ -27,6 +27,7 @@ import AppFeatures from "@/pages/AppFeatures";
 import CategoryPage from "@/pages/CategoryPage";
 import ProductPage from "@/pages/ProductPage";
 import Login from "@/pages/Login";
+import AuthContinue from "@/pages/AuthContinue";
 import Register from "@/pages/Register";
 import RegisterBusiness from "@/pages/RegisterBusiness";
 import Account from "@/pages/Account";
@@ -41,6 +42,7 @@ import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import ShopGroupPage from "@/pages/ShopGroupPage";
 import AdminPricing from "@/pages/admin/AdminPricing";
+import AdminGate from "@/components/AdminGate";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
@@ -173,6 +175,9 @@ function Router() {
       <Route path="/login">
         <Layout><Login /></Layout>
       </Route>
+      <Route path="/auth/continue">
+        <Layout><AuthContinue /></Layout>
+      </Route>
       <Route path="/register/business">
         <Layout><RegisterBusiness /></Layout>
       </Route>
@@ -225,13 +230,24 @@ function Router() {
         <Layout><ProductPage /></Layout>
       </Route>
       <Route path="/admin/pricing">
-        <AdminPricing />
+        <AdminGate>
+          <AdminPricing />
+        </AdminGate>
       </Route>
       <Route path="/admin/wholesale">
-        <AdminWholesale />
+        <AdminGate>
+          <AdminWholesale />
+        </AdminGate>
       </Route>
       <Route path="/admin/catalog">
-        <AdminCatalog />
+        <AdminGate>
+          <AdminCatalog />
+        </AdminGate>
+      </Route>
+      <Route path="/admin">
+        <AdminGate>
+          <AdminWholesale />
+        </AdminGate>
       </Route>
       <Route>
         <Layout><NotFound /></Layout>

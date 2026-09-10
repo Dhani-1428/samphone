@@ -1,9 +1,11 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/contexts/LanguageContext";
 import type { AuthUser } from "@/contexts/AuthContext";
 import { ACCOUNT_NAV, type AccountSectionId } from "@/components/account/account-sections";
+import { isAdminRole, ADMIN_HOME } from "@/lib/admin-access";
 
 type Props = {
   user: AuthUser;
@@ -34,6 +36,15 @@ export default function AccountSidebar({ user, section, onNavigate, onLogout }: 
       </div>
 
       <nav className="p-3 space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto hide-dropdown-scrollbar">
+        {isAdminRole(user.role) ? (
+          <Link
+            href={ADMIN_HOME}
+            className="flex items-center gap-2.5 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white"
+          >
+            <Shield className="h-4 w-4 shrink-0" />
+            Admin panel
+          </Link>
+        ) : null}
         {ACCOUNT_NAV.map((group) => (
           <div key={group.titleKey ?? "misc"}>
             {group.titleKey ? (

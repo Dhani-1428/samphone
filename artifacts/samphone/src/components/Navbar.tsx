@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, ShoppingBag, User } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, ShoppingBag, User, Shield } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -60,6 +60,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { isAdminRole, ADMIN_HOME } from "@/lib/admin-access";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 import BrandLogo from "@/components/BrandLogo";
@@ -1026,7 +1027,19 @@ export default function Navbar() {
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
             {user ? (
-              <Link
+              <>
+                {isAdminRole(user.role) ? (
+                  <Link
+                    href={ADMIN_HOME}
+                    className="hidden items-center gap-2.5 px-4 lg:flex"
+                    onClick={closeMenu}
+                    aria-label="Admin"
+                  >
+                    <Shield className="h-6 w-6 text-[#333333] dark:text-white" strokeWidth={1.7} />
+                    <span className="typo-header-action dark:text-white">Admin</span>
+                  </Link>
+                ) : null}
+                <Link
                 href="/account"
                 className="hidden items-center gap-2.5 px-4 lg:flex"
                 onClick={closeMenu}
@@ -1035,6 +1048,7 @@ export default function Navbar() {
                 <User className="h-6 w-6 text-[#333333] dark:text-white" strokeWidth={1.7} />
                 <span className="typo-header-action dark:text-white">{t("auth_my_account")}</span>
               </Link>
+              </>
             ) : (
               <div className="hidden items-center gap-2.5 px-4 lg:flex">
                 <User className="h-6 w-6 shrink-0 text-[#333333] dark:text-white" strokeWidth={1.7} />

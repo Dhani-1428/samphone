@@ -1,8 +1,9 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { SignIn, useAuth as useClerkAuth, useSignIn } from "@clerk/clerk-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { postLoginPath, isAdminRole } from "@/lib/admin-access";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { loginWithSharedIdentity, MfaRequiredError } from "@/lib/shared-identity-auth";
@@ -24,7 +25,7 @@ function LoginForm({
   };
 }) {
   const { t } = useLang();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [, setLocation] = useLocation();
   const search = useSearch();
   const [email, setEmail] = useState("");
@@ -34,13 +35,19 @@ function LoginForm({
   const [mfa, setMfa] = useState<{ token: string; email: string } | null>(null);
   const next = nextPathFromSearch(search);
   const clerkUi = Boolean(clerkHelpers);
+  const clerkContinue = `/auth/continue?next=${encodeURIComponent(next)}`;
+
+  useEffect(() => {
+    if (!user || !isAdminRole(user.role)) return;
+    setLocation(postLoginPath(user.role, next));
+  }, [next, setLocation, user]);
 
   const applySession = (session: CloudAuthSession) => {
     login({
       ...session,
       token: session.token ?? undefined,
     });
-    setLocation(next);
+    setLocation(postLoginPath(session.role, next));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -99,8 +106,8 @@ function LoginForm({
           <div className="mt-6">
             <SignIn
               routing="hash"
-              forceRedirectUrl={next}
-              fallbackRedirectUrl={next}
+              forceRedirectUrl={clerkContinue}
+              fallbackRedirectUrl={clerkContinue}
               appearance={{
                 elements: {
                   rootBox: "mx-auto w-full",

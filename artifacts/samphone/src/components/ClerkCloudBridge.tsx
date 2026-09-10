@@ -3,13 +3,14 @@ import { useAuth as useClerkAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { clerkSync } from "@/lib/samphone-cloud";
 import { registerClerkSignOut } from "@/lib/session-signout";
+import { isAdminRole } from "@/lib/admin-access";
 
 /** Keeps Clerk (app login) and the Samphone FastAPI JWT in sync. */
 export default function ClerkCloudBridge() {
   const { isSignedIn, getToken } = useClerkAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const { login } = useAuth();
+  const { login, user: appUser } = useAuth();
   const lastToken = useRef<string | null>(null);
 
   useEffect(() => {
@@ -31,6 +32,15 @@ export default function ClerkCloudBridge() {
       if (cancelled || !token || token.length < 20 || token === lastToken.current) return;
       lastToken.current = token;
       try {
+        const clerkEmail = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() || "";
+        if (
+          isAdminRole(appUser?.role) &&
+          appUser?.email &&
+          clerkEmail &&
+          clerkEmail !== appUser.email.trim().toLowerCase()
+        ) {
+          return;
+        }
         const meta = (user?.unsafeMetadata ?? {}) as Record<string, unknown>;
         const accountType =
           (typeof meta.accountType === "string" && meta.accountType) ||
@@ -74,7 +84,7 @@ export default function ClerkCloudBridge() {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, getToken, login, user]);
+  }, [isSignedIn, getToken, login, user, appUser]);
 
   return null;
 }

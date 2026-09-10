@@ -19,6 +19,7 @@ import AccessoryPageButtons from "@/components/AccessoryPageButtons";
 import BrandLogo from "@/components/BrandLogo";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
+import { isAdminRole, ADMIN_HOME } from "@/lib/admin-access";
 import { useCart } from "@/contexts/CartContext";
 import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
@@ -512,6 +513,15 @@ export default function MobileNavDrawer({
 
         {user ? (
           <>
+            {isAdminRole(user.role) ? (
+              <Link href={ADMIN_HOME} onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
+                <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
+                  <ShieldCheck className="h-5 w-5" />
+                  Admin
+                </span>
+                <ChevronRight className="h-4 w-4 text-slate-400" />
+              </Link>
+            ) : null}
             <Link href="/account" onClick={onClose} className="flex h-12 items-center justify-between border-t border-black/[0.06] text-black dark:border-white/10 dark:text-white">
               <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
                 <User className="h-5 w-5" />

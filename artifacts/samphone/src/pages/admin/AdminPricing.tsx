@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { adminAuthHeaders, getAdminToken, setAdminToken } from "@/lib/admin-session";
+import { getStoredApiJwt } from "@/config/samphone";
 
 const API_BASE = (import.meta.env.VITE_PRICING_API_URL ?? "/api").replace(/\/$/, "");
 
@@ -35,9 +36,10 @@ type CategoryRule = {
 type VatRule = { id: string; code: string; name: string; rate: number };
 
 export default function AdminPricing() {
-  const [authed, setAuthed] = useState(Boolean(getAdminToken()));
+  const initialToken = getAdminToken() || getStoredApiJwt() || "";
+  const [authed, setAuthed] = useState(Boolean(initialToken));
   const [tokenInput, setTokenInput] = useState("");
-  const [adminToken, setAdminTokenState] = useState(getAdminToken());
+  const [adminToken, setAdminTokenState] = useState(initialToken);
 
   const [tab, setTab] = useState<"product" | "category" | "customers" | "vat" | "history">("product");
   const [customers, setCustomers] = useState<Customer[]>([]);
