@@ -1,13 +1,10 @@
-const http = require("http");
-const https = require("https");
-
 const UPSTREAM_ORIGIN = (process.env.SAMPHONE_CLOUD_ORIGIN || process.env.SAMPHONE_API_ORIGIN || "https://samphone.cloud").replace(
   /\/$/,
   "",
 );
 const UPSTREAM = `${UPSTREAM_ORIGIN}/api`;
 const ALLOWED =
-  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|stock-alerts|notifications|orders|cart|payments|brands|admin|leads|contact|newsletter|health)(\/|$)/i;
+  /^(auth|products|products-search|featured|new-arrivals|home-rails|categories|banners|related|notify-stock|stock-alerts|notifications|orders|cart|payments|brands|admin|leads|contact|newsletter|health|translate)(\/|$)/i;
 
 function header(req, name) {
   const raw = req.headers?.[name] ?? req.headers?.[name.toLowerCase()];
@@ -20,8 +17,8 @@ function subPath(req) {
   if (Array.isArray(raw) && raw.length > 0) return raw.filter(Boolean).join("/");
   if (typeof raw === "string" && raw.length > 0) return raw.replace(/^\/+/, "");
 
-  const url = req.url || "/";
-  const pathname = url.split("?")[0] || "";
+  const href = req.url || "/";
+  const pathname = href.split("?")[0] || "";
   for (const marker of ["/api/cloud/", "/cloud-api/"]) {
     const at = pathname.indexOf(marker);
     if (at >= 0) return pathname.slice(at + marker.length).replace(/^\/+/, "");
@@ -31,10 +28,10 @@ function subPath(req) {
 }
 
 function forwardSearch(req) {
-  const url = req.url || "";
-  const qIndex = url.indexOf("?");
+  const href = req.url || "";
+  const qIndex = href.indexOf("?");
   if (qIndex < 0) return "";
-  const qs = new URLSearchParams(url.slice(qIndex + 1));
+  const qs = new URLSearchParams(href.slice(qIndex + 1));
   qs.delete("path");
   const s = qs.toString();
   return s ? `?${s}` : "";
@@ -57,38 +54,18 @@ async function readBody(req) {
   return Buffer.concat(chunks);
 }
 
-function proxy(target, method, headers, body) {
-  return new Promise((resolve, reject) => {
-    const url = new URL(target);
-    const payload = method === "GET" || method === "HEAD" ? undefined : body;
-    const reqHeaders = { ...headers };
-    if (payload && payload.length > 0) reqHeaders["Content-Length"] = String(payload.length);
-    const transport = url.protocol === "http:" ? http : https;
-    const upstream = transport.request(
-      {
-        protocol: url.protocol,
-        hostname: url.hostname,
-        port: url.port || (url.protocol === "http:" ? 80 : 443),
-        path: `${url.pathname}${url.search}`,
-        method,
-        headers: reqHeaders,
-      },
-      (incoming) => {
-        const chunks = [];
-        incoming.on("data", (chunk) => chunks.push(chunk));
-        incoming.on("end", () => {
-          resolve({
-            status: incoming.statusCode ?? 0,
-            contentType: String(incoming.headers["content-type"] || "application/json; charset=utf-8"),
-            body: Buffer.concat(chunks),
-          });
-        });
-      },
-    );
-    upstream.on("error", reject);
-    if (payload && payload.length > 0) upstream.write(payload);
-    upstream.end();
+async function proxy(target, method, headers, body) {
+  const payload = method === "GET" || method === "HEAD" ? undefined : body;
+  const upstream = await fetch(target, {
+    method,
+    headers,
+    body: payload && payload.length > 0 ? payload : undefined,
   });
+  return {
+    status: upstream.status,
+    contentType: upstream.headers.get("content-type") || "application/json; charset=utf-8",
+    body: Buffer.from(await upstream.arrayBuffer()),
+  };
 }
 
 module.exports = async function handler(req, res) {
