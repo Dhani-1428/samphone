@@ -351,6 +351,7 @@
   letter-spacing: 0;
   color: #C47A12;
   -webkit-text-stroke: 0.35px currentColor;
+  padding-left: 0.7rem;
 }
 
 .nav-bar-item {
