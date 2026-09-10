@@ -10,7 +10,7 @@ import {
 } from "@/config/samphone";
 import { modelAliases } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
-import { WooCommerceFetchError, normalizeProductGallery } from "@/lib/woocommerce";
+import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
 
 export { catalogImageReferrerPolicy };
@@ -289,7 +289,7 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     stock_status: p.in_stock === false ? "outofstock" : "instock",
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
     colorVariants: colorNames(p.color_variants),
-    colorSwatches: parseColorSwatches(p.color_variants),
+    colorSwatches: fillColorSwatchImages(parseColorSwatches(p.color_variants), imageList(p)),
     brand: p.brand,
     partType: (p.part_type || p.leaf_category || p.specs?.Type || "").trim() || undefined,
     rating: typeof p.rating === "number" ? p.rating : undefined,
@@ -314,7 +314,16 @@ function parseColorSwatches(raw: unknown): WooProduct["colorSwatches"] {
       continue;
     }
     if (!row || typeof row !== "object") continue;
-    const o = row as { label?: string; name?: string; color?: string; title?: string; image?: string };
+    const o = row as {
+      label?: string;
+      name?: string;
+      color?: string;
+      title?: string;
+      image?: string;
+      src?: string;
+      url?: string;
+      img?: string;
+    };
     const label = (o.label || o.name || o.title || o.color || "").trim();
     if (!label) continue;
     const key = label.toLowerCase();
@@ -325,7 +334,7 @@ function parseColorSwatches(raw: unknown): WooProduct["colorSwatches"] {
         ? o.color!
         : `#${o.color}`
       : hexFromLabel(label);
-    const image = normalizeCatalogImageUrl(o.image) || null;
+    const image = normalizeCatalogImageUrl(o.image || o.src || o.url || o.img) || null;
     out.push({ label, hex, image });
   }
   return out.length ? out : undefined;

@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import {
   AlertCircle,
   Heart,
@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
+import { getPrimaryImageUrl, resolveSwatchImage, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
@@ -44,7 +44,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const canBuyDealer = !product.dealerOnly || seesWholesalePrices(user);
   const swatches = product.colorSwatches ?? [];
   const hasVariants = swatches.length > 0;
-  const variantImage = swatches[colorIdx]?.image;
+  const variantImage = resolveSwatchImage(swatches, product.images, colorIdx);
   const imageUrl = variantImage || getPrimaryImageUrl(product);
   const productHref = wooProductHref(product.id);
   const cartKey = wooCartKey(product.id, swatches[colorIdx]?.label);
@@ -56,6 +56,10 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const showLoginBuy = Boolean(!user && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
+
+  useEffect(() => {
+    setImgOk(true);
+  }, [colorIdx, imageUrl]);
 
   const toggleWish = (e: MouseEvent) => {
     e.preventDefault();
@@ -93,10 +97,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden">
           <CatalogImage
+            key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-contain object-center transition-[filter,transform]",
+              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="lazy"

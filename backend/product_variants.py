@@ -175,6 +175,32 @@ def extract_color_variants(row: dict[str, Any], variations: list[dict[str, Any]]
                     entry["wc_variation_id"] = int(var["id"])
                 entry["in_stock"] = str(var.get("stock_status") or "").lower() == "instock"
 
+    gallery: list[str] = []
+    for img in row.get("images") or []:
+        src = ""
+        if isinstance(img, str):
+            src = img.strip()
+        elif isinstance(img, dict):
+            src = str(img.get("src") or img.get("url") or "").strip()
+        if not src:
+            continue
+        if src.startswith("//"):
+            src = "https:" + src
+        src = re.sub(r"^http://", "https://", src, flags=re.I)
+        src = re.sub(r"^https://samphone\.pt/", "https://www.samphone.pt/", src, flags=re.I)
+        if src not in gallery:
+            gallery.append(src)
+    if gallery:
+        for i, entry in enumerate(by_label.values()):
+            if entry.get("image"):
+                continue
+            label_key = re.sub(r"[^a-z0-9]+", "", entry["label"].lower())
+            named = next(
+                (u for u in gallery if label_key and label_key in re.sub(r"[^a-z0-9]+", "", u.lower())),
+                None,
+            )
+            entry["image"] = named or (gallery[i] if i < len(gallery) else gallery[0])
+
     return list(by_label.values())
 
 

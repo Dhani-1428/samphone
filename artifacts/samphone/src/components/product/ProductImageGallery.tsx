@@ -10,6 +10,7 @@ import {
 import { Lens } from "@/components/ui/lens";
 import CatalogImage from "@/components/CatalogImage";
 import { useLang } from "@/contexts/LanguageContext";
+import { normalizeCatalogImageUrl } from "@/config/samphone";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -36,8 +37,10 @@ export default function ProductImageGallery({
 
   useEffect(() => {
     if (!preferredSrc) return;
-    const i = images.indexOf(preferredSrc);
+    const want = normalizeCatalogImageUrl(preferredSrc) || preferredSrc;
+    const i = images.findIndex((src) => (normalizeCatalogImageUrl(src) || src) === want);
     if (i >= 0) setActive(i);
+    else setActive(0);
   }, [preferredSrc, images]);
 
   const main = images[active] ?? images[0];

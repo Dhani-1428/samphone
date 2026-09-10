@@ -9,7 +9,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { fetchProductById, fetchRelatedProducts, wooCartKey, type WooProduct } from "@/lib/woocommerce";
+import { fetchProductById, fetchRelatedProducts, resolveSwatchImage, wooCartKey, type WooProduct } from "@/lib/woocommerce";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
@@ -239,7 +239,7 @@ function WooProductView({
   const { user } = useAuth();
   const { displayFormatted } = useCustomerProductPrice(wooProduct);
   const swatches = wooProduct.colorSwatches ?? [];
-  const preferredSrc = swatches[colorIdx]?.image || null;
+  const preferredSrc = resolveSwatchImage(swatches, wooProduct.images, colorIdx);
   const gallery = (wooProduct.images ?? [])
     .map((img) => img.src)
     .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src));

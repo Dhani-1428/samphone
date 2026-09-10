@@ -59,6 +59,48 @@ export type ProductColorSwatch = {
   image: string | null;
 };
 
+function colorToken(label: string): string {
+  return label.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/** Pick a gallery photo for a swatch: explicit image, name match, then same-index gallery shot. */
+export function resolveSwatchImage(
+  swatches: ProductColorSwatch[] | undefined,
+  images: WooProduct["images"] | undefined,
+  index: number,
+): string | null {
+  const list = swatches ?? [];
+  const gallery = (images ?? [])
+    .map((img) => normalizeCatalogImageUrl(img.src) || img.src)
+    .filter((src): src is string => Boolean(src));
+  const swatch = list[index];
+  if (!swatch) return gallery[0] ?? null;
+  const explicit = normalizeCatalogImageUrl(swatch.image) || swatch.image;
+  if (explicit) return explicit;
+  const needle = colorToken(swatch.label);
+  if (needle.length >= 3) {
+    const named = (images ?? []).find((img) => {
+      const blob = colorToken(`${img.src} ${img.alt ?? ""} ${img.name ?? ""}`);
+      return blob.includes(needle);
+    });
+    const namedSrc = named ? normalizeCatalogImageUrl(named.src) || named.src : null;
+    if (namedSrc) return namedSrc;
+  }
+  if (gallery[index]) return gallery[index];
+  return gallery[0] ?? null;
+}
+
+export function fillColorSwatchImages(
+  swatches: ProductColorSwatch[] | undefined,
+  images: WooProduct["images"] | undefined,
+): ProductColorSwatch[] {
+  const list = swatches ?? [];
+  return list.map((s, i) => ({
+    ...s,
+    image: resolveSwatchImage(list, images, i),
+  }));
+}
+
 /** Stable gallery order, deduped by `src` (Woo occasionally repeats URLs). */
 export function dedupeGalleryImages(images: WooProduct["images"] | undefined | null): WooProduct["images"] {
   if (!images?.length) return [];
