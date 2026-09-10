@@ -96,7 +96,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
 
         {hasVariants ? (
           <div
-            className="absolute left-1.5 top-2 z-30 rounded-full bg-white/85 px-1 py-1.5 shadow-sm backdrop-blur-[2px]"
+            className="absolute left-1 top-2 z-30 flex flex-col"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
@@ -114,13 +114,19 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           </div>
         ) : null}
 
-        <Link href={productHref} className="absolute inset-0 z-10 block overflow-hidden">
+        <Link
+          href={productHref}
+          className={cn(
+            "absolute inset-0 z-10 block overflow-hidden bg-white",
+            hasVariants ? "pb-2 pl-7 pr-2 pt-2" : "p-1.5",
+          )}
+        >
           <CatalogImage
             key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={swatches[colorIdx]?.label || product.images?.[0]?.alt || product.name}
             className={cn(
-              "h-full w-full object-cover object-center transition-[filter,transform,opacity] duration-200",
+              "h-full w-full object-contain object-center transition-[filter,transform,opacity] duration-200",
               !inStock && "scale-105 blur-[3px]",
             )}
             loading="eager"
