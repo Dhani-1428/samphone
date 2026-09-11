@@ -349,21 +349,30 @@ export default function Footer() {
             );
           })}
         </div>
-        <div className="border-t border-white/15 px-5 py-3 text-center text-[12px] font-semibold text-white/75">
-          <button type="button" className="hover:text-white" onClick={() => openCookieSettings()}>
+        <div className="border-t border-white/15 px-5 py-3.5 text-center text-[14px] font-bold tracking-[0.01em] text-white">
+          <button
+            type="button"
+            className="text-white underline decoration-white/80 underline-offset-[3px] hover:decoration-white"
+            onClick={() => openCookieSettings()}
+          >
             {t("footer_cookie_settings")}
           </button>
-          <span className="mx-2 text-white/30">·</span>
-          <a href={LEGAL_LINKS.livro} className="hover:text-white" target="_blank" rel="noreferrer">
+          <span className="mx-2.5 text-white/55">·</span>
+          <a
+            href={LEGAL_LINKS.livro}
+            className="text-white underline decoration-white/80 underline-offset-[3px] hover:decoration-white"
+            target="_blank"
+            rel="noreferrer"
+          >
             {t("footer_livro")}
           </a>
-          <span className="mx-2 text-white/30">·</span>
+          <span className="mx-2.5 text-white/55">·</span>
           {t("footer_developed_by")}{" "}
           <a
             href="https://bonusitsolutions.com/"
             target="_blank"
             rel="noreferrer"
-            className="text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+            className="text-white underline decoration-white/80 underline-offset-[3px] hover:decoration-white"
           >
             Bonus IT Solutions
           </a>
