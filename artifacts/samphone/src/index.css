@@ -549,3 +549,14 @@ body.no-site-capture [contenteditable="true"] {
     visibility: hidden !important;
   }
 }
+
+.site-capture-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: #ffffff;
+}
+
+body.no-site-capture.site-capture-veiled #root {
+  visibility: hidden !important;
+}
