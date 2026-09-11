@@ -814,7 +814,7 @@ class AppDB:
         self.ensure_schema()
         with self._conn() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT * FROM users WHERE role != 'admin' ORDER BY created_at DESC")
+                cur.execute("SELECT * FROM users ORDER BY created_at DESC")
                 rows = cur.fetchall()
         return [user_public_wholesale(self._row_to_user(row)) for row in rows]
 
@@ -1259,7 +1259,7 @@ class AppDB:
                 if not needle:
                     cur.execute(
                         """
-                        SELECT * FROM users WHERE role != 'admin'
+                        SELECT * FROM users
                         ORDER BY created_at DESC LIMIT %s
                         """,
                         (limit,),
@@ -1269,8 +1269,7 @@ class AppDB:
                     cur.execute(
                         """
                         SELECT * FROM users
-                        WHERE role != 'admin'
-                          AND (
+                        WHERE (
                             email LIKE %s OR name LIKE %s OR phone LIKE %s
                             OR business_name LIKE %s OR vat_number LIKE %s
                           )

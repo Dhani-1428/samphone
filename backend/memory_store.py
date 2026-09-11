@@ -578,7 +578,7 @@ def get_admin_order(order_id: str) -> Optional[dict]:
 
 
 def list_users() -> list[dict]:
-    users = [_user_public(u) for u in _users.values() if u.get("role") != "admin"]
+    users = [_user_public(u) for u in _users.values()]
     users.sort(key=lambda u: u.get("created_at", ""), reverse=True)
     return users
 

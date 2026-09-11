@@ -307,7 +307,20 @@ function App() {
   const clerk = isClerkEnabled();
   const tree = clerk ? (
     <Suspense fallback={null}>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <ClerkProvider
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        afterSignInUrl="/auth/continue"
+        afterSignUpUrl="/auth/continue"
+        allowedRedirectOrigins={[
+          "https://www.samphone.eu",
+          "https://samphone.eu",
+          "https://www.samphone.pt",
+          "https://samphone.pt",
+          "https://samphone.cloud",
+          "https://www.samphone.cloud",
+        ]}
+      >
         <AppShell clerk />
       </ClerkProvider>
     </Suspense>

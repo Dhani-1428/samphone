@@ -292,6 +292,8 @@
   "auth_clerk_same": "Use the same Clerk login as the Samphone app (clerk.samphone.cloud).",
   "auth_or_email": "Or continue with email",
   "auth_phone_send": "Send code",
+  "auth_social_wait": "Opening secure sign-in…",
+  "auth_social_failed": "Could not start Google, Apple, or phone sign-in. Try again.",
   "auth_email_login": "Sign in with the same Samphone email and password as the app.",
   "auth_mfa_title": "Verify it’s you",
   "auth_mfa_hint": "Enter the code from your authenticator app to finish signing in.",

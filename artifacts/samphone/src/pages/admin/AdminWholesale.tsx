@@ -38,6 +38,19 @@ function ruleValue(rule: PersonalPricingRule): string {
   return "—";
 }
 
+function formatJoined(iso?: string): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function AdminWholesale() {
   const { user } = useAuth();
   const [token, setToken] = useState(() => getStoredApiJwt() ?? user?.token ?? "");
@@ -66,7 +79,12 @@ export default function AdminWholesale() {
       ]);
       const byId = new Map<string, AdminWholesaleUser>();
       for (const row of [...requests, ...all]) byId.set(row.id || row.email, row);
-      const list = [...byId.values()].sort((a, b) => a.email.localeCompare(b.email));
+      const list = [...byId.values()].sort((a, b) => {
+        const da = a.createdAt || "";
+        const db = b.createdAt || "";
+        if (da !== db) return db.localeCompare(da);
+        return a.email.localeCompare(b.email);
+      });
       setUsers(list);
       if (selectedId) {
         const selected = list.find((u) => u.id === selectedId);
@@ -272,6 +290,7 @@ export default function AdminWholesale() {
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="py-2">Customer</th>
+                  <th className="py-2">Joined</th>
                   <th className="py-2">Status</th>
                   <th className="py-2">Account discount</th>
                   <th className="py-2">Actions</th>
@@ -289,9 +308,10 @@ export default function AdminWholesale() {
                         <div className="text-muted-foreground">{row.email}</div>
                       </button>
                       <div className="text-xs text-muted-foreground">
-                        {row.businessName || row.accountType || "—"} {row.vatNumber ? `· ${row.vatNumber}` : ""}
+                        {row.businessName || row.accountType || row.role || "—"} {row.vatNumber ? `· ${row.vatNumber}` : ""}
                       </div>
                     </td>
+                    <td className="py-3 whitespace-nowrap text-muted-foreground">{formatJoined(row.createdAt)}</td>
                     <td className="py-3 capitalize">{row.wholesaleStatus || (row.isWholesale ? "approved" : "—")}</td>
                     <td className="py-3">
                       {row.accountDiscountPercent != null && row.accountDiscountPercent > 0

@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { useAuth as useClerkAuth, useSignIn } from "@clerk/clerk-react";
+import { useAuth as useClerkAuth, useSignIn, useSignUp } from "@clerk/clerk-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -22,6 +22,7 @@ function LoginForm({
   clerkHelpers?: {
     isLoaded: boolean;
     signIn: ReturnType<typeof useSignIn>["signIn"];
+    signUp: ReturnType<typeof useSignUp>["signUp"];
     setActive: ReturnType<typeof useSignIn>["setActive"];
     getToken: () => Promise<string | null>;
   };
@@ -40,6 +41,7 @@ function LoginForm({
   const [national, setNational] = useState("");
   const [otpPhone, setOtpPhone] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState("");
+  const [pendingOauth, setPendingOauth] = useState<"oauth_google" | "oauth_apple" | null>(null);
   const next = nextPathFromSearch(search);
   const clerkUi = Boolean(clerkHelpers);
   const clerkContinue = `/auth/continue?next=${encodeURIComponent(next)}`;
@@ -57,25 +59,82 @@ function LoginForm({
     setLocation(postLoginPath(session.role, next));
   };
 
-  const oauth = useCallback(
+  const oauthRedirects = useCallback(() => {
+    const origin = window.location.origin;
+    return {
+      redirectUrl: `${origin}/sso-callback`,
+      redirectUrlComplete: `${origin}${clerkContinue}`,
+    };
+  }, [clerkContinue]);
+
+  const startOauth = useCallback(
     async (strategy: "oauth_google" | "oauth_apple") => {
-      if (!clerkHelpers?.isLoaded || !clerkHelpers.signIn) {
-        setError(t("auth_email_login"));
+      const signIn = clerkHelpers?.signIn;
+      const signUp = clerkHelpers?.signUp;
+      if (!clerkHelpers?.isLoaded || (!signIn && !signUp)) {
+        setError(t("auth_social_failed"));
         return;
       }
       setError(null);
-      const origin = window.location.origin;
+      setBusy(true);
+      const redirects = oauthRedirects();
       try {
-        await clerkHelpers.signIn.authenticateWithRedirect({
-          strategy,
-          redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: `${origin}${clerkContinue}`,
-        });
+        if (signIn) {
+          await signIn.authenticateWithRedirect({ strategy, ...redirects });
+          return;
+        }
+        if (signUp) {
+          await signUp.authenticateWithRedirect({
+            strategy,
+            ...redirects,
+            unsafeMetadata: { accountType: "b2c" },
+          });
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("auth_submit_login"));
+        try {
+          if (signUp) {
+            await signUp.authenticateWithRedirect({
+              strategy,
+              ...redirects,
+              unsafeMetadata: { accountType: "b2c" },
+            });
+            return;
+          }
+        } catch (signUpErr) {
+          setBusy(false);
+          setError(signUpErr instanceof Error ? signUpErr.message : t("auth_social_failed"));
+          return;
+        }
+        setBusy(false);
+        setError(err instanceof Error ? err.message : t("auth_social_failed"));
       }
     },
-    [clerkContinue, clerkHelpers, t],
+    [clerkHelpers, oauthRedirects, t],
+  );
+
+  useEffect(() => {
+    if (!pendingOauth) return;
+    if (!clerkHelpers?.isLoaded) return;
+    const strategy = pendingOauth;
+    setPendingOauth(null);
+    void startOauth(strategy);
+  }, [clerkHelpers?.isLoaded, pendingOauth, startOauth]);
+
+  const oauth = useCallback(
+    (strategy: "oauth_google" | "oauth_apple") => {
+      if (!clerkHelpers) {
+        setError(t("auth_social_failed"));
+        return;
+      }
+      if (!clerkHelpers.isLoaded) {
+        setError(null);
+        setBusy(true);
+        setPendingOauth(strategy);
+        return;
+      }
+      void startOauth(strategy);
+    },
+    [clerkHelpers, startOauth, t],
   );
 
   const sendPhoneCode = async () => {
@@ -84,30 +143,42 @@ function LoginForm({
       setError(t("reg_invalid_phone"));
       return;
     }
-    if (!clerkHelpers?.isLoaded || !clerkHelpers.signIn) {
-      setError(t("auth_email_login"));
+    if (!clerkHelpers?.isLoaded || (!clerkHelpers.signIn && !clerkHelpers.signUp)) {
+      setError(t("auth_social_failed"));
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      const attempt = await clerkHelpers.signIn.create({ identifier: phone });
-      const factors = (attempt.supportedFirstFactors ?? []) as Array<{
-        strategy: string;
-        phoneNumberId?: string;
-      }>;
-      const phoneFactor = factors.find((f) => f.strategy === "phone_code");
-      if (!phoneFactor?.phoneNumberId) {
-        setError(t("reg_invalid_phone"));
+      if (clerkHelpers.signIn) {
+        try {
+          const attempt = await clerkHelpers.signIn.create({ identifier: phone });
+          const factors = (attempt.supportedFirstFactors ?? []) as Array<{
+            strategy: string;
+            phoneNumberId?: string;
+          }>;
+          const phoneFactor = factors.find((f) => f.strategy === "phone_code");
+          if (phoneFactor?.phoneNumberId) {
+            await clerkHelpers.signIn.prepareFirstFactor({
+              strategy: "phone_code",
+              phoneNumberId: phoneFactor.phoneNumberId,
+            });
+            setOtpPhone(phone);
+            return;
+          }
+        } catch {
+          /* new number — fall through to sign-up */
+        }
+      }
+      if (clerkHelpers.signUp) {
+        await clerkHelpers.signUp.create({ phoneNumber: phone });
+        await clerkHelpers.signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
+        setOtpPhone(phone);
         return;
       }
-      await clerkHelpers.signIn.prepareFirstFactor({
-        strategy: "phone_code",
-        phoneNumberId: phoneFactor.phoneNumberId,
-      });
-      setOtpPhone(phone);
+      setError(t("reg_invalid_phone"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("auth_submit_login"));
+      setError(err instanceof Error ? err.message : t("auth_social_failed"));
     } finally {
       setBusy(false);
     }
@@ -118,23 +189,36 @@ function LoginForm({
       setError(t("reg_otp_invalid"));
       return;
     }
-    if (!clerkHelpers?.signIn || !clerkHelpers.setActive) {
-      setError(t("auth_email_login"));
-      return;
-    }
     setBusy(true);
     setError(null);
     try {
-      const result = await clerkHelpers.signIn.attemptFirstFactor({
-        strategy: "phone_code",
-        code: otpCode,
-      });
-      if (result.status === "complete" && result.createdSessionId) {
-        await clerkHelpers.setActive({ session: result.createdSessionId });
-        const token = await clerkHelpers.getToken();
-        if (token && token.length >= 20) {
-          applySession(await clerkSync(token, { phone: otpPhone }));
-          return;
+      if (clerkHelpers?.signIn) {
+        try {
+          const result = await clerkHelpers.signIn.attemptFirstFactor({
+            strategy: "phone_code",
+            code: otpCode,
+          });
+          if (result.status === "complete" && result.createdSessionId && clerkHelpers.setActive) {
+            await clerkHelpers.setActive({ session: result.createdSessionId });
+            const token = await clerkHelpers.getToken();
+            if (token && token.length >= 20) {
+              applySession(await clerkSync(token, { phone: otpPhone }));
+              return;
+            }
+          }
+        } catch {
+          /* try sign-up verification */
+        }
+      }
+      if (clerkHelpers?.signUp && clerkHelpers.setActive) {
+        const result = await clerkHelpers.signUp.attemptPhoneNumberVerification({ code: otpCode });
+        if (result.status === "complete" && result.createdSessionId) {
+          await clerkHelpers.setActive({ session: result.createdSessionId });
+          const token = await clerkHelpers.getToken();
+          if (token && token.length >= 20) {
+            applySession(await clerkSync(token, { phone: otpPhone }));
+            return;
+          }
         }
       }
       setError(t("reg_otp_invalid"));
@@ -225,11 +309,14 @@ function LoginForm({
       <p className="mt-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {t("auth_or_social")}
       </p>
+      {busy && pendingOauth ? (
+        <p className="mt-2 text-center text-xs text-muted-foreground">{t("auth_social_wait")}</p>
+      ) : null}
       <div className="mt-3">
         <AuthSocialCircles
           disabled={busy}
-          onGoogle={() => void oauth("oauth_google")}
-          onApple={() => void oauth("oauth_apple")}
+          onGoogle={() => oauth("oauth_google")}
+          onApple={() => oauth("oauth_apple")}
           onPhone={() => {
             setError(null);
             setPhoneOpen((v) => !v);
@@ -318,12 +405,14 @@ function LoginForm({
 
 function LoginWithClerk() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { signUp } = useSignUp();
   const { getToken } = useClerkAuth();
   return (
     <LoginForm
       clerkHelpers={{
         isLoaded,
         signIn,
+        signUp,
         setActive,
         getToken,
       }}

@@ -1169,6 +1169,8 @@ export type AdminWholesaleUser = {
   id: string;
   email: string;
   name: string;
+  role?: string;
+  createdAt?: string;
   accountType?: string;
   wholesaleStatus?: string;
   isWholesale?: boolean;
@@ -1186,10 +1188,18 @@ function asAdminUser(raw: unknown): AdminWholesaleUser | null {
   const email = typeof o.email === "string" ? o.email : "";
   const id = o.id != null ? String(o.id) : email;
   if (!id && !email) return null;
+  const createdAt =
+    typeof o.createdAt === "string"
+      ? o.createdAt
+      : typeof o.created_at === "string"
+        ? o.created_at
+        : undefined;
   return {
     id: id || email,
     email,
     name: typeof o.name === "string" ? o.name : email.split("@")[0] || id,
+    role: typeof o.role === "string" ? o.role : undefined,
+    createdAt,
     accountType: typeof o.accountType === "string" ? o.accountType : typeof o.account_type === "string" ? o.account_type : undefined,
     wholesaleStatus:
       typeof o.wholesaleStatus === "string"

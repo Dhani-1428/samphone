@@ -614,8 +614,20 @@ def _verify_clerk_session_token(token: str) -> dict:
             email = (row.get("email_address") or "").strip().lower()
             if row.get("id") == primary_id:
                 break
+    phones = clerk_user.get("phone_numbers") or []
+    primary_phone_id = clerk_user.get("primary_phone_number_id")
+    phone = ""
+    for row in phones:
+        if row.get("id") == primary_phone_id or not phone:
+            phone = (row.get("phone_number") or "").strip()
+            if row.get("id") == primary_phone_id:
+                break
     if not email or "@" not in email:
-        raise HTTPException(status_code=400, detail="Clerk user has no email")
+        digits = "".join(ch for ch in phone if ch.isdigit())
+        if digits:
+            email = f"{digits}@phone.users.samphone.cloud"
+        else:
+            raise HTTPException(status_code=400, detail="Clerk user has no email")
 
     first = (clerk_user.get("first_name") or "").strip()
     last = (clerk_user.get("last_name") or "").strip()
@@ -629,6 +641,7 @@ def _verify_clerk_session_token(token: str) -> dict:
         "clerk_id": user_id,
         "sid": (claims.get("sid") or "").strip(),
         "unsafe_metadata": unsafe,
+        "phone": phone,
     }
 
 
@@ -1168,7 +1181,7 @@ async def clerk_sync(body: ClerkSyncBody, request: Request, background_tasks: Ba
     business_name = (body.business_name or meta.get("businessName") or "").strip()
     vat_number = (body.vat_number or meta.get("vatNumber") or "").strip()
     business_type = (body.business_type or meta.get("businessType") or "").strip()
-    phone = (body.phone or meta.get("phone") or "").strip()
+    phone = (body.phone or clerk.get("phone") or meta.get("phone") or "").strip()
     display_name = (
         (body.name or "").strip()
         or str(meta.get("displayName") or "").strip()

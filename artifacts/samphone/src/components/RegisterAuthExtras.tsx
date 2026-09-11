@@ -46,12 +46,15 @@ function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialPr
     async (strategy: "oauth_google" | "oauth_apple") => {
       if (!isLoaded || !signUp) return;
       const origin = window.location.origin;
-      const complete = `${origin}${redirectPath}`;
+      const complete = `${origin}${redirectPath.startsWith("/auth/continue") ? redirectPath : `/auth/continue?next=${encodeURIComponent(redirectPath)}`}`;
+      const redirects = {
+        redirectUrl: `${origin}/sso-callback`,
+        redirectUrlComplete: complete,
+      };
       try {
         await signUp.authenticateWithRedirect({
           strategy,
-          redirectUrl: `${origin}/sso-callback`,
-          redirectUrlComplete: complete,
+          ...redirects,
           unsafeMetadata: { accountType },
         });
       } catch {
