@@ -13,6 +13,9 @@ export type CartLinePreview = {
   productId: string | null;
   minOrderQty?: number;
   dealerOnly?: boolean;
+  sku?: string | null;
+  variantLabel?: string | null;
+  inStock?: boolean;
 };
 
 export function buildWooProductMap(products: WooProduct[]): Map<number, WooProduct> {
@@ -33,11 +36,10 @@ export function buildCartLinePreview(
       ? w?.colorSwatches?.find((s) => colorCartSlug(s.label) === wooKey.colorSlug)
       : undefined;
     const unit = w ? catalogUnitPrice(w, user) : null;
-    const colorName = swatch?.label ? ` — ${swatch.label}` : "";
     return {
       cartKey,
       qty,
-      name: `${w?.name ?? `Product #${wooKey.id}`}${colorName}`,
+      name: w?.name ?? `Product #${wooKey.id}`,
       img: swatch?.image || (w ? getPrimaryImageUrl(w) : null),
       href,
       unitPrice: unit,
@@ -45,6 +47,9 @@ export function buildCartLinePreview(
       productId: w?.cloudId || String(wooKey.id),
       minOrderQty: w?.minOrderQty,
       dealerOnly: w?.dealerOnly,
+      sku: w?.sku || null,
+      variantLabel: swatch?.label || null,
+      inStock: w?.stock_status !== "outofstock",
     };
   }
   const c = resolveCatalogProduct(cartKey);
