@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   ChevronLeft,
   Headphones,
@@ -15,19 +15,8 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useTranslatedText } from "@/hooks/useTranslatedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import GuestPriceGate from "@/components/GuestPriceGate";
 import CatalogImage from "@/components/CatalogImage";
 import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-preview";
-import {
-  CHECKOUT_DRAFT_KEY,
-  createCloudOrder,
-  startStripeCheckout,
-  type CheckoutDraft,
-} from "@/lib/samphone-cloud";
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
@@ -97,27 +86,19 @@ function CartQty({ cartKey }: { cartKey: string }) {
 }
 
 export default function CartPage() {
-  const { items, removeLine, clearCart, totalItems } = useCart();
+  const { items, removeLine, totalItems } = useCart();
   const { t } = useLang();
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const { products: wooProducts } = useProductCatalog();
   const wooById = useMemo(() => buildWooProductMap(wooProducts), [wooProducts]);
-  const [checkoutBusy, setCheckoutBusy] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [checkoutOk, setCheckoutOk] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [fullName, setFullName] = useState(user?.name ?? "");
-  const [phone, setPhone] = useState(user?.phone ?? "");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("Lisboa");
-  const [postal, setPostal] = useState("");
-  const [country, setCountry] = useState("Portugal");
-  const [companyName, setCompanyName] = useState(user?.businessName ?? "");
-  const [vatNumber, setVatNumber] = useState(user?.vatNumber ?? "");
-  const [notes, setNotes] = useState("");
-  const [shipping, setShipping] = useState("standard");
-  const [payMethod, setPayMethod] = useState("card");
   const [tradeIn, setTradeIn] = useState(() => loadTradeInVoucher());
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("checkout") === "success") {
+      setLocation("/checkout?checkout=success");
+    }
+  }, [setLocation]);
 
   const lines = useMemo(() => {
     return Object.entries(items)
@@ -139,132 +120,11 @@ export default function CartPage() {
     return { sum, missing };
   }, [lines]);
 
-  const shippingCost = shipping === "pickup" || subtotal.sum >= FREE_SHIP_THRESHOLD ? 0 : STANDARD_SHIPPING;
+  const shippingCost = subtotal.sum >= FREE_SHIP_THRESHOLD ? 0 : STANDARD_SHIPPING;
   const vatIncluded = subtotal.sum - subtotal.sum / (1 + VAT_RATE);
   const grandTotal = subtotal.sum + shippingCost;
   const shipProgress = Math.min(100, (subtotal.sum / FREE_SHIP_THRESHOLD) * 100);
   const shipRemain = Math.max(0, FREE_SHIP_THRESHOLD - subtotal.sum);
-
-  const handleCheckout = async () => {
-    const payload = lines
-      .filter((line) => line.productId && line.qty > 0)
-      .map((line) => ({ productId: line.productId as string, quantity: line.qty }));
-    if (payload.length === 0) {
-      setCheckoutError(t("cart_checkout_note"));
-      return;
-    }
-    if (!user) {
-      setCheckoutError(t("login_to_buy"));
-      return;
-    }
-    if (!fullName.trim() || !phone.trim() || !address.trim() || !city.trim() || !postal.trim() || !country.trim()) {
-      setCheckoutError(t("checkout_full_name"));
-      return;
-    }
-    const isBiz = (user.accountType || "").toLowerCase() === "b2b";
-    if (isBiz && (!companyName.trim() || !vatNumber.trim())) {
-      setCheckoutError(t("checkout_company"));
-      return;
-    }
-    const moqFail = lines.find((line) => line.minOrderQty && line.qty < line.minOrderQty);
-    if (moqFail) {
-      setCheckoutError(t("moq_error", { qty: String(moqFail.minOrderQty), name: moqFail.name }));
-      return;
-    }
-    const tradeNote = tradeIn ? `Trade-in ${tradeIn.code} (€${tradeIn.value})` : "";
-    const draft: CheckoutDraft = {
-      items: payload,
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      address: address.trim(),
-      city: city.trim(),
-      postal_code: postal.trim(),
-      country: country.trim(),
-      company_name: isBiz ? companyName.trim() : undefined,
-      vat_number: isBiz ? vatNumber.trim() : undefined,
-      shipping_method: shipping,
-      payment_method: payMethod,
-      notes: [notes.trim(), tradeNote].filter(Boolean).join("\n"),
-    };
-    setCheckoutBusy(true);
-    setCheckoutError(null);
-    try {
-      const stripePay =
-        payMethod === "card" ||
-        payMethod === "mb_way" ||
-        payMethod === "multibanco" ||
-        payMethod === "google_pay" ||
-        payMethod === "apple_pay";
-      if (stripePay) {
-        sessionStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
-        const url = await startStripeCheckout(payload);
-        window.location.assign(url);
-        return;
-      }
-      await createCloudOrder({
-        items: payload.map((row) => ({ product_id: row.productId, quantity: row.quantity })),
-        full_name: draft.full_name,
-        phone: draft.phone,
-        address: draft.address,
-        city: draft.city,
-        postal_code: draft.postal_code,
-        country: draft.country,
-        company_name: draft.company_name,
-        vat_number: draft.vat_number,
-        payment_method: payMethod,
-        shipping_method: shipping,
-        notes: draft.notes || undefined,
-      });
-      clearCart();
-      setCheckoutOk(true);
-    } catch (e) {
-      setCheckoutError(e instanceof Error ? e.message : t("cart_checkout_cta"));
-    } finally {
-      setCheckoutBusy(false);
-    }
-  };
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("checkout") !== "success") return;
-    const raw = sessionStorage.getItem(CHECKOUT_DRAFT_KEY);
-    if (!raw) {
-      setCheckoutOk(true);
-      return;
-    }
-    let draft: CheckoutDraft;
-    try {
-      draft = JSON.parse(raw) as CheckoutDraft;
-    } catch {
-      return;
-    }
-    void (async () => {
-      setCheckoutBusy(true);
-      try {
-        await createCloudOrder({
-          items: draft.items.map((row) => ({ product_id: row.productId, quantity: row.quantity })),
-          full_name: draft.full_name,
-          phone: draft.phone,
-          address: draft.address,
-          city: draft.city,
-          postal_code: draft.postal_code,
-          country: draft.country,
-          company_name: draft.company_name,
-          vat_number: draft.vat_number,
-          payment_method: draft.payment_method,
-          shipping_method: draft.shipping_method,
-          notes: draft.notes || undefined,
-        });
-        sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);
-        clearCart();
-        setCheckoutOk(true);
-      } catch (e) {
-        setCheckoutError(e instanceof Error ? e.message : t("cart_checkout_cta"));
-      } finally {
-        setCheckoutBusy(false);
-      }
-    })();
-  }, [clearCart, t]);
 
   if (lines.length === 0) {
     return <EmptyCartHero />;
@@ -416,116 +276,12 @@ export default function CartPage() {
             </div>
             <p className="mt-2 text-xs leading-relaxed text-[#9aa3b2]">{t("cart_vat_note")}</p>
 
-            {!user ? (
-              <div className="mt-5">
-                <GuestPriceGate variant="card" />
-              </div>
-            ) : checkoutOk ? (
-              <p className="mt-5 text-sm font-medium text-emerald-700">{t("checkout_success")}</p>
-            ) : (
-              <>
-                {!showCheckout ? (
-                  <Button
-                    className="mt-5 h-12 w-full rounded-full bg-[#243f9f] text-sm font-semibold text-white hover:bg-[#1a327c]"
-                    size="lg"
-                    onClick={() => setShowCheckout(true)}
-                  >
-                    {t("cart_checkout_cta")}
-                  </Button>
-                ) : (
-                  <div className="mt-5 space-y-4">
-                    <div className="grid gap-3">
-                      <div className="space-y-1.5">
-                        <Label>{t("checkout_full_name")}</Label>
-                        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>{t("checkout_phone")}</Label>
-                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>{t("checkout_address")}</Label>
-                        <Input value={address} onChange={(e) => setAddress(e.target.value)} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label>{t("checkout_city")}</Label>
-                          <Input value={city} onChange={(e) => setCity(e.target.value)} />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>{t("checkout_postal")}</Label>
-                          <Input value={postal} onChange={(e) => setPostal(e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>{t("checkout_country")}</Label>
-                        <Input value={country} onChange={(e) => setCountry(e.target.value)} />
-                      </div>
-                      {(user.accountType || "").toLowerCase() === "b2b" ? (
-                        <>
-                          <div className="space-y-1.5">
-                            <Label>{t("checkout_company")}</Label>
-                            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label>{t("register_vat")}</Label>
-                            <Input value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} />
-                          </div>
-                        </>
-                      ) : null}
-                      <div className="space-y-1.5">
-                        <Label>{t("checkout_notes")}</Label>
-                        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
-                      </div>
-                    </div>
-                    <fieldset className="space-y-2">
-                      <legend className="text-sm font-medium">{t("checkout_shipping")}</legend>
-                      {(
-                        [
-                          ["standard", t("checkout_shipping_standard")],
-                          ["pickup", t("checkout_shipping_pickup")],
-                          ["business", t("checkout_shipping_business")],
-                        ] as const
-                      ).map(([id, label]) => (
-                        <label key={id} className="flex items-center gap-2 text-sm">
-                          <input type="radio" name="ship" checked={shipping === id} onChange={() => setShipping(id)} />
-                          {label}
-                        </label>
-                      ))}
-                    </fieldset>
-                    <fieldset className="space-y-2">
-                      <legend className="text-sm font-medium">{t("checkout_pay")}</legend>
-                      {(
-                        [
-                          ["card", t("checkout_pay_card")],
-                          ["mb_way", t("checkout_pay_mbway")],
-                          ["multibanco", t("checkout_pay_multibanco")],
-                          ["google_pay", t("checkout_pay_gpay")],
-                          ["apple_pay", t("checkout_pay_apple")],
-                          ["cash_on_delivery", t("checkout_pay_cod")],
-                          ["pay_in_store", t("checkout_pay_store")],
-                        ] as const
-                      ).map(([id, label]) => (
-                        <label key={id} className="flex items-center gap-2 text-sm">
-                          <input type="radio" name="pay" checked={payMethod === id} onChange={() => setPayMethod(id)} />
-                          {label}
-                        </label>
-                      ))}
-                    </fieldset>
-                    <p className="text-xs text-[#9aa3b2]">{t("cart_checkout_note")}</p>
-                    {checkoutError ? <p className="text-sm text-red-600">{checkoutError}</p> : null}
-                    <Button
-                      className="h-12 w-full rounded-full bg-[#243f9f] text-sm font-semibold text-white hover:bg-[#1a327c]"
-                      size="lg"
-                      disabled={checkoutBusy}
-                      onClick={() => void handleCheckout()}
-                    >
-                      {t("cart_checkout_cta")}
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            <Link
+              href={user ? "/checkout" : `/login?next=${encodeURIComponent("/checkout")}`}
+              className="mt-5 flex h-12 w-full items-center justify-center rounded-full bg-[#243f9f] text-sm font-semibold text-white hover:bg-[#1a327c]"
+            >
+              {t("cart_checkout_cta")}
+            </Link>
 
             <div className="mt-5 flex items-center gap-2 border-t border-black/[0.06] pt-4">
               <span className="text-xs text-[#9aa3b2]">{t("cart_we_accept")}</span>

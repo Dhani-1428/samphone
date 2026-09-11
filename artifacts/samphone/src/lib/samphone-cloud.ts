@@ -1147,7 +1147,7 @@ export async function startStripeCheckout(
     /* Checkout session still recalculates amounts server-side. */
   }
   const origin = window.location.origin;
-  const successPath = extra?.successPath ?? "/cart?checkout=success";
+  const successPath = extra?.successPath ?? "/checkout?checkout=success";
   const data = await cloudFetchJson<{ url?: string; checkout_url?: string; session_url?: string }>(
     "/payments/stripe/checkout-session",
     {

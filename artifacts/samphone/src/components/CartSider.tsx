@@ -196,7 +196,7 @@ export default function CartSider() {
               ) : (
                 <>
                   <Link
-                    href="/cart"
+                    href="/checkout"
                     className="mt-3 flex h-11 w-full items-center justify-between rounded-xl bg-sam px-2 text-white transition-opacity hover:opacity-90"
                   >
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">

@@ -33,6 +33,7 @@ import RegisterBusiness from "@/pages/RegisterBusiness";
 import Account from "@/pages/Account";
 import Compare from "@/pages/Compare";
 import CartPage from "@/pages/CartPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 import WishlistPage from "@/pages/WishlistPage";
 import TrackOrder from "@/pages/TrackOrder";
 import BookRepair from "@/pages/BookRepair";
@@ -192,6 +193,9 @@ function Router() {
       </Route>
       <Route path="/cart">
         <Layout><CartPage /></Layout>
+      </Route>
+      <Route path="/checkout">
+        <Layout><CheckoutPage /></Layout>
       </Route>
       <Route path="/wishlist">
         <Layout><WishlistPage /></Layout>
