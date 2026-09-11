@@ -530,3 +530,22 @@
 .catalog-loading__spinner {
   animation: catalog-spin 0.7s linear infinite;
 }
+
+body.no-site-capture {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body.no-site-capture input,
+body.no-site-capture textarea,
+body.no-site-capture [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media print {
+  body.no-site-capture {
+    visibility: hidden !important;
+  }
+}

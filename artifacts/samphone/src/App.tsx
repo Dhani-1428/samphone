@@ -58,6 +58,7 @@ import FaqPage from "@/pages/FaqPage";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import SiteLockGate from "@/components/SiteLockGate";
+import ScreenshotGuard from "@/components/ScreenshotGuard";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -267,6 +268,7 @@ function AppShell({ clerk }: { clerk: boolean }) {
         <AuthProvider>
           {clerk ? <ClerkCloudBridge /> : null}
           <ProfileLanguageSync />
+          <ScreenshotGuard>
           <RecentlyViewedProvider>
             <BrowseBehaviorProvider>
             <CompareProvider>
@@ -290,6 +292,7 @@ function AppShell({ clerk }: { clerk: boolean }) {
             </CompareProvider>
             </BrowseBehaviorProvider>
           </RecentlyViewedProvider>
+          </ScreenshotGuard>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
