@@ -1,3 +1,4 @@
+import { STORE_EMAIL } from "@/config/samphone";
 import { WooCommerceFetchError } from "@/lib/woocommerce";
 import {
   cloudAuth,
@@ -39,6 +40,21 @@ export async function loginWithSharedIdentity(opts: {
   const password = opts.password;
   if (!email || !password) {
     throw new WooCommerceFetchError("Email and password are required.");
+  }
+
+  const adminInbox = email.toLowerCase() === STORE_EMAIL.toLowerCase();
+  if (adminInbox) {
+    try {
+      return await cloudAuth("/auth/admin-login", { email, password });
+    } catch (e) {
+      if (e instanceof CloudMfaRequiredError) throw e;
+      if (e instanceof WooCommerceFetchError && (e.status === 429 || e.status === 400 || e.status === 401)) {
+        /* fall through to /auth/login */
+      } else if (e instanceof WooCommerceFetchError) {
+        throw e;
+      }
+    }
+    return cloudAuth("/auth/login", { email, password });
   }
 
   try {

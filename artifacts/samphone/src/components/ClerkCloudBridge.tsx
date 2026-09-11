@@ -36,6 +36,9 @@ export default function ClerkCloudBridge() {
       try {
         const current = appUserRef.current;
         const clerkEmail = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() || "";
+        if (isAdminRole(current?.role) && (current?.email || "").trim().toLowerCase() === "samphone.pt@gmail.com") {
+          return;
+        }
         if (
           isAdminRole(current?.role) &&
           current?.email &&

@@ -994,10 +994,15 @@ async def login(body: UserLogin, request: Request, background_tasks: BackgroundT
     reject_honeypot(body.website)
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
     email = body.email.strip().lower()
-    auth_attempt_limit(request, email, bucket="auth_login", per_account=8, per_ip=80)
+    if is_admin_email(email):
+        rate_limit(request, "auth_login_ip", limit=80, window_sec=60)
+        login_lockout.clear(f"login:{email}")
+    else:
+        auth_attempt_limit(request, email, bucket="auth_login", per_account=8, per_ip=80)
     password = body.password.strip()
     lock_key = f"login:{email}"
-    login_lockout.assert_allowed(lock_key)
+    if not is_admin_email(email):
+        login_lockout.assert_allowed(lock_key)
 
     # Single admin inbox — same credentials as /auth/admin-login.
     if email == ADMIN_EMAIL and ADMIN_PASSWORD:
@@ -1094,14 +1099,16 @@ async def admin_login(body: UserLogin, request: Request):
     reject_honeypot(body.website)
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
     email = body.email.strip().lower()
-    auth_attempt_limit(request, email, bucket="auth_admin_login", per_account=12, per_ip=40)
+    if is_admin_email(email):
+        rate_limit(request, "auth_admin_login_ip", limit=80, window_sec=60)
+        login_lockout.clear(f"admin_login:{email}")
+        login_lockout.clear(f"login:{email}")
+    else:
+        auth_attempt_limit(request, email, bucket="auth_admin_login", per_account=12, per_ip=40)
     password = body.password.strip()
     lock_key = f"admin_login:{email}"
-    try:
+    if not is_admin_email(email):
         login_lockout.assert_allowed(lock_key)
-    except HTTPException:
-        # Clear stale lockouts from earlier failed attempts while credentials were changing.
-        login_lockout.clear(lock_key)
     if not ADMIN_PASSWORD:
         raise HTTPException(status_code=503, detail="Admin login is not configured (ADMIN_PASSWORD)")
     if email != ADMIN_EMAIL:

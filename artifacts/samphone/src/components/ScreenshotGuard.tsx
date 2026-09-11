@@ -10,14 +10,27 @@ function isAway(): boolean {
   return typeof document === "undefined" ? false : !document.hasFocus() || document.hidden;
 }
 
+function isAuthSurface(): boolean {
+  if (typeof window === "undefined") return false;
+  const p = window.location.pathname.toLowerCase();
+  return (
+    p.includes("/login") ||
+    p.includes("/register") ||
+    p.includes("/sso-callback") ||
+    p.includes("/auth/continue") ||
+    p.includes("/admin")
+  );
+}
+
 /**
  * Capture lock for everyone except admin samphone.pt@gmail.com.
  * Blanks the window as soon as it is not focused so OS screenshot tools
  * (Print Screen, Snipping Tool, Cmd+Shift+3/4/5) usually get a white frame.
+ * Login / register / admin stay visible so sign-in is not blocked.
  */
 export default function ScreenshotGuard({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const allowed = canCaptureSite(user);
+  const allowed = canCaptureSite(user) || isAuthSurface();
   const [veiled, setVeiled] = useState(false);
 
   useEffect(() => {

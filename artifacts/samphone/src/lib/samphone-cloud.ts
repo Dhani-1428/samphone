@@ -104,6 +104,7 @@ function isPublicAuthPath(path: string): boolean {
   return (
     p === "/auth/login" ||
     p === "/auth/register" ||
+    p === "/auth/admin-login" ||
     p === "/auth/clerk-sync" ||
     p === "/auth/mfa/setup" ||
     p === "/auth/mfa/verify" ||
@@ -655,7 +656,7 @@ export class CloudMfaRequiredError extends Error {
 }
 
 export async function cloudAuth(
-  path: "/auth/login" | "/auth/register" | "/auth/clerk-sync",
+  path: "/auth/login" | "/auth/register" | "/auth/clerk-sync" | "/auth/admin-login",
   body: Record<string, string | boolean | number | undefined>,
 ): Promise<CloudAuthSession> {
   const cleaned = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined && v !== ""));
