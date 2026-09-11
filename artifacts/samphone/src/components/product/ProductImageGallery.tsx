@@ -33,24 +33,29 @@ export default function ProductImageGallery({
   const [hovering, setHovering] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
 
-  const imageKey = images.join("\n");
+  const preferredNorm = preferredSrc ? normalizeCatalogImageUrl(preferredSrc) || preferredSrc : "";
+  const displayImages = (() => {
+    if (!preferredNorm) return images;
+    const has = images.some((src) => (normalizeCatalogImageUrl(src) || src) === preferredNorm);
+    return has ? images : [preferredSrc as string, ...images];
+  })();
+  const displayKey = displayImages.join("\n");
 
   useEffect(() => {
-    if (!preferredSrc) {
+    if (!preferredNorm) {
       setActive(0);
       return;
     }
-    const want = normalizeCatalogImageUrl(preferredSrc) || preferredSrc;
-    const i = images.findIndex((src) => (normalizeCatalogImageUrl(src) || src) === want);
+    const i = displayImages.findIndex((src) => (normalizeCatalogImageUrl(src) || src) === preferredNorm);
     setActive(i >= 0 ? i : 0);
-  }, [preferredSrc, imageKey]);
+  }, [preferredNorm, displayKey]);
 
-  const main = images[active] ?? images[0];
-  const extra = Math.max(0, images.length - VISIBLE_THUMBS);
-  const rail = images.slice(0, VISIBLE_THUMBS);
+  const main = displayImages[active] ?? displayImages[0];
+  const extra = Math.max(0, displayImages.length - VISIBLE_THUMBS);
+  const rail = displayImages.slice(0, VISIBLE_THUMBS);
 
   const thumbs = (vertical: boolean) =>
-    images.length > 1 ? (
+    displayImages.length > 1 ? (
       <div className={cn(vertical ? "hidden w-[76px] shrink-0 flex-col gap-2 md:flex" : "flex gap-2 overflow-x-auto pb-1 md:hidden")}>
         {rail.map((src, i) => (
           <button
@@ -135,9 +140,9 @@ export default function ProductImageGallery({
               />
             ) : null}
           </div>
-          {images.length > 1 ? (
+          {displayImages.length > 1 ? (
             <div className="flex gap-2 overflow-x-auto px-4 pb-4">
-              {images.map((src, i) => (
+              {displayImages.map((src, i) => (
                 <button
                   key={`zoom-${src}-${i}`}
                   type="button"

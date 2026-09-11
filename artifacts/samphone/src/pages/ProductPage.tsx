@@ -96,7 +96,13 @@ export default function ProductPage() {
       .then((p) => {
         if (!alive) return;
         if (p) {
-          setWooProduct(p);
+          const cachedHasColorPhoto = Boolean(cached?.colorSwatches?.some((s) => s.image));
+          const fetchedHasColorPhoto = Boolean(p.colorSwatches?.some((s) => s.image));
+          setWooProduct(
+            cached && cachedHasColorPhoto && !fetchedHasColorPhoto
+              ? { ...p, colorSwatches: cached.colorSwatches, images: p.images?.length ? p.images : cached.images }
+              : p,
+          );
           setColorIdx(0);
         } else if (!cached) {
           setWooProduct(null);
@@ -242,13 +248,13 @@ function WooProductView({
   const swatches = wooProduct.colorSwatches ?? [];
   const swatchImages = mapSwatchImageUrls(swatches, wooProduct.images);
   const preferredSrc = resolveSwatchImage(swatches, wooProduct.images, colorIdx);
-  const colorPhotos = new Set(swatchImages.filter(Boolean));
+  const colorPhotos = [...new Set(swatchImages.filter(Boolean))];
   const extraShots = (wooProduct.images ?? [])
     .map((img) => normalizeCatalogImageUrl(img.src) || img.src)
-    .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && !colorPhotos.has(src));
+    .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && !colorPhotos.includes(src));
   const gallery = (
     swatches.length > 0
-      ? [preferredSrc, ...extraShots]
+      ? [preferredSrc, ...colorPhotos.filter((src) => src !== preferredSrc), ...extraShots]
       : (wooProduct.images ?? []).map((img) => normalizeCatalogImageUrl(img.src) || img.src)
   ).filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
   const catalogPrice = displayFormatted;

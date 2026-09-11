@@ -63,6 +63,35 @@ function colorToken(label: string): string {
   return label.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 
+const COLOR_FILE_HINTS: Record<string, string[]> = {
+  pink: ["pink", "pnk"],
+  black: ["black", "blk"],
+  blue: ["blue", "blu"],
+  green: ["green", "grn"],
+  lavender: ["lavender", "mav"],
+  purple: ["purple", "pur"],
+  red: ["red"],
+  yellow: ["yellow", "ylw"],
+  white: ["white", "wht"],
+  orange: ["orange", "org"],
+  gray: ["gray", "grey", "gry"],
+  grey: ["gray", "grey", "gry"],
+  brown: ["brown"],
+  transparent: ["trans", "clear"],
+  magenta: ["magenta", "mgnt"],
+};
+
+function colorFileHints(label: string): string[] {
+  const token = colorToken(label);
+  const extra: string[] = [];
+  for (const [name, hints] of Object.entries(COLOR_FILE_HINTS)) {
+    if (token === name || token.endsWith(name) || token.startsWith(name)) {
+      extra.push(...hints);
+    }
+  }
+  return Array.from(new Set([token, ...extra].filter((h) => h.length >= 3)));
+}
+
 function gallerySrcs(images: WooProduct["images"] | undefined): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
@@ -106,13 +135,13 @@ export function mapSwatchImageUrls(
 
   for (let i = 0; i < n; i += 1) {
     if (out[i]) continue;
-    const needle = colorToken(list[i].label);
-    if (needle.length < 3) continue;
+    const needles = colorFileHints(list[i].label);
+    if (needles.length === 0) continue;
     const named = (images ?? []).find((img) => {
       const src = (normalizeCatalogImageUrl(img.src) || img.src || "").trim();
       if (!src || used.has(src)) return false;
       const blob = colorToken(`${img.src} ${img.alt ?? ""} ${img.name ?? ""}`);
-      return blob.includes(needle);
+      return needles.some((needle) => blob.includes(needle));
     });
     if (named) take(i, (normalizeCatalogImageUrl(named.src) || named.src || "").trim());
   }
@@ -124,8 +153,8 @@ export function mapSwatchImageUrls(
     if (li < leftover.length) take(i, leftover[li++]);
   }
 
-  const fallback = gallery.find(Boolean) || explicit.find(Boolean) || "";
-  return out.map((u) => u || fallback);
+  // Do not copy one pack shot onto every color — empty means "no photo for this dot".
+  return out;
 }
 
 export function resolveSwatchImage(
@@ -134,7 +163,12 @@ export function resolveSwatchImage(
   index: number,
 ): string | null {
   const mapped = mapSwatchImageUrls(swatches, images);
-  return mapped[index] || mapped[0] || null;
+  const own = mapped[index];
+  if (own) return own;
+  const gallery = gallerySrcs(images);
+  const owned = new Set(mapped.filter(Boolean));
+  const shared = gallery.find((src) => !owned.has(src));
+  return shared || gallery[0] || null;
 }
 
 export function fillColorSwatchImages(

@@ -925,6 +925,35 @@ class CatalogService:
         )
         return product_page(page_items, total, limit=lim, offset=off, model_query=False)
 
+    def _expand_pdp_color_variants(self, doc: dict, model_ids: dict[int, dict]) -> dict:
+        """Attach sibling cover photos so PDP color dots can switch the main image."""
+        from product_variants import is_color_cover_product, merge_sibling_color_variants, split_title_color
+
+        if not doc:
+            return doc
+        variants = list(doc.get("color_variants") or [])
+        if variants and all(v.get("image") for v in variants):
+            return doc
+        if not variants and not is_color_cover_product(doc):
+            return doc
+        title = str(doc.get("title") or "")
+        base, _color = split_title_color(title)
+        query = (base or title).strip()
+        if len(query) < 8:
+            return doc
+        try:
+            _total, rows = self.repo.search_page(
+                q=query,
+                limit=80,
+                offset=0,
+                include_description=False,
+            )
+        except Exception:
+            logger.debug("PDP color expand search failed for %s", query, exc_info=True)
+            return doc
+        siblings = self._hydrate_docs(rows, model_ids)
+        return merge_sibling_color_variants(doc, siblings)
+
     def get_product_by_uuid(self, product_id: str, enrich: bool = True, user: Optional[dict] = None) -> Optional[dict]:
         wc_id = None
         raw = str(product_id or "").strip()
@@ -956,6 +985,7 @@ class CatalogService:
             return None
         if preferred_variant:
             doc["preferred_variant"] = preferred_variant
+        doc = self._expand_pdp_color_variants(doc, model_ids)
         if enrich:
             return self._prepare([doc], user)[0]
         return doc
@@ -968,6 +998,7 @@ class CatalogService:
         doc = self._row_to_product(row, model_ids, include_description=True)
         if not doc:
             return None
+        doc = self._expand_pdp_color_variants(doc, model_ids)
         return self._prepare([doc], user)[0]
 
     def list_categories(self) -> list[dict]:

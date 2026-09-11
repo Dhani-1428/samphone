@@ -479,3 +479,60 @@ def collapse_color_variant_products(products: list[dict[str, Any]]) -> list[dict
         seen_keys.add(key)
         out.append(collapsed_by_key[key])
     return out
+
+
+def merge_sibling_color_variants(primary: dict[str, Any], siblings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Keep the PDP product id, but attach per-color images from sibling cover SKUs."""
+    if not primary:
+        return primary
+    title = str(primary.get("title") or "")
+    base, _color = split_title_color(title)
+    want = normalize_cover_base_key(base or title)
+    pool: list[dict[str, Any]] = [primary]
+    seen = {int(primary.get("wc_id") or 0)}
+    for product in siblings or []:
+        other_title = str(product.get("title") or "")
+        other_base, _ = split_title_color(other_title)
+        other_key = normalize_cover_base_key(other_base or other_title)
+        if want and other_key != want:
+            continue
+        wid = 0
+        try:
+            wid = int(product.get("wc_id") or 0)
+        except (TypeError, ValueError):
+            wid = 0
+        if wid and wid in seen:
+            continue
+        if wid:
+            seen.add(wid)
+        pool.append(product)
+    collapsed = collapse_color_variant_products(pool)
+    match = primary
+    for product in collapsed:
+        other_title = str(product.get("title") or "")
+        other_base, _ = split_title_color(other_title)
+        if normalize_cover_base_key(other_base or other_title) == want:
+            match = product
+            break
+        try:
+            if int(product.get("wc_id") or 0) == int(primary.get("wc_id") or 0):
+                match = product
+                break
+        except (TypeError, ValueError):
+            pass
+    out = dict(primary)
+    variants = list(match.get("color_variants") or [])
+    if not variants:
+        return out
+    out["color_variants"] = variants
+    out["variants"] = [str(v.get("label") or "") for v in variants if v.get("label")]
+    images = [str(u) for u in (out.get("images") or []) if u]
+    for variant in variants:
+        url = str(variant.get("image") or "").strip()
+        if url and url not in images:
+            images.append(url)
+    if images:
+        out["images"] = images
+        if not out.get("image"):
+            out["image"] = images[0]
+    return out
