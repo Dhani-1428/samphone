@@ -360,22 +360,19 @@ export default function CartPage() {
                 </li>
               ))}
             </ul>
-            <div className="border-t border-black/[0.06] px-5 py-4">
-              <div className="flex items-center gap-3">
-                <Truck className="h-5 w-5 shrink-0 text-brand" strokeWidth={1.8} />
-                <p className="text-sm font-medium text-brand">
-                  {shipRemain > 0
-                    ? t("cart_free_ship_add", { amount: euro(shipRemain) })
-                    : t("cart_free_ship_unlocked")}
-                </p>
+            {shipRemain > 0 ? (
+              <div className="border-t border-black/[0.06] px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <Truck className="h-5 w-5 shrink-0 text-brand" strokeWidth={1.8} />
+                  <p className="text-sm font-medium text-brand">
+                    {t("cart_free_ship_add", { amount: euro(shipRemain) })}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e8eefc]">
+                  <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${shipProgress}%` }} />
+                </div>
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#e8eefc]">
-                <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${shipProgress}%` }} />
-              </div>
-              <p className="mt-1.5 text-right text-xs tabular-nums text-[#9aa3b2]">
-                {euro(subtotal.sum)} / {euro(FREE_SHIP_THRESHOLD)}
-              </p>
-            </div>
+            ) : null}
           </div>
 
           <aside className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(17,24,39,0.04)] lg:sticky lg:top-24">
