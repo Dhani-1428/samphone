@@ -366,11 +366,11 @@
 .product-card .product-card-price,
 .product-card-price {
   font-family: "Roboto", sans-serif;
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 20px;
+  font-weight: 800;
   letter-spacing: 0;
   color: #C47A12;
-  -webkit-text-stroke: 0.25px currentColor;
+  -webkit-text-stroke: 0;
   padding-left: 0.45rem;
 }
 
