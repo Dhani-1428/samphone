@@ -45,6 +45,7 @@ export async function loginWithSharedIdentity(opts: {
     return await cloudAuth("/auth/login", { email, password });
   } catch (e) {
     if (e instanceof CloudMfaRequiredError) throw e;
+    if (e instanceof WooCommerceFetchError && e.status === 429) throw e;
   }
 
   if (opts.clerk?.isLoaded && opts.clerk.signIn && opts.clerk.setActive) {

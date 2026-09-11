@@ -66,10 +66,15 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 
+def _first_ip(value: str) -> str:
+    return (value or "").split(",")[0].strip()
+
+
 def client_ip(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for") or ""
-    if forwarded:
-        return forwarded.split(",")[0].strip() or "unknown"
+    for header in ("x-vercel-forwarded-for", "x-real-ip", "x-forwarded-for", "cf-connecting-ip"):
+        ip = _first_ip(request.headers.get(header) or "")
+        if ip:
+            return ip
     if request.client:
         return request.client.host or "unknown"
     return "unknown"
@@ -77,6 +82,22 @@ def client_ip(request: Request) -> str:
 
 def rate_limit(request: Request, bucket: str, *, limit: int, window_sec: float) -> None:
     rate_limiter.check(f"{bucket}:{client_ip(request)}", limit=limit, window_sec=window_sec)
+
+
+def auth_attempt_limit(
+    request: Request,
+    email: str,
+    *,
+    bucket: str,
+    per_account: int = 8,
+    per_ip: int = 80,
+    window_sec: float = 60,
+) -> None:
+    """Limit by account first so a shared proxy IP cannot lock every shopper."""
+    ident = (email or "").strip().lower()[:180]
+    if ident:
+        rate_limiter.check(f"{bucket}:acct:{ident}", limit=per_account, window_sec=window_sec)
+    rate_limit(request, f"{bucket}_ip", limit=per_ip, window_sec=window_sec)
 
 
 # --- Login lockout ---

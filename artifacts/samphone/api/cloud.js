@@ -12,6 +12,14 @@ function header(req, name) {
   return typeof raw === "string" ? raw : "";
 }
 
+function clientIp(req) {
+  for (const name of ["x-vercel-forwarded-for", "x-real-ip", "x-forwarded-for", "cf-connecting-ip"]) {
+    const raw = header(req, name);
+    if (raw) return raw.split(",")[0].trim();
+  }
+  return "";
+}
+
 function subPath(req) {
   const raw = req.query?.path;
   if (Array.isArray(raw) && raw.length > 0) return raw.filter(Boolean).join("/");
@@ -118,6 +126,11 @@ module.exports = async function handler(req, res) {
     Accept: header(req, "accept") || "application/json",
     "User-Agent": "samphone-vercel-proxy",
   };
+  const ip = clientIp(req);
+  if (ip) {
+    headers["X-Forwarded-For"] = ip;
+    headers["X-Real-IP"] = ip;
+  }
   const contentType = header(req, "content-type");
   if (contentType) headers["Content-Type"] = contentType;
   const auth = header(req, "authorization");

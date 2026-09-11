@@ -53,6 +53,7 @@ from localization import normalize_language, tr
 from woocommerce_client import get_woo_db
 from security_hardening import (
     SecurityHeadersMiddleware,
+    auth_attempt_limit,
     cors_origins,
     login_lockout,
     production_mode,
@@ -955,8 +956,8 @@ def _elevate_clerk_admin(user: dict) -> dict:
 @api_router.post("/auth/register")
 async def register(body: UserCreate, request: Request, background_tasks: BackgroundTasks):
     reject_honeypot(body.website)
-    rate_limit(request, "auth_register", limit=5, window_sec=60)
     email = body.email.lower()
+    auth_attempt_limit(request, email, bucket="auth_register", per_account=5, per_ip=40)
     if email == ADMIN_EMAIL:
         raise HTTPException(status_code=400, detail="This email is reserved for admin login")
     existing = await data_store.find_user(email, db)
@@ -978,9 +979,9 @@ async def register(body: UserCreate, request: Request, background_tasks: Backgro
 async def login(body: UserLogin, request: Request, background_tasks: BackgroundTasks):
     global ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS
     reject_honeypot(body.website)
-    rate_limit(request, "auth_login", limit=10, window_sec=60)
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
     email = body.email.strip().lower()
+    auth_attempt_limit(request, email, bucket="auth_login", per_account=8, per_ip=80)
     password = body.password.strip()
     lock_key = f"login:{email}"
     login_lockout.assert_allowed(lock_key)
@@ -1078,9 +1079,9 @@ async def admin_login(body: UserLogin, request: Request):
     """Dedicated admin login — password from ADMIN_PASSWORD env only."""
     global ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS
     reject_honeypot(body.website)
-    rate_limit(request, "auth_admin_login", limit=20, window_sec=60)
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
     email = body.email.strip().lower()
+    auth_attempt_limit(request, email, bucket="auth_admin_login", per_account=12, per_ip=40)
     password = body.password.strip()
     lock_key = f"admin_login:{email}"
     try:
@@ -1120,7 +1121,7 @@ async def clerk_sync(body: ClerkSyncBody, request: Request, background_tasks: Ba
     Allowlisted ADMIN_EMAIL becomes a full admin session (Google / Clerk password OK).
     """
     global ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS
-    rate_limit(request, "auth_clerk_sync", limit=20, window_sec=60)
+    rate_limit(request, "auth_clerk_sync", limit=120, window_sec=60)
     clerk = _verify_clerk_session_token(body.clerk_token.strip())
     email = clerk["email"]
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
