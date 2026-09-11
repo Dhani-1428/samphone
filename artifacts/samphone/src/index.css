@@ -560,3 +560,21 @@ body.no-site-capture [contenteditable="true"] {
 body.no-site-capture.site-capture-veiled #root {
   visibility: hidden !important;
 }
+
+/* Keep Clerk Google/Apple as circle icons; hide email/password chrome. */
+.login-clerk-social .cl-footer,
+.login-clerk-social .cl-footerAction,
+.login-clerk-social .cl-header,
+.login-clerk-social .cl-headerTitle,
+.login-clerk-social .cl-headerSubtitle,
+.login-clerk-social .cl-dividerRow,
+.login-clerk-social .cl-form,
+.login-clerk-social .cl-internal-b3fm6y {
+  display: none !important;
+}
+.login-clerk-social .cl-card {
+  box-shadow: none !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}

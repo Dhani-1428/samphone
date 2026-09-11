@@ -312,26 +312,16 @@ function App() {
         afterSignOutUrl="/"
         afterSignInUrl="/auth/continue"
         afterSignUpUrl="/auth/continue"
-        allowedRedirectOrigins={[
-          "https://www.samphone.eu",
-          "https://samphone.eu",
-          "https://www.samphone.pt",
-          "https://samphone.pt",
-          "https://samphone.cloud",
-          "https://www.samphone.cloud",
-        ]}
       >
-        <AppShell clerk />
+        <AppErrorBoundary fallback={null}>
+          <AppShell clerk />
+        </AppErrorBoundary>
       </ClerkProvider>
     </Suspense>
   ) : (
     <AppShell clerk={false} />
   );
-  return (
-    <SiteLockGate>
-      <AppErrorBoundary fallback={<AppShell clerk={false} />}>{tree}</AppErrorBoundary>
-    </SiteLockGate>
-  );
+  return <SiteLockGate>{tree}</SiteLockGate>;
 }
 
 export default App;

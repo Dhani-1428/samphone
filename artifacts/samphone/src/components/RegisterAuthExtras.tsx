@@ -1,11 +1,11 @@
-import { useCallback } from "react";
 import { Link } from "wouter";
-import { useSignUp } from "@clerk/clerk-react";
 import { LEGAL_LINKS } from "@/config/samphone";
 import { useLang } from "@/contexts/LanguageContext";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { cn } from "@/lib/utils";
+import { Smartphone } from "lucide-react";
 import { AuthSocialCircles } from "@/components/AuthSocialCircles";
+import { ClerkSocialHost } from "@/components/ClerkSocialHost";
 
 export const PHONE_COUNTRIES = [
   { code: "PT", name: "Portugal", dial: "+351", flag: "🇵🇹" },
@@ -39,37 +39,22 @@ type SocialProps = {
   onMobileOtp: () => void;
 };
 
-function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialProps) {
-  const { isLoaded, signUp } = useSignUp();
-
-  const oauth = useCallback(
-    async (strategy: "oauth_google" | "oauth_apple") => {
-      if (!isLoaded || !signUp) return;
-      const origin = window.location.origin;
-      const complete = `${origin}${redirectPath.startsWith("/auth/continue") ? redirectPath : `/auth/continue?next=${encodeURIComponent(redirectPath)}`}`;
-      const redirects = {
-        redirectUrl: `${origin}/sso-callback`,
-        redirectUrlComplete: complete,
-      };
-      try {
-        await signUp.authenticateWithRedirect({
-          strategy,
-          ...redirects,
-          unsafeMetadata: { accountType },
-        });
-      } catch {
-        window.location.href = "/login";
-      }
-    },
-    [accountType, isLoaded, redirectPath, signUp],
-  );
-
+function ClerkSocialButtons({ redirectPath, onMobileOtp }: SocialProps) {
+  const complete = redirectPath.startsWith("/auth/continue")
+    ? redirectPath
+    : `/auth/continue?next=${encodeURIComponent(redirectPath)}`;
   return (
-    <AuthSocialCircles
-      onGoogle={() => void oauth("oauth_google")}
-      onApple={() => void oauth("oauth_apple")}
-      onPhone={onMobileOtp}
-    />
+    <div className="flex items-center justify-center gap-4">
+      <ClerkSocialHost mode="sign-up" completeUrl={complete} />
+      <button
+        type="button"
+        className="flex h-12 w-12 items-center justify-center rounded-full border border-black/[0.12] bg-white shadow-sm hover:bg-neutral-50"
+        onClick={onMobileOtp}
+        aria-label="Phone"
+      >
+        <Smartphone className="h-5 w-5 text-[#111]" strokeWidth={1.75} />
+      </button>
+    </div>
   );
 }
 
