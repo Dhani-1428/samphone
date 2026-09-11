@@ -1234,7 +1234,11 @@ class ProductRepository:
                 pid = int(m["post_id"])
                 if pid not in by_id:
                     continue
-                by_id[pid][self._meta_alias(m["meta_key"])] = m["meta_value"]
+                alias = self._meta_alias(m["meta_key"])
+                val = m["meta_value"]
+                if alias == "stock_status" and str(by_id[pid].get(alias) or "").lower() == "outofstock":
+                    continue
+                by_id[pid][alias] = val
 
             try:
                 cur.execute(
