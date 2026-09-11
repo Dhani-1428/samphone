@@ -291,6 +291,7 @@
   "register_type_other": "Outro",
   "auth_clerk_same": "Use o mesmo login Clerk da aplicação Samphone (clerk.samphone.cloud).",
   "auth_or_email": "Ou continue com email",
+  "auth_phone_send": "Enviar código",
   "auth_email_login": "Entre com o mesmo email e palavra-passe Samphone da aplicação.",
   "auth_mfa_title": "Confirme a sua identidade",
   "auth_mfa_hint": "Introduza o código da aplicação de autenticação para concluir o início de sessão.",

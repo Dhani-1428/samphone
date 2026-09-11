@@ -28,6 +28,7 @@ import CategoryPage from "@/pages/CategoryPage";
 import ProductPage from "@/pages/ProductPage";
 import Login from "@/pages/Login";
 import AuthContinue from "@/pages/AuthContinue";
+import SsoCallback from "@/pages/SsoCallback";
 import Register from "@/pages/Register";
 import RegisterBusiness from "@/pages/RegisterBusiness";
 import Account from "@/pages/Account";
@@ -179,6 +180,9 @@ function Router() {
       </Route>
       <Route path="/auth/continue">
         <Layout><AuthContinue /></Layout>
+      </Route>
+      <Route path="/sso-callback">
+        <Layout><SsoCallback /></Layout>
       </Route>
       <Route path="/register/business">
         <Layout><RegisterBusiness /></Layout>

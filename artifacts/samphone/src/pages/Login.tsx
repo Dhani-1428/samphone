@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
-import { SignIn, useAuth as useClerkAuth, useSignIn } from "@clerk/clerk-react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useAuth as useClerkAuth, useSignIn } from "@clerk/clerk-react";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -7,12 +7,14 @@ import { postLoginPath, isAdminRole } from "@/lib/admin-access";
 import { nextPathFromSearch } from "@/lib/safeRedirect";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { loginWithSharedIdentity, MfaRequiredError } from "@/lib/shared-identity-auth";
-import type { CloudAuthSession } from "@/lib/samphone-cloud";
+import { clerkSync, type CloudAuthSession } from "@/lib/samphone-cloud";
 import { STORE_EMAIL } from "@/config/samphone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MfaChallenge from "@/components/MfaChallenge";
+import { AuthSocialCircles } from "@/components/AuthSocialCircles";
+import { PhoneField, RegisterOtpStep, isValidE164, toE164 } from "@/components/RegisterAuthExtras";
 
 function LoginForm({
   clerkHelpers,
@@ -33,6 +35,11 @@ function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [mfa, setMfa] = useState<{ token: string; email: string } | null>(null);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [dial, setDial] = useState("+351");
+  const [national, setNational] = useState("");
+  const [otpPhone, setOtpPhone] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState("");
   const next = nextPathFromSearch(search);
   const clerkUi = Boolean(clerkHelpers);
   const clerkContinue = `/auth/continue?next=${encodeURIComponent(next)}`;
@@ -48,6 +55,94 @@ function LoginForm({
       token: session.token ?? undefined,
     });
     setLocation(postLoginPath(session.role, next));
+  };
+
+  const oauth = useCallback(
+    async (strategy: "oauth_google" | "oauth_apple") => {
+      if (!clerkHelpers?.isLoaded || !clerkHelpers.signIn) {
+        setError(t("auth_email_login"));
+        return;
+      }
+      setError(null);
+      const origin = window.location.origin;
+      try {
+        await clerkHelpers.signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: `${origin}/sso-callback`,
+          redirectUrlComplete: `${origin}${clerkContinue}`,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t("auth_submit_login"));
+      }
+    },
+    [clerkContinue, clerkHelpers, t],
+  );
+
+  const sendPhoneCode = async () => {
+    const phone = toE164(dial, national);
+    if (!phone || !isValidE164(phone)) {
+      setError(t("reg_invalid_phone"));
+      return;
+    }
+    if (!clerkHelpers?.isLoaded || !clerkHelpers.signIn) {
+      setError(t("auth_email_login"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const attempt = await clerkHelpers.signIn.create({ identifier: phone });
+      const factors = (attempt.supportedFirstFactors ?? []) as Array<{
+        strategy: string;
+        phoneNumberId?: string;
+      }>;
+      const phoneFactor = factors.find((f) => f.strategy === "phone_code");
+      if (!phoneFactor?.phoneNumberId) {
+        setError(t("reg_invalid_phone"));
+        return;
+      }
+      await clerkHelpers.signIn.prepareFirstFactor({
+        strategy: "phone_code",
+        phoneNumberId: phoneFactor.phoneNumberId,
+      });
+      setOtpPhone(phone);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("auth_submit_login"));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verifyPhoneCode = async () => {
+    if (!otpPhone || otpCode.length < 4) {
+      setError(t("reg_otp_invalid"));
+      return;
+    }
+    if (!clerkHelpers?.signIn || !clerkHelpers.setActive) {
+      setError(t("auth_email_login"));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await clerkHelpers.signIn.attemptFirstFactor({
+        strategy: "phone_code",
+        code: otpCode,
+      });
+      if (result.status === "complete" && result.createdSessionId) {
+        await clerkHelpers.setActive({ session: result.createdSessionId });
+        const token = await clerkHelpers.getToken();
+        if (token && token.length >= 20) {
+          applySession(await clerkSync(token, { phone: otpPhone }));
+          return;
+        }
+      }
+      setError(t("reg_otp_invalid"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("reg_otp_invalid"));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -95,31 +190,78 @@ function LoginForm({
     );
   }
 
+  if (otpPhone) {
+    return (
+      <>
+        <RegisterOtpStep
+          channel="phone"
+          destination={otpPhone}
+          code={otpCode}
+          onCode={setOtpCode}
+          onVerify={() => void verifyPhoneCode()}
+          busy={busy}
+          error={error}
+        />
+        <button
+          type="button"
+          className="mt-4 text-sm text-brand hover:underline"
+          onClick={() => {
+            setOtpPhone(null);
+            setOtpCode("");
+            setError(null);
+          }}
+        >
+          {t("auth_mfa_back")}
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       <h1 className="font-display text-2xl font-bold text-navy">{t("auth_login_title")}</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {clerkUi ? t("auth_clerk_same") : t("auth_email_login")}
+      <p className="mt-1 text-sm text-muted-foreground">{t("auth_email_login")}</p>
+
+      <p className="mt-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("auth_or_social")}
       </p>
+      <div className="mt-3">
+        <AuthSocialCircles
+          disabled={busy}
+          onGoogle={() => void oauth("oauth_google")}
+          onApple={() => void oauth("oauth_apple")}
+          onPhone={() => {
+            setError(null);
+            setPhoneOpen((v) => !v);
+          }}
+        />
+      </div>
+
+      {phoneOpen ? (
+        <div className="mt-5 space-y-3">
+          <PhoneField
+            dialCode={dial}
+            onDialChange={(d) => setDial(d)}
+            national={national}
+            onNationalChange={setNational}
+            id="login-mobile"
+          />
+          {error && phoneOpen ? <p className="text-sm text-red-600">{error}</p> : null}
+          <Button
+            type="button"
+            disabled={busy}
+            className="h-11 w-full bg-brand text-white hover:bg-brand-dark"
+            onClick={() => void sendPhoneCode()}
+          >
+            {busy ? t("woo_loading") : t("auth_phone_send")}
+          </Button>
+        </div>
+      ) : null}
+
       {clerkUi ? (
-        <>
-          <div className="mt-6">
-            <SignIn
-              routing="hash"
-              forceRedirectUrl={clerkContinue}
-              fallbackRedirectUrl={clerkContinue}
-              appearance={{
-                elements: {
-                  rootBox: "mx-auto w-full",
-                  card: "shadow-none border-0 p-0 bg-transparent",
-                },
-              }}
-            />
-          </div>
-          <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t("auth_or_email")}
-          </p>
-        </>
+        <p className="my-6 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t("auth_or_email")}
+        </p>
       ) : (
         <div className="mt-6" />
       )}
@@ -150,7 +292,7 @@ function LoginForm({
             className="h-11 bg-[#F4F6F8]"
           />
         </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error && !phoneOpen ? <p className="text-sm text-red-600">{error}</p> : null}
         <Button type="submit" disabled={busy} className="h-11 w-full bg-brand typo-btn-login text-white hover:bg-brand-dark">
           {busy ? t("woo_loading") : t("auth_submit_login")}
         </Button>

@@ -5,6 +5,7 @@ import { LEGAL_LINKS } from "@/config/samphone";
 import { useLang } from "@/contexts/LanguageContext";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import { cn } from "@/lib/utils";
+import { AuthSocialCircles } from "@/components/AuthSocialCircles";
 
 export const PHONE_COUNTRIES = [
   { code: "PT", name: "Portugal", dial: "+351", flag: "🇵🇹" },
@@ -32,9 +33,6 @@ export function isValidE164(value: string): boolean {
   return /^\+[1-9]\d{7,14}$/.test(value.trim());
 }
 
-const socialBtn =
-  "flex h-11 w-full items-center justify-center gap-2 rounded-md border border-black/[0.14] bg-white text-sm font-semibold text-[#111111] hover:bg-neutral-50 disabled:opacity-60";
-
 type SocialProps = {
   accountType: "b2c" | "b2b";
   redirectPath: string;
@@ -42,17 +40,17 @@ type SocialProps = {
 };
 
 function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialProps) {
-  const { t } = useLang();
   const { isLoaded, signUp } = useSignUp();
 
   const oauth = useCallback(
     async (strategy: "oauth_google" | "oauth_apple") => {
       if (!isLoaded || !signUp) return;
-      const complete = `${window.location.origin}${redirectPath}`;
+      const origin = window.location.origin;
+      const complete = `${origin}${redirectPath}`;
       try {
         await signUp.authenticateWithRedirect({
           strategy,
-          redirectUrl: `${window.location.origin}/login`,
+          redirectUrl: `${origin}/sso-callback`,
           redirectUrlComplete: complete,
           unsafeMetadata: { accountType },
         });
@@ -64,43 +62,25 @@ function ClerkSocialButtons({ accountType, redirectPath, onMobileOtp }: SocialPr
   );
 
   return (
-    <div className="space-y-2">
-      <button type="button" className={socialBtn} onClick={() => void oauth("oauth_google")}>
-        <span className="text-base font-bold text-[#4285F4]" aria-hidden>
-          G
-        </span>
-        {t("reg_continue_google")}
-      </button>
-      <button type="button" className={socialBtn} onClick={() => void oauth("oauth_apple")}>
-        <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-          <path
-            fill="currentColor"
-            d="M16.4 12.6c0-2 1.1-3.1 1.2-3.2-0.6-0.9-1.6-1.1-2-1.1-0.8-0.1-1.6.5-2 .5s-1.1-0.5-1.8-0.5c-0.9 0-1.8.6-2.2 1.4-1 .1.7 3.3.3 5.1-0.4 1.1.7 2.4 1.7 2.4.7 0 1-.4 1.8-0.4s1.1.4 1.8.4c1.1 0 1.6-1.1 2.1-2.2-1.8-0.8-1.9-2.6-1.9-2.4zM14.6 6.8c.5-0.6.8-1.4.7-2.2-0.7 0-1.6.5-2.1 1.1-0.5.5-0.9 1.3-0.8 2.1.8.1 1.6-0.4 2.2-1z"
-          />
-        </svg>
-        {t("reg_continue_apple")}
-      </button>
-      <button type="button" className={socialBtn} onClick={onMobileOtp}>
-        {t("reg_continue_mobile")}
-      </button>
-    </div>
+    <AuthSocialCircles
+      onGoogle={() => void oauth("oauth_google")}
+      onApple={() => void oauth("oauth_apple")}
+      onPhone={onMobileOtp}
+    />
   );
 }
 
 function FallbackSocialButtons({ onMobileOtp }: Pick<SocialProps, "onMobileOtp">) {
-  const { t } = useLang();
   return (
-    <div className="space-y-2">
-      <Link href="/login" className={socialBtn}>
-        {t("reg_continue_google")}
-      </Link>
-      <Link href="/login" className={socialBtn}>
-        {t("reg_continue_apple")}
-      </Link>
-      <button type="button" className={socialBtn} onClick={onMobileOtp}>
-        {t("reg_continue_mobile")}
-      </button>
-    </div>
+    <AuthSocialCircles
+      onGoogle={() => {
+        window.location.href = "/login";
+      }}
+      onApple={() => {
+        window.location.href = "/login";
+      }}
+      onPhone={onMobileOtp}
+    />
   );
 }
 
