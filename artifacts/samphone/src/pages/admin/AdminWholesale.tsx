@@ -169,13 +169,21 @@ export default function AdminWholesale({
     setBusy(true);
     setError(null);
     try {
-      const [requests, all, website] = await Promise.all([
-        fetchAdminWholesaleRequests(token).catch(() => [] as AdminWholesaleUser[]),
-        fetchAdminUsers(token).catch(() => [] as AdminWholesaleUser[]),
-        lane === "b2b"
-          ? fetchAdminWebsiteCustomers().catch(() => [] as AdminWholesaleUser[])
-          : Promise.resolve([] as AdminWholesaleUser[]),
+      const settled = await Promise.allSettled([
+        fetchAdminWholesaleRequests(token),
+        fetchAdminUsers(token),
+        lane === "b2b" ? fetchAdminWebsiteCustomers(token) : Promise.resolve([] as AdminWholesaleUser[]),
       ]);
+      const pick = (row: PromiseSettledResult<AdminWholesaleUser[]>): AdminWholesaleUser[] =>
+        row.status === "fulfilled" ? row.value : [];
+      const requests = pick(settled[0]);
+      const all = pick(settled[1]);
+      const website = pick(settled[2]);
+      const failed = settled.filter((row) => row.status === "rejected") as PromiseRejectedResult[];
+      if (all.length === 0 && requests.length === 0 && website.length === 0 && failed.length) {
+        const first = failed[0].reason;
+        throw first instanceof Error ? first : new Error("Could not load accounts.");
+      }
       const byEmail = new Map<string, AdminWholesaleUser>();
       for (const row of [...all, ...requests, ...website]) {
         const key = (row.email || row.id).trim().toLowerCase();
@@ -387,9 +395,10 @@ export default function AdminWholesale({
   ).length;
   const visible = useMemo(() => {
     const inLane = users.filter((u) => (lane === "b2b" ? isB2bAccount(u) : isB2cAccount(u)));
+    const laneRows = inLane.length > 0 || users.length === 0 ? inLane : users;
     const q = filter.trim().toLowerCase();
-    if (!q) return inLane;
-    return inLane.filter((row) =>
+    if (!q) return laneRows;
+    return laneRows.filter((row) =>
       [row.name, row.email, row.businessName, row.vatNumber]
         .filter(Boolean)
         .join(" ")

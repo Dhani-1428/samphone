@@ -388,7 +388,7 @@ def update_product_stock(product_id: str, stock_quantity: int) -> Optional[dict]
     return dict(product)
 
 
-def list_admin_products(q: Optional[str] = None, limit: int = 80, offset: int = 0) -> dict:
+def list_admin_products(q: Optional[str] = None, limit: int = 80, offset: int = 0, **_kwargs) -> dict:
     out = _products
     if q:
         out = [

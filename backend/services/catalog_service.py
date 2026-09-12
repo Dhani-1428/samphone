@@ -1108,7 +1108,7 @@ class CatalogService:
         return self.stamp_admin_prices(doc)
 
     def list_admin_products(
-        self, q: Optional[str] = None, limit: int = 50, offset: int = 0, sort: str = "date_desc"
+        self, q: Optional[str] = None, limit: int = 50, offset: int = 0, sort: str = "date_desc", **_kwargs
     ) -> dict[str, Any]:
         result = self.filter_products(
             q=q,
@@ -1121,7 +1121,10 @@ class CatalogService:
         # Also guarantee both business + public prices for the Public/Business toggle.
         for p in result.get("items") or []:
             managed = bool(p.get("manage_stock") or p.get("stock_tracked"))
-            qty = int(p.get("stock_quantity") or 0)
+            try:
+                qty = int(float(p.get("stock_quantity") or 0))
+            except (TypeError, ValueError):
+                qty = 0
             if managed:
                 p["stock_tracked"] = True
                 p["manage_stock"] = True
@@ -1135,7 +1138,9 @@ class CatalogService:
                 p["stock_tracked"] = True
                 p["stock_quantity"] = qty
 
-            self.stamp_admin_prices(p)
+            stamp = getattr(self, "stamp_admin_prices", None)
+            if callable(stamp):
+                stamp(p)
         return result
 
     def _map_wc_order_status(self, status: str) -> str:

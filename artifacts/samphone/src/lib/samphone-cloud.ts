@@ -142,6 +142,10 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms = CLOUD_FETCH
 async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
+  const existingAuth = (headers.get("Authorization") || "").trim();
+  if (!existingAuth || /^Bearer\s*$/i.test(existingAuth)) {
+    headers.delete("Authorization");
+  }
   const jwt = getStoredApiJwt();
   if (jwt && !headers.has("Authorization") && !isPublicAuthPath(path)) {
     headers.set("Authorization", `Bearer ${jwt}`);
@@ -1257,8 +1261,30 @@ function unwrapList(data: unknown): unknown[] {
     if (Array.isArray(o.items)) return o.items;
     if (Array.isArray(o.users)) return o.users;
     if (Array.isArray(o.requests)) return o.requests;
+    if (Array.isArray(o.data)) return o.data;
+    if (Array.isArray(o.customers)) return o.customers;
+    if (Array.isArray(o.products)) return o.products;
   }
   return [];
+}
+
+function authHeaders(authToken?: string): HeadersInit {
+  const token = (authToken || getStoredApiJwt() || "").trim();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function parseProductPage(data: unknown): {
+  total?: number;
+  has_more?: boolean;
+  items: Record<string, unknown>[];
+} {
+  const items = unwrapList(data).filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object");
+  const o = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  return {
+    items,
+    total: typeof o.total === "number" ? o.total : undefined,
+    has_more: typeof o.has_more === "boolean" ? o.has_more : undefined,
+  };
 }
 
 export async function fetchAdminUsers(authToken: string): Promise<AdminWholesaleUser[]> {
@@ -1268,8 +1294,10 @@ export async function fetchAdminUsers(authToken: string): Promise<AdminWholesale
   return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
 }
 
-export async function fetchAdminWebsiteCustomers(): Promise<AdminWholesaleUser[]> {
-  const data = await cloudFetchJson<unknown>("/admin/users/website?limit=2000");
+export async function fetchAdminWebsiteCustomers(authToken?: string): Promise<AdminWholesaleUser[]> {
+  const data = await cloudFetchJson<unknown>("/admin/users/website?limit=2000", {
+    headers: authHeaders(authToken),
+  });
   return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
 }
 
@@ -1381,10 +1409,20 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   params.set("sort", "date_desc");
-  const data = await cloudFetchJson<unknown>(`/admin/products?${params.toString()}`);
-  if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
-    return data as { total?: number; has_more?: boolean; items: Record<string, unknown>[] };
+  const withSort = new URLSearchParams(params);
+  const noSort = new URLSearchParams(params);
+  noSort.delete("sort");
+  const paths = [`/admin/products?${withSort}`, `/admin/products?${noSort}`, `/products?${withSort}`];
+  let lastError: unknown = null;
+  for (let i = 0; i < paths.length; i += 1) {
+    try {
+      const page = parseProductPage(await cloudFetchJson<unknown>(paths[i]));
+      if (page.items.length || i === paths.length - 1) return page;
+    } catch (err) {
+      lastError = err;
+    }
   }
+  if (lastError instanceof Error) throw lastError;
   return { items: [] };
 }
 

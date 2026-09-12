@@ -2063,7 +2063,7 @@ class WooCommerceAPI:
             )
         return updated
 
-    def list_admin_products(self, q: Optional[str] = None, limit: int = 80, offset: int = 0) -> dict:
+    def list_admin_products(self, q: Optional[str] = None, limit: int = 80, offset: int = 0, **_kwargs) -> dict:
         from catalog_pagination import clamp_page
 
         if self._catalog_cache and time.time() - self._catalog_cache.loaded_at < CACHE_TTL:

@@ -660,8 +660,15 @@ def _clerk_list_admin_users(max_users: int = 1500) -> list[dict]:
         if resp.status_code >= 400:
             logger.warning("Clerk list users HTTP %s: %s", resp.status_code, (resp.text or "")[:240])
             break
-        batch = resp.json()
-        if not isinstance(batch, list) or not batch:
+        raw = resp.json()
+        if isinstance(raw, list):
+            batch = raw
+        elif isinstance(raw, dict):
+            nested = raw.get("data") or raw.get("users") or raw.get("items")
+            batch = nested if isinstance(nested, list) else []
+        else:
+            batch = []
+        if not batch:
             break
         for cu in batch:
             if isinstance(cu, dict):
@@ -857,13 +864,25 @@ _admin_user_cache: dict[str, tuple[float, dict]] = {}
 _ADMIN_USER_CACHE_TTL = 45.0
 
 
+def _email_from_access_token(token: str) -> str:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return str(payload.get("sub") or "").strip().lower()
+    except JWTError:
+        clerk = _verify_clerk_session_token(token)
+        return str(clerk.get("email") or "").strip().lower()
+
+
 async def get_current_user(creds: Optional[HTTPAuthorizationCredentials] = Depends(security)):
     if creds is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        payload = jwt.decode(creds.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        email = payload.get("sub")
-    except JWTError:
+        email = _email_from_access_token(creds.credentials)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    if not email:
         raise HTTPException(status_code=401, detail="Invalid token")
     email_key = (email or "").strip().lower()
     cached = _admin_user_cache.get(email_key)
@@ -883,8 +902,17 @@ async def get_current_user(creds: Optional[HTTPAuthorizationCredentials] = Depen
             ) from exc
         raise
     if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+        if is_admin_email(email):
+            try:
+                pwd_hash = hash_password(ADMIN_PASSWORD or secrets.token_urlsafe(24))
+                user = await data_store.seed_admin_user(email, pwd_hash, db)
+            except Exception:
+                user = None
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
     public = user_public_wholesale(user)
+    if is_admin_email(email):
+        public = _elevate_clerk_admin({**public, "email": email})
     # Admin polls don't need personal-discount lookups (extra MySQL round-trips).
     if public.get("role") == "admin":
         _admin_user_cache[email_key] = (time.time(), public)
@@ -2547,13 +2575,29 @@ async def admin_list_products(
     sort: str = "date_desc",
     _admin=Depends(get_current_admin),
 ):
-    if _woo_catalog_enabled():
-        return await asyncio.to_thread(
-            get_woo_db().list_admin_products, q=q, limit=limit, offset=offset, sort=sort or "date_desc"
-        )
-    if USE_MEMORY:
-        return memory_store.list_admin_products(q=q, limit=limit, offset=offset)
-    raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")
+    def _list_admin_catalog():
+        if _woo_catalog_enabled():
+            fn = getattr(get_woo_db(), "list_admin_products", None)
+            if callable(fn):
+                try:
+                    return fn(q=q, limit=limit, offset=offset, sort=sort or "date_desc")
+                except TypeError:
+                    return fn(q=q, limit=limit, offset=offset)
+            return get_woo_db().filter_products(
+                q=q,
+                limit=limit,
+                offset=offset,
+                sort=sort or "date_desc",
+                user={"role": "admin", "accountType": "b2b", "isWholesale": True, "wholesaleStatus": "approved"},
+            )
+        if USE_MEMORY:
+            try:
+                return memory_store.list_admin_products(q=q, limit=limit, offset=offset, sort=sort or "date_desc")
+            except TypeError:
+                return memory_store.list_admin_products(q=q, limit=limit, offset=offset)
+        raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")
+
+    return await asyncio.to_thread(_list_admin_catalog)
 
 
 @api_router.get("/admin/products/{product_id}")
@@ -2888,10 +2932,14 @@ async def admin_get_order(order_id: str, _admin=Depends(get_current_admin)):
 async def admin_list_users(_admin=Depends(get_current_admin)):
     app_users: list[dict] = []
     if USE_MEMORY or _app_mysql_enabled():
-        from website_routes import enrich_website_user
+        try:
+            from website_routes import enrich_website_user
 
-        rows = await data_store.list_users(db)
-        app_users = [await enrich_website_user(row, db) for row in rows]
+            rows = await data_store.list_users(db)
+            app_users = [await enrich_website_user(row, db) for row in rows]
+        except Exception:
+            logger.exception("Admin list app users failed")
+            app_users = []
     clerk_users = await asyncio.to_thread(_clerk_list_admin_users)
     merged = _merge_admin_users(app_users, clerk_users)
     if not merged and not app_users and not clerk_users:
