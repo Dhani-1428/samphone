@@ -17,6 +17,8 @@ WHOLESALE_SENSITIVE_FIELDS = (
     "dealerTier",
     "dealerOnlyOffers",
     "apiPrice",
+    "stored_business_price",
+    "stored_b2c_override",
 )
 
 DEALER_TIERS = {
@@ -470,7 +472,13 @@ def sanitize_product(product: dict, user: Optional[dict]) -> dict:
         cost_f = float(cost) if cost is not None else 0.0
     except (TypeError, ValueError):
         cost_f = 0.0
-    if cost_f > 0 and not b2c_override:
+    try:
+        stored_pub_f = float(p.get("stored_public_price") or p.get("retailPrice") or p.get("b2c_price") or 0)
+    except (TypeError, ValueError):
+        stored_pub_f = 0.0
+    if stored_pub_f > 0 or b2c_override:
+        retail = stored_pub_f if stored_pub_f > 0 else float(p.get("retailPrice") or 0)
+    elif cost_f > 0:
         retail = map_public_retail_price(cost_f, p)
     else:
         retail = float(p.get("retailPrice") or map_public_retail_price(float(p.get("price") or 0), p) or 0)

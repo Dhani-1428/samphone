@@ -309,9 +309,12 @@ class CatalogService:
         if brand == "Other":
             brand = phone_brand(" ".join(cat_names))
 
-        # B2B source of truth = WooCommerce _price / wholesale meta
+        # B2B: samphone_b2c_pricing.business_price, then Woo wholesale / _price
+        stored_biz = _parse_float(row.get("stored_business_price"))
+        stored_pub = _parse_float(row.get("stored_public_price"))
+        stored_override = _parse_float(row.get("override_b2c_price"))
         ww = (row.get("wholesale_customer_wholesale_price") or "").strip()
-        b2b = _parse_float(ww) if ww else 0.0
+        b2b = stored_biz if stored_biz > 0 else (_parse_float(ww) if ww else 0.0)
         if b2b <= 0:
             b2b = _parse_float(row.get("price"))
         if b2b <= 0:
@@ -321,39 +324,18 @@ class CatalogService:
         sale = _parse_float(row.get("sale_price"), 0.0) or None
         on_sale = bool(sale and sale > 0 and sale < regular)
 
-        # B2C (public): live accessory bands by default.
-        # Do not trust stored_public_price — it goes stale when bands change.
-        # Do not treat sync-filled b2c_price (== public_price) as an admin override.
-        override_b2c = row.get("override_b2c_price")
-        stored_public = row.get("stored_public_price")
         override_markup = row.get("override_markup")
         pricing_hint = {
             "category": meta_cls.get("category", "Multi-Brand"),
             "part_type": meta_cls.get("part_type", ""),
             "leaf_category": meta_cls.get("leaf_category", ""),
         }
-        b2c_override = False
-        manual_b2c = None
-        if override_b2c is not None and str(override_b2c).strip() != "":
-            try:
-                ov = float(override_b2c)
-            except (TypeError, ValueError):
-                ov = 0.0
-            if ov > 0:
-                sp = None
-                if stored_public is not None and str(stored_public).strip() != "":
-                    try:
-                        sp = float(stored_public)
-                    except (TypeError, ValueError):
-                        sp = None
-                # Honor admin override only when it clearly differs from the band cache.
-                # Sync used to copy public→b2c (equal values) and locked stale prices.
-                # Orphan b2c-only rows are also ignored so bands always apply.
-                if sp is not None and abs(ov - sp) >= 0.005:
-                    manual_b2c = round(ov, 2)
-                    b2c_override = True
-        if b2c_override and manual_b2c is not None:
-            b2c = manual_b2c
+        b2c_override = stored_override > 0
+        manual_b2c = round(stored_override, 2) if b2c_override else None
+        if stored_override > 0:
+            b2c = round(stored_override, 2)
+        elif stored_pub > 0:
+            b2c = round(stored_pub, 2)
         else:
             markup = float(override_markup) if override_markup not in (None, "") else None
             if markup is None:
@@ -427,6 +409,9 @@ class CatalogService:
             "b2c_price": round(b2c, 2),
             "b2c_override": b2c_override,
             "retailPrice": round(b2c, 2),
+            "stored_business_price": round(stored_biz, 2) if stored_biz > 0 else None,
+            "stored_public_price": round(stored_pub, 2) if stored_pub > 0 else None,
+            "stored_b2c_override": round(stored_override, 2) if stored_override > 0 else None,
             "compareAtPrice": compare_at,
             "image": images[0],
             "images": images,
@@ -1081,6 +1066,47 @@ class CatalogService:
             payload["sections"] = sections
         return payload
 
+    def stamp_admin_prices(self, p: dict) -> dict:
+        """Admin UI: show samphone_b2c_pricing business_price + public/b2c_price."""
+        biz = 0.0
+        for key in ("stored_business_price", "wholesalePrice", "b2b_price", "apiPrice"):
+            try:
+                v = float(p.get(key) or 0)
+            except (TypeError, ValueError):
+                v = 0.0
+            if v > 0:
+                biz = v
+                break
+        pub = 0.0
+        for key in ("stored_b2c_override", "stored_public_price", "retailPrice", "b2c_price"):
+            try:
+                v = float(p.get(key) or 0)
+            except (TypeError, ValueError):
+                v = 0.0
+            if v > 0:
+                pub = v
+                break
+        if biz > 0 and pub <= 0:
+            pub = map_public_retail_price(biz, p)
+        if biz > 0:
+            p["wholesalePrice"] = round(biz, 2)
+            p["b2b_price"] = round(biz, 2)
+            p["price"] = round(biz, 2)
+        if pub > 0:
+            p["retailPrice"] = round(pub, 2)
+            p["b2c_price"] = round(pub, 2)
+        return p
+
+    def get_admin_product(self, product_id: str) -> Optional[dict]:
+        doc = self.get_product_by_uuid(
+            product_id,
+            enrich=True,
+            user={"role": "admin", "accountType": "b2b", "isWholesale": True, "wholesaleStatus": "approved"},
+        )
+        if not doc:
+            return None
+        return self.stamp_admin_prices(doc)
+
     def list_admin_products(self, q: Optional[str] = None, limit: int = 50, offset: int = 0) -> dict[str, Any]:
         result = self.filter_products(
             q=q,
@@ -1107,39 +1133,7 @@ class CatalogService:
                 p["stock_tracked"] = True
                 p["stock_quantity"] = qty
 
-            biz = 0.0
-            for key in ("wholesalePrice", "b2b_price", "apiPrice", "price"):
-                try:
-                    v = float(p.get(key) or 0)
-                except (TypeError, ValueError):
-                    v = 0.0
-                if v > 0:
-                    biz = v
-                    break
-            pub = 0.0
-            for key in ("retailPrice", "b2c_price"):
-                try:
-                    v = float(p.get(key) or 0)
-                except (TypeError, ValueError):
-                    v = 0.0
-                if v > 0:
-                    pub = v
-                    break
-            if biz > 0 and pub <= 0:
-                if p.get("b2c_override") and p.get("b2c_price"):
-                    try:
-                        pub = float(p["b2c_price"])
-                    except (TypeError, ValueError):
-                        pub = map_public_retail_price(biz, p)
-                else:
-                    pub = map_public_retail_price(biz, p)
-            if biz > 0:
-                p["wholesalePrice"] = round(biz, 2)
-                p["b2b_price"] = round(biz, 2)
-                p["price"] = round(biz, 2)
-            if pub > 0:
-                p["retailPrice"] = round(pub, 2)
-                p["b2c_price"] = round(pub, 2)
+            self.stamp_admin_prices(p)
         return result
 
     def _map_wc_order_status(self, status: str) -> str:
@@ -1573,6 +1567,8 @@ class CatalogService:
                 sale_price=sale_price,
                 clear_sale=clear_sale,
             )
+            if regular_price is not None:
+                self.repo.upsert_b2c_price(wc_id, business_price=float(regular_price))
             # Mirror business / sale price onto the live WooCommerce site.
             # Sync from live is SELECT-only; this is the only live write path (price meta / REST).
             try:
@@ -1599,6 +1595,7 @@ class CatalogService:
             self.repo.upsert_b2c_price(
                 wc_id,
                 b2c_price=float(b2c_price) if b2c_price is not None else None,
+                public_price=float(b2c_price) if b2c_price is not None else None,
                 compare_at_price=float(compare_at_price) if compare_at_price is not None else None,
             )
 
@@ -1611,7 +1608,7 @@ class CatalogService:
             url = str(image_url).strip()
             self.repo.set_image_url(wc_id, url or None)
 
-        return self.get_product_by_uuid(
+        doc = self.get_product_by_uuid(
             product_id,
             enrich=True,
             user={
@@ -1621,6 +1618,7 @@ class CatalogService:
                 "wholesaleStatus": "approved",
             },
         )
+        return self.stamp_admin_prices(doc) if doc else None
 
     def create_product_admin(
         self,
@@ -1646,8 +1644,13 @@ class CatalogService:
         if not created.get("ok"):
             raise RuntimeError(created.get("error") or created.get("reason") or "Could not create product")
         wc_id = int(created.get("wc_id") or 0)
-        if wc_id and b2c_price is not None:
-            self.repo.upsert_b2c_price(wc_id, b2c_price=float(b2c_price))
+        if wc_id and (b2c_price is not None or regular_price is not None):
+            self.repo.upsert_b2c_price(
+                wc_id,
+                b2c_price=float(b2c_price) if b2c_price is not None else None,
+                public_price=float(b2c_price) if b2c_price is not None else None,
+                business_price=float(regular_price) if regular_price is not None else None,
+            )
         if wc_id and (image_url or "").strip():
             self.repo.set_image_url(wc_id, image_url.strip())
         product = created.get("product") or {}

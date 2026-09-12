@@ -290,8 +290,8 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     : p.category
       ? [{ id: 0, name: p.category, slug: "" }]
       : [];
-  const retail = money(p.retailPrice) || money(p.price);
-  const wholesale = money(p.wholesalePrice) || money(p.regularPrice);
+  const retail = money(p.retailPrice) || money(p.b2c_price) || money(p.price);
+  const wholesale = money(p.wholesalePrice) || money(p.b2b_price);
   const price = retail || wholesale;
   const extras = dealerFields(p);
   return normalizeProductGallery({
@@ -1297,7 +1297,7 @@ export async function fetchAdminUserDiscounts(authToken: string, userId: string)
 
 export async function fetchAdminProductRecord(productId: string): Promise<Record<string, unknown> | null> {
   try {
-    const data = await cloudFetchJson<Record<string, unknown>>(`/products/${encodeURIComponent(productId)}`);
+    const data = await cloudFetchJson<Record<string, unknown>>(`/admin/products/${encodeURIComponent(productId)}`);
     return data && typeof data === "object" ? data : null;
   } catch (e) {
     if (e instanceof WooCommerceFetchError && e.status === 404) return null;

@@ -101,8 +101,8 @@ export default function AdminProducts() {
                       type="button"
                       onClick={() => {
                         setEditId(id);
-                        setRetail(String(p.retailPrice ?? p.price ?? ""));
-                        setWholesale(String(p.wholesalePrice ?? p.regularPrice ?? ""));
+                        setRetail(String(p.stored_b2c_override ?? p.stored_public_price ?? p.retailPrice ?? p.b2c_price ?? ""));
+                        setWholesale(String(p.stored_business_price ?? p.wholesalePrice ?? p.b2b_price ?? ""));
                       }}
                     >
                       Edit price

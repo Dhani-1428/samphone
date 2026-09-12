@@ -47,11 +47,11 @@ function productImage(p: Record<string, unknown>): string {
 }
 
 function b2bPrice(p: Record<string, unknown>): string {
-  return priceInput(p.wholesalePrice ?? p.b2b_price ?? p.regularPrice ?? p.apiPrice);
+  return priceInput(p.stored_business_price ?? p.wholesalePrice ?? p.b2b_price ?? p.apiPrice);
 }
 
 function b2cPrice(p: Record<string, unknown>): string {
-  return priceInput(p.retailPrice ?? p.b2c_price);
+  return priceInput(p.stored_b2c_override ?? p.stored_public_price ?? p.retailPrice ?? p.b2c_price);
 }
 
 function fillForm(p: Record<string, unknown>) {
@@ -140,8 +140,8 @@ export default function AdminProductBoard({
         setSku(next.sku || filled.sku);
         setImageUrl(next.imageUrl || filled.imageUrl);
         setStock(next.stock || filled.stock);
-        setB2b(next.b2b || filled.b2b);
-        setB2c(next.b2c || filled.b2c);
+        setB2b(filled.b2b || next.b2b);
+        setB2c(filled.b2c || next.b2c);
       } catch {
         /* list row already filled */
       }
@@ -302,8 +302,8 @@ export default function AdminProductBoard({
               const img = productImage(p);
               const shown =
                 channel === "b2b"
-                  ? money(p.wholesalePrice ?? p.b2b_price)
-                  : money(p.retailPrice ?? p.b2c_price);
+                  ? money(p.stored_business_price ?? p.wholesalePrice ?? p.b2b_price)
+                  : money(p.stored_b2c_override ?? p.stored_public_price ?? p.retailPrice ?? p.b2c_price);
               return (
                 <tr
                   key={id}

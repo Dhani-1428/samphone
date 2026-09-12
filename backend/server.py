@@ -2551,6 +2551,16 @@ async def admin_list_products(
     raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")
 
 
+@api_router.get("/admin/products/{product_id}")
+async def admin_get_product(product_id: str, _admin=Depends(get_current_admin)):
+    if _woo_catalog_enabled():
+        doc = await asyncio.to_thread(get_woo_db().get_admin_product, product_id)
+        if not doc:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return doc
+    raise HTTPException(status_code=501, detail="Admin product requires WooCommerce")
+
+
 def _queue_restock_if_available(background_tasks: BackgroundTasks, product_id: str, product: Optional[dict]) -> None:
     qty = 0
     in_stock = False
