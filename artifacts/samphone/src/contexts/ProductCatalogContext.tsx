@@ -153,7 +153,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
       try {
         const [cr, first] = await Promise.allSettled([
           fetchCategories(),
-          fetchCloudProductList({ offset: "0" }, PER_PAGE),
+          fetchCloudProductList({ offset: "0", sort: "date_desc" }, PER_PAGE),
         ]);
         if (ac.signal.aborted || !mounted.current) return;
 
@@ -205,7 +205,7 @@ export function ProductCatalogProvider({ children }: { children: ReactNode }) {
         const seen = new Set(acc.map((p) => p.id));
         let offset = firstRaw;
         while (!ac.signal.aborted && mounted.current) {
-          const page = await fetchCloudProductList({ offset: String(offset) }, PER_PAGE);
+          const page = await fetchCloudProductList({ offset: String(offset), sort: "date_desc" }, PER_PAGE);
           if (ac.signal.aborted || !mounted.current) return;
           if (page.rawCount === 0) break;
           let added = 0;

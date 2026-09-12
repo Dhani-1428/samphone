@@ -1107,12 +1107,14 @@ class CatalogService:
             return None
         return self.stamp_admin_prices(doc)
 
-    def list_admin_products(self, q: Optional[str] = None, limit: int = 50, offset: int = 0) -> dict[str, Any]:
+    def list_admin_products(
+        self, q: Optional[str] = None, limit: int = 50, offset: int = 0, sort: str = "date_desc"
+    ) -> dict[str, Any]:
         result = self.filter_products(
             q=q,
             limit=limit,
             offset=offset,
-            sort="title_asc",
+            sort=sort or "date_desc",
             user={"role": "admin", "accountType": "b2b", "isWholesale": True, "wholesaleStatus": "approved"},
         )
         # Admin UI must show real DB quantities — never the shop-side 9999 unmanaged cap.

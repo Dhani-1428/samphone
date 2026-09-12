@@ -1917,6 +1917,7 @@ async def list_products(
     new_arrival: Optional[bool] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    sort: str = "date_desc",
     limit: int = 50,
     offset: int = 0,
     viewer=Depends(get_optional_user),
@@ -1954,6 +1955,7 @@ async def list_products(
                 new_arrival=new_arrival,
                 min_price=min_price,
                 max_price=max_price,
+                sort=sort or "date_desc",
                 limit=limit,
                 offset=offset,
                 user=viewer,
@@ -2542,10 +2544,13 @@ async def admin_list_products(
     q: Optional[str] = None,
     limit: int = 80,
     offset: int = 0,
+    sort: str = "date_desc",
     _admin=Depends(get_current_admin),
 ):
     if _woo_catalog_enabled():
-        return await asyncio.to_thread(get_woo_db().list_admin_products, q=q, limit=limit, offset=offset)
+        return await asyncio.to_thread(
+            get_woo_db().list_admin_products, q=q, limit=limit, offset=offset, sort=sort or "date_desc"
+        )
     if USE_MEMORY:
         return memory_store.list_admin_products(q=q, limit=limit, offset=offset)
     raise HTTPException(status_code=501, detail="Admin stock requires WooCommerce or USE_MEMORY=1")

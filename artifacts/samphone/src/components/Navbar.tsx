@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Search, Gift, Globe, ShoppingBag, User, Shield } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Gift, Globe, ShoppingBag, User, Shield } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -988,14 +988,7 @@ export default function Navbar() {
 
           <div className="hidden min-w-0 flex-1 lg:block">
             <div className="flex items-center overflow-visible rounded-md border border-black/[0.08] bg-[#F3F4F6] dark:border-white/15 dark:bg-[#1B2436]">
-              <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" hideButton />
-              <button
-                type="button"
-                className="flex h-11 w-12 shrink-0 items-center justify-center bg-brand text-white transition-colors hover:bg-brand-dark"
-                aria-label={t("searchPlaceholder")}
-              >
-                <Search className="h-4 w-4" strokeWidth={2} />
-              </button>
+              <SmartSearch variant="header" className="flex-1 rounded-none bg-transparent shadow-none" />
             </div>
           </div>
 

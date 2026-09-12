@@ -739,14 +739,14 @@ class ProductRepository:
             in_stock=in_stock,
         )
         order = {
-            "date_desc": "p.ID DESC",
-            "date_asc": "p.ID ASC",
+            "date_desc": "p.post_date DESC, p.ID DESC",
+            "date_asc": "p.post_date ASC, p.ID ASC",
             "title_asc": "p.post_title ASC",
             "title_desc": "p.post_title DESC",
             "price_asc": "CAST(pm_price.meta_value AS DECIMAL(12,2)) ASC",
             "price_desc": "CAST(pm_price.meta_value AS DECIMAL(12,2)) DESC",
             "sales_desc": "CAST(IFNULL(pm_sales.meta_value,0) AS UNSIGNED) DESC",
-        }.get(sort or "date_desc", "p.ID DESC")
+        }.get(sort or "date_desc", "p.post_date DESC, p.ID DESC")
 
         sales_join = ""
         if sort == "sales_desc":
@@ -802,14 +802,14 @@ class ProductRepository:
         )
         joins = self._join_filters(category_slug=category_slug, category_name=category_name, brand=brand)
         order = {
-            "date_desc": "p.ID DESC",
-            "date_asc": "p.ID ASC",
+            "date_desc": "p.post_date DESC, p.ID DESC",
+            "date_asc": "p.post_date ASC, p.ID ASC",
             "title_asc": "p.post_title ASC",
             "title_desc": "p.post_title DESC",
             "price_asc": "CAST(pm_price.meta_value AS DECIMAL(12,2)) ASC",
             "price_desc": "CAST(pm_price.meta_value AS DECIMAL(12,2)) DESC",
             "sales_desc": "CAST(IFNULL(pm_sales.meta_value,0) AS UNSIGNED) DESC",
-        }.get(sort or "date_desc", "p.ID DESC")
+        }.get(sort or "date_desc", "p.post_date DESC, p.ID DESC")
         sales_join = ""
         if sort == "sales_desc":
             sales_join = (

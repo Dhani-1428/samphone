@@ -13,7 +13,9 @@ import { getPrimaryImageUrl, parseWooCartKey, searchProductsRemote, wooProductHr
 import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 import CatalogImage from "@/components/CatalogImage";
 import { normalizeCatalogImageUrl } from "@/config/samphone";
-import { catalogProductMatchesParsedQuery, logSearchAnalytics, parseSearchQuery } from "@/lib/model-search";
+import { logSearchAnalytics, parseSearchQuery } from "@/lib/model-search";
+import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
+import { sortNewest } from "@/lib/woo-product-filters";
 
 type Props = {
   className?: string;
@@ -53,7 +55,11 @@ function mergeHits(list: SearchHit[]): SearchHit[] {
     seen.add(hit.cartKey);
     out.push(hit);
   }
-  return out.slice(0, 40);
+  return out.slice(0, 12);
+}
+
+function productsToHits(list: WooProduct[], user: ReturnType<typeof useAuth>["user"]): SearchHit[] {
+  return mergeHits(sortNewest(list).map((p) => toHit(p, user)));
 }
 
 function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) => void }) {
@@ -177,8 +183,22 @@ export default function SmartSearch({
     let cancelled = false;
     const id = setTimeout(() => {
       if (trimmed.length < 1) {
-        setSearching(false);
-        setHits(products.slice(0, 10).map((p) => toHit(p, user)));
+        const localSuggest = productsToHits(products.slice(0, 24), user);
+        setHits(localSuggest);
+        setSearching(localSuggest.length === 0);
+        setModelHref(null);
+        setTypeOnlyHint(null);
+        void fetchCloudNewArrivals(12)
+          .then((remote) => {
+            if (cancelled) return;
+            setHits(productsToHits([...remote, ...products.slice(0, 24)], user));
+          })
+          .catch(() => {
+            /* keep local */
+          })
+          .finally(() => {
+            if (!cancelled) setSearching(false);
+          });
         return;
       }
 
@@ -186,15 +206,14 @@ export default function SmartSearch({
       setModelHref(parsed.model ? { href: parsed.model.href, label: parsed.model.label } : null);
       setTypeOnlyHint(parsed.type && !parsed.model ? parsed.type.id : null);
 
-      const local = products.length > 0 ? searchProducts(trimmed, 24).map((p) => toHit(p, user)) : [];
-      setHits(local);
+      const local = products.length > 0 ? searchProducts(trimmed, 24) : [];
+      setHits(productsToHits(local, user));
       setSearching(true);
 
-      void searchProductsRemote(trimmed, 80)
+      void searchProductsRemote(trimmed, 24)
         .then((remote) => {
           if (cancelled) return;
-          const filteredRemote = remote.filter((p) => catalogProductMatchesParsedQuery(p, parsed));
-          const merged = mergeHits([...filteredRemote.map((p) => toHit(p, user)), ...local]);
+          const merged = productsToHits([...remote, ...local], user);
           setHits(merged);
           logSearchAnalytics({
             at: new Date().toISOString(),
@@ -245,14 +264,12 @@ export default function SmartSearch({
             id="search-suggestions"
             role="listbox"
             style={{ top: panelPos.top, left: panelPos.left, width: panelPos.width }}
-            className="fixed z-[200] overflow-hidden rounded-md border border-black/[0.08] bg-white text-black shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
+            className="fixed z-[400] overflow-hidden rounded-md border border-black/[0.08] bg-white text-black shadow-[0_12px_40px_rgba(0,0,0,0.12)]"
           >
             <div className="hide-dropdown-scrollbar max-h-96 overflow-y-auto py-1">
-              {q.trim().length < 1 ? (
-                <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-black">
-                  {t("search_suggestions")}
-                </p>
-              ) : null}
+              <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-black">
+                {t("search_suggestions")}
+              </p>
               {typeOnlyHint ? (
                 <p className="px-3 py-2 text-xs font-semibold text-neutral-700">{t("search_type_only_hint")}</p>
               ) : null}
@@ -265,7 +282,9 @@ export default function SmartSearch({
                   {t("search_open_model_catalog", { model: modelHref.label })}
                 </Link>
               ) : null}
-              {hits.length === 0 && !searching ? (
+              {hits.length === 0 && searching ? (
+                <p className="px-3 py-2 text-sm font-semibold text-neutral-600">{t("smartphones_search_loading")}</p>
+              ) : hits.length === 0 ? (
                 <p className="px-3 py-2 text-sm font-bold text-black">{t("search_no_results")}</p>
               ) : (
                 <ul className="text-sm">
@@ -342,11 +361,16 @@ export default function SmartSearch({
             className={cn(
               "shrink-0 transition-colors",
               variant === "header"
-                ? "px-3 py-2.5 font-bold text-black hover:text-black"
+                ? "flex h-11 w-12 shrink-0 items-center justify-center bg-brand text-white hover:bg-brand-dark"
                 : "bg-primary px-4 py-2.5 text-primary-foreground hover:bg-primary/90",
             )}
             data-testid="button-search"
             onClick={() => {
+              if (!q.trim()) {
+                setOpen(true);
+                placePanel();
+                return;
+              }
               goToResults();
             }}
             aria-label={t("searchPlaceholder")}

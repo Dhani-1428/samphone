@@ -15,6 +15,7 @@ import {
   brandKeywordNeedles,
   filterProductsByBrandKeyword,
   productSearchHaystack,
+  sortNewest,
   textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -74,7 +75,7 @@ function sortProducts(list: WooProduct[], sort: SortKey): WooProduct[] {
     case "name-asc":
       return [...list].sort((a, b) => a.name.localeCompare(b.name));
     default:
-      return list;
+      return sortNewest(list);
   }
 }
 

@@ -784,7 +784,7 @@ export async function fetchCloudAllProducts(
   for (let i = 0; i < maxPages; i += 1) {
     const before = all.length;
     const { items, total, hasMore, rawCount } = await fetchCloudProductList(
-      { ...query, offset: String(offset) },
+      { sort: "date_desc", ...query, offset: String(offset) },
       pageSize,
     );
     if (total > 0) catalogTotal = total;
@@ -1368,6 +1368,7 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   if (q.trim()) params.set("q", q.trim());
   params.set("limit", String(limit));
   params.set("offset", String(offset));
+  params.set("sort", "date_desc");
   const data = await cloudFetchJson<unknown>(`/admin/products?${params.toString()}`);
   if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
     return data as { total?: number; has_more?: boolean; items: Record<string, unknown>[] };
