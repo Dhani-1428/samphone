@@ -60,7 +60,6 @@ import WholesalePage from "@/pages/WholesalePage";
 import FaqPage from "@/pages/FaqPage";
 import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
-import SiteLockGate from "@/components/SiteLockGate";
 import ScreenshotGuard from "@/components/ScreenshotGuard";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 
@@ -354,7 +353,7 @@ function App() {
   ) : (
     <AppShell clerk={false} />
   );
-  return <SiteLockGate>{tree}</SiteLockGate>;
+  return tree;
 }
 
 export default App;

@@ -515,7 +515,6 @@ export const LEGAL_PAGES: LegalDoc[] = [
           "samphone-cart-items-v1 — shopping cart.",
           "samphone-orders — local order tracking fallback.",
           "samphone-api-jwt (session/local storage) — API session after login.",
-          "samphone_preview_unlock (sessionStorage) — preview lock on this deployment, if used.",
           "Clerk authentication cookies/storage — sign-in session (clerk.samphone.cloud) when Clerk is enabled.",
           "Stripe — payment fields and checkout are processed by Stripe; card numbers are not stored on this website.",
         ],
