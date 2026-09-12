@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearch } from "wouter";
+import { useSearch } from "wouter";
 import { Pencil, Trash2, Ban, Check } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
@@ -629,11 +629,7 @@ export default function AdminWholesale({
             <div>
             <h3 className="mb-2 text-sm font-semibold">Product & category rules</h3>
             <p className="mb-3 text-xs text-muted-foreground">
-              Extra discounts for a specific product ID or category. You can also manage rules in{" "}
-              <Link href="/admin/pricing" className="text-primary underline">
-                Product / category discounts
-              </Link>
-              .
+              Extra discount for a product ID or a category. You can also set this from the product edit screen.
             </p>
 
             {rulesDraft.length > 0 ? (

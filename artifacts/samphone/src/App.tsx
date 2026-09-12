@@ -43,13 +43,11 @@ import DeviceDiagnostics from "@/pages/DeviceDiagnostics";
 import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import ShopGroupPage from "@/pages/ShopGroupPage";
-import AdminPricing from "@/pages/admin/AdminPricing";
 import AdminGate from "@/components/AdminGate";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
-import AdminCatalog from "@/pages/admin/AdminCatalog";
 import AdminLane from "@/pages/admin/AdminLane";
 import AdminOverview from "@/pages/admin/AdminOverview";
 import AdminOrders from "@/pages/admin/AdminOrders";
@@ -240,11 +238,7 @@ function Router() {
         <Layout><ProductPage /></Layout>
       </Route>
       <Route path="/admin/pricing">
-        <Layout variant="admin">
-          <AdminGate>
-            <AdminPricing />
-          </AdminGate>
-        </Layout>
+        <Redirect to="/admin/b2b?view=products" />
       </Route>
       <Route path="/admin/wholesale">
         <Redirect to="/admin/b2b" />
@@ -270,11 +264,7 @@ function Router() {
         </Layout>
       </Route>
       <Route path="/admin/catalog">
-        <Layout variant="admin">
-          <AdminGate>
-            <AdminCatalog />
-          </AdminGate>
-        </Layout>
+        <Redirect to="/admin/b2b" />
       </Route>
       <Route path="/admin/orders">
         <Layout variant="admin">

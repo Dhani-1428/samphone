@@ -11,7 +11,12 @@ import {
   editAdminProduct,
   fetchAdminProductList,
   fetchAdminProductRecord,
+  fetchAdminUsers,
+  type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
+import { getStoredApiJwt } from "@/config/samphone";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminProductDiscount from "@/components/admin/AdminProductDiscount";
 
 type Channel = "b2b" | "b2c";
 
@@ -85,6 +90,10 @@ export default function AdminProductBoard({
   const [stock, setStock] = useState("");
   const [b2b, setB2b] = useState("");
   const [b2c, setB2c] = useState("");
+  const [categoryHint, setCategoryHint] = useState("");
+  const [customers, setCustomers] = useState<AdminWholesaleUser[]>([]);
+  const { user } = useAuth();
+  const token = getStoredApiJwt() || user?.token || "";
 
   const load = async (query: string, offset = 0, append = false) => {
     setBusy(true);
@@ -105,6 +114,13 @@ export default function AdminProductBoard({
   }, []);
 
   useEffect(() => {
+    if (!token) return;
+    void fetchAdminUsers(token)
+      .then(setCustomers)
+      .catch(() => setCustomers([]));
+  }, [token]);
+
+  useEffect(() => {
     if (openAdd) setFormOpen(true);
   }, [openAdd]);
 
@@ -117,6 +133,7 @@ export default function AdminProductBoard({
     setStock("");
     setB2b("");
     setB2c("");
+    setCategoryHint("");
   };
 
   const startEdit = (p: Record<string, unknown>) => {
@@ -129,6 +146,9 @@ export default function AdminProductBoard({
     setStock(filled.stock);
     setB2b(filled.b2b);
     setB2c(filled.b2c);
+    setCategoryHint(
+      String(p.leaf_category || p.catalogGroup || p.category || p.part_type || "").trim(),
+    );
     setFormOpen(true);
     if (!id) return;
     void (async () => {
@@ -142,6 +162,10 @@ export default function AdminProductBoard({
         setStock(next.stock || filled.stock);
         setB2b(filled.b2b || next.b2b);
         setB2c(filled.b2c || next.b2c);
+        const cat = String(
+          full.leaf_category || full.catalogGroup || full.category || p.leaf_category || p.category || "",
+        ).trim();
+        if (cat) setCategoryHint(cat);
       } catch {
         /* list row already filled */
       }
@@ -280,6 +304,14 @@ export default function AdminProductBoard({
               <p className="text-xs font-bold uppercase tracking-wide text-sam-dark">B2C price</p>
               <Input className="mt-2 bg-white" value={b2c} onChange={(e) => setB2c(e.target.value)} placeholder="0.00" inputMode="decimal" />
             </div>
+            {editingId && token ? (
+              <AdminProductDiscount
+                token={token}
+                customers={customers}
+                productId={editingId}
+                categoryHint={categoryHint}
+              />
+            ) : null}
           </div>
         </AdminRecordDialog>
       ) : null}
