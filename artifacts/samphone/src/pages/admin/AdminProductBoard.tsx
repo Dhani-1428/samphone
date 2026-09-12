@@ -19,6 +19,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import AdminProductDiscount from "@/components/admin/AdminProductDiscount";
 import AdminStockToggle from "@/components/AdminStockToggle";
+import { cn } from "@/lib/utils";
 
 type Channel = "b2b" | "b2c";
 
@@ -361,6 +362,7 @@ export default function AdminProductBoard({
               const title = String(p.title ?? p.name ?? id);
               const img = productImage(p);
               const shown = channel === "b2b" ? money(b2bAmount(p)) : money(b2cAmount(p));
+              const oos = p.in_stock === false || Number(p.stock_quantity ?? 1) <= 0;
               return (
                 <tr
                   key={id}
@@ -369,12 +371,19 @@ export default function AdminProductBoard({
                 >
                   <td className="px-2 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#EEF1F8] ring-1 ring-black/[0.04]">
+                      <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#EEF1F8] ring-1 ring-black/[0.04]">
                         {img ? (
-                          <img src={img} alt="" className="h-full w-full object-cover" />
+                          <img src={img} alt="" className={cn("h-full w-full object-cover", oos && "blur-[2px]")} />
                         ) : (
                           <span className="block h-full w-full" />
                         )}
+                        {oos ? (
+                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25">
+                            <span className="px-0.5 text-center text-[8px] font-extrabold uppercase leading-tight text-white">
+                              Out of stock
+                            </span>
+                          </span>
+                        ) : null}
                       </span>
                       <span className="font-medium text-navy">{title}</span>
                     </div>

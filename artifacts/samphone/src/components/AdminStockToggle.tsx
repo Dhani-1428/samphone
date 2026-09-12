@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { isAdminRole } from "@/lib/admin-access";
@@ -29,40 +28,62 @@ export default function AdminStockToggle({
     setOn(inStock);
   }, [inStock]);
 
-  const label = on ? t("product_in_stock") : t("pdp_out_of_stock");
+  const inLabel = t("product_in_stock");
+  const outLabel = t("pdp_out_of_stock");
 
   if (!admin || !productId) {
     return (
       <span className={cn("text-[10px] font-semibold uppercase tracking-wide", on ? "text-emerald-700" : "text-amber-700", className)}>
-        {label}
+        {on ? inLabel : outLabel}
       </span>
     );
   }
 
-  const toggle = async (next: boolean) => {
-    if (busy) return;
+  const choose = async (next: boolean) => {
+    if (busy || next === on) return;
     setBusy(true);
     setOn(next);
     const qty = next ? Math.max(1, stockQuantity || 0) : 0;
+    onChanged?.({ inStock: next, stockQuantity: qty });
     try {
       await editAdminProduct(productId, { in_stock: next, stock_quantity: qty });
-      onChanged?.({ inStock: next, stockQuantity: qty });
     } catch {
       setOn(!next);
+      onChanged?.({ inStock: !next, stockQuantity: !next ? Math.max(1, stockQuantity || 0) : 0 });
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <label
-      className={cn("inline-flex items-center gap-2", className)}
+    <div
+      className={cn("inline-flex rounded-lg bg-[#EEF1F8] p-0.5", className)}
       onClick={(e) => e.stopPropagation()}
+      role="group"
+      aria-label="Stock status"
     >
-      <Switch checked={on} disabled={busy} onCheckedChange={(v) => void toggle(Boolean(v))} />
-      <span className={cn("text-[10px] font-semibold uppercase tracking-wide", on ? "text-emerald-700" : "text-amber-700")}>
-        {label}
-      </span>
-    </label>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void choose(true)}
+        className={cn(
+          "rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
+          on ? "bg-white text-emerald-700 shadow-sm" : "text-neutral-500 hover:text-navy",
+        )}
+      >
+        {inLabel}
+      </button>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void choose(false)}
+        className={cn(
+          "rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
+          !on ? "bg-white text-amber-700 shadow-sm" : "text-neutral-500 hover:text-navy",
+        )}
+      >
+        {outLabel}
+      </button>
+    </div>
   );
 }

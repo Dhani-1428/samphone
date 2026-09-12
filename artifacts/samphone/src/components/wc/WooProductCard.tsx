@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import {
   AlertCircle,
   Heart,
@@ -47,7 +47,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const wishKey = `woo:${product.id}`;
   const wishlisted = wishHas(wishKey);
   const title = product.name?.trim() || "Product";
-  const inStock = catalogInStock(product);
+  const listedInStock = catalogInStock(product);
+  const [inStock, setInStock] = useState(listedInStock);
+  useEffect(() => {
+    setInStock(listedInStock);
+  }, [listedInStock, product.id]);
   const hideCart = hideStoreCart();
   const canAdd = Boolean((user || hideCart) && showPrice && canBuyDealer);
   const showLoginBuy = Boolean(!user && !hideCart && canBuyDealer);
@@ -150,6 +154,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           productId={String(product.cloudId || product.id)}
           inStock={inStock}
           stockQuantity={catalogMaxQty(product)}
+          onChanged={({ inStock: next }) => setInStock(next)}
         />
 
         <ProductCardWriting href={productHref} title={title} />

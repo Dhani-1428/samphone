@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
   BadgeCheck,
@@ -87,6 +87,10 @@ export default function ProductDetailLayout({
   const [loc] = useLocation();
   const [tab, setTab] = useState<"desc" | "info" | "reviews">("desc");
   const [ship, setShip] = useState("portugal");
+  const [stockOn, setStockOn] = useState(inStock);
+  useEffect(() => {
+    setStockOn(inStock);
+  }, [inStock, cartKey]);
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
   const wished = wishHas(cartKey);
 
@@ -103,7 +107,18 @@ export default function ProductDetailLayout({
                 —
               </div>
             ) : (
-              <ProductImageGallery images={gallery} productName={displayTitle} preferredSrc={preferredSrc} />
+              <div className="relative">
+                <div className={cn(!stockOn && "[&_img]:blur-[3px]")}>
+                  <ProductImageGallery images={gallery} productName={displayTitle} preferredSrc={preferredSrc} />
+                </div>
+                {!stockOn ? (
+                  <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center rounded-lg bg-black/20">
+                    <span className="px-3 text-center text-sm font-extrabold uppercase tracking-wide text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+                      {t("pdp_out_of_stock")}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
             )}
           </div>
 
@@ -186,12 +201,12 @@ export default function ProductDetailLayout({
               ) : null}
 
               {hideStoreCart() ? (
-                <CardQtyStepper cartKey={cartKey} inStock={inStock} maxQty={maxQty} productId={restockProductId} />
-              ) : !inStock && restockProductId ? (
+                <CardQtyStepper cartKey={cartKey} inStock={stockOn} maxQty={maxQty} productId={restockProductId} />
+              ) : !stockOn && restockProductId ? (
                 <NotifyMeButton productId={restockProductId} size="page" />
               ) : user ? (
-                inStock ? (
-                  <CardQtyStepper cartKey={cartKey} inStock={inStock} maxQty={maxQty} productId={restockProductId} />
+                stockOn ? (
+                  <CardQtyStepper cartKey={cartKey} inStock={stockOn} maxQty={maxQty} productId={restockProductId} />
                 ) : (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                     {t("notify_stock")}
@@ -217,7 +232,12 @@ export default function ProductDetailLayout({
               <div className="space-y-3 border-t border-black/[0.06] pt-4 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[#333333]">{t("pdp_availability")}</span>
-                  <AdminStockToggle productId={restockProductId} inStock={inStock} stockQuantity={maxQty ?? 0} />
+                  <AdminStockToggle
+                    productId={restockProductId}
+                    inStock={stockOn}
+                    stockQuantity={maxQty ?? 0}
+                    onChanged={({ inStock: next }) => setStockOn(next)}
+                  />
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[#333333]">{t("pdp_ship_to")}</span>
@@ -238,7 +258,7 @@ export default function ProductDetailLayout({
                 </div>
               </div>
 
-              {!user && inStock && !hideStoreCart() ? (
+              {!user && stockOn && !hideStoreCart() ? (
                 <div className="flex items-start gap-2.5 border border-black/[0.08] bg-neutral-100 p-3 text-sm text-[#5B6B86]">
                   <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#111111]" />
                   <span>{t("pdp_login_cart_hint")}</span>
