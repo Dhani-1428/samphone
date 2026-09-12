@@ -137,8 +137,7 @@ export default function AdminWholesale({
   embedded?: boolean;
 }) {
   const { user } = useAuth();
-  const [token, setToken] = useState(() => getStoredApiJwt() ?? user?.token ?? "");
-  const [authed, setAuthed] = useState(Boolean(getStoredApiJwt() ?? user?.token));
+  const [token, setToken] = useState(() => getStoredApiJwt() ?? "");
   const [users, setUsers] = useState<AdminWholesaleUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -165,14 +164,20 @@ export default function AdminWholesale({
   }, [qFromUrl]);
 
   const load = useCallback(async () => {
-    if (!token) return;
+    const jwt = getStoredApiJwt() || token;
+    if (!jwt) {
+      setError("Sign in again to load accounts.");
+      setUsers([]);
+      return;
+    }
+    if (jwt !== token) setToken(jwt);
     setBusy(true);
     setError(null);
     try {
       const settled = await Promise.allSettled([
-        fetchAdminWholesaleRequests(token),
-        fetchAdminUsers(token),
-        lane === "b2b" ? fetchAdminWebsiteCustomers(token) : Promise.resolve([] as AdminWholesaleUser[]),
+        fetchAdminWholesaleRequests(jwt),
+        fetchAdminUsers(jwt),
+        lane === "b2b" ? fetchAdminWebsiteCustomers(jwt) : Promise.resolve([] as AdminWholesaleUser[]),
       ]);
       const pick = (row: PromiseSettledResult<AdminWholesaleUser[]>): AdminWholesaleUser[] =>
         row.status === "fulfilled" ? row.value : [];
@@ -223,14 +228,19 @@ export default function AdminWholesale({
   }, [token, selectedId, lane]);
 
   useEffect(() => {
-    const jwt = getStoredApiJwt() ?? user?.token ?? "";
-    if (jwt && jwt !== token) setToken(jwt);
-    if (jwt) setAuthed(true);
+    const sync = () => {
+      const jwt = getStoredApiJwt() ?? "";
+      if (jwt && jwt !== token) setToken(jwt);
+    };
+    sync();
+    if (token) return;
+    const id = window.setInterval(sync, 800);
+    return () => window.clearInterval(id);
   }, [token, user?.token]);
 
   useEffect(() => {
-    if (authed) void load();
-  }, [authed, load]);
+    void load();
+  }, [load]);
 
   const selectUser = (row: AdminWholesaleUser) => {
     setSelectedId(row.id);
@@ -406,11 +416,6 @@ export default function AdminWholesale({
         .includes(q),
     );
   }, [users, filter, lane]);
-
-  if (!authed) {
-    const wait = <p className="text-sm text-neutral-500">Opening accounts…</p>;
-    return embedded ? wait : <AdminShell title={lane === "b2b" ? "B2B" : "B2C"}>{wait}</AdminShell>;
-  }
 
   const selected = users.find((u) => u.id === selectedId) ?? null;
 

@@ -60,10 +60,32 @@ export const STORE_SOCIAL = {
 
 export const JWT_STORAGE_KEY = "samphone-api-jwt";
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const padded = part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "=");
+    return JSON.parse(atob(padded)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/** Clerk session JWTs cannot call FastAPI /admin — they 401 and empty the lists. */
+export function isClerkSessionJwt(token: string): boolean {
+  const payload = decodeJwtPayload(token);
+  if (!payload) return false;
+  const iss = String(payload.iss || "").toLowerCase();
+  return iss.includes("clerk") || iss.includes("accounts.dev");
+}
+
 export function getStoredApiJwt(): string | null {
   try {
     const t = sessionStorage.getItem(JWT_STORAGE_KEY) ?? localStorage.getItem(JWT_STORAGE_KEY);
-    return t?.trim() ? t.trim() : null;
+    const token = t?.trim() ? t.trim() : null;
+    if (!token) return null;
+    if (isClerkSessionJwt(token)) return null;
+    return token;
   } catch {
     return null;
   }
@@ -71,7 +93,7 @@ export function getStoredApiJwt(): string | null {
 
 export function setStoredApiJwt(token: string | null): void {
   try {
-    if (!token) {
+    if (!token || isClerkSessionJwt(token)) {
       sessionStorage.removeItem(JWT_STORAGE_KEY);
       localStorage.removeItem(JWT_STORAGE_KEY);
       return;

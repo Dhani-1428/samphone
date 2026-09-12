@@ -116,6 +116,22 @@ function isPublicAuthPath(path: string): boolean {
   );
 }
 
+function isPublicCatalogPath(path: string): boolean {
+  const p = path.split("?")[0];
+  return (
+    p === "/products" ||
+    p === "/products-search" ||
+    p === "/featured" ||
+    p === "/new-arrivals" ||
+    p === "/home-rails" ||
+    p === "/categories" ||
+    p === "/banners" ||
+    p === "/related" ||
+    p === "/brands" ||
+    p === "/health"
+  );
+}
+
 function cloudRequestUrls(path: string): string[] {
   const suffix = path.startsWith("/") ? path : `/${path}`;
   const primary = path.startsWith("http") ? path : `${SAMPHONE_API_BASE}${suffix}`;
@@ -148,7 +164,7 @@ async function cloudFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers.delete("Authorization");
   }
   const jwt = getStoredApiJwt();
-  if (jwt && !headers.has("Authorization") && !isPublicAuthPath(path)) {
+  if (jwt && !headers.has("Authorization") && !isPublicAuthPath(path) && !isPublicCatalogPath(path)) {
     headers.set("Authorization", `Bearer ${jwt}`);
   }
   const urls = cloudRequestUrls(path);
@@ -1445,24 +1461,24 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   const noSort = new URLSearchParams(params);
   noSort.delete("sort");
   const adminPaths = [`/admin/products?${withSort}`, `/admin/products?${noSort}`];
-  let adminPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
   let lastError: unknown = null;
-  for (const path of adminPaths) {
-    try {
-      const page = parseProductPage(await cloudFetchJson<unknown>(path));
-      if (page.items.length) {
-        adminPage = page;
-        break;
+  const catalogPage = parseProductPage(
+    await cloudFetchJson<unknown>(`/products?${withSort}`).catch(() => ({ items: [] })),
+  );
+  let adminPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
+  const jwt = getStoredApiJwt();
+  if (jwt) {
+    for (const path of adminPaths) {
+      try {
+        const page = parseProductPage(await cloudFetchJson<unknown>(path));
+        if (page.items.length) {
+          adminPage = page;
+          break;
+        }
+      } catch (err) {
+        lastError = err;
       }
-    } catch (err) {
-      lastError = err;
     }
-  }
-  let catalogPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
-  try {
-    catalogPage = parseProductPage(await cloudFetchJson<unknown>(`/products?${withSort}`));
-  } catch (err) {
-    lastError = lastError ?? err;
   }
   const catalogById = new Map<string, Record<string, unknown>>();
   for (const row of catalogPage.items) {
@@ -1470,8 +1486,14 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
     if (key) catalogById.set(key, row);
   }
   const base = adminPage.items.length ? adminPage.items : catalogPage.items;
-  const items = base.map((row) => overlayAdminPrices(row, catalogById.get(productKey(row))));
-  if (!items.length && lastError instanceof Error) throw lastError;
+  const items = base.map((row) => {
+    try {
+      return overlayAdminPrices(row, catalogById.get(productKey(row)));
+    } catch {
+      return row;
+    }
+  });
+  if (!items.length && lastError instanceof Error && !catalogPage.items.length) throw lastError;
   return {
     items,
     total: adminPage.total ?? catalogPage.total,
