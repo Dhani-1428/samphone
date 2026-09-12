@@ -1,6 +1,5 @@
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import AdminShell from "@/components/admin/AdminShell";
 import { classifyCatalogProduct, suggestedTaxonomyFields } from "@/lib/catalog-taxonomy";
 import { readSearchAnalytics } from "@/lib/model-search";
 
@@ -13,30 +12,12 @@ export default function AdminCatalog() {
   const zero = analytics.filter((e) => e.resultCount === 0);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <h1 className="font-display text-2xl font-bold">Catalog taxonomy</h1>
-            <p className="text-sm text-muted-foreground">
-              Flags products missing category/subcategory or with invalid Parts vs Accessories tags.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/admin/wholesale">
-              <Button variant="outline" size="sm">
-                Wholesale
-              </Button>
-            </Link>
-            <Link href="/admin/pricing">
-              <Button variant="outline" size="sm">
-                Pricing
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-      <div className="container mx-auto space-y-8 px-4 py-6">
+    <AdminShell title="Advanced tools">
+      <h1 className="font-display text-2xl font-bold text-navy">Catalog taxonomy</h1>
+      <p className="mt-1 text-sm text-neutral-500">
+        Flags products missing category/subcategory or with invalid Parts vs Accessories tags.
+      </p>
+      <div className="mt-6 space-y-8">
         {loading ? <p className="text-sm text-muted-foreground">Loading catalog…</p> : null}
         <section className="rounded-xl border bg-card p-5">
           <h2 className="text-lg font-bold">Validation warnings</h2>
@@ -81,6 +62,6 @@ export default function AdminCatalog() {
           )}
         </section>
       </div>
-    </div>
+    </AdminShell>
   );
 }

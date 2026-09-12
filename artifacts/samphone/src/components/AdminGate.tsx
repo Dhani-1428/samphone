@@ -9,7 +9,7 @@ export default function AdminGate({ children }: { children: ReactNode }) {
   const [location] = useLocation();
 
   if (!isAuthenticated || !user) {
-    const next = encodeURIComponent(location || "/admin/wholesale");
+    const next = encodeURIComponent(location || "/admin");
     return (
       <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
         <div className="w-full max-w-md space-y-4 rounded-xl bg-white p-8 text-center shadow-sm ring-1 ring-black/[0.04]">

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "wouter";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearch } from "wouter";
+import AdminShell from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +68,13 @@ export default function AdminWholesale() {
   const [discountDraft, setDiscountDraft] = useState("");
   const [rulesDraft, setRulesDraft] = useState<PersonalPricingRule[]>([]);
   const [newRule, setNewRule] = useState<DraftRule>(EMPTY_DRAFT);
+  const search = useSearch();
+  const qFromUrl = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("q") || "";
+  const [filter, setFilter] = useState(qFromUrl);
+
+  useEffect(() => {
+    setFilter(qFromUrl);
+  }, [qFromUrl]);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -205,48 +213,37 @@ export default function AdminWholesale() {
     }
   };
 
+  const pendingCount = users.filter((u) => (u.wholesaleStatus || "").toLowerCase() === "pending").length;
+  const visible = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter((row) =>
+      [row.name, row.email, row.businessName, row.vatNumber]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [users, filter]);
+
   if (!authed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-        <p className="text-sm text-muted-foreground">Opening wholesale admin…</p>
-      </div>
+      <AdminShell title="Customers">
+        <p className="text-sm text-neutral-500">Opening customers…</p>
+      </AdminShell>
     );
   }
 
   const selected = users.find((u) => u.id === selectedId) ?? null;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <div>
-            <h1 className="font-display text-2xl font-bold">Wholesale administration</h1>
-            <p className="text-sm text-muted-foreground">
-              Approve B2B accounts, set per-account discounts, and edit B2B/B2C prices.
-              {user?.email ? ` Signed in as ${user.email}` : ""}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/admin/catalog">
-              <Button variant="outline" size="sm">
-                Catalog taxonomy
-              </Button>
-            </Link>
-            <Link href="/admin/pricing">
-              <Button variant="outline" size="sm">
-                Product / category discounts
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                Storefront
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <AdminShell title="Customers" pendingCustomers={pendingCount}>
+      <h1 className="font-display text-2xl font-bold text-navy">Customers</h1>
+      <p className="mt-1 text-sm text-neutral-500">
+        Approve B2B accounts and set discounts. Signed in as {user?.email || "admin"}.
+      </p>
 
-      <main className="container mx-auto space-y-8 px-4 py-6">
+      <main className="mt-6 space-y-8">
         {error ? <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
 
         <section className="rounded-xl border bg-card p-6 shadow-sm">
@@ -279,11 +276,19 @@ export default function AdminWholesale() {
         </section>
 
         <section className="rounded-xl border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">Accounts</h2>
-            <Button type="button" variant="secondary" disabled={busy} onClick={() => void load()}>
-              Refresh
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                className="h-9 w-56 bg-white"
+                placeholder="Search by name or email…"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+              <Button type="button" variant="secondary" disabled={busy} onClick={() => void load()}>
+                Refresh
+              </Button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -297,7 +302,7 @@ export default function AdminWholesale() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((row) => (
+                {visible.map((row) => (
                   <tr
                     key={row.id}
                     className={`border-b border-border/60 ${selectedId === row.id ? "bg-brand/5" : ""}`}
@@ -376,8 +381,10 @@ export default function AdminWholesale() {
                 ))}
               </tbody>
             </table>
-            {users.length === 0 && !busy ? (
-              <p className="py-6 text-sm text-muted-foreground">No wholesale requests loaded.</p>
+            {visible.length === 0 && !busy ? (
+              <p className="py-6 text-sm text-muted-foreground">
+                {users.length === 0 ? "No accounts loaded." : "No customers match that search."}
+              </p>
             ) : null}
           </div>
         </section>
@@ -496,6 +503,6 @@ export default function AdminWholesale() {
           </section>
         ) : null}
       </main>
-    </div>
+    </AdminShell>
   );
 }

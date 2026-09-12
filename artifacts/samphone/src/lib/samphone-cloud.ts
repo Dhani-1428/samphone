@@ -1267,6 +1267,41 @@ export async function patchAdminWholesaleUser(
   throw last instanceof Error ? last : new WooCommerceFetchError("Could not update wholesale account.");
 }
 
+export async function fetchAdminStats(): Promise<{
+  total_orders?: number;
+  total_revenue?: number;
+  total_customers?: number;
+  total_products?: number;
+  low_stock?: number;
+  out_of_stock?: number;
+}> {
+  return cloudFetchJson("/admin/stats");
+}
+
+export async function fetchAdminOrders(limit = 80): Promise<{
+  items: Record<string, unknown>[];
+  counts?: { all?: number; website?: number; app?: number };
+}> {
+  const data = await cloudFetchJson<unknown>(`/admin/orders?limit=${limit}`);
+  if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
+    return data as { items: Record<string, unknown>[]; counts?: { all?: number; website?: number; app?: number } };
+  }
+  if (Array.isArray(data)) return { items: data as Record<string, unknown>[] };
+  return { items: [] };
+}
+
+export async function fetchAdminProductList(q = "", limit = 40): Promise<{
+  total?: number;
+  items: Record<string, unknown>[];
+}> {
+  const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}&limit=${limit}` : `?limit=${limit}`;
+  const data = await cloudFetchJson<unknown>(`/admin/products${qs}`);
+  if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
+    return data as { total?: number; items: Record<string, unknown>[] };
+  }
+  return { items: [] };
+}
+
 export async function patchAdminProduct(
   authToken: string,
   productId: string,

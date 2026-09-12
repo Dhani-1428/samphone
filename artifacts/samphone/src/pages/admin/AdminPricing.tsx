@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AdminShell from "@/components/admin/AdminShell";
 import { adminAuthHeaders, getAdminToken, setAdminToken } from "@/lib/admin-session";
 import { getStoredApiJwt } from "@/config/samphone";
 
@@ -137,9 +138,9 @@ export default function AdminPricing() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-xl border bg-card p-8 shadow-lg space-y-4">
-          <h1 className="text-xl font-bold">Samphone Pricing Admin</h1>
+      <AdminShell title="Pricing & discounts">
+        <div className="mx-auto max-w-md rounded-2xl border border-black/[0.05] bg-white p-8 shadow-sm space-y-4">
+          <h1 className="text-xl font-bold text-navy">Pricing API token</h1>
           <p className="text-sm text-muted-foreground">
             Enter admin API token (set PRICING_ADMIN_TOKEN on API server).
           </p>
@@ -161,11 +162,11 @@ export default function AdminPricing() {
           >
             Sign in
           </Button>
-          <Link href="/" className="text-sm text-primary block text-center">
+          <Link href="/" className="text-sm text-brand block text-center">
             Back to store
           </Link>
         </div>
-      </div>
+      </AdminShell>
     );
   }
 
@@ -178,36 +179,11 @@ export default function AdminPricing() {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-2xl font-bold">Pricing administration</h1>
-            <p className="text-sm text-muted-foreground">
-              Per-customer product and category discounts · Portugal · EUR
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link href="/admin/catalog">
-              <Button variant="outline" size="sm">
-                Catalog taxonomy
-              </Button>
-            </Link>
-            <Link href="/admin/wholesale">
-              <Button variant="outline" size="sm">
-                Wholesale admin
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" size="sm">
-                View storefront
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <AdminShell title="Pricing & discounts">
+      <h1 className="font-display text-2xl font-bold text-navy">Pricing & discounts</h1>
+      <p className="mt-1 text-sm text-neutral-500">Per-customer product and category discounts · Portugal · EUR</p>
 
-      <div className="container mx-auto px-4 py-6 grid lg:grid-cols-[220px_1fr] gap-6">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[220px_1fr]">
         <nav className="rounded-xl border bg-card p-3 h-fit space-y-1">
           {tabs.map(([id, label]) => (
             <button
@@ -395,7 +371,7 @@ export default function AdminPricing() {
           )}
         </main>
       </div>
-    </div>
+    </AdminShell>
   );
 }
 

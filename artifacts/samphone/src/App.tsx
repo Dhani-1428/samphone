@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -51,6 +51,9 @@ import ClerkCloudBridge from "@/components/ClerkCloudBridge";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
 import AdminCatalog from "@/pages/admin/AdminCatalog";
+import AdminOverview from "@/pages/admin/AdminOverview";
+import AdminProducts from "@/pages/admin/AdminProducts";
+import AdminOrders from "@/pages/admin/AdminOrders";
 import LegalPage from "@/pages/LegalPage";
 import NotFound from "@/pages/not-found";
 import Layout from "@/components/Layout";
@@ -239,24 +242,49 @@ function Router() {
         <Layout><ProductPage /></Layout>
       </Route>
       <Route path="/admin/pricing">
-        <AdminGate>
-          <AdminPricing />
-        </AdminGate>
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminPricing />
+          </AdminGate>
+        </Layout>
       </Route>
       <Route path="/admin/wholesale">
-        <AdminGate>
-          <AdminWholesale />
-        </AdminGate>
+        <Redirect to="/admin/customers" />
+      </Route>
+      <Route path="/admin/customers">
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminWholesale />
+          </AdminGate>
+        </Layout>
       </Route>
       <Route path="/admin/catalog">
-        <AdminGate>
-          <AdminCatalog />
-        </AdminGate>
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminCatalog />
+          </AdminGate>
+        </Layout>
+      </Route>
+      <Route path="/admin/products">
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminProducts />
+          </AdminGate>
+        </Layout>
+      </Route>
+      <Route path="/admin/orders">
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminOrders />
+          </AdminGate>
+        </Layout>
       </Route>
       <Route path="/admin">
-        <AdminGate>
-          <AdminWholesale />
-        </AdminGate>
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminOverview />
+          </AdminGate>
+        </Layout>
       </Route>
       <Route>
         <Layout><NotFound /></Layout>

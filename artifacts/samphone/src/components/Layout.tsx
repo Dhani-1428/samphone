@@ -9,7 +9,13 @@ import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 import WholesaleStatusBanner from "@/components/WholesaleStatusBanner";
 import CookieConsent from "@/components/CookieConsent";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function Layout({
+  children,
+  variant = "store",
+}: {
+  children: ReactNode;
+  variant?: "store" | "admin";
+}) {
   useLayoutEffect(() => {
     const header = document.querySelector<HTMLElement>("header");
     if (!header) return;
@@ -34,16 +40,20 @@ export default function Layout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <BrowseRouteTracker />
       <Navbar />
-      <WholesaleStatusBanner />
+      {variant === "store" ? <WholesaleStatusBanner /> : null}
       <div className="relative flex min-h-0 flex-1">
         <main className="min-w-0 flex-1">{children}</main>
-        <CartSider />
+        {variant === "store" ? <CartSider /> : null}
       </div>
-      <Footer />
-      <WhatsAppButton />
-      <BackToTopButton />
-      <AddedToCartPopup />
-      <CookieConsent />
+      {variant === "store" ? (
+        <>
+          <Footer />
+          <WhatsAppButton />
+          <BackToTopButton />
+          <AddedToCartPopup />
+          <CookieConsent />
+        </>
+      ) : null}
     </div>
   );
 }

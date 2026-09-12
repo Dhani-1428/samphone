@@ -1,6 +1,6 @@
 import { safeRedirectPath } from "@/lib/safeRedirect";
 
-export const ADMIN_HOME = "/admin/wholesale";
+export const ADMIN_HOME = "/admin";
 
 export function isAdminRole(role?: string | null): boolean {
   return (role || "").trim().toLowerCase() === "admin";
