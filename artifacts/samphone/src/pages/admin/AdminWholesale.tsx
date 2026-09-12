@@ -11,13 +11,15 @@ import {
   fetchAdminUsers,
   fetchAdminWebsiteCustomers,
   fetchAdminWholesaleRequests,
+  fetchAdminUserDiscounts,
   patchAdminProduct,
   patchAdminWholesaleUser,
   deleteAdminUser,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
 import { isB2bAccount, isB2cAccount } from "@/lib/admin-access";
-import type { PersonalPricingRule } from "@/lib/customer-price";
+import { parsePersonalPricing, type PersonalPricingRule } from "@/lib/customer-price";
+import AdminRecordDialog from "@/components/admin/AdminRecordDialog";
 
 type DraftRule = {
   scope: "product" | "category";
@@ -72,6 +74,61 @@ function formatJoined(iso?: string): string {
   });
 }
 
+function formatPhone(raw?: string): string {
+  const digits = (raw || "").replace(/\D/g, "");
+  if (!digits) return raw || "";
+  if (digits.startsWith("351") && digits.length >= 12) {
+    return `+351 ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9)}`;
+  }
+  if (digits.length === 9) return `+351 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
+  return raw?.trim() || "";
+}
+
+function formatStatus(row: AdminWholesaleUser): string {
+  const status = (row.wholesaleStatus || "").trim().toLowerCase();
+  if (status) return status;
+  if (row.isWholesale) return "approved";
+  return (row.accountType || "b2c").toLowerCase() === "b2b" ? "pending" : "personal";
+}
+
+function formatPercent(n?: number): string {
+  if (n == null || !Number.isFinite(n) || n <= 0) return "—";
+  return `−${Number.isInteger(n) ? String(n) : n.toFixed(2)}%`;
+}
+
+function pickText(...vals: (string | undefined)[]): string {
+  for (const v of vals) {
+    if (v && v.trim()) return v.trim();
+  }
+  return "";
+}
+
+function mergeAccount(prev: AdminWholesaleUser, row: AdminWholesaleUser): AdminWholesaleUser {
+  const appId = (id: string) => id && !id.startsWith("user_") && !id.startsWith("wp-");
+  const prevLooksLikeEmail = (prev.name || "").toLowerCase() === (prev.email || "").split("@")[0];
+  return {
+    ...row,
+    ...prev,
+    id: appId(prev.id) ? prev.id : row.id || prev.id,
+    email: pickText(prev.email, row.email),
+    name: prevLooksLikeEmail && row.name ? row.name : pickText(prev.name, row.name),
+    phone: pickText(prev.phone, row.phone),
+    businessName: pickText(prev.businessName, row.businessName),
+    vatNumber: pickText(prev.vatNumber, row.vatNumber),
+    businessType: pickText(prev.businessType, row.businessType),
+    companyAddress: pickText(prev.companyAddress, row.companyAddress),
+    createdAt: prev.createdAt || row.createdAt,
+    wholesaleStatus: prev.wholesaleStatus || row.wholesaleStatus,
+    accountType: isB2bAccount(prev) || isB2bAccount(row) ? "b2b" : prev.accountType || row.accountType || "b2c",
+    accountDiscountPercent: prev.accountDiscountPercent ?? row.accountDiscountPercent,
+    personalPricing: prev.personalPricing?.length ? prev.personalPricing : row.personalPricing,
+    source: prev.source || row.source,
+    isWholesale: Boolean(prev.isWholesale || row.isWholesale),
+    isWholesaleRole: Boolean(prev.isWholesaleRole || row.isWholesaleRole),
+    role: prev.role || row.role,
+  };
+}
+
 export default function AdminWholesale({
   lane = "b2b",
   embedded = false,
@@ -96,6 +153,7 @@ export default function AdminWholesale({
   const [phoneDraft, setPhoneDraft] = useState("");
   const [businessDraft, setBusinessDraft] = useState("");
   const [vatDraft, setVatDraft] = useState("");
+  const [addressDraft, setAddressDraft] = useState("");
   const [rulesDraft, setRulesDraft] = useState<PersonalPricingRule[]>([]);
   const [newRule, setNewRule] = useState<DraftRule>(EMPTY_DRAFT);
   const search = useSearch();
@@ -126,17 +184,7 @@ export default function AdminWholesale({
           byEmail.set(key, row);
           continue;
         }
-        const eitherB2b = isB2bAccount(prev) || isB2bAccount(row);
-        byEmail.set(key, {
-          ...row,
-          ...prev,
-          source: prev.source || row.source,
-          isWholesaleRole: Boolean(prev.isWholesaleRole || row.isWholesaleRole),
-          businessName: prev.businessName || row.businessName,
-          vatNumber: prev.vatNumber || row.vatNumber,
-          wholesaleStatus: prev.wholesaleStatus || row.wholesaleStatus,
-          accountType: eitherB2b ? "b2b" : prev.accountType || row.accountType || "b2c",
-        });
+        byEmail.set(key, mergeAccount(prev, row));
       }
       const list = [...byEmail.values()].sort((a, b) => {
         const da = a.createdAt || "";
@@ -155,6 +203,7 @@ export default function AdminWholesale({
           setPhoneDraft(selected.phone || "");
           setBusinessDraft(selected.businessName || "");
           setVatDraft(selected.vatNumber || "");
+          setAddressDraft(selected.companyAddress || "");
           setRulesDraft(selected.personalPricing ?? []);
         }
       }
@@ -177,13 +226,27 @@ export default function AdminWholesale({
 
   const selectUser = (row: AdminWholesaleUser) => {
     setSelectedId(row.id);
-    setDiscountDraft(row.accountDiscountPercent != null ? String(row.accountDiscountPercent) : "");
+    setDiscountDraft(
+      row.accountDiscountPercent != null && row.accountDiscountPercent > 0
+        ? String(Number.isInteger(row.accountDiscountPercent) ? row.accountDiscountPercent : row.accountDiscountPercent.toFixed(2))
+        : "",
+    );
     setNameDraft(row.name || "");
-    setPhoneDraft(row.phone || "");
+    setPhoneDraft(formatPhone(row.phone) || row.phone || "");
     setBusinessDraft(row.businessName || "");
     setVatDraft(row.vatNumber || "");
+    setAddressDraft(row.companyAddress || "");
     setRulesDraft(row.personalPricing ?? []);
     setNewRule(EMPTY_DRAFT);
+    void (async () => {
+      try {
+        const disc = await fetchAdminUserDiscounts(token, row.id);
+        const rules = parsePersonalPricing(disc.items);
+        if (rules.length) setRulesDraft(rules);
+      } catch {
+        /* list data already shown */
+      }
+    })();
   };
 
   const updateUser = async (
@@ -249,6 +312,8 @@ export default function AdminWholesale({
       business_name: businessDraft,
       vatNumber: vatDraft,
       vat_number: vatDraft,
+      companyAddress: addressDraft,
+      company_address: addressDraft,
       accountDiscountPercent: pct,
       account_discount_percent: pct,
       discountPercent: pct,
@@ -389,24 +454,22 @@ export default function AdminWholesale({
                 {visible.map((row) => (
                   <tr
                     key={row.id}
-                    className={`border-b border-border/60 ${selectedId === row.id ? "bg-brand/5" : ""}`}
+                    className={`cursor-pointer border-b border-border/60 hover:bg-[#F7F8FC] ${selectedId === row.id ? "bg-brand/5" : ""}`}
+                    onClick={() => selectUser(row)}
                   >
                     <td className="py-3">
-                      <button type="button" className="text-left hover:underline" onClick={() => selectUser(row)}>
-                        <strong>{row.name}</strong>
-                        <div className="text-muted-foreground">{row.email}</div>
-                      </button>
+                      <strong>{row.name}</strong>
+                      <div className="text-muted-foreground">{row.email}</div>
                       <div className="text-xs text-muted-foreground">
-                        {row.businessName || row.accountType || row.role || "—"} {row.vatNumber ? `· ${row.vatNumber}` : ""}{" "}
-                        · {sourceLabel(row)}
+                        {pickText(row.businessName, row.accountType, row.role) || "—"}
+                        {row.vatNumber ? ` · ${row.vatNumber}` : ""}
+                        {row.phone ? ` · ${formatPhone(row.phone)}` : ""} · {sourceLabel(row)}
                       </div>
                     </td>
                     <td className="py-3 whitespace-nowrap text-muted-foreground">{formatJoined(row.createdAt)}</td>
-                    <td className="py-3 capitalize">{row.wholesaleStatus || (row.isWholesale ? "approved" : "—")}</td>
-                    <td className="py-3">
-                      {row.accountDiscountPercent != null && row.accountDiscountPercent > 0
-                        ? `−${row.accountDiscountPercent}%`
-                        : "—"}
+                    <td className="py-3 capitalize">{formatStatus(row)}</td>
+                    <td className="py-3 tabular-nums">
+                      {formatPercent(row.accountDiscountPercent)}
                       {(row.personalPricing?.length ?? 0) > 0 ? (
                         <div className="text-xs text-muted-foreground">
                           {row.personalPricing!.length} product/category rule
@@ -414,76 +477,74 @@ export default function AdminWholesale({
                         </div>
                       ) : null}
                     </td>
-                    <td className="py-3">
-                      {lane === "b2b" && canManageAccount(row) ? (
-                        <div className="flex justify-end gap-1">
-                          {(row.wholesaleStatus || "").toLowerCase() === "pending" ? (
+                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end gap-1">
+                        {lane === "b2b" && canManageAccount(row) && (row.wholesaleStatus || "").toLowerCase() === "pending" ? (
+                          <button
+                            type="button"
+                            className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                            aria-label="Approve account"
+                            title="Approve"
+                            onClick={() =>
+                              void updateUser(
+                                row.id,
+                                {
+                                  wholesaleStatus: "approved",
+                                  isWholesale: true,
+                                  wholesale_status: "approved",
+                                  email: row.email,
+                                },
+                                row.email,
+                              )
+                            }
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 text-brand hover:bg-brand/10"
+                          aria-label="Open account"
+                          title="Open"
+                          onClick={() => selectUser(row)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        {lane === "b2b" && canManageAccount(row) ? (
+                          <>
                             <button
                               type="button"
-                              className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
-                              aria-label="Approve account"
-                              title="Approve"
-                              onClick={() =>
-                                void updateUser(
-                                  row.id,
-                                  {
-                                    wholesaleStatus: "approved",
-                                    isWholesale: true,
-                                    wholesale_status: "approved",
-                                    email: row.email,
-                                  },
-                                  row.email,
-                                )
+                              className={`rounded-lg p-2 hover:bg-amber-50 ${
+                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                  ? "text-amber-700"
+                                  : "text-amber-600"
+                              }`}
+                              aria-label={
+                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                  ? "Unsuspend account"
+                                  : "Suspend account"
                               }
+                              title={
+                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                  ? "Unsuspend"
+                                  : "Suspend"
+                              }
+                              onClick={() => void suspendUser(row)}
                             >
-                              <Check className="h-4 w-4" />
+                              <Ban className="h-4 w-4" />
                             </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            className="rounded-lg p-2 text-brand hover:bg-brand/10"
-                            aria-label="Edit account"
-                            title="Edit"
-                            onClick={() => selectUser(row)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            className={`rounded-lg p-2 hover:bg-amber-50 ${
-                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                ? "text-amber-700"
-                                : "text-amber-600"
-                            }`}
-                            aria-label={
-                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                ? "Unsuspend account"
-                                : "Suspend account"
-                            }
-                            title={
-                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                ? "Unsuspend"
-                                : "Suspend"
-                            }
-                            onClick={() => void suspendUser(row)}
-                          >
-                            <Ban className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                            aria-label="Delete account"
-                            title="Delete"
-                            onClick={() => void removeUser(row)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-neutral-500">
-                          {lane === "b2b" ? `${sourceLabel(row)} · B2B` : "Personal · Clerk · B2C"}
-                        </span>
-                      )}
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                              aria-label="Delete account"
+                              title="Delete"
+                              onClick={() => void removeUser(row)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -501,19 +562,23 @@ export default function AdminWholesale({
           </div>
         </section>
 
-        {lane === "b2b" && selected ? (
-          <section className="rounded-xl border bg-card p-6 shadow-sm">
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold">Edit {selected.name}</h2>
-                <p className="text-sm text-muted-foreground">{selected.email}</p>
-              </div>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
-                Close
-              </Button>
-            </div>
-
-            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        {selected ? (
+          <AdminRecordDialog
+            title={selected.name || selected.email}
+            subtitle={`${selected.email} · ${sourceLabel(selected)} · ${formatStatus(selected)} · joined ${formatJoined(selected.createdAt)}`}
+            onClose={() => setSelectedId(null)}
+            footer={
+              <>
+                <Button type="button" className="bg-brand text-white hover:bg-brand-dark" onClick={() => void saveAccountPricing()}>
+                  Save account
+                </Button>
+                <Button type="button" variant="ghost" onClick={() => setSelectedId(null)}>
+                  Close
+                </Button>
+              </>
+            }
+          >
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="acct-name">Name</Label>
                 <Input id="acct-name" className="mt-1" value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} />
@@ -535,9 +600,18 @@ export default function AdminWholesale({
                 <Label htmlFor="acct-vat">VAT</Label>
                 <Input id="acct-vat" className="mt-1" value={vatDraft} onChange={(e) => setVatDraft(e.target.value)} />
               </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="acct-addr">Company address</Label>
+                <Input
+                  id="acct-addr"
+                  className="mt-1"
+                  value={addressDraft}
+                  onChange={(e) => setAddressDraft(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className="mb-6 max-w-xs">
+            <div className="max-w-xs">
               <Label htmlFor="account-discount">Account discount %</Label>
               <Input
                 id="account-discount"
@@ -548,14 +622,14 @@ export default function AdminWholesale({
                 onChange={(e) => setDiscountDraft(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Flat percent off this account’s catalog base (retail or wholesale). Leave empty for no account discount.
+                Flat percent off this account’s catalog base. Leave empty for no account discount.
               </p>
             </div>
 
+            <div>
             <h3 className="mb-2 text-sm font-semibold">Product & category rules</h3>
             <p className="mb-3 text-xs text-muted-foreground">
-              Extra discounts for a specific product ID or category (slug/name). These apply on top of the account
-              discount. You can also manage rules in{" "}
+              Extra discounts for a specific product ID or category. You can also manage rules in{" "}
               <Link href="/admin/pricing" className="text-primary underline">
                 Product / category discounts
               </Link>
@@ -632,11 +706,8 @@ export default function AdminWholesale({
                 </Button>
               </div>
             </div>
-
-            <Button className="mt-5" type="button" onClick={() => void saveAccountPricing()}>
-              Save account
-            </Button>
-          </section>
+            </div>
+          </AdminRecordDialog>
         ) : null}
       </div>
     </>

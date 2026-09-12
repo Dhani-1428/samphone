@@ -72,6 +72,8 @@ class AdminUserPatchBody(BaseModel):
     business_name: Optional[str] = None
     vatNumber: Optional[str] = None
     vat_number: Optional[str] = None
+    companyAddress: Optional[str] = None
+    company_address: Optional[str] = None
     wholesaleStatus: Optional[str] = None
     wholesale_status: Optional[str] = None
     isWholesale: Optional[bool] = None
@@ -315,10 +317,13 @@ def register_website_routes(
             profile["phone"] = body.phone.strip()
         business_name = body.businessName if body.businessName is not None else body.business_name
         vat_number = body.vatNumber if body.vatNumber is not None else body.vat_number
+        company_address = body.companyAddress if body.companyAddress is not None else body.company_address
         if business_name is not None:
             profile["businessName"] = business_name.strip()
         if vat_number is not None:
             profile["vatNumber"] = vat_number.strip()
+        if company_address is not None:
+            profile["companyAddress"] = company_address.strip()
         if profile:
             user = await data_store.update_user(user["email"], profile, mongo_db) or user
         status = (body.wholesaleStatus or body.wholesale_status or "").strip().lower()

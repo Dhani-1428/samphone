@@ -1181,26 +1181,46 @@ export type AdminWholesaleUser = {
   businessName?: string;
   vatNumber?: string;
   businessType?: string;
+  companyAddress?: string;
   phone?: string;
   source?: string;
 };
 
+function asIsoDate(raw: unknown): string | undefined {
+  if (typeof raw === "string" && raw.trim()) {
+    const d = new Date(raw);
+    return Number.isNaN(d.getTime()) ? raw.trim() : d.toISOString();
+  }
+  if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+    const ms = raw > 1e12 ? raw : raw * 1000;
+    const d = new Date(ms);
+    return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+  }
+  return undefined;
+}
+
 function asAdminUser(raw: unknown): AdminWholesaleUser | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  const email = typeof o.email === "string" ? o.email : "";
+  const email = typeof o.email === "string" ? o.email.trim() : "";
   const id = o.id != null ? String(o.id) : email;
   if (!id && !email) return null;
-  const createdAt =
-    typeof o.createdAt === "string"
-      ? o.createdAt
-      : typeof o.created_at === "string"
-        ? o.created_at
-        : undefined;
+  const createdAt = asIsoDate(o.createdAt ?? o.created_at ?? o.joinedAt ?? o.date_created);
+  const phone =
+    typeof o.phone === "string"
+      ? o.phone.trim()
+      : typeof o.phone_number === "string"
+        ? o.phone_number.trim()
+        : "";
+  const display =
+    (typeof o.name === "string" && o.name.trim()) ||
+    (typeof o.display_name === "string" && o.display_name.trim()) ||
+    email.split("@")[0] ||
+    id;
   return {
     id: id || email,
     email,
-    name: typeof o.name === "string" ? o.name : email.split("@")[0] || id,
+    name: display,
     role: typeof o.role === "string" ? o.role : undefined,
     createdAt,
     accountType: typeof o.accountType === "string" ? o.accountType : typeof o.account_type === "string" ? o.account_type : undefined,
@@ -1210,7 +1230,7 @@ function asAdminUser(raw: unknown): AdminWholesaleUser | null {
         : typeof o.wholesale_status === "string"
           ? o.wholesale_status
           : undefined,
-    isWholesale: o.isWholesale === true,
+    isWholesale: o.isWholesale === true || o.is_wholesale === true,
     accountDiscountPercent: parseAccountDiscountPercent(
       o.accountDiscountPercent ?? o.account_discount_percent ?? o.discountPercent ?? o.discount_percent,
     ),
@@ -1218,7 +1238,13 @@ function asAdminUser(raw: unknown): AdminWholesaleUser | null {
     businessName: typeof o.businessName === "string" ? o.businessName : typeof o.business_name === "string" ? o.business_name : undefined,
     vatNumber: typeof o.vatNumber === "string" ? o.vatNumber : typeof o.vat_number === "string" ? o.vat_number : undefined,
     businessType: typeof o.businessType === "string" ? o.businessType : typeof o.business_type === "string" ? o.business_type : undefined,
-    phone: typeof o.phone === "string" ? o.phone : undefined,
+    companyAddress:
+      typeof o.companyAddress === "string"
+        ? o.companyAddress
+        : typeof o.company_address === "string"
+          ? o.company_address
+          : undefined,
+    phone: phone || undefined,
     source: typeof o.source === "string" ? o.source : undefined,
     isWholesaleRole: o.isWholesaleRole === true || o.is_wholesale_role === true,
   };
@@ -1252,6 +1278,31 @@ export async function fetchAdminWholesaleRequests(authToken: string): Promise<Ad
     headers: { Authorization: `Bearer ${authToken}` },
   });
   return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+}
+
+export async function fetchAdminUserDiscounts(authToken: string, userId: string): Promise<{ items: unknown[] }> {
+  try {
+    const data = await cloudFetchJson<unknown>(`/admin/users/${encodeURIComponent(userId)}/discounts`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
+      return { items: (data as { items: unknown[] }).items };
+    }
+    if (Array.isArray(data)) return { items: data };
+  } catch {
+    /* optional */
+  }
+  return { items: [] };
+}
+
+export async function fetchAdminProductRecord(productId: string): Promise<Record<string, unknown> | null> {
+  try {
+    const data = await cloudFetchJson<Record<string, unknown>>(`/products/${encodeURIComponent(productId)}`);
+    return data && typeof data === "object" ? data : null;
+  } catch (e) {
+    if (e instanceof WooCommerceFetchError && e.status === 404) return null;
+    throw e;
+  }
 }
 
 export async function patchAdminWholesaleUser(
