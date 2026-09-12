@@ -48,11 +48,6 @@ export async function loginWithSharedIdentity(opts: {
       return await cloudAuth("/auth/admin-login", { email, password });
     } catch (e) {
       if (e instanceof CloudMfaRequiredError) throw e;
-      if (e instanceof WooCommerceFetchError && (e.status === 429 || e.status === 400 || e.status === 401)) {
-        /* fall through to /auth/login */
-      } else if (e instanceof WooCommerceFetchError) {
-        throw e;
-      }
     }
     return cloudAuth("/auth/login", { email, password });
   }

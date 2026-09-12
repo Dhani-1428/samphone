@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAuth as useClerkAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStoredApiJwt, STORE_EMAIL } from "@/config/samphone";
+import { STORE_EMAIL } from "@/config/samphone";
 import { clerkSync } from "@/lib/samphone-cloud";
 import { registerClerkSignOut } from "@/lib/session-signout";
 import { isAdminRole } from "@/lib/admin-access";
@@ -44,15 +44,11 @@ export default function ClerkCloudBridge() {
           user?.primaryPhoneNumber?.phoneNumber ||
           user?.phoneNumbers?.find((row) => row.phoneNumber)?.phoneNumber ||
           "";
-        // Keep password-login JWT for the store inbox — but only when an API JWT
-        // already exists. Skipping clerk-sync with no JWT leaves admin lists 401/empty.
-        if (
-          getStoredApiJwt() &&
-          isAdminRole(current?.role) &&
-          (current?.email || "").trim().toLowerCase() === STORE_EMAIL.toLowerCase()
-        ) {
-          return;
-        }
+        const storeInbox =
+          (current?.email || "").trim().toLowerCase() === STORE_EMAIL.toLowerCase() ||
+          clerkEmail === STORE_EMAIL.toLowerCase();
+        // Password admin login must keep the FastAPI JWT. Clerk must not replace it.
+        if (storeInbox) return;
         if (
           isAdminRole(current?.role) &&
           current?.email &&

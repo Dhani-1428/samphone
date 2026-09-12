@@ -166,14 +166,17 @@ function LoginForm({
       const result = await loginWithSharedIdentity({
         email: trimmed,
         password,
-        clerk: clerkHelpers
-          ? {
-              isLoaded: clerkHelpers.isLoaded,
-              signIn: clerkHelpers.signIn,
-              setActive: clerkHelpers.setActive ?? undefined,
-              getToken: clerkHelpers.getToken,
-            }
-          : undefined,
+        clerk:
+          trimmed.toLowerCase() === STORE_EMAIL.toLowerCase()
+            ? undefined
+            : clerkHelpers
+              ? {
+                  isLoaded: clerkHelpers.isLoaded,
+                  signIn: clerkHelpers.signIn,
+                  setActive: clerkHelpers.setActive ?? undefined,
+                  getToken: clerkHelpers.getToken,
+                }
+              : undefined,
       });
       applySession(result);
     } catch (err) {
