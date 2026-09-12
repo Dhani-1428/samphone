@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearch } from "wouter";
+import { Pencil, Trash2, Ban, Check } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import {
   fetchAdminWholesaleRequests,
   patchAdminProduct,
   patchAdminWholesaleUser,
+  deleteAdminUser,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
 import { isB2bAccount, isB2cAccount } from "@/lib/admin-access";
@@ -51,7 +53,10 @@ function sourceLabel(row: AdminWholesaleUser): string {
 
 function canManageAccount(row: AdminWholesaleUser): boolean {
   const id = row.id || "";
-  return Boolean(id) && !id.startsWith("wp-") && !id.startsWith("user_");
+  const email = (row.email || "").trim().toLowerCase();
+  if ((row.role || "").toLowerCase() === "admin" || email === "samphone.pt@gmail.com") return false;
+  if (id.startsWith("wp-")) return true;
+  return Boolean(id || email);
 }
 
 function formatJoined(iso?: string): string {
@@ -87,6 +92,10 @@ export default function AdminWholesale({
   const [dealerOnly, setDealerOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [discountDraft, setDiscountDraft] = useState("");
+  const [nameDraft, setNameDraft] = useState("");
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [businessDraft, setBusinessDraft] = useState("");
+  const [vatDraft, setVatDraft] = useState("");
   const [rulesDraft, setRulesDraft] = useState<PersonalPricingRule[]>([]);
   const [newRule, setNewRule] = useState<DraftRule>(EMPTY_DRAFT);
   const search = useSearch();
@@ -142,6 +151,10 @@ export default function AdminWholesale({
           setDiscountDraft(
             selected.accountDiscountPercent != null ? String(selected.accountDiscountPercent) : "",
           );
+          setNameDraft(selected.name || "");
+          setPhoneDraft(selected.phone || "");
+          setBusinessDraft(selected.businessName || "");
+          setVatDraft(selected.vatNumber || "");
           setRulesDraft(selected.personalPricing ?? []);
         }
       }
@@ -165,6 +178,10 @@ export default function AdminWholesale({
   const selectUser = (row: AdminWholesaleUser) => {
     setSelectedId(row.id);
     setDiscountDraft(row.accountDiscountPercent != null ? String(row.accountDiscountPercent) : "");
+    setNameDraft(row.name || "");
+    setPhoneDraft(row.phone || "");
+    setBusinessDraft(row.businessName || "");
+    setVatDraft(row.vatNumber || "");
     setRulesDraft(row.personalPricing ?? []);
     setNewRule(EMPTY_DRAFT);
   };
@@ -172,13 +189,51 @@ export default function AdminWholesale({
   const updateUser = async (
     id: string,
     body: Record<string, string | boolean | number | null | PersonalPricingRule[]>,
+    email?: string,
   ) => {
     setError(null);
     try {
-      await patchAdminWholesaleUser(token, id, body);
+      const row = users.find((u) => u.id === id);
+      await patchAdminWholesaleUser(token, id, {
+        ...body,
+        email: email || row?.email || "",
+      });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Update failed.");
+    }
+  };
+
+  const suspendUser = async (row: AdminWholesaleUser) => {
+    const status = (row.wholesaleStatus || "").toLowerCase();
+    const next = status === "suspended" ? "approved" : "suspended";
+    const label = next === "suspended" ? "Suspend this B2B account?" : "Restore this account to approved?";
+    if (!window.confirm(label)) return;
+    await updateUser(
+      row.id,
+      {
+        wholesaleStatus: next,
+        isWholesale: next === "approved",
+        wholesale_status: next,
+        email: row.email,
+      },
+      row.email,
+    );
+  };
+
+  const removeUser = async (row: AdminWholesaleUser) => {
+    if ((row.id || "").startsWith("wp-")) {
+      setError("samphone.pt accounts must be removed in WordPress. Suspend them here instead.");
+      return;
+    }
+    if (!window.confirm(`Delete ${row.email || row.name}? This removes the shop login.`)) return;
+    setError(null);
+    try {
+      await deleteAdminUser(token, row.id, row.email);
+      if (selectedId === row.id) setSelectedId(null);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed.");
     }
   };
 
@@ -187,6 +242,13 @@ export default function AdminWholesale({
     const pctRaw = discountDraft.trim() === "" ? null : Number.parseFloat(discountDraft.replace(",", "."));
     const pct = pctRaw != null && Number.isFinite(pctRaw) ? Math.max(0, Math.min(100, pctRaw)) : null;
     await updateUser(selectedId, {
+      email: users.find((u) => u.id === selectedId)?.email || "",
+      name: nameDraft,
+      phone: phoneDraft,
+      businessName: businessDraft,
+      business_name: businessDraft,
+      vatNumber: vatDraft,
+      vat_number: vatDraft,
       accountDiscountPercent: pct,
       account_discount_percent: pct,
       discountPercent: pct,
@@ -320,7 +382,7 @@ export default function AdminWholesale({
                   <th className="py-2">Joined</th>
                   <th className="py-2">Status</th>
                   <th className="py-2">Account discount</th>
-                  <th className="py-2">Actions</th>
+                  <th className="py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -353,60 +415,75 @@ export default function AdminWholesale({
                       ) : null}
                     </td>
                     <td className="py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {lane === "b2b" && canManageAccount(row) ? (
-                          <>
-                        <Button size="sm" type="button" variant="outline" onClick={() => selectUser(row)}>
-                          Discounts
-                        </Button>
-                        <Button
-                          size="sm"
-                          type="button"
-                          onClick={() =>
-                            void updateUser(row.id, {
-                              wholesaleStatus: "approved",
-                              isWholesale: true,
-                              wholesale_status: "approved",
-                            })
-                          }
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          type="button"
-                          onClick={() =>
-                            void updateUser(row.id, {
-                              wholesaleStatus: "rejected",
-                              isWholesale: false,
-                              wholesale_status: "rejected",
-                            })
-                          }
-                        >
-                          Reject
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          type="button"
-                          onClick={() =>
-                            void updateUser(row.id, {
-                              wholesaleStatus: "suspended",
-                              isWholesale: false,
-                              wholesale_status: "suspended",
-                            })
-                          }
-                        >
-                          Suspend
-                        </Button>
-                          </>
-                        ) : (
-                          <span className="text-xs text-neutral-500">
-                            {lane === "b2b" ? `${sourceLabel(row)} · B2B` : "Personal · Clerk · B2C"}
-                          </span>
-                        )}
-                      </div>
+                      {lane === "b2b" && canManageAccount(row) ? (
+                        <div className="flex justify-end gap-1">
+                          {(row.wholesaleStatus || "").toLowerCase() === "pending" ? (
+                            <button
+                              type="button"
+                              className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                              aria-label="Approve account"
+                              title="Approve"
+                              onClick={() =>
+                                void updateUser(
+                                  row.id,
+                                  {
+                                    wholesaleStatus: "approved",
+                                    isWholesale: true,
+                                    wholesale_status: "approved",
+                                    email: row.email,
+                                  },
+                                  row.email,
+                                )
+                              }
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className="rounded-lg p-2 text-brand hover:bg-brand/10"
+                            aria-label="Edit account"
+                            title="Edit"
+                            onClick={() => selectUser(row)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className={`rounded-lg p-2 hover:bg-amber-50 ${
+                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                ? "text-amber-700"
+                                : "text-amber-600"
+                            }`}
+                            aria-label={
+                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                ? "Unsuspend account"
+                                : "Suspend account"
+                            }
+                            title={
+                              (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                ? "Unsuspend"
+                                : "Suspend"
+                            }
+                            onClick={() => void suspendUser(row)}
+                          >
+                            <Ban className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                            aria-label="Delete account"
+                            title="Delete"
+                            onClick={() => void removeUser(row)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-neutral-500">
+                          {lane === "b2b" ? `${sourceLabel(row)} · B2B` : "Personal · Clerk · B2C"}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -428,12 +505,36 @@ export default function AdminWholesale({
           <section className="rounded-xl border bg-card p-6 shadow-sm">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold">Discounts for {selected.name}</h2>
+                <h2 className="text-lg font-semibold">Edit {selected.name}</h2>
                 <p className="text-sm text-muted-foreground">{selected.email}</p>
               </div>
               <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedId(null)}>
                 Close
               </Button>
+            </div>
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="acct-name">Name</Label>
+                <Input id="acct-name" className="mt-1" value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="acct-phone">Phone</Label>
+                <Input id="acct-phone" className="mt-1" value={phoneDraft} onChange={(e) => setPhoneDraft(e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="acct-biz">Business name</Label>
+                <Input
+                  id="acct-biz"
+                  className="mt-1"
+                  value={businessDraft}
+                  onChange={(e) => setBusinessDraft(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="acct-vat">VAT</Label>
+                <Input id="acct-vat" className="mt-1" value={vatDraft} onChange={(e) => setVatDraft(e.target.value)} />
+              </div>
             </div>
 
             <div className="mb-6 max-w-xs">
@@ -533,7 +634,7 @@ export default function AdminWholesale({
             </div>
 
             <Button className="mt-5" type="button" onClick={() => void saveAccountPricing()}>
-              Save account discounts
+              Save account
             </Button>
           </section>
         ) : null}

@@ -1276,6 +1276,15 @@ export async function patchAdminWholesaleUser(
   throw last instanceof Error ? last : new WooCommerceFetchError("Could not update wholesale account.");
 }
 
+export async function deleteAdminUser(authToken: string, userId: string, email?: string): Promise<void> {
+  const headers = { Authorization: `Bearer ${authToken}` };
+  const qs = email ? `?email=${encodeURIComponent(email)}` : "";
+  await cloudFetchJson(`/admin/users/${encodeURIComponent(userId)}${qs}`, {
+    method: "DELETE",
+    headers,
+  });
+}
+
 export async function fetchAdminStats(): Promise<{
   total_orders?: number;
   total_revenue?: number;

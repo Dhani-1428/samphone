@@ -2,6 +2,7 @@ from __future__ import annotations
 
 """Website-only FastAPI routes (storefront admin PATCH, MFA, leads)."""
 
+import asyncio
 import logging
 from typing import Any, Callable, Optional
 
@@ -64,6 +65,13 @@ class TradeInLeadBody(BaseModel):
 
 
 class AdminUserPatchBody(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    businessName: Optional[str] = None
+    business_name: Optional[str] = None
+    vatNumber: Optional[str] = None
+    vat_number: Optional[str] = None
     wholesaleStatus: Optional[str] = None
     wholesale_status: Optional[str] = None
     isWholesale: Optional[bool] = None
@@ -284,32 +292,58 @@ def register_website_routes(
         background_tasks.add_task(_send_lead, "Trade-in request", f"<pre>{text}</pre>", text)
         return {"ok": True}
 
+    async def _resolve_admin_user(user_id: str, email: str = "") -> Optional[dict]:
+        uid = (user_id or "").strip()
+        em = (email or "").strip().lower()
+        user = await data_store.find_user_by_id(uid, mongo_db) if uid else None
+        if not user and uid and "@" in uid:
+            user = await data_store.find_user(uid.lower(), mongo_db)
+        if not user and em:
+            user = await data_store.find_user(em, mongo_db)
+        return user
+
     async def _patch_admin_user(user_id: str, body: AdminUserPatchBody, admin: dict):
-        user = await data_store.find_user_by_id(user_id, mongo_db)
+        user = await _resolve_admin_user(user_id, body.email or "")
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+        if (user.get("role") or "") == "admin":
+            raise HTTPException(status_code=403, detail="Admin accounts cannot be edited here")
+        profile: dict = {}
+        if body.name is not None:
+            profile["name"] = body.name.strip() or user.get("name") or ""
+        if body.phone is not None:
+            profile["phone"] = body.phone.strip()
+        business_name = body.businessName if body.businessName is not None else body.business_name
+        vat_number = body.vatNumber if body.vatNumber is not None else body.vat_number
+        if business_name is not None:
+            profile["businessName"] = business_name.strip()
+        if vat_number is not None:
+            profile["vatNumber"] = vat_number.strip()
+        if profile:
+            user = await data_store.update_user(user["email"], profile, mongo_db) or user
         status = (body.wholesaleStatus or body.wholesale_status or "").strip().lower()
+        resolved_id = str(user.get("id") or user_id)
         if status == "approved":
             if not is_business_account(user):
                 raise HTTPException(
                     status_code=400,
                     detail="Personal accounts stay B2C. Only business registrations from the shop or app can be approved as B2B.",
                 )
-            user = await data_store.approve_wholesale(user_id, admin.get("id"), mongo_db) or user
+            user = await data_store.approve_wholesale(resolved_id, admin.get("id"), mongo_db) or user
         elif status == "rejected":
             user = await data_store.reject_wholesale(
-                user_id, admin.get("id"), body.reason or "Rejected from website admin", mongo_db
+                resolved_id, admin.get("id"), body.reason or "Rejected from website admin", mongo_db
             ) or user
         elif status == "suspended":
-            user = await data_store.suspend_wholesale(user_id, admin.get("id"), mongo_db) or user
+            user = await data_store.suspend_wholesale(resolved_id, admin.get("id"), mongo_db) or user
 
         replace_pricing = _pct(body) is not None or _rules(body) is not None
         if replace_pricing:
-            existing = await data_store.list_user_discounts(user_id, mongo_db)
+            existing = await data_store.list_user_discounts(resolved_id, mongo_db)
             for row in existing:
                 rid = row.get("id")
                 if rid:
-                    await data_store.delete_user_discount(user_id, rid, mongo_db)
+                    await data_store.delete_user_discount(resolved_id, rid, mongo_db)
             payloads: list[dict] = []
             pct = _pct(body)
             if pct is not None and pct > 0:
@@ -332,10 +366,10 @@ def register_website_routes(
                 except ValueError as exc:
                     raise HTTPException(status_code=400, detail=str(exc)) from exc
                 await data_store.create_user_discount(
-                    user_id, data, created_by=admin.get("id"), mongo_db=mongo_db
+                    resolved_id, data, created_by=admin.get("id"), mongo_db=mongo_db
                 )
 
-        latest = await data_store.find_user_by_id(user_id, mongo_db) or user
+        latest = await data_store.find_user_by_id(resolved_id, mongo_db) or user
         return await enrich_website_user(latest, mongo_db)
 
     @api_router.patch("/admin/users/{user_id}")
@@ -353,3 +387,34 @@ def register_website_routes(
         admin=Depends(get_current_admin),
     ):
         return await _patch_admin_user(user_id, body, admin)
+
+    @api_router.delete("/admin/users/{user_id}")
+    async def website_delete_admin_user(
+        user_id: str,
+        email: str = "",
+        admin=Depends(get_current_admin),
+    ):
+        user = await _resolve_admin_user(user_id, email)
+        target = ((user or {}).get("email") or email or user_id).strip().lower()
+        if (user or {}).get("role") == "admin" or target == "samphone.pt@gmail.com":
+            raise HTTPException(status_code=403, detail="Admin accounts cannot be deleted")
+        if not target or "@" not in target:
+            raise HTTPException(status_code=400, detail="Account email is required to delete")
+        clerk_deleted = 0
+        try:
+            from server import _clerk_delete_users_by_email
+
+            clerk_deleted = await asyncio.to_thread(_clerk_delete_users_by_email, target)
+        except Exception as exc:
+            logger.warning("Clerk admin delete failed for %s: %s", target, exc)
+        anonymized = None
+        try:
+            anonymized = await data_store.anonymize_user(target, mongo_db)
+        except Exception:
+            anonymized = None
+        if not clerk_deleted and not anonymized:
+            raise HTTPException(
+                status_code=404,
+                detail="Account was not in the shop database or Clerk. samphone.pt users must be removed in WordPress.",
+            )
+        return {"ok": True, "deleted": True, "clerk_deleted": clerk_deleted}
