@@ -203,7 +203,7 @@ export default function AdminOverview() {
           <ul className="space-y-2">
             {pending.slice(0, 2).map((u) => (
               <li key={u.id}>
-                <Link href="/admin/b2b" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
+                <Link href="/admin/b2b?view=customers" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                     <Users className="h-4 w-4" />
                   </span>

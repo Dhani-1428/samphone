@@ -245,10 +245,10 @@ function Router() {
         <Redirect to="/admin/b2b?view=products" />
       </Route>
       <Route path="/admin/wholesale">
-        <Redirect to="/admin/b2b" />
+        <Redirect to="/admin/b2b?view=customers" />
       </Route>
       <Route path="/admin/customers">
-        <Redirect to="/admin/b2b" />
+        <Redirect to="/admin/b2b?view=customers" />
       </Route>
       <Route path="/admin/products">
         <Redirect to="/admin/b2b" />
