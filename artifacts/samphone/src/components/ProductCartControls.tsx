@@ -1,4 +1,4 @@
-import { type MouseEvent } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Lock, Minus, Plus, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,55 +6,95 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { getStockLevel } from "@/data/inventory";
+import { isAdminRole } from "@/lib/admin-access";
 import { hideStoreCart } from "@/lib/storefront-preview";
+import { editAdminProduct } from "@/lib/samphone-cloud";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md";
 
 function stepperMax(maxQty?: number, cartKey?: string): number {
-  if (typeof maxQty === "number" && Number.isFinite(maxQty)) return Math.max(0, maxQty);
-  if (hideStoreCart()) return 9999;
+  if (typeof maxQty === "number" && Number.isFinite(maxQty) && maxQty < 9999) return Math.max(0, maxQty);
+  if (hideStoreCart()) return 0;
   return cartKey ? getStockLevel(cartKey).count : 9999;
 }
 
-/** Quantity − / + . In private preview this is always the stepper (no bag / cart). */
+/** Quantity − / + . In private preview this shows warehouse stock, not cart 0. */
 export function CardQtyStepper({
   cartKey,
   minQty = 1,
   iconOnly = false,
   inStock = true,
   maxQty,
+  productId,
 }: {
   cartKey: string;
   minQty?: number;
   iconOnly?: boolean;
   inStock?: boolean;
   maxQty?: number;
+  productId?: string;
 }) {
   const { t } = useLang();
+  const { user } = useAuth();
+  const admin = isAdminRole(user?.role);
   const { getQty, increment, decrement } = useCart();
   const qty = getQty(cartKey);
   const preview = hideStoreCart();
-  const maxStock = stepperMax(maxQty, cartKey);
-  const floor = Math.max(1, minQty);
-  const atMax = qty >= maxStock;
+  const catalogStock = stepperMax(maxQty, cartKey);
+  const [stock, setStock] = useState(catalogStock);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setStock(catalogStock);
+  }, [catalogStock]);
+
+  const display = preview ? stock : qty;
+  const atMax = preview ? false : qty >= (catalogStock || 9999);
   const showStepper = preview || qty > 0;
+  const canEditStock = Boolean(preview && admin && productId);
+
+  const persistStock = async (next: number) => {
+    if (!productId || busy) return;
+    const prev = stock;
+    const clamped = Math.max(0, next);
+    setStock(clamped);
+    setBusy(true);
+    try {
+      await editAdminProduct(productId, { stock_quantity: clamped, in_stock: clamped > 0 });
+    } catch {
+      setStock(prev);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const addToCart = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!inStock || atMax || maxStock <= 0) return;
+    if (canEditStock) {
+      void persistStock(stock + 1);
+      return;
+    }
+    if (preview) return;
+    if (!inStock || atMax || catalogStock <= 0) return;
+    const floor = Math.max(1, minQty);
     const next = qty < floor ? floor : 1;
-    for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
+    for (let i = 0; i < next; i += 1) increment(cartKey, catalogStock || 9999);
   };
 
   const onMinus = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (canEditStock) {
+      void persistStock(stock - 1);
+      return;
+    }
+    if (preview) return;
     decrement(cartKey);
   };
 
-  if (!inStock || maxStock <= 0) {
+  if (!preview && (!inStock || catalogStock <= 0)) {
     return (
       <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-amber-700">
         {t("pdp_out_of_stock")}
@@ -95,17 +135,17 @@ export function CardQtyStepper({
         type="button"
         className="flex h-7 w-7 shrink-0 items-center justify-center disabled:opacity-40"
         onClick={onMinus}
-        disabled={qty <= 0}
+        disabled={busy || (preview ? !canEditStock || stock <= 0 : qty <= 0)}
         aria-label="Decrease quantity"
       >
         <Minus className="h-4 w-4" strokeWidth={2.4} />
       </button>
-      <span className="min-w-0 flex-1 text-center text-sm font-bold tabular-nums">{qty}</span>
+      <span className="min-w-[1.5rem] flex-1 px-0.5 text-center text-sm font-bold tabular-nums">{display}</span>
       <button
         type="button"
         className="flex h-7 w-7 shrink-0 items-center justify-center disabled:opacity-40"
         onClick={addToCart}
-        disabled={atMax}
+        disabled={busy || (preview ? !canEditStock : atMax)}
         aria-label="Increase quantity"
       >
         <Plus className="h-4 w-4" strokeWidth={2.4} />

@@ -58,11 +58,18 @@ export function catalogInStock(product: Pick<WooProduct, "stock_status">): boole
   return product.stock_status !== "outofstock";
 }
 
-export function catalogMaxQty(product: Pick<WooProduct, "stock_status" | "stock_quantity">): number {
+/** Real managed qty, or null when Woo is not tracking a number. */
+export function catalogStockCount(product: Pick<WooProduct, "stock_status" | "stock_quantity">): number | null {
   if (!catalogInStock(product)) return 0;
   const qty = product.stock_quantity;
-  if (typeof qty === "number" && Number.isFinite(qty)) return Math.max(0, Math.floor(qty));
-  return 9999;
+  if (typeof qty === "number" && Number.isFinite(qty) && qty < 9999) return Math.max(0, Math.floor(qty));
+  return null;
+}
+
+export function catalogMaxQty(product: Pick<WooProduct, "stock_status" | "stock_quantity">): number {
+  const n = catalogStockCount(product);
+  if (n != null) return n;
+  return catalogInStock(product) ? 9999 : 0;
 }
 
 export type ProductColorSwatch = {

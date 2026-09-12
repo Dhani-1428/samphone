@@ -16,6 +16,7 @@ import ProductImageGallery from "@/components/product/ProductImageGallery";
 import ProductReviews, { ProductRatingRow } from "@/components/product/ProductReviews";
 import { CardQtyStepper } from "@/components/ProductCartControls";
 import NotifyMeButton from "@/components/NotifyMeButton";
+import AdminStockToggle from "@/components/AdminStockToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
@@ -185,18 +186,12 @@ export default function ProductDetailLayout({
               ) : null}
 
               {hideStoreCart() ? (
-                inStock ? (
-                  <CardQtyStepper cartKey={cartKey} inStock maxQty={maxQty} />
-                ) : (
-                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                    {t("pdp_out_of_stock")}
-                  </p>
-                )
+                <CardQtyStepper cartKey={cartKey} inStock={inStock} maxQty={maxQty} productId={restockProductId} />
               ) : !inStock && restockProductId ? (
                 <NotifyMeButton productId={restockProductId} size="page" />
               ) : user ? (
                 inStock ? (
-                  <CardQtyStepper cartKey={cartKey} inStock maxQty={maxQty} />
+                  <CardQtyStepper cartKey={cartKey} inStock={inStock} maxQty={maxQty} productId={restockProductId} />
                 ) : (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                     {t("notify_stock")}
@@ -222,10 +217,7 @@ export default function ProductDetailLayout({
               <div className="space-y-3 border-t border-black/[0.06] pt-4 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[#333333]">{t("pdp_availability")}</span>
-                  <span className="inline-flex items-center gap-1.5 font-medium text-navy">
-                    <span className={cn("h-2 w-2 rounded-full", inStock ? "bg-emerald-500" : "bg-amber-500")} />
-                    {inStock ? t("product_in_stock") : t("pdp_out_of_stock")}
-                  </span>
+                  <AdminStockToggle productId={restockProductId} inStock={inStock} stockQuantity={maxQty ?? 0} />
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-[#333333]">{t("pdp_ship_to")}</span>

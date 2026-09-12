@@ -17,6 +17,7 @@ import CatalogImage from "@/components/CatalogImage";
 import ProductCardWriting from "@/components/ProductCardWriting";
 import { CardQtyStepper } from "@/components/ProductCartControls";
 import NotifyMeButton from "@/components/NotifyMeButton";
+import AdminStockToggle from "@/components/AdminStockToggle";
 import { hideStoreCart } from "@/lib/storefront-preview";
 
 const PLACEHOLDER =
@@ -117,14 +118,15 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
               <span className="truncate">{priceUnavailableLabel}</span>
             </span>
           )}
-          {inStock ? (
+          {hideCart || inStock ? (
             canAdd || hideCart ? (
               <CardQtyStepper
                 cartKey={cartKey}
                 minQty={product.minOrderQty ?? 1}
                 iconOnly
-                inStock
+                inStock={inStock}
                 maxQty={catalogMaxQty(product)}
+                productId={String(product.cloudId || product.id)}
               />
             ) : showLoginBuy ? (
               <Link
@@ -144,9 +146,11 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
           )}
         </div>
 
-        <p className={cn("text-[10px] font-semibold uppercase tracking-wide", inStock ? "text-emerald-700" : "text-amber-700")}>
-          {inStock ? t("product_in_stock") : t("pdp_out_of_stock")}
-        </p>
+        <AdminStockToggle
+          productId={String(product.cloudId || product.id)}
+          inStock={inStock}
+          stockQuantity={catalogMaxQty(product)}
+        />
 
         <ProductCardWriting href={productHref} title={title} />
       </div>

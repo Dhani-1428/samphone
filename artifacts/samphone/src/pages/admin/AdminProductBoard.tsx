@@ -17,6 +17,7 @@ import {
 } from "@/lib/samphone-cloud";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminProductDiscount from "@/components/admin/AdminProductDiscount";
+import AdminStockToggle from "@/components/AdminStockToggle";
 
 type Channel = "b2b" | "b2c";
 
@@ -379,8 +380,26 @@ export default function AdminProductBoard({
                   </td>
                   <td className="px-2 py-3 text-neutral-500">{String(p.sku || "—")}</td>
                   <td className="py-3 font-semibold tabular-nums text-navy">{shown}</td>
-                  <td className="px-2 py-3 tabular-nums">
-                    {p.stock_quantity != null ? String(p.stock_quantity) : p.in_stock ? "In stock" : "—"}
+                  <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-col gap-1">
+                      <span className="tabular-nums">
+                        {p.stock_quantity != null ? String(p.stock_quantity) : p.in_stock ? "—" : "0"}
+                      </span>
+                      <AdminStockToggle
+                        productId={id}
+                        inStock={p.in_stock !== false && Number(p.stock_quantity ?? 1) > 0}
+                        stockQuantity={Number(p.stock_quantity) || 0}
+                        onChanged={({ inStock, stockQuantity }) => {
+                          setItems((prev) =>
+                            prev.map((row) =>
+                              String(row.id ?? row.wc_id ?? "") === id
+                                ? { ...row, in_stock: inStock, stock_quantity: stockQuantity }
+                                : row,
+                            ),
+                          );
+                        }}
+                      />
+                    </div>
                   </td>
                   <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-1">

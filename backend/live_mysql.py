@@ -306,6 +306,30 @@ def push_via_woocommerce_rest(
         return {"ok": False, "error": str(exc), "wc_id": int(wc_id)}
 
 
+def push_stock_to_site(wc_id: int, stock_quantity: int) -> dict[str, Any]:
+    """Mirror managed stock onto live WooCommerce (samphone.pt) via REST."""
+    store, key, secret = _wc_rest_config()
+    if not (store and key and secret):
+        return {"ok": False, "skipped": True, "reason": "WooCommerce REST keys not configured"}
+    import requests
+
+    qty = max(0, int(stock_quantity))
+    payload = {
+        "manage_stock": True,
+        "stock_quantity": qty,
+        "stock_status": "instock" if qty > 0 else "outofstock",
+    }
+    url = f"{store}/wp-json/wc/v3/products/{int(wc_id)}"
+    params = {"consumer_key": key, "consumer_secret": secret}
+    try:
+        r = requests.put(url, params=params, json=payload, timeout=30)
+        if r.status_code >= 400:
+            return {"ok": False, "error": f"HTTP {r.status_code}: {r.text[:300]}", "wc_id": int(wc_id)}
+        return {"ok": True, "via": "woocommerce_rest", "wc_id": int(wc_id), "stock_quantity": qty}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc), "wc_id": int(wc_id)}
+
+
 def push_business_price_to_site(
     wc_id: int,
     *,

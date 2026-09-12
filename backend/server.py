@@ -26,6 +26,11 @@ from datetime import datetime, timezone, timedelta
 import bcrypt
 from jose import JWTError, jwt
 import secrets
+import hmac
+import hashlib
+import json
+import hmac
+import hashlib
 
 from seed_data import PRODUCTS, MODELS
 import data_store
@@ -415,6 +420,7 @@ class StockNotify(BaseModel):
 
 class StockUpdate(BaseModel):
     stock_quantity: Optional[int] = Field(default=None, ge=0)
+    in_stock: Optional[bool] = None
     retailPrice: Optional[float] = None
     regularPrice: Optional[float] = None
     b2c_price: Optional[float] = None
@@ -426,6 +432,7 @@ class StockUpdate(BaseModel):
 
 class AdminProductEdit(BaseModel):
     stock_quantity: Optional[int] = Field(default=None, ge=0)
+    in_stock: Optional[bool] = None
     regular_price: Optional[float] = Field(default=None, ge=0)
     sale_price: Optional[float] = Field(default=None, ge=0)
     clear_sale: bool = False
@@ -2646,6 +2653,7 @@ async def admin_update_stock(
                 get_woo_db().update_product_admin,
                 product_id,
                 stock_quantity=body.stock_quantity,
+                in_stock=body.in_stock,
                 regular_price=wholesale,
                 b2c_price=b2c,
             )
@@ -2655,11 +2663,19 @@ async def admin_update_stock(
             raise HTTPException(status_code=404, detail="Product not found")
         _queue_restock_if_available(background_tasks, product_id, updated)
         return updated
-    if body.stock_quantity is None:
+    if body.stock_quantity is None and body.in_stock is None:
         raise HTTPException(status_code=400, detail="No product fields to update")
     if _woo_catalog_enabled():
         try:
-            updated = await asyncio.to_thread(get_woo_db().update_product_stock, product_id, body.stock_quantity)
+            if body.in_stock is not None and hasattr(get_woo_db(), "update_product_admin"):
+                updated = await asyncio.to_thread(
+                    get_woo_db().update_product_admin,
+                    product_id,
+                    stock_quantity=body.stock_quantity,
+                    in_stock=body.in_stock,
+                )
+            else:
+                updated = await asyncio.to_thread(get_woo_db().update_product_stock, product_id, body.stock_quantity)
         except Exception as exc:
             raise HTTPException(status_code=502, detail=str(exc))
         if not updated:
@@ -2694,6 +2710,7 @@ async def admin_edit_product(
             woo.update_product_admin,
             product_id,
             stock_quantity=body.stock_quantity,
+            in_stock=body.in_stock,
             regular_price=body.regular_price,
             sale_price=body.sale_price,
             clear_sale=body.clear_sale,
@@ -3635,6 +3652,43 @@ async def stripe_webhook(request: Request):
     return {"ok": True, **result}
 
 
+@api_router.post("/webhooks/woocommerce")
+async def woocommerce_order_webhook(request: Request):
+    """Decrement clone catalog stock when an order is paid on samphone.pt (WooCommerce)."""
+    payload = await request.body()
+    secret = (os.environ.get("WOOCOMMERCE_WEBHOOK_SECRET") or os.environ.get("WC_WEBHOOK_SECRET") or "").strip()
+    sig = (request.headers.get("x-wc-webhook-signature") or "").strip()
+    if secret:
+        expected = hmac.new(secret.encode("utf-8"), payload, hashlib.sha256).digest()
+        import base64
+
+        got = b""
+        try:
+            got = base64.b64decode(sig)
+        except Exception:
+            got = b""
+        if not got or not hmac.compare_digest(expected, got):
+            raise HTTPException(status_code=401, detail="Invalid WooCommerce webhook signature")
+    topic = (request.headers.get("x-wc-webhook-topic") or "").lower()
+    if topic and "order.created" not in topic:
+        return {"ok": True, "ignored": topic}
+    try:
+        body = json.loads(payload.decode("utf-8") or "{}")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    status = str(body.get("status") or "").lower()
+    if status in {"cancelled", "failed", "refunded", "checkout-draft", "auto-draft"}:
+        return {"ok": True, "ignored": status}
+    items = body.get("line_items") or []
+    if not items or not _woo_catalog_enabled():
+        return {"ok": True, "updated": 0}
+    woo = get_woo_db()
+    if not hasattr(woo, "decrement_stock_for_wc_order"):
+        return {"ok": True, "updated": 0}
+    updated = await asyncio.to_thread(woo.decrement_stock_for_wc_order, items)
+    return {"ok": True, "updated": len(updated)}
+
+
 # ---------------- Order routes ----------------
 def _order_items_summary(order: dict, limit: int = 3) -> str:
     titles = [
@@ -3732,6 +3786,11 @@ async def create_order(
             raise HTTPException(status_code=400, detail="Insufficient stock")
         except Exception as exc:
             raise safe_http_error(502, "Stock update failed", exc, log_msg="order stock") from exc
+    elif USE_MEMORY:
+        try:
+            memory_store.decrement_stock(stock_lines)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Insufficient stock")
 
     from email_service import _is_business_account as _email_is_business
 

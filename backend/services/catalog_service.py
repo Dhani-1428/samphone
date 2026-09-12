@@ -1469,7 +1469,7 @@ class CatalogService:
                 return row
         return None
 
-    def update_product_stock(self, product_id: str, stock_quantity: int) -> Optional[dict]:
+    def update_product_stock(self, product_id: str, stock_quantity: int, *, push_live: bool = True) -> Optional[dict]:
         doc = self.get_product_by_uuid(product_id, enrich=False)
         if not doc:
             return None
@@ -1499,6 +1499,15 @@ class CatalogService:
                 self.repo._set_postmeta(cur, wc_id, "_stock", str(qty))
                 self.repo._set_postmeta(cur, wc_id, "_stock_status", status)
                 self.repo._set_postmeta(cur, wc_id, "_manage_stock", "yes")
+        if push_live:
+            try:
+                from live_mysql import push_stock_to_site
+
+                live = push_stock_to_site(wc_id, qty)
+                if not live.get("ok") and not live.get("skipped"):
+                    logger.warning("Live WooCommerce stock push incomplete for wc_id=%s: %s", wc_id, live)
+            except Exception:
+                logger.exception("Live WooCommerce stock push failed for wc_id=%s", wc_id)
         return self.get_product_by_uuid(
             product_id,
             enrich=True,
@@ -1515,6 +1524,7 @@ class CatalogService:
         product_id: str,
         *,
         stock_quantity: int | None = None,
+        in_stock: bool | None = None,
         regular_price: float | None = None,
         sale_price: float | None = None,
         clear_sale: bool = False,
@@ -1530,7 +1540,20 @@ class CatalogService:
             return None
         wc_id = int(doc["wc_id"])
 
-        if stock_quantity is not None:
+        current_qty = 0
+        try:
+            current_qty = int(float(doc.get("stock_quantity") or 0))
+        except (TypeError, ValueError):
+            current_qty = 0
+        if current_qty >= UNMANAGED_IN_STOCK_QTY:
+            current_qty = 0
+
+        if in_stock is False:
+            self.update_product_stock(product_id, 0)
+        elif in_stock is True:
+            next_qty = int(stock_quantity) if stock_quantity is not None else current_qty
+            self.update_product_stock(product_id, max(1, next_qty))
+        elif stock_quantity is not None:
             self.update_product_stock(product_id, int(stock_quantity))
 
         price_touch = regular_price is not None or sale_price is not None or clear_sale
@@ -1672,19 +1695,43 @@ class CatalogService:
             raise RuntimeError(result.get("error") or result.get("reason") or "Could not delete product")
         return True
 
-    def decrement_stock(self, lines: list[dict]) -> list[dict]:
+    def decrement_stock(self, lines: list[dict], *, push_live: bool = True) -> list[dict]:
         updated = []
         for line in lines:
             pid = line.get("product_id")
             qty = int(line.get("quantity") or 0)
+            if qty < 1 or not pid:
+                continue
             doc = self.get_product_by_uuid(str(pid), enrich=False)
             if not doc:
                 continue
-            new_qty = max(0, int(doc.get("stock_quantity") or 0) - qty)
-            u = self.update_product_stock(str(pid), new_qty)
+            try:
+                current = int(float(doc.get("stock_quantity") or 0))
+            except (TypeError, ValueError):
+                current = 0
+            if current >= UNMANAGED_IN_STOCK_QTY:
+                continue
+            new_qty = max(0, current - qty)
+            u = self.update_product_stock(str(pid), new_qty, push_live=push_live)
             if u:
                 updated.append(u)
         return updated
+
+    def decrement_stock_for_wc_order(self, line_items: list[dict]) -> list[dict]:
+        """Clone-only decrement after a native samphone.pt WooCommerce order (live WC already reduced)."""
+        lines: list[dict] = []
+        for li in line_items or []:
+            if not isinstance(li, dict):
+                continue
+            wc_id = int(li.get("product_id") or li.get("variation_id") or 0)
+            qty = int(li.get("quantity") or 0)
+            if wc_id < 1 or qty < 1:
+                continue
+            doc = self.get_product_by_uuid(str(wc_id), enrich=False)
+            if not doc:
+                continue
+            lines.append({"product_id": str(doc.get("id") or wc_id), "quantity": qty})
+        return self.decrement_stock(lines, push_live=False)
 
 
 _service: CatalogService | None = None
