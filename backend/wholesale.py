@@ -243,7 +243,7 @@ def normalize_dealer_tier(tier: Optional[str]) -> str:
 def default_wholesale_user_fields() -> dict[str, Any]:
     return {
         "isWholesale": False,
-        "wholesaleStatus": "pending",
+        "wholesaleStatus": None,
         "accountType": "b2c",
         "businessName": "",
         "vatNumber": "",
@@ -272,7 +272,7 @@ _BLOCKED_WHOLESALE_STATUS = {
 
 
 def is_business_account(user: Optional[dict]) -> bool:
-    """True for wholesale/business signups (Clerk B2B, samphone.pt dealers, or app business). Personal stays B2C."""
+    """B2B signup (Clerk/app/samphone.pt). Pending, rejected, or suspended dealers stay B2B — never B2C."""
     if not user:
         return False
     account = str(user.get("accountType") or user.get("account_type") or "").strip().lower()
@@ -280,13 +280,18 @@ def is_business_account(user: Optional[dict]) -> bool:
         str(user.get("businessName") or user.get("business_name") or "").strip()
         or str(user.get("vatNumber") or user.get("vat_number") or "").strip()
     )
+    status = str(user.get("wholesaleStatus") or user.get("wholesale_status") or "").strip().lower()
     if user.get("isWholesaleRole") or user.get("is_wholesale_role"):
         return True
-    if account == "b2c":
-        return business
     if account == "b2b":
         return True
-    return business
+    if business:
+        return True
+    if status in {"approved", "rejected", "suspended"}:
+        return True
+    if status == "pending" and (account == "b2b" or business):
+        return True
+    return False
 
 
 def is_wholesale_approved(user: Optional[dict]) -> bool:
@@ -469,6 +474,13 @@ def user_public_wholesale(user: dict) -> dict:
     }
     for key, default in default_wholesale_user_fields().items():
         base[key] = user.get(key, default)
+    if not is_business_account(base) and str(base.get("accountType") or "b2c").lower() == "b2c":
+        if str(base.get("wholesaleStatus") or "").lower() == "pending" and not base.get("isWholesale"):
+            stored = user.get("wholesaleStatus")
+            if stored in (None, "", "pending") and not (
+                user.get("businessName") or user.get("vatNumber") or user.get("accountType") == "b2b"
+            ):
+                base["wholesaleStatus"] = None
     base["language"] = normalize_language(base.get("language"))
     return base
 

@@ -51,8 +51,8 @@ export default function AdminLane({ channel }: { channel: "b2b" | "b2c" }) {
           <h1 className="font-display text-2xl font-bold text-navy">{title}</h1>
           <p className="mt-1 text-sm text-neutral-500">
             {channel === "b2b"
-              ? "Business accounts from Clerk and approved dealers on samphone.pt."
-              : "Personal shopper accounts from Clerk."}
+              ? "Clerk and samphone.pt business accounts — including pending, rejected, and suspended. They never appear under B2C."
+              : "Clerk personal signups only. A B2B dealer who is not approved must register again as a personal account to show here."}
           </p>
         </div>
         <div className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-black/[0.08]">

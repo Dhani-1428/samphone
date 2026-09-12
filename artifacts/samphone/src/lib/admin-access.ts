@@ -12,15 +12,27 @@ export function isB2bAccount(user?: {
   vatNumber?: string;
   wholesaleStatus?: string;
   isWholesaleRole?: boolean;
+  isWholesale?: boolean;
   source?: string;
 } | null): boolean {
   if (!user) return false;
   const account = (user.accountType || "").trim().toLowerCase();
   const business = Boolean((user.businessName || "").trim() || (user.vatNumber || "").trim());
+  const status = (user.wholesaleStatus || "").trim().toLowerCase();
   if (user.isWholesaleRole) return true;
-  if (account === "b2c") return business;
   if (account === "b2b") return true;
-  return business;
+  if (business) return true;
+  if (status === "approved" || status === "rejected" || status === "suspended") return true;
+  if (status === "pending" && (account === "b2b" || business)) return true;
+  return false;
+}
+
+/** Clerk personal signup only. Unapproved / suspended B2B never counts as B2C. */
+export function isB2cAccount(user?: Parameters<typeof isB2bAccount>[0]): boolean {
+  if (!user) return false;
+  if (isB2bAccount(user)) return false;
+  const account = (user.accountType || "b2c").trim().toLowerCase();
+  return account !== "b2b";
 }
 
 /** Screenshots / print / save-image: only the store admin inbox. */

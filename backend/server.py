@@ -672,9 +672,16 @@ def _merge_admin_users(app_users: list[dict], clerk_users: list[dict]) -> list[d
         email = str(merged.get("email") or "").strip().lower()
         if email and email in by_email:
             clerk = by_email[email]
-            if not str(merged.get("accountType") or "").strip():
-                merged["accountType"] = clerk.get("accountType") or "b2c"
+            from wholesale import is_business_account
+
             merged.setdefault("clerk_id", clerk.get("clerk_id"))
+            if is_business_account(merged) or is_business_account(clerk):
+                merged["accountType"] = "b2b"
+                merged["businessName"] = merged.get("businessName") or clerk.get("businessName") or ""
+                merged["vatNumber"] = merged.get("vatNumber") or clerk.get("vatNumber") or ""
+                merged["wholesaleStatus"] = merged.get("wholesaleStatus") or clerk.get("wholesaleStatus")
+            elif not str(merged.get("accountType") or "").strip():
+                merged["accountType"] = clerk.get("accountType") or "b2c"
             merged["source"] = merged.get("source") or "clerk"
             by_email[email] = merged
         elif email:

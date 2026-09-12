@@ -14,7 +14,7 @@ import {
   patchAdminWholesaleUser,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
-import { isB2bAccount } from "@/lib/admin-access";
+import { isB2bAccount, isB2cAccount } from "@/lib/admin-access";
 import type { PersonalPricingRule } from "@/lib/customer-price";
 
 type DraftRule = {
@@ -117,12 +117,16 @@ export default function AdminWholesale({
           byEmail.set(key, row);
           continue;
         }
+        const eitherB2b = isB2bAccount(prev) || isB2bAccount(row);
         byEmail.set(key, {
           ...row,
           ...prev,
           source: prev.source || row.source,
           isWholesaleRole: Boolean(prev.isWholesaleRole || row.isWholesaleRole),
-          accountType: prev.accountType || row.accountType,
+          businessName: prev.businessName || row.businessName,
+          vatNumber: prev.vatNumber || row.vatNumber,
+          wholesaleStatus: prev.wholesaleStatus || row.wholesaleStatus,
+          accountType: eitherB2b ? "b2b" : prev.accountType || row.accountType || "b2c",
         });
       }
       const list = [...byEmail.values()].sort((a, b) => {
@@ -255,7 +259,7 @@ export default function AdminWholesale({
     (u) => isB2bAccount(u) && (u.wholesaleStatus || "").toLowerCase() === "pending",
   ).length;
   const visible = useMemo(() => {
-    const inLane = users.filter((u) => (lane === "b2b" ? isB2bAccount(u) : !isB2bAccount(u)));
+    const inLane = users.filter((u) => (lane === "b2b" ? isB2bAccount(u) : isB2cAccount(u)));
     const q = filter.trim().toLowerCase();
     if (!q) return inLane;
     return inLane.filter((row) =>
@@ -283,8 +287,8 @@ export default function AdminWholesale({
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
             {lane === "b2b"
-              ? "Business registrations. Approve only these accounts for wholesale prices."
-              : "Personal accounts. These always see B2C prices."}{" "}
+              ? "Business registrations. Pending, rejected, or suspended stay B2B."
+              : "Personal Clerk accounts only. Unapproved B2B is not listed here."}{" "}
             Signed in as {user?.email || "admin"}.
           </p>
         </>
@@ -414,7 +418,7 @@ export default function AdminWholesale({
                   ? "No accounts loaded."
                   : lane === "b2b"
                     ? "No business accounts match that search."
-                    : "No personal accounts match that search."}
+                    : "No personal Clerk accounts match. Unapproved B2B dealers are listed under B2B only."}
               </p>
             ) : null}
           </div>
