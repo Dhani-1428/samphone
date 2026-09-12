@@ -345,6 +345,84 @@ def is_wholesale_approved(user: Optional[dict]) -> bool:
     return bool(user.get("isWholesale")) and account in {"b2b", ""}
 
 
+def _positive_price(*vals: Any) -> float:
+    for val in vals:
+        if val is None or val == "":
+            continue
+        try:
+            n = float(val)
+        except (TypeError, ValueError):
+            continue
+        if n > 0:
+            return round(n, 2)
+    return 0.0
+
+
+def apply_admin_display_prices(p: dict) -> dict:
+    """Ensure admin payloads always have both wholesale and public amounts."""
+    biz = _positive_price(
+        p.get("stored_business_price"),
+        p.get("wholesalePrice"),
+        p.get("b2b_price"),
+        p.get("apiPrice"),
+        p.get("price"),
+    )
+    pub = _positive_price(
+        p.get("stored_b2c_override"),
+        p.get("stored_public_price"),
+        p.get("retailPrice"),
+        p.get("b2c_price"),
+        p.get("salePrice"),
+        p.get("price"),
+    )
+    if biz > 0 and pub <= 0:
+        pub = map_public_retail_price(biz, p)
+    if pub > 0 and biz <= 0:
+        biz = pub
+    if biz > 0:
+        p["wholesalePrice"] = biz
+        p["b2b_price"] = biz
+        p["apiPrice"] = biz
+        if not _positive_price(p.get("stored_business_price")):
+            p["stored_business_price"] = biz
+    if pub > 0:
+        p["retailPrice"] = pub
+        p["b2c_price"] = pub
+        if not _positive_price(p.get("stored_public_price")):
+            p["stored_public_price"] = pub
+    return p
+
+
+def admin_list_row(p: dict) -> dict:
+    row = apply_admin_display_prices(dict(p))
+    qty = row.get("stock_quantity")
+    try:
+        qty_n = int(float(qty)) if qty not in (None, "") else None
+    except (TypeError, ValueError):
+        qty_n = None
+    return {
+        "id": row.get("id"),
+        "wc_id": row.get("wc_id"),
+        "title": row.get("title"),
+        "name": row.get("title") or row.get("name"),
+        "brand": row.get("brand"),
+        "sku": row.get("sku"),
+        "image": row.get("image"),
+        "stock_quantity": qty_n,
+        "in_stock": bool(row.get("in_stock")),
+        "price": row.get("wholesalePrice") or row.get("price"),
+        "wholesalePrice": row.get("wholesalePrice"),
+        "b2b_price": row.get("b2b_price"),
+        "apiPrice": row.get("apiPrice"),
+        "retailPrice": row.get("retailPrice"),
+        "b2c_price": row.get("b2c_price"),
+        "stored_business_price": row.get("stored_business_price"),
+        "stored_public_price": row.get("stored_public_price"),
+        "stored_b2c_override": row.get("stored_b2c_override"),
+        "regularPrice": row.get("regularPrice"),
+    }
+
+
 def can_see_business_pricing(user: Optional[dict]) -> bool:
     """B2B prices only for approved business accounts. Personal (B2C) always sees public prices."""
     if not user:

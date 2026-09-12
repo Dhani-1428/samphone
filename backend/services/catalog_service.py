@@ -1068,34 +1068,9 @@ class CatalogService:
 
     def stamp_admin_prices(self, p: dict) -> dict:
         """Admin UI: show samphone_b2c_pricing business_price + public/b2c_price."""
-        biz = 0.0
-        for key in ("stored_business_price", "wholesalePrice", "b2b_price", "apiPrice"):
-            try:
-                v = float(p.get(key) or 0)
-            except (TypeError, ValueError):
-                v = 0.0
-            if v > 0:
-                biz = v
-                break
-        pub = 0.0
-        for key in ("stored_b2c_override", "stored_public_price", "retailPrice", "b2c_price"):
-            try:
-                v = float(p.get(key) or 0)
-            except (TypeError, ValueError):
-                v = 0.0
-            if v > 0:
-                pub = v
-                break
-        if biz > 0 and pub <= 0:
-            pub = map_public_retail_price(biz, p)
-        if biz > 0:
-            p["wholesalePrice"] = round(biz, 2)
-            p["b2b_price"] = round(biz, 2)
-            p["price"] = round(biz, 2)
-        if pub > 0:
-            p["retailPrice"] = round(pub, 2)
-            p["b2c_price"] = round(pub, 2)
-        return p
+        from wholesale import apply_admin_display_prices
+
+        return apply_admin_display_prices(p)
 
     def get_admin_product(self, product_id: str) -> Optional[dict]:
         doc = self.get_product_by_uuid(

@@ -2081,21 +2081,11 @@ class WooCommerceAPI:
             total = len(out)
             lim, off = clamp_page(limit, offset)
             page = out[off : off + lim]
+            from wholesale import admin_list_row
+
             return {
                 "total": total,
-                "items": [
-                    {
-                        "id": p.get("id"),
-                        "title": p.get("title"),
-                        "brand": p.get("brand"),
-                        "sku": p.get("sku"),
-                        "price": p.get("price"),
-                        "image": p.get("image"),
-                        "stock_quantity": int(p.get("stock_quantity") or 0),
-                        "in_stock": bool(p.get("in_stock")),
-                    }
-                    for p in page
-                ],
+                "items": [admin_list_row(p) for p in page],
             }
 
         lim, off = clamp_page(limit, offset)
@@ -2110,21 +2100,11 @@ class WooCommerceAPI:
         products = self._rows_to_products(data or [], model_ids)
         slice_start = off % wc_per_page
         page = products[slice_start : slice_start + lim]
+        from wholesale import admin_list_row
+
         return {
             "total": total,
-            "items": [
-                {
-                    "id": p.get("id"),
-                    "title": p.get("title"),
-                    "brand": p.get("brand"),
-                    "sku": p.get("sku"),
-                    "price": p.get("price"),
-                    "image": p.get("image"),
-                    "stock_quantity": int(p.get("stock_quantity") or 0),
-                    "in_stock": bool(p.get("in_stock")),
-                }
-                for p in page
-            ],
+            "items": [admin_list_row(p) for p in page],
         }
 
     def admin_stats(self) -> dict:

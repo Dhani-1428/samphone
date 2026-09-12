@@ -51,12 +51,36 @@ function productImage(p: Record<string, unknown>): string {
   return "";
 }
 
+function firstMoney(...vals: unknown[]): number | undefined {
+  for (const v of vals) {
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return undefined;
+}
+
+function b2bAmount(p: Record<string, unknown>): number | undefined {
+  return firstMoney(p.stored_business_price, p.wholesalePrice, p.b2b_price, p.apiPrice, p.regularPrice, p.price);
+}
+
+function b2cAmount(p: Record<string, unknown>): number | undefined {
+  return firstMoney(
+    p.stored_b2c_override,
+    p.stored_public_price,
+    p.retailPrice,
+    p.b2c_price,
+    p.salePrice,
+    p.price,
+    p.regularPrice,
+  );
+}
+
 function b2bPrice(p: Record<string, unknown>): string {
-  return priceInput(p.stored_business_price ?? p.wholesalePrice ?? p.b2b_price ?? p.apiPrice);
+  return priceInput(b2bAmount(p));
 }
 
 function b2cPrice(p: Record<string, unknown>): string {
-  return priceInput(p.stored_b2c_override ?? p.stored_public_price ?? p.retailPrice ?? p.b2c_price);
+  return priceInput(b2cAmount(p));
 }
 
 function fillForm(p: Record<string, unknown>) {
@@ -332,10 +356,7 @@ export default function AdminProductBoard({
               const id = String(p.id ?? p.wc_id ?? "");
               const title = String(p.title ?? p.name ?? id);
               const img = productImage(p);
-              const shown =
-                channel === "b2b"
-                  ? money(p.stored_business_price ?? p.wholesalePrice ?? p.b2b_price)
-                  : money(p.stored_b2c_override ?? p.stored_public_price ?? p.retailPrice ?? p.b2c_price);
+              const shown = channel === "b2b" ? money(b2bAmount(p)) : money(b2cAmount(p));
               return (
                 <tr
                   key={id}

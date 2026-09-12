@@ -401,21 +401,11 @@ def list_admin_products(q: Optional[str] = None, limit: int = 80, offset: int = 
         ]
     total = len(out)
     page = out[offset : offset + limit]
+    from wholesale import admin_list_row
+
     return {
         "total": total,
-        "items": [
-            {
-                "id": p.get("id"),
-                "title": p.get("title"),
-                "brand": p.get("brand"),
-                "sku": p.get("sku"),
-                "price": p.get("price"),
-                "image": p.get("image"),
-                "stock_quantity": int(p.get("stock_quantity") or 0),
-                "in_stock": bool(p.get("in_stock")),
-            }
-            for p in page
-        ],
+        "items": [admin_list_row(p) for p in page],
     }
 
 

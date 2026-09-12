@@ -1399,6 +1399,41 @@ export async function fetchAdminOrders(limit = 80): Promise<{
   return { items: [] };
 }
 
+function productKey(p: Record<string, unknown>): string {
+  return String(p.id ?? p.wc_id ?? p.sku ?? "").trim().toLowerCase();
+}
+
+function overlayAdminPrices(row: Record<string, unknown>, extra?: Record<string, unknown>): Record<string, unknown> {
+  const src = extra && typeof extra === "object" ? extra : {};
+  const merged: Record<string, unknown> = { ...src, ...row };
+  const biz = [merged.stored_business_price, merged.wholesalePrice, merged.b2b_price, merged.apiPrice, src.wholesalePrice, src.price, merged.price]
+    .map((v) => Number(v))
+    .find((n) => Number.isFinite(n) && n > 0);
+  const pub = [
+    merged.stored_b2c_override,
+    merged.stored_public_price,
+    merged.retailPrice,
+    merged.b2c_price,
+    src.retailPrice,
+    src.price,
+    merged.price,
+  ]
+    .map((v) => Number(v))
+    .find((n) => Number.isFinite(n) && n > 0);
+  if (biz != null) {
+    merged.wholesalePrice = merged.wholesalePrice ?? biz;
+    merged.b2b_price = merged.b2b_price ?? biz;
+    merged.stored_business_price = merged.stored_business_price ?? biz;
+  }
+  if (pub != null) {
+    merged.retailPrice = merged.retailPrice ?? pub;
+    merged.b2c_price = merged.b2c_price ?? pub;
+    merged.stored_public_price = merged.stored_public_price ?? pub;
+  }
+  if (merged.price == null) merged.price = biz ?? pub;
+  return merged;
+}
+
 export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Promise<{
   total?: number;
   has_more?: boolean;
@@ -1412,18 +1447,39 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   const withSort = new URLSearchParams(params);
   const noSort = new URLSearchParams(params);
   noSort.delete("sort");
-  const paths = [`/admin/products?${withSort}`, `/admin/products?${noSort}`, `/products?${withSort}`];
+  const adminPaths = [`/admin/products?${withSort}`, `/admin/products?${noSort}`];
+  let adminPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
   let lastError: unknown = null;
-  for (let i = 0; i < paths.length; i += 1) {
+  for (const path of adminPaths) {
     try {
-      const page = parseProductPage(await cloudFetchJson<unknown>(paths[i]));
-      if (page.items.length || i === paths.length - 1) return page;
+      const page = parseProductPage(await cloudFetchJson<unknown>(path));
+      if (page.items.length) {
+        adminPage = page;
+        break;
+      }
     } catch (err) {
       lastError = err;
     }
   }
-  if (lastError instanceof Error) throw lastError;
-  return { items: [] };
+  let catalogPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
+  try {
+    catalogPage = parseProductPage(await cloudFetchJson<unknown>(`/products?${withSort}`));
+  } catch (err) {
+    lastError = lastError ?? err;
+  }
+  const catalogById = new Map<string, Record<string, unknown>>();
+  for (const row of catalogPage.items) {
+    const key = productKey(row);
+    if (key) catalogById.set(key, row);
+  }
+  const base = adminPage.items.length ? adminPage.items : catalogPage.items;
+  const items = base.map((row) => overlayAdminPrices(row, catalogById.get(productKey(row))));
+  if (!items.length && lastError instanceof Error) throw lastError;
+  return {
+    items,
+    total: adminPage.total ?? catalogPage.total,
+    has_more: adminPage.has_more ?? catalogPage.has_more,
+  };
 }
 
 export async function editAdminProduct(
