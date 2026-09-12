@@ -556,6 +556,136 @@ def _clerk_delete_users_by_email(email: str) -> int:
     return deleted
 
 
+def _clerk_email_from_user(clerk_user: dict) -> str:
+    emails = clerk_user.get("email_addresses") or []
+    primary_id = clerk_user.get("primary_email_address_id")
+    email = ""
+    for row in emails:
+        if not isinstance(row, dict):
+            continue
+        addr = (row.get("email_address") or "").strip().lower()
+        if row.get("id") == primary_id or not email:
+            email = addr
+            if row.get("id") == primary_id:
+                break
+    return email
+
+
+def _clerk_phone_from_user(clerk_user: dict) -> str:
+    phones = clerk_user.get("phone_numbers") or []
+    primary_phone_id = clerk_user.get("primary_phone_number_id")
+    phone = ""
+    for row in phones:
+        if not isinstance(row, dict):
+            continue
+        num = (row.get("phone_number") or "").strip()
+        if row.get("id") == primary_phone_id or not phone:
+            phone = num
+            if row.get("id") == primary_phone_id:
+                break
+    return phone
+
+
+def _clerk_admin_row(clerk_user: dict) -> Optional[dict]:
+    email = _clerk_email_from_user(clerk_user)
+    phone = _clerk_phone_from_user(clerk_user)
+    if not email:
+        digits = "".join(ch for ch in phone if ch.isdigit())
+        email = f"{digits}@phone.users.samphone.cloud" if digits else ""
+    if not email:
+        return None
+    unsafe = clerk_user.get("unsafe_metadata") if isinstance(clerk_user.get("unsafe_metadata"), dict) else {}
+    public = clerk_user.get("public_metadata") if isinstance(clerk_user.get("public_metadata"), dict) else {}
+    account = str(unsafe.get("accountType") or public.get("accountType") or "b2c").strip().lower()
+    if account not in {"b2b", "b2c"}:
+        account = "b2c"
+    first = (clerk_user.get("first_name") or "").strip()
+    last = (clerk_user.get("last_name") or "").strip()
+    name = f"{first} {last}".strip() or email.split("@")[0]
+    created = clerk_user.get("created_at")
+    created_iso = ""
+    if isinstance(created, (int, float)) and created > 0:
+        created_iso = datetime.fromtimestamp(float(created) / 1000.0, tz=timezone.utc).isoformat()
+    return {
+        "id": clerk_user.get("id") or email,
+        "clerk_id": clerk_user.get("id"),
+        "email": email,
+        "name": name,
+        "phone": phone or str(unsafe.get("phone") or ""),
+        "role": "customer",
+        "accountType": account,
+        "businessName": str(unsafe.get("businessName") or unsafe.get("business_name") or ""),
+        "vatNumber": str(unsafe.get("vatNumber") or unsafe.get("vat_number") or ""),
+        "wholesaleStatus": None if account == "b2c" else (unsafe.get("wholesaleStatus") or "pending"),
+        "isWholesale": False,
+        "source": "clerk",
+        "created_at": created_iso,
+        "createdAt": created_iso,
+    }
+
+
+def _clerk_list_admin_users(max_users: int = 1500) -> list[dict]:
+    import requests
+
+    secret = os.environ.get("CLERK_SECRET_KEY", "").strip()
+    if not secret:
+        return []
+    out: list[dict] = []
+    offset = 0
+    page = 100
+    while len(out) < max_users:
+        try:
+            resp = requests.get(
+                "https://api.clerk.com/v1/users",
+                headers=_clerk_headers(),
+                params={"limit": page, "offset": offset, "order_by": "-created_at"},
+                timeout=20,
+            )
+        except Exception:
+            logger.exception("Clerk list users failed")
+            break
+        if resp.status_code >= 400:
+            logger.warning("Clerk list users HTTP %s: %s", resp.status_code, (resp.text or "")[:240])
+            break
+        batch = resp.json()
+        if not isinstance(batch, list) or not batch:
+            break
+        for cu in batch:
+            if isinstance(cu, dict):
+                row = _clerk_admin_row(cu)
+                if row:
+                    out.append(row)
+        if len(batch) < page:
+            break
+        offset += page
+    return out
+
+
+def _merge_admin_users(app_users: list[dict], clerk_users: list[dict]) -> list[dict]:
+    by_email: dict[str, dict] = {}
+    for row in clerk_users:
+        email = str(row.get("email") or "").strip().lower()
+        if email:
+            by_email[email] = dict(row)
+    for row in app_users:
+        merged = dict(row)
+        email = str(merged.get("email") or "").strip().lower()
+        if email and email in by_email:
+            clerk = by_email[email]
+            if not str(merged.get("accountType") or "").strip():
+                merged["accountType"] = clerk.get("accountType") or "b2c"
+            merged.setdefault("clerk_id", clerk.get("clerk_id"))
+            merged["source"] = merged.get("source") or "clerk"
+            by_email[email] = merged
+        elif email:
+            merged.setdefault("source", "app")
+            by_email[email] = merged
+        else:
+            merged.setdefault("source", "app")
+            by_email[str(merged.get("id") or len(by_email))] = merged
+    return list(by_email.values())
+
+
 def _verify_clerk_session_token(token: str) -> dict:
     """Verify Clerk session JWT via JWKS, then load the user from Clerk Backend API."""
     import requests
@@ -2679,12 +2809,18 @@ async def admin_get_order(order_id: str, _admin=Depends(get_current_admin)):
 
 @api_router.get("/admin/users")
 async def admin_list_users(_admin=Depends(get_current_admin)):
+    app_users: list[dict] = []
     if USE_MEMORY or _app_mysql_enabled():
         from website_routes import enrich_website_user
 
         rows = await data_store.list_users(db)
-        return [await enrich_website_user(row, db) for row in rows]
-    raise HTTPException(status_code=501, detail="Admin users require app MySQL or USE_MEMORY=1")
+        app_users = [await enrich_website_user(row, db) for row in rows]
+    clerk_users = await asyncio.to_thread(_clerk_list_admin_users)
+    merged = _merge_admin_users(app_users, clerk_users)
+    if not merged and not app_users and not clerk_users:
+        if not (USE_MEMORY or _app_mysql_enabled()):
+            raise HTTPException(status_code=501, detail="Admin users require app MySQL, Clerk, or USE_MEMORY=1")
+    return merged
 
 
 @api_router.get("/admin/users/search")

@@ -11,13 +11,16 @@ export function isB2bAccount(user?: {
   businessName?: string;
   vatNumber?: string;
   wholesaleStatus?: string;
+  isWholesaleRole?: boolean;
+  source?: string;
 } | null): boolean {
   if (!user) return false;
   const account = (user.accountType || "").trim().toLowerCase();
   const business = Boolean((user.businessName || "").trim() || (user.vatNumber || "").trim());
+  if (user.isWholesaleRole) return true;
   if (account === "b2c") return business;
   if (account === "b2b") return true;
-  return business || Boolean((user.wholesaleStatus || "").trim());
+  return business;
 }
 
 /** Screenshots / print / save-image: only the store admin inbox. */

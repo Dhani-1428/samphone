@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getStoredApiJwt } from "@/config/samphone";
 import {
   fetchAdminUsers,
+  fetchAdminWebsiteCustomers,
   fetchAdminWholesaleRequests,
   patchAdminProduct,
   patchAdminWholesaleUser,
@@ -38,6 +39,19 @@ function ruleValue(rule: PersonalPricingRule): string {
   if (rule.fixedEur != null) return `€${rule.fixedEur.toFixed(2)}`;
   if (rule.percent != null) return `−${rule.percent}%`;
   return "—";
+}
+
+function sourceLabel(row: AdminWholesaleUser): string {
+  const id = row.id || "";
+  if (row.source === "website" || id.startsWith("wp-")) return "samphone.pt";
+  if (row.source === "clerk" || id.startsWith("user_")) return "Clerk";
+  if (row.source === "app") return "App";
+  return "Clerk";
+}
+
+function canManageAccount(row: AdminWholesaleUser): boolean {
+  const id = row.id || "";
+  return Boolean(id) && !id.startsWith("wp-") && !id.startsWith("user_");
 }
 
 function formatJoined(iso?: string): string {
@@ -88,13 +102,30 @@ export default function AdminWholesale({
     setBusy(true);
     setError(null);
     try {
-      const [requests, all] = await Promise.all([
+      const [requests, all, website] = await Promise.all([
         fetchAdminWholesaleRequests(token).catch(() => [] as AdminWholesaleUser[]),
         fetchAdminUsers(token).catch(() => [] as AdminWholesaleUser[]),
+        lane === "b2b"
+          ? fetchAdminWebsiteCustomers().catch(() => [] as AdminWholesaleUser[])
+          : Promise.resolve([] as AdminWholesaleUser[]),
       ]);
-      const byId = new Map<string, AdminWholesaleUser>();
-      for (const row of [...requests, ...all]) byId.set(row.id || row.email, row);
-      const list = [...byId.values()].sort((a, b) => {
+      const byEmail = new Map<string, AdminWholesaleUser>();
+      for (const row of [...all, ...requests, ...website]) {
+        const key = (row.email || row.id).trim().toLowerCase();
+        const prev = byEmail.get(key);
+        if (!prev) {
+          byEmail.set(key, row);
+          continue;
+        }
+        byEmail.set(key, {
+          ...row,
+          ...prev,
+          source: prev.source || row.source,
+          isWholesaleRole: Boolean(prev.isWholesaleRole || row.isWholesaleRole),
+          accountType: prev.accountType || row.accountType,
+        });
+      }
+      const list = [...byEmail.values()].sort((a, b) => {
         const da = a.createdAt || "";
         const db = b.createdAt || "";
         if (da !== db) return db.localeCompare(da);
@@ -115,7 +146,7 @@ export default function AdminWholesale({
     } finally {
       setBusy(false);
     }
-  }, [token, selectedId]);
+  }, [token, selectedId, lane]);
 
   useEffect(() => {
     const jwt = getStoredApiJwt() ?? user?.token ?? "";
@@ -300,7 +331,8 @@ export default function AdminWholesale({
                         <div className="text-muted-foreground">{row.email}</div>
                       </button>
                       <div className="text-xs text-muted-foreground">
-                        {row.businessName || row.accountType || row.role || "—"} {row.vatNumber ? `· ${row.vatNumber}` : ""}
+                        {row.businessName || row.accountType || row.role || "—"} {row.vatNumber ? `· ${row.vatNumber}` : ""}{" "}
+                        · {sourceLabel(row)}
                       </div>
                     </td>
                     <td className="py-3 whitespace-nowrap text-muted-foreground">{formatJoined(row.createdAt)}</td>
@@ -318,7 +350,7 @@ export default function AdminWholesale({
                     </td>
                     <td className="py-3">
                       <div className="flex flex-wrap gap-1">
-                        {lane === "b2b" ? (
+                        {lane === "b2b" && canManageAccount(row) ? (
                           <>
                         <Button size="sm" type="button" variant="outline" onClick={() => selectUser(row)}>
                           Discounts
@@ -366,7 +398,9 @@ export default function AdminWholesale({
                         </Button>
                           </>
                         ) : (
-                          <span className="text-xs text-neutral-500">Personal · B2C</span>
+                          <span className="text-xs text-neutral-500">
+                            {lane === "b2b" ? `${sourceLabel(row)} · B2B` : "Personal · Clerk · B2C"}
+                          </span>
                         )}
                       </div>
                     </td>

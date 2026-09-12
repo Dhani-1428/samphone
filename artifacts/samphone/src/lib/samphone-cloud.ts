@@ -1175,12 +1175,14 @@ export type AdminWholesaleUser = {
   accountType?: string;
   wholesaleStatus?: string;
   isWholesale?: boolean;
+  isWholesaleRole?: boolean;
   accountDiscountPercent?: number;
   personalPricing?: import("@/lib/customer-price").PersonalPricingRule[];
   businessName?: string;
   vatNumber?: string;
   businessType?: string;
   phone?: string;
+  source?: string;
 };
 
 function asAdminUser(raw: unknown): AdminWholesaleUser | null {
@@ -1217,6 +1219,8 @@ function asAdminUser(raw: unknown): AdminWholesaleUser | null {
     vatNumber: typeof o.vatNumber === "string" ? o.vatNumber : typeof o.vat_number === "string" ? o.vat_number : undefined,
     businessType: typeof o.businessType === "string" ? o.businessType : typeof o.business_type === "string" ? o.business_type : undefined,
     phone: typeof o.phone === "string" ? o.phone : undefined,
+    source: typeof o.source === "string" ? o.source : undefined,
+    isWholesaleRole: o.isWholesaleRole === true || o.is_wholesale_role === true,
   };
 }
 
@@ -1235,6 +1239,11 @@ export async function fetchAdminUsers(authToken: string): Promise<AdminWholesale
   const data = await cloudFetchJson<unknown>("/admin/users", {
     headers: { Authorization: `Bearer ${authToken}` },
   });
+  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+}
+
+export async function fetchAdminWebsiteCustomers(): Promise<AdminWholesaleUser[]> {
+  const data = await cloudFetchJson<unknown>("/admin/users/website?limit=2000");
   return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
 }
 
