@@ -27,10 +27,10 @@ export const SAMPHONE_API_BASE = resolveSamphoneApiBase();
 export const CLERK_PUBLISHABLE_KEY =
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ??
   import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ??
-  "pk_live_Y2xlcmsuc2FtcGhvbmUuY2xvdWQk";
+  "pk_live_Y2xlcmsuc2FtcGhvbmUuZXUk";
 
 export const CLERK_FRONTEND_API =
-  import.meta.env.VITE_CLERK_FRONTEND_API ?? "https://clerk.samphone.cloud";
+  import.meta.env.VITE_CLERK_FRONTEND_API ?? "https://clerk.samphone.eu";
 
 export const STRIPE_PUBLISHABLE_KEY =
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ??
