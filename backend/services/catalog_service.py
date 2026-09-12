@@ -324,7 +324,6 @@ class CatalogService:
         sale = _parse_float(row.get("sale_price"), 0.0) or None
         on_sale = bool(sale and sale > 0 and sale < regular)
 
-        override_markup = row.get("override_markup")
         pricing_hint = {
             "category": meta_cls.get("category", "Multi-Brand"),
             "part_type": meta_cls.get("part_type", ""),
@@ -334,16 +333,8 @@ class CatalogService:
         manual_b2c = round(stored_override, 2) if b2c_override else None
         if stored_override > 0:
             b2c = round(stored_override, 2)
-        elif stored_pub > 0:
-            b2c = round(stored_pub, 2)
         else:
-            markup = float(override_markup) if override_markup not in (None, "") else None
-            if markup is None:
-                markup = self._default_markup()
-            if markup and markup != 1.0:
-                b2c = round(b2b * float(markup), 2)
-            else:
-                b2c = map_public_retail_price(b2b, pricing_hint)
+            b2c = map_public_retail_price(b2b, pricing_hint)
         manage = str(row.get("manage_stock") or "").lower() in {"yes", "1", "true"}
         stock_status = str(row.get("stock_status") or "instock").lower()
         if manage:

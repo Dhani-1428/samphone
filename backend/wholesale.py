@@ -19,6 +19,7 @@ WHOLESALE_SENSITIVE_FIELDS = (
     "apiPrice",
     "stored_business_price",
     "stored_b2c_override",
+    "stored_public_price",
 )
 
 DEALER_TIERS = {
@@ -359,26 +360,26 @@ def _positive_price(*vals: Any) -> float:
 
 
 def apply_admin_display_prices(p: dict) -> dict:
-    """Ensure admin payloads always have both wholesale and public amounts."""
+    """B2B = DB/wholesale cost. B2C = admin override or band table from that cost."""
     biz = _positive_price(
         p.get("stored_business_price"),
         p.get("wholesalePrice"),
         p.get("b2b_price"),
         p.get("apiPrice"),
-        p.get("price"),
     )
-    pub = _positive_price(
-        p.get("stored_b2c_override"),
-        p.get("stored_public_price"),
-        p.get("retailPrice"),
-        p.get("b2c_price"),
-        p.get("salePrice"),
-        p.get("price"),
-    )
-    if biz > 0 and pub <= 0:
+    if biz <= 0 and not p.get("b2c_override"):
+        biz = _positive_price(p.get("price"))
+    override = _positive_price(p.get("stored_b2c_override"))
+    if override <= 0 and p.get("b2c_override"):
+        override = _positive_price(p.get("b2c_price"), p.get("retailPrice"))
+    if override > 0:
+        pub = override
+        p["stored_b2c_override"] = override
+        p["b2c_override"] = True
+    elif biz > 0:
         pub = map_public_retail_price(biz, p)
-    if pub > 0 and biz <= 0:
-        biz = pub
+    else:
+        pub = 0.0
     if biz > 0:
         p["wholesalePrice"] = biz
         p["b2b_price"] = biz
@@ -388,8 +389,6 @@ def apply_admin_display_prices(p: dict) -> dict:
     if pub > 0:
         p["retailPrice"] = pub
         p["b2c_price"] = pub
-        if not _positive_price(p.get("stored_public_price")):
-            p["stored_public_price"] = pub
     return p
 
 
@@ -417,9 +416,13 @@ def admin_list_row(p: dict) -> dict:
         "retailPrice": row.get("retailPrice"),
         "b2c_price": row.get("b2c_price"),
         "stored_business_price": row.get("stored_business_price"),
-        "stored_public_price": row.get("stored_public_price"),
+        "stored_public_price": row.get("retailPrice"),
         "stored_b2c_override": row.get("stored_b2c_override"),
+        "b2c_override": bool(row.get("b2c_override")),
         "regularPrice": row.get("regularPrice"),
+        "category": row.get("category"),
+        "leaf_category": row.get("leaf_category"),
+        "part_type": row.get("part_type"),
     }
 
 
@@ -504,22 +507,15 @@ def sanitize_product(product: dict, user: Optional[dict]) -> dict:
             p["wholesalePrice"] = round(wholesale_f, 2)
             p["b2b_price"] = round(wholesale_f, 2)
 
-        # Always keep a public retail figure so admin can toggle Public/Business.
-        retail = p.get("retailPrice")
-        if retail is None:
-            retail = p.get("b2c_price")
-        try:
-            retail_f = float(retail) if retail is not None else 0.0
-        except (TypeError, ValueError):
-            retail_f = 0.0
-        if retail_f <= 0 and wholesale_f > 0:
-            if p.get("b2c_override") and p.get("b2c_price"):
-                try:
-                    retail_f = float(p["b2c_price"])
-                except (TypeError, ValueError):
-                    retail_f = map_public_retail_price(wholesale_f, p)
-            else:
-                retail_f = map_public_retail_price(wholesale_f, p)
+        override_f = 0.0
+        if p.get("b2c_override"):
+            override_f = _positive_price(p.get("stored_b2c_override"), p.get("b2c_price"), p.get("retailPrice"))
+        if override_f > 0:
+            retail_f = override_f
+        elif wholesale_f > 0:
+            retail_f = map_public_retail_price(wholesale_f, p)
+        else:
+            retail_f = _positive_price(p.get("retailPrice"), p.get("b2c_price"))
         if retail_f > 0:
             p["retailPrice"] = round(retail_f, 2)
             p["b2c_price"] = round(retail_f, 2)
@@ -540,26 +536,17 @@ def sanitize_product(product: dict, user: Optional[dict]) -> dict:
             apply_user_discounts_to_product(p, user.get("_active_discounts"))
         return p
     # Guest / personal / pending business: public retail only — never mix wholesale.
-    cost = p.get("b2b_price")
-    if cost is None:
-        cost = p.get("wholesalePrice")
-    if cost is None:
-        cost = p.get("apiPrice")
+    cost_f = _positive_price(p.get("b2b_price"), p.get("wholesalePrice"), p.get("apiPrice"), p.get("stored_business_price"))
     b2c_override = bool(p.get("b2c_override"))
-    try:
-        cost_f = float(cost) if cost is not None else 0.0
-    except (TypeError, ValueError):
-        cost_f = 0.0
-    try:
-        stored_pub_f = float(p.get("stored_public_price") or p.get("retailPrice") or p.get("b2c_price") or 0)
-    except (TypeError, ValueError):
-        stored_pub_f = 0.0
-    if stored_pub_f > 0 or b2c_override:
-        retail = stored_pub_f if stored_pub_f > 0 else float(p.get("retailPrice") or 0)
+    override_f = 0.0
+    if b2c_override:
+        override_f = _positive_price(p.get("stored_b2c_override"), p.get("b2c_price"), p.get("retailPrice"))
+    if override_f > 0:
+        retail = override_f
     elif cost_f > 0:
         retail = map_public_retail_price(cost_f, p)
     else:
-        retail = float(p.get("retailPrice") or map_public_retail_price(float(p.get("price") or 0), p) or 0)
+        retail = _positive_price(p.get("retailPrice"), p.get("price"))
     for field in WHOLESALE_SENSITIVE_FIELDS:
         p.pop(field, None)
     p["retailPrice"] = round(retail, 2)

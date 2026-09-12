@@ -3,7 +3,7 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { normalizeCatalogImageUrl } from "@/config/samphone";
+import { mapPublicRetailPrice } from "@/lib/public-price-bands";
 import AdminRecordDialog from "@/components/admin/AdminRecordDialog";
 import {
   createAdminProduct,
@@ -60,19 +60,21 @@ function firstMoney(...vals: unknown[]): number | undefined {
 }
 
 function b2bAmount(p: Record<string, unknown>): number | undefined {
-  return firstMoney(p.stored_business_price, p.wholesalePrice, p.b2b_price, p.apiPrice, p.regularPrice, p.price);
+  const listed = firstMoney(p.stored_business_price, p.wholesalePrice, p.b2b_price, p.apiPrice);
+  if (listed != null) return listed;
+  const price = firstMoney(p.price);
+  const retail = firstMoney(p.retailPrice, p.b2c_price);
+  if (price != null && (retail == null || price !== retail)) return price;
+  return undefined;
 }
 
 function b2cAmount(p: Record<string, unknown>): number | undefined {
-  return firstMoney(
-    p.stored_b2c_override,
-    p.stored_public_price,
-    p.retailPrice,
-    p.b2c_price,
-    p.salePrice,
-    p.price,
-    p.regularPrice,
+  const mapped = mapPublicRetailPrice(
+    b2bAmount(p),
+    p,
+    p.b2c_override ? p.stored_b2c_override ?? p.b2c_price : undefined,
   );
+  return mapped > 0 ? mapped : firstMoney(p.retailPrice, p.b2c_price);
 }
 
 function b2bPrice(p: Record<string, unknown>): string {

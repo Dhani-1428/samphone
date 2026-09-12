@@ -12,6 +12,7 @@ import { modelAliases } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
+import { mapPublicRetailPrice } from "@/lib/public-price-bands";
 
 export { catalogImageReferrerPolicy };
 
@@ -1406,31 +1407,27 @@ function productKey(p: Record<string, unknown>): string {
 function overlayAdminPrices(row: Record<string, unknown>, extra?: Record<string, unknown>): Record<string, unknown> {
   const src = extra && typeof extra === "object" ? extra : {};
   const merged: Record<string, unknown> = { ...src, ...row };
-  const biz = [merged.stored_business_price, merged.wholesalePrice, merged.b2b_price, merged.apiPrice, src.wholesalePrice, src.price, merged.price]
+  const biz = [merged.stored_business_price, merged.wholesalePrice, merged.b2b_price, merged.apiPrice]
     .map((v) => Number(v))
     .find((n) => Number.isFinite(n) && n > 0);
-  const pub = [
-    merged.stored_b2c_override,
-    merged.stored_public_price,
-    merged.retailPrice,
-    merged.b2c_price,
-    src.retailPrice,
-    src.price,
-    merged.price,
-  ]
+  const override = Number(merged.stored_b2c_override);
+  const pubFromApi = [merged.retailPrice, merged.b2c_price, src.retailPrice]
     .map((v) => Number(v))
     .find((n) => Number.isFinite(n) && n > 0);
   if (biz != null) {
     merged.wholesalePrice = merged.wholesalePrice ?? biz;
     merged.b2b_price = merged.b2b_price ?? biz;
     merged.stored_business_price = merged.stored_business_price ?? biz;
+    merged.price = biz;
   }
-  if (pub != null) {
-    merged.retailPrice = merged.retailPrice ?? pub;
-    merged.b2c_price = merged.b2c_price ?? pub;
-    merged.stored_public_price = merged.stored_public_price ?? pub;
+  const pub =
+    (merged.b2c_override && Number.isFinite(override) && override > 0 ? override : 0) ||
+    (biz != null ? mapPublicRetailPrice(biz, merged) : 0) ||
+    pubFromApi;
+  if (pub != null && Number(pub) > 0) {
+    merged.retailPrice = pub;
+    merged.b2c_price = pub;
   }
-  if (merged.price == null) merged.price = biz ?? pub;
   return merged;
 }
 
