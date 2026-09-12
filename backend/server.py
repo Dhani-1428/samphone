@@ -717,7 +717,44 @@ def _merge_admin_users(app_users: list[dict], clerk_users: list[dict]) -> list[d
         else:
             merged.setdefault("source", "app")
             by_email[str(merged.get("id") or len(by_email))] = merged
-    return list(by_email.values())
+    rows = list(by_email.values())
+    rows.sort(key=_admin_user_recency, reverse=True)
+    return rows
+
+
+def _admin_user_recency(row: dict) -> float:
+    from datetime import datetime, timezone
+
+    for key in ("createdAt", "created_at", "user_registered", "joinedAt", "date_created"):
+        v = row.get(key)
+        if v is None or v == "":
+            continue
+        if hasattr(v, "timestamp"):
+            try:
+                return float(v.timestamp())
+            except Exception:
+                pass
+        s = str(v).strip()
+        if not s:
+            continue
+        try:
+            iso = s.replace("Z", "+00:00", 1) if s.endswith("Z") else s
+            if " " in iso[:19] and "T" not in iso[:19]:
+                iso = iso.replace(" ", "T", 1)
+            dt = datetime.fromisoformat(iso)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.timestamp()
+        except Exception:
+            try:
+                n = float(s)
+                return n / 1000.0 if n > 1e12 else n
+            except Exception:
+                pass
+    try:
+        return float(int(row.get("wp_id") or 0))
+    except Exception:
+        return 0.0
 
 
 def _verify_clerk_session_token(token: str) -> dict:

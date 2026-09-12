@@ -1222,13 +1222,55 @@ function asIsoDate(raw: unknown): string | undefined {
   return undefined;
 }
 
+/** Milliseconds for newest-first admin lists. Dates win; otherwise Woo/WP numeric ids. */
+export function recencyMs(row: Record<string, unknown> | AdminWholesaleUser | null | undefined): number {
+  if (!row) return 0;
+  const rec = row as Record<string, unknown>;
+  const candidates = [
+    rec.createdAt,
+    rec.created_at,
+    rec.date_created,
+    rec.dateCreated,
+    rec.post_date,
+    rec.user_registered,
+    rec.joinedAt,
+    rec.created,
+  ];
+  for (const raw of candidates) {
+    if (raw == null || raw === "") continue;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      return raw > 1e12 ? raw : raw > 1e9 ? raw * 1000 : raw;
+    }
+    if (typeof raw === "string") {
+      const t = Date.parse(raw);
+      if (Number.isFinite(t) && t > 0) return t;
+    }
+  }
+  const wc = Number(rec.wc_id ?? rec.ID ?? rec.wp_id);
+  if (Number.isFinite(wc) && wc > 0) return wc;
+  const digits = Number(String(rec.id ?? "").replace(/\D/g, "").slice(-12));
+  return Number.isFinite(digits) ? digits : 0;
+}
+
+export function sortNewestFirst<T extends Record<string, unknown> | AdminWholesaleUser>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const diff = recencyMs(b as Record<string, unknown>) - recencyMs(a as Record<string, unknown>);
+    if (diff !== 0) return diff;
+    const ea = String((a as { email?: string }).email || (a as { title?: string }).title || "");
+    const eb = String((b as { email?: string }).email || (b as { title?: string }).title || "");
+    return ea.localeCompare(eb);
+  });
+}
+
 function asAdminUser(raw: unknown): AdminWholesaleUser | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const email = typeof o.email === "string" ? o.email.trim() : "";
   const id = o.id != null ? String(o.id) : email;
   if (!id && !email) return null;
-  const createdAt = asIsoDate(o.createdAt ?? o.created_at ?? o.joinedAt ?? o.date_created);
+  const createdAt = asIsoDate(
+    o.createdAt ?? o.created_at ?? o.joinedAt ?? o.date_created ?? o.user_registered ?? o.created,
+  );
   const phone =
     typeof o.phone === "string"
       ? o.phone.trim()
@@ -1310,21 +1352,21 @@ export async function fetchAdminUsers(authToken: string): Promise<AdminWholesale
   const data = await cloudFetchJson<unknown>("/admin/users", {
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
 }
 
 export async function fetchAdminWebsiteCustomers(authToken?: string): Promise<AdminWholesaleUser[]> {
   const data = await cloudFetchJson<unknown>("/admin/users/website?limit=2000", {
     headers: authHeaders(authToken),
   });
-  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
 }
 
 export async function fetchAdminWholesaleRequests(authToken: string): Promise<AdminWholesaleUser[]> {
   const data = await cloudFetchJson<unknown>("/admin/wholesale-requests", {
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  return unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null);
+  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
 }
 
 export async function fetchAdminUserDiscounts(authToken: string, userId: string): Promise<{ items: unknown[] }> {
@@ -1430,6 +1472,11 @@ function productKey(p: Record<string, unknown>): string {
 function overlayAdminPrices(row: Record<string, unknown>, extra?: Record<string, unknown>): Record<string, unknown> {
   const src = extra && typeof extra === "object" ? extra : {};
   const merged: Record<string, unknown> = { ...src, ...row };
+  for (const key of ["date_created", "created_at", "createdAt", "post_date"] as const) {
+    if (merged[key] == null || merged[key] === "") {
+      merged[key] = row[key] ?? src[key];
+    }
+  }
   const biz = [merged.stored_business_price, merged.wholesalePrice, merged.b2b_price, merged.apiPrice]
     .map((v) => Number(v))
     .find((n) => Number.isFinite(n) && n > 0);
@@ -1502,7 +1549,7 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   });
   if (!items.length && lastError instanceof Error && !catalogPage.items.length) throw lastError;
   return {
-    items,
+    items: sortNewestFirst(items),
     total: adminPage.total ?? catalogPage.total,
     has_more: adminPage.has_more ?? catalogPage.has_more,
   };

@@ -13,6 +13,7 @@ import {
   fetchAdminProductList,
   fetchAdminProductRecord,
   fetchAdminUsers,
+  sortNewestFirst,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
 import { useAuth } from "@/contexts/AuthContext";
@@ -127,7 +128,7 @@ export default function AdminProductBoard({
     setErr(null);
     try {
       const data = await fetchAdminProductList(query, 200, offset);
-      setItems((prev) => (append ? [...prev, ...data.items] : data.items));
+      setItems((prev) => sortNewestFirst(append ? [...prev, ...data.items] : data.items));
       setHasMore(Boolean(data.has_more) || (data.total != null && offset + data.items.length < data.total));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not load products.");

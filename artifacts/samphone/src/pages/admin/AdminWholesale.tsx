@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminBearerToken } from "@/config/samphone";
 import {
+  recencyMs,
+  sortNewestFirst,
   fetchAdminUsers,
   fetchAdminWebsiteCustomers,
   fetchAdminWholesaleRequests,
@@ -117,7 +119,7 @@ function mergeAccount(prev: AdminWholesaleUser, row: AdminWholesaleUser): AdminW
     vatNumber: pickText(prev.vatNumber, row.vatNumber),
     businessType: pickText(prev.businessType, row.businessType),
     companyAddress: pickText(prev.companyAddress, row.companyAddress),
-    createdAt: prev.createdAt || row.createdAt,
+    createdAt: recencyMs(row) > recencyMs(prev) ? row.createdAt || prev.createdAt : prev.createdAt || row.createdAt,
     wholesaleStatus: prev.wholesaleStatus || row.wholesaleStatus,
     accountType: isB2bAccount(prev) || isB2bAccount(row) ? "b2b" : prev.accountType || row.accountType || "b2c",
     accountDiscountPercent: prev.accountDiscountPercent ?? row.accountDiscountPercent,
@@ -199,12 +201,7 @@ export default function AdminWholesale({
         }
         byEmail.set(key, mergeAccount(prev, row));
       }
-      const list = [...byEmail.values()].sort((a, b) => {
-        const da = a.createdAt || "";
-        const db = b.createdAt || "";
-        if (da !== db) return db.localeCompare(da);
-        return a.email.localeCompare(b.email);
-      });
+      const list = sortNewestFirst([...byEmail.values()]);
       setUsers(list);
       if (selectedId) {
         const selected = list.find((u) => u.id === selectedId);

@@ -155,6 +155,7 @@ def _wp_profile_public(profile: dict[str, Any]) -> dict[str, Any]:
         "isWholesaleRole": bool(profile.get("is_wholesale_role")),
         "roles": caps,
         "created_at": created_iso,
+        "createdAt": created_iso,
         "source": "website",
     }
 
