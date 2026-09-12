@@ -6,6 +6,22 @@ export function isAdminRole(role?: string | null): boolean {
   return (role || "").trim().toLowerCase() === "admin";
 }
 
+const TEMPORARY_CLERK_B2C_EMAILS = new Set([
+  "jagtar5510singh@gmail.com",
+  "sts499340@gmail.com",
+]);
+const TEMPORARY_CLERK_B2C_PHONES = ["351920197514", "351920306889", "351920627617"];
+
+function isTemporaryClerkB2c(user?: { email?: string; phone?: string } | null): boolean {
+  const email = (user?.email || "").trim().toLowerCase();
+  if (TEMPORARY_CLERK_B2C_EMAILS.has(email)) return true;
+  const digits = (user?.phone || "").replace(/\D/g, "");
+  if (!digits) return false;
+  return TEMPORARY_CLERK_B2C_PHONES.some(
+    (p) => digits === p || digits.endsWith(p.slice(-9)) || p.endsWith(digits.slice(-9)),
+  );
+}
+
 export function isB2bAccount(user?: {
   accountType?: string;
   businessName?: string;
@@ -14,8 +30,11 @@ export function isB2bAccount(user?: {
   isWholesaleRole?: boolean;
   isWholesale?: boolean;
   source?: string;
+  email?: string;
+  phone?: string;
 } | null): boolean {
   if (!user) return false;
+  if (isTemporaryClerkB2c(user)) return false;
   const account = (user.accountType || "").trim().toLowerCase();
   const business = Boolean((user.businessName || "").trim() || (user.vatNumber || "").trim());
   const status = (user.wholesaleStatus || "").trim().toLowerCase();
@@ -30,6 +49,7 @@ export function isB2bAccount(user?: {
 /** Clerk personal signup only. Unapproved / suspended B2B never counts as B2C. */
 export function isB2cAccount(user?: Parameters<typeof isB2bAccount>[0]): boolean {
   if (!user) return false;
+  if (isTemporaryClerkB2c(user)) return true;
   if (isB2bAccount(user)) return false;
   const account = (user.accountType || "b2c").trim().toLowerCase();
   return account !== "b2b";

@@ -261,6 +261,35 @@ def default_wholesale_user_fields() -> dict[str, Any]:
     }
 
 
+# Temporary Clerk B2C allowlist (phone-first shoppers) until Clerk metadata is cleaned up.
+TEMPORARY_CLERK_B2C_LOGINS = (
+    {"email": "jagtar5510singh@gmail.com", "phone": "+351920197514", "name": "Jagtar Singh"},
+    {"email": "sts499340@gmail.com", "phone": "+351920306889", "name": "STS"},
+    {"email": "", "phone": "+351920627617", "name": "Sheetal Singh Chauhan"},
+)
+
+
+def phone_digits(phone: str) -> str:
+    return "".join(ch for ch in (phone or "") if ch.isdigit())
+
+
+def match_temporary_clerk_b2c(*, email: str = "", phone: str = "") -> Optional[dict]:
+    em = (email or "").strip().lower()
+    digits = phone_digits(phone)
+    if em.endswith("@phone.users.samphone.cloud"):
+        digits = digits or em.split("@", 1)[0]
+    for row in TEMPORARY_CLERK_B2C_LOGINS:
+        row_email = (row.get("email") or "").strip().lower()
+        row_digits = phone_digits(str(row.get("phone") or ""))
+        if em and row_email and em == row_email:
+            return row
+        if digits and row_digits and (
+            digits == row_digits or digits.endswith(row_digits[-9:]) or row_digits.endswith(digits[-9:])
+        ):
+            return row
+    return None
+
+
 _BLOCKED_WHOLESALE_STATUS = {
     "pending",
     "rejected",
@@ -274,6 +303,11 @@ _BLOCKED_WHOLESALE_STATUS = {
 def is_business_account(user: Optional[dict]) -> bool:
     """B2B signup (Clerk/app/samphone.pt). Pending, rejected, or suspended dealers stay B2B — never B2C."""
     if not user:
+        return False
+    if match_temporary_clerk_b2c(
+        email=str(user.get("email") or ""),
+        phone=str(user.get("phone") or ""),
+    ):
         return False
     account = str(user.get("accountType") or user.get("account_type") or "").strip().lower()
     business = bool(

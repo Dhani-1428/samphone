@@ -35,7 +35,14 @@ export default function ClerkCloudBridge() {
       lastToken.current = token;
       try {
         const current = appUserRef.current;
-        const clerkEmail = user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() || "";
+        const clerkEmail =
+          user?.primaryEmailAddress?.emailAddress?.trim().toLowerCase() ||
+          user?.emailAddresses?.find((row) => row.emailAddress)?.emailAddress?.trim().toLowerCase() ||
+          "";
+        const clerkPhone =
+          user?.primaryPhoneNumber?.phoneNumber ||
+          user?.phoneNumbers?.find((row) => row.phoneNumber)?.phoneNumber ||
+          "";
         if (isAdminRole(current?.role) && (current?.email || "").trim().toLowerCase() === "samphone.pt@gmail.com") {
           return;
         }
@@ -54,9 +61,9 @@ export default function ClerkCloudBridge() {
           undefined;
         const result = await clerkSync(token, {
           name: user?.fullName || user?.firstName || undefined,
-          email: user?.primaryEmailAddress?.emailAddress,
+          email: clerkEmail || undefined,
           account_type: accountType,
-          phone: user?.primaryPhoneNumber?.phoneNumber,
+          phone: clerkPhone || user?.primaryPhoneNumber?.phoneNumber,
           business_name: typeof meta.businessName === "string" ? meta.businessName : undefined,
           vat_number: typeof meta.vatNumber === "string" ? meta.vatNumber : undefined,
           business_type: typeof meta.businessType === "string" ? meta.businessType : undefined,

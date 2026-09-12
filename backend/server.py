@@ -602,6 +602,19 @@ def _clerk_admin_row(clerk_user: dict) -> Optional[dict]:
     first = (clerk_user.get("first_name") or "").strip()
     last = (clerk_user.get("last_name") or "").strip()
     name = f"{first} {last}".strip() or email.split("@")[0]
+    business_name = str(unsafe.get("businessName") or unsafe.get("business_name") or "")
+    vat_number = str(unsafe.get("vatNumber") or unsafe.get("vat_number") or "")
+    from wholesale import match_temporary_clerk_b2c
+
+    guest = match_temporary_clerk_b2c(email=email, phone=phone)
+    if guest:
+        account = "b2c"
+        business_name = ""
+        vat_number = ""
+        if guest.get("email"):
+            email = str(guest["email"]).strip().lower()
+        if guest.get("name") and not (first or last):
+            name = str(guest["name"])
     created = clerk_user.get("created_at")
     created_iso = ""
     if isinstance(created, (int, float)) and created > 0:
@@ -614,8 +627,8 @@ def _clerk_admin_row(clerk_user: dict) -> Optional[dict]:
         "phone": phone or str(unsafe.get("phone") or ""),
         "role": "customer",
         "accountType": account,
-        "businessName": str(unsafe.get("businessName") or unsafe.get("business_name") or ""),
-        "vatNumber": str(unsafe.get("vatNumber") or unsafe.get("vat_number") or ""),
+        "businessName": business_name,
+        "vatNumber": vat_number,
         "wholesaleStatus": None if account == "b2c" else (unsafe.get("wholesaleStatus") or "pending"),
         "isWholesale": False,
         "source": "clerk",
@@ -1142,14 +1155,20 @@ async def login(body: UserLogin, request: Request, background_tasks: BackgroundT
     reject_honeypot(body.website)
     ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_EMAILS = _reload_admin_credentials()
     email = body.email.strip().lower()
+    from wholesale import match_temporary_clerk_b2c
+
+    guest_login = match_temporary_clerk_b2c(email=email, phone="")
     if is_admin_email(email):
         rate_limit(request, "auth_login_ip", limit=80, window_sec=60)
         login_lockout.clear(f"login:{email}")
+    elif guest_login:
+        login_lockout.clear(f"login:{email}")
+        rate_limit(request, "auth_login_ip", limit=80, window_sec=60)
     else:
         auth_attempt_limit(request, email, bucket="auth_login", per_account=8, per_ip=80)
     password = body.password.strip()
     lock_key = f"login:{email}"
-    if not is_admin_email(email):
+    if not is_admin_email(email) and not guest_login:
         login_lockout.assert_allowed(lock_key)
 
     # Single admin inbox — same credentials as /auth/admin-login.
@@ -1331,19 +1350,44 @@ async def clerk_sync(body: ClerkSyncBody, request: Request, background_tasks: Ba
         return {"access_token": token, "user": user_public(user)}
 
     meta = clerk.get("unsafe_metadata") or {}
-    account_type = (body.account_type or meta.get("accountType") or "b2c")
-    account_type = str(account_type).strip().lower()
-    business_name = (body.business_name or meta.get("businessName") or "").strip()
-    vat_number = (body.vat_number or meta.get("vatNumber") or "").strip()
-    business_type = (body.business_type or meta.get("businessType") or "").strip()
     phone = (body.phone or clerk.get("phone") or meta.get("phone") or "").strip()
-    display_name = (
-        (body.name or "").strip()
-        or str(meta.get("displayName") or "").strip()
-        or clerk.get("name")
-        or email.split("@")[0]
+    from wholesale import match_temporary_clerk_b2c
+
+    guest = match_temporary_clerk_b2c(email=email, phone=phone) or match_temporary_clerk_b2c(
+        email=str(body.email or "").strip().lower(),
+        phone=phone,
     )
-    has_business = account_type == "b2b" or bool(business_name or vat_number)
+    if guest:
+        login_lockout.clear(f"login:{email}")
+        if guest.get("email"):
+            login_lockout.clear(f"login:{guest['email']}")
+            email = str(guest["email"]).strip().lower()
+        if guest.get("phone"):
+            phone = str(guest["phone"])
+        account_type = "b2c"
+        business_name = ""
+        vat_number = ""
+        business_type = ""
+        has_business = False
+        display_name = (
+            (body.name or "").strip()
+            or str(guest.get("name") or "").strip()
+            or clerk.get("name")
+            or email.split("@")[0]
+        )
+    else:
+        account_type = (body.account_type or meta.get("accountType") or "b2c")
+        account_type = str(account_type).strip().lower()
+        business_name = (body.business_name or meta.get("businessName") or "").strip()
+        vat_number = (body.vat_number or meta.get("vatNumber") or "").strip()
+        business_type = (body.business_type or meta.get("businessType") or "").strip()
+        display_name = (
+            (body.name or "").strip()
+            or str(meta.get("displayName") or "").strip()
+            or clerk.get("name")
+            or email.split("@")[0]
+        )
+        has_business = account_type == "b2b" or bool(business_name or vat_number)
 
     existing = await data_store.find_user(email, db)
     send_pending = False
@@ -1370,6 +1414,17 @@ async def clerk_sync(body: ClerkSyncBody, request: Request, background_tasks: Ba
                 updates["isWholesale"] = False
                 updates["wholesaleStatus"] = "pending"
                 send_pending = status != "pending"
+        elif guest:
+            updates.update(
+                {
+                    "accountType": "b2c",
+                    "isWholesale": False,
+                    "wholesaleStatus": None,
+                    "businessName": "",
+                    "vatNumber": "",
+                    "businessType": "",
+                }
+            )
         elevated = _elevate_clerk_admin({**existing, **updates})
         if elevated.get("role") == "admin":
             updates.update(
