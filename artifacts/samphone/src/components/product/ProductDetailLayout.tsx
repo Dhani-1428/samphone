@@ -19,6 +19,7 @@ import NotifyMeButton from "@/components/NotifyMeButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LanguageContext";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { useTranslatedHtml, useTranslatedText } from "@/hooks/useTranslatedText";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { whatsappChatHref } from "@/lib/whatsapp";
@@ -53,6 +54,7 @@ export default function ProductDetailLayout({
   extraInfo,
   below,
   buyExtra,
+  maxQty,
 }: {
   crumbs: ProductCrumb[];
   badge?: string | null;
@@ -73,6 +75,7 @@ export default function ProductDetailLayout({
   extraInfo?: ReactNode;
   below?: ReactNode;
   buyExtra?: ReactNode;
+  maxQty?: number;
 }) {
   const { t } = useLang();
   const displayTitle = useTranslatedText(title);
@@ -181,11 +184,19 @@ export default function ProductDetailLayout({
                 </div>
               ) : null}
 
-              {!inStock && restockProductId ? (
+              {hideStoreCart() ? (
+                inStock ? (
+                  <CardQtyStepper cartKey={cartKey} inStock maxQty={maxQty} />
+                ) : (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    {t("pdp_out_of_stock")}
+                  </p>
+                )
+              ) : !inStock && restockProductId ? (
                 <NotifyMeButton productId={restockProductId} size="page" />
               ) : user ? (
                 inStock ? (
-                  <CardQtyStepper cartKey={cartKey} />
+                  <CardQtyStepper cartKey={cartKey} inStock maxQty={maxQty} />
                 ) : (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                     {t("notify_stock")}
@@ -235,7 +246,7 @@ export default function ProductDetailLayout({
                 </div>
               </div>
 
-              {!user && inStock ? (
+              {!user && inStock && !hideStoreCart() ? (
                 <div className="flex items-start gap-2.5 border border-black/[0.08] bg-neutral-100 p-3 text-sm text-[#5B6B86]">
                   <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#111111]" />
                   <span>{t("pdp_login_cart_hint")}</span>

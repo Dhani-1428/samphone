@@ -34,6 +34,7 @@ export interface WooProduct {
   /** Present when requested via `_fields` (lighter list payloads). */
   date_created?: string;
   stock_status?: string;
+  stock_quantity?: number;
   on_sale?: boolean;
   specs?: Record<string, string>;
   colorVariants?: string[];
@@ -51,6 +52,17 @@ export interface WooProduct {
   compareAtPrice?: string;
   dealerOnly?: boolean;
   minOrderQty?: number;
+}
+
+export function catalogInStock(product: Pick<WooProduct, "stock_status">): boolean {
+  return product.stock_status !== "outofstock";
+}
+
+export function catalogMaxQty(product: Pick<WooProduct, "stock_status" | "stock_quantity">): number {
+  if (!catalogInStock(product)) return 0;
+  const qty = product.stock_quantity;
+  if (typeof qty === "number" && Number.isFinite(qty)) return Math.max(0, Math.floor(qty));
+  return 9999;
 }
 
 export type ProductColorSwatch = {

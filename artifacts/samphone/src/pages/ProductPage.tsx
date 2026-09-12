@@ -9,7 +9,7 @@ import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
 import { buildProductGallery, productSupports360View } from "@/data/product-media";
-import { fetchProductById, fetchRelatedProducts, mapSwatchImageUrls, resolveSwatchImage, wooCartKey, type WooProduct } from "@/lib/woocommerce";
+import { fetchProductById, fetchRelatedProducts, mapSwatchImageUrls, resolveSwatchImage, wooCartKey, catalogInStock, catalogMaxQty, type WooProduct } from "@/lib/woocommerce";
 import { normalizeCatalogImageUrl } from "@/config/samphone";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
@@ -259,7 +259,7 @@ function WooProductView({
   ).filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
   const catalogPrice = displayFormatted;
   const compareAt = catalogCompareAtPrice(wooProduct, user);
-  const inStock = wooProduct.stock_status !== "outofstock";
+  const inStock = catalogInStock(wooProduct);
   const primaryCat = wooProduct.categories?.[0];
   const copy = useMemo(() => buildProductCopy(wooProduct, lang === "pt" ? "pt" : "en"), [wooProduct, lang]);
 
@@ -339,6 +339,7 @@ function WooProductView({
       preferredSrc={preferredSrc}
       cartKey={wooCartKey(wooProduct.id, swatches[colorIdx]?.label)}
       inStock={inStock}
+      maxQty={catalogMaxQty(wooProduct)}
       restockProductId={wooProduct.cloudId || String(wooProduct.id)}
       priceLabel={catalogPrice || null}
       oldPriceLabel={user && compareAt != null ? formatEuro(compareAt) : null}

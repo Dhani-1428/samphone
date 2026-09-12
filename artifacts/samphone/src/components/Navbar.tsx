@@ -61,6 +61,7 @@ import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdminRole, ADMIN_HOME } from "@/lib/admin-access";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { useWishlist } from "@/contexts/WishlistContext";
 import SmartSearch from "@/components/SmartSearch";
 import BrandLogo from "@/components/BrandLogo";
@@ -1006,6 +1007,7 @@ export default function Navbar() {
               <span className="typo-header-action dark:text-white">{t("wishlist")}</span>
             </Link>
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
+            {hideStoreCart() ? null : (
             <Link
               href="/cart"
               className="flex items-center gap-2.5 px-4"
@@ -1018,7 +1020,10 @@ export default function Navbar() {
               </span>
               <span className="typo-header-action dark:text-white">{t("nav_cart")}</span>
             </Link>
+            )}
+            {hideStoreCart() ? null : (
             <span className="hidden h-8 w-px bg-black/[0.08] dark:bg-white/15 lg:block" aria-hidden />
+            )}
             {user ? (
               <>
                 {isAdminRole(user.role) ? (

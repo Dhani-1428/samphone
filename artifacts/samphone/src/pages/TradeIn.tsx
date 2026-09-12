@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { estimateTradeInEuro, generateTradeInCode, saveTradeInVoucher, type TradeCondition } from "@/lib/trade-in";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { submitTradeInLead } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
@@ -172,9 +173,11 @@ export default function TradeIn() {
                   {t("trade_copy")}
                 </Button>
                 <p className="text-xs text-muted-foreground">{t("trade_apply")}</p>
+                {hideStoreCart() ? null : (
                 <Button type="button" variant="secondary" asChild>
                   <Link href="/cart">{t("nav_cart")}</Link>
                 </Button>
+                )}
               </div>
             )}
           </div>

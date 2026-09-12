@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, Redirect } from "wouter";
 import {
   ChevronLeft,
   Headphones,
@@ -20,6 +20,7 @@ import { buildCartLinePreview, buildWooProductMap } from "@/lib/cart-line-previe
 import { getStockLevel } from "@/data/inventory";
 import { cn } from "@/lib/utils";
 import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import EmptyCartHero from "@/components/EmptyCartHero";
 
 function CartLineName({ name }: { name: string }) {
@@ -125,6 +126,8 @@ export default function CartPage() {
   const grandTotal = subtotal.sum + shippingCost;
   const shipProgress = Math.min(100, (subtotal.sum / FREE_SHIP_THRESHOLD) * 100);
   const shipRemain = Math.max(0, FREE_SHIP_THRESHOLD - subtotal.sum);
+
+  if (hideStoreCart()) return <Redirect to="/" />;
 
   if (lines.length === 0) {
     return <EmptyCartHero />;

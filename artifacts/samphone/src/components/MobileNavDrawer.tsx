@@ -20,6 +20,7 @@ import BrandLogo from "@/components/BrandLogo";
 import SmartSearch from "@/components/SmartSearch";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdminRole, ADMIN_HOME } from "@/lib/admin-access";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { useCart } from "@/contexts/CartContext";
 import { useLang, LANG_OPTIONS } from "@/contexts/LanguageContext";
 import { NAV_OTHER_BRANDS } from "@/data/nav-others";
@@ -271,6 +272,9 @@ export default function MobileNavDrawer({
           <X className="h-6 w-6" strokeWidth={1.8} />
         </button>
         <BrandLogo className="h-8 w-auto" onClick={onClose} />
+        {hideStoreCart() ? (
+          <span className="w-10" aria-hidden />
+        ) : (
         <Link
           href="/cart"
           className="relative flex items-center gap-1.5 text-black dark:text-white"
@@ -283,6 +287,7 @@ export default function MobileNavDrawer({
           </span>
           <span className="typo-header-action">{t("nav_cart")}</span>
         </Link>
+        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
@@ -451,6 +456,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
+        {hideStoreCart() ? null : (
         <Link href="/cart" onClick={onClose} className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <span className="relative">
@@ -461,6 +467,7 @@ export default function MobileNavDrawer({
           </span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
+        )}
         <a href="tel:+351937119295" className="flex h-12 items-center justify-between border-b border-black/[0.06] text-black dark:border-white/10 dark:text-white">
           <span className="inline-flex items-center gap-3 text-[14px] font-semibold">
             <Phone className="h-5 w-5" />

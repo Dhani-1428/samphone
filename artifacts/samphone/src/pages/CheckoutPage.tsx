@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, Redirect } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import { FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
 import { useCart } from "@/contexts/CartContext";
@@ -19,6 +19,7 @@ import {
   type CheckoutDraft,
 } from "@/lib/samphone-cloud";
 import { clearTradeInVoucher, loadTradeInVoucher } from "@/lib/trade-in";
+import { hideStoreCart } from "@/lib/storefront-preview";
 
 function euro(value: number): string {
   return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(value);
@@ -82,18 +83,21 @@ export default function CheckoutPage() {
   const grandTotal = subtotal.sum + shippingCost;
 
   useEffect(() => {
+    if (hideStoreCart()) return;
     if (!user) {
       setLocation(`/login?next=${encodeURIComponent("/checkout")}`);
     }
   }, [user, setLocation]);
 
   useEffect(() => {
+    if (hideStoreCart()) return;
     if (user && lines.length === 0 && !checkoutOk) {
       setLocation("/cart");
     }
   }, [user, lines.length, checkoutOk, setLocation]);
 
   const handleCheckout = async () => {
+    if (hideStoreCart()) return;
     const payload = lines
       .filter((line) => line.productId && line.qty > 0)
       .map((line) => ({ productId: line.productId as string, quantity: line.qty }));
@@ -213,6 +217,8 @@ export default function CheckoutPage() {
       }
     })();
   }, [clearCart, t]);
+
+  if (hideStoreCart()) return <Redirect to="/" />;
 
   if (!user) return null;
 

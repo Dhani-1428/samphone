@@ -6,31 +6,44 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/contexts/LanguageContext";
 import { getStockLevel } from "@/data/inventory";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { cn } from "@/lib/utils";
 
 type Size = "sm" | "md";
 
-/** Add to cart first; after a click, orange − qty + . Does not open the side cart. */
+function stepperMax(maxQty?: number, cartKey?: string): number {
+  if (typeof maxQty === "number" && Number.isFinite(maxQty)) return Math.max(0, maxQty);
+  if (hideStoreCart()) return 9999;
+  return cartKey ? getStockLevel(cartKey).count : 9999;
+}
+
+/** Quantity − / + . In private preview this is always the stepper (no bag / cart). */
 export function CardQtyStepper({
   cartKey,
   minQty = 1,
   iconOnly = false,
+  inStock = true,
+  maxQty,
 }: {
   cartKey: string;
   minQty?: number;
   iconOnly?: boolean;
+  inStock?: boolean;
+  maxQty?: number;
 }) {
   const { t } = useLang();
   const { getQty, increment, decrement } = useCart();
   const qty = getQty(cartKey);
-  const maxStock = getStockLevel(cartKey).count;
+  const preview = hideStoreCart();
+  const maxStock = stepperMax(maxQty, cartKey);
   const floor = Math.max(1, minQty);
   const atMax = qty >= maxStock;
+  const showStepper = preview || qty > 0;
 
   const addToCart = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (atMax) return;
+    if (!inStock || atMax || maxStock <= 0) return;
     const next = qty < floor ? floor : 1;
     for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
   };
@@ -41,7 +54,15 @@ export function CardQtyStepper({
     decrement(cartKey);
   };
 
-  if (qty <= 0) {
+  if (!inStock || maxStock <= 0) {
+    return (
+      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+        {t("pdp_out_of_stock")}
+      </span>
+    );
+  }
+
+  if (!showStepper) {
     return (
       <button
         type="button"
@@ -74,6 +95,7 @@ export function CardQtyStepper({
         type="button"
         className="flex h-7 w-7 shrink-0 items-center justify-center disabled:opacity-40"
         onClick={onMinus}
+        disabled={qty <= 0}
         aria-label="Decrease quantity"
       >
         <Minus className="h-4 w-4" strokeWidth={2.4} />
@@ -98,7 +120,8 @@ export default function ProductCartControls({
   size = "sm",
   variant = "default",
   minQty = 1,
-  preview,
+  inStock = true,
+  maxQty,
 }: {
   cartKey: string;
   buttonClassName?: string;
@@ -110,6 +133,8 @@ export default function ProductCartControls({
   variant?: "default" | "compact" | "icon-stepper";
   minQty?: number;
   preview?: { name?: string; img?: string | null };
+  inStock?: boolean;
+  maxQty?: number;
 }) {
   const { user } = useAuth();
   const [loc] = useLocation();
@@ -117,15 +142,25 @@ export default function ProductCartControls({
   const { getQty, increment, decrement } = useCart();
   const { t } = useLang();
   const qty = getQty(cartKey);
-  const maxStock = getStockLevel(cartKey).count;
+  const hideCart = hideStoreCart();
+  const maxStock = stepperMax(maxQty, cartKey);
   const floor = Math.max(1, minQty ?? 1);
   const atMax = qty >= maxStock;
   const addToCart = () => {
+    if (!inStock || maxStock <= 0) return;
     const next = qty < floor ? floor : 1;
     for (let i = 0; i < next; i += 1) increment(cartKey, maxStock);
   };
 
-  if (!user) {
+  if (!inStock || maxStock <= 0) {
+    return (
+      <span className="px-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+        {t("pdp_out_of_stock")}
+      </span>
+    );
+  }
+
+  if (!user && !hideCart) {
     if (variant === "compact" || variant === "icon-stepper") {
       return (
         <Link
@@ -171,87 +206,7 @@ export default function ProductCartControls({
         ? "text-sm"
         : "text-base min-w-[2ch] text-center font-semibold tabular-nums";
 
-  if (qty > 0 && variant === "icon-stepper") {
-    return (
-      <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className={cn(iconBtn, buttonClassName)}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            decrement(cartKey);
-          }}
-          aria-label="Decrease quantity"
-        >
-          <Minus className="w-3.5 h-3.5" />
-        </Button>
-        <span className="min-w-[2ch] px-1 text-center text-xs font-semibold tabular-nums text-foreground">
-          {qty}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className={cn(iconBtn, buttonClassName)}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!atMax) addToCart();
-          }}
-          aria-label="Increase quantity"
-          disabled={atMax}
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </Button>
-      </div>
-    );
-  }
-
-  if (qty === 0) {
-    if (variant === "compact" || variant === "icon-stepper") {
-      return (
-        <Button
-          type="button"
-          size="icon"
-          className={cn(
-            variant === "icon-stepper"
-              ? "h-9 w-9 shrink-0 rounded-lg bg-brand text-white shadow-sm hover:bg-brand-dark"
-              : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
-            buttonClassName,
-          )}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            addToCart();
-          }}
-          aria-label={t("addToCart")}
-          data-testid={`add-cart-${cartKey}`}
-        >
-          <ShoppingBag className={variant === "icon-stepper" ? "w-[18px] h-[18px]" : "w-5 h-5"} />
-        </Button>
-      );
-    }
-    return (
-      <Button
-        type="button"
-        size={size === "sm" ? "sm" : "default"}
-        className={cn("w-full gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground", buttonClassName)}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          addToCart();
-        }}
-        data-testid={`add-cart-${cartKey}`}
-      >
-        <ShoppingCart className={size === "sm" ? "w-3 h-3" : "w-4 h-4"} /> {t("addToCart")}
-      </Button>
-    );
-  }
-
-  return (
+  const stepper = (
     <div
       className={cn(
         "flex items-center justify-center",
@@ -265,22 +220,31 @@ export default function ProductCartControls({
         type="button"
         variant="outline"
         size="icon"
-        className={iconBtn}
+        className={cn(iconBtn, buttonClassName)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           decrement(cartKey);
         }}
+        disabled={qty <= 0}
         aria-label="Decrease quantity"
       >
         <Minus className="w-3.5 h-3.5" />
       </Button>
-      <span className={cn(textSize, variant !== "compact" && variant !== "icon-stepper" && "min-w-0 flex-1")}>{qty}</span>
+      <span
+        className={cn(
+          textSize,
+          variant === "icon-stepper" && "min-w-[2ch] px-1 text-center text-xs font-semibold tabular-nums text-foreground",
+          variant !== "compact" && variant !== "icon-stepper" && "min-w-0 flex-1",
+        )}
+      >
+        {qty}
+      </span>
       <Button
         type="button"
         variant="outline"
         size="icon"
-        className={iconBtn}
+        className={cn(iconBtn, buttonClassName)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -292,5 +256,46 @@ export default function ProductCartControls({
         <Plus className="w-3.5 h-3.5" />
       </Button>
     </div>
+  );
+
+  if (hideCart || qty > 0) return stepper;
+
+  if (variant === "compact" || variant === "icon-stepper") {
+    return (
+      <Button
+        type="button"
+        size="icon"
+        className={cn(
+          variant === "icon-stepper"
+            ? "h-9 w-9 shrink-0 rounded-lg bg-brand text-white shadow-sm hover:bg-brand-dark"
+            : "h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
+          buttonClassName,
+        )}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addToCart();
+        }}
+        aria-label={t("addToCart")}
+        data-testid={`add-cart-${cartKey}`}
+      >
+        <ShoppingBag className={variant === "icon-stepper" ? "w-[18px] h-[18px]" : "w-5 h-5"} />
+      </Button>
+    );
+  }
+  return (
+    <Button
+      type="button"
+      size={size === "sm" ? "sm" : "default"}
+      className={cn("w-full gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground", buttonClassName)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCart();
+      }}
+      data-testid={`add-cart-${cartKey}`}
+    >
+      <ShoppingCart className={size === "sm" ? "w-3 h-3" : "w-4 h-4"} /> {t("addToCart")}
+    </Button>
   );
 }

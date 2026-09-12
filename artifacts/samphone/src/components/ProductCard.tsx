@@ -7,6 +7,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardQtyStepper } from "@/components/ProductCartControls";
 import ProductCardWriting from "@/components/ProductCardWriting";
+import { hideStoreCart } from "@/lib/storefront-preview";
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -37,6 +38,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { t } = useLang();
   const { user } = useAuth();
+  const hideCart = hideStoreCart();
   const { has: wishHas, toggle: wishToggle } = useWishlist();
   const wishlisted = wishHas(cartKey);
   const productHref = hrefForCartKey(cartKey);
@@ -75,7 +77,7 @@ export default function ProductCard({
           <span className="product-card-price shrink-0 tabular-nums leading-none">
             €{price.toFixed(2).replace(".", ",")}
           </span>
-          {user ? (
+          {user || hideCart ? (
             <CardQtyStepper cartKey={cartKey} iconOnly />
           ) : (
             <Link
@@ -87,6 +89,8 @@ export default function ProductCard({
             </Link>
           )}
         </div>
+
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">{t("product_in_stock")}</p>
 
         <ProductCardWriting href={productHref} title={name} />
 

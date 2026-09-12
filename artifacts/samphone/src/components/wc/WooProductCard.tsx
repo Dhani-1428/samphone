@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { WooProduct } from "@/lib/woocommerce";
-import { getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
+import { catalogInStock, catalogMaxQty, getPrimaryImageUrl, wooCartKey, wooProductHref } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomerProductPrice } from "@/contexts/CustomerPricingContext";
@@ -17,6 +17,7 @@ import CatalogImage from "@/components/CatalogImage";
 import ProductCardWriting from "@/components/ProductCardWriting";
 import { CardQtyStepper } from "@/components/ProductCartControls";
 import NotifyMeButton from "@/components/NotifyMeButton";
+import { hideStoreCart } from "@/lib/storefront-preview";
 
 const PLACEHOLDER =
   "data:image/svg+xml," +
@@ -45,9 +46,10 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
   const wishKey = `woo:${product.id}`;
   const wishlisted = wishHas(wishKey);
   const title = product.name?.trim() || "Product";
-  const inStock = product.stock_status !== "outofstock";
-  const canAdd = Boolean(user && showPrice && canBuyDealer);
-  const showLoginBuy = Boolean(!user && canBuyDealer);
+  const inStock = catalogInStock(product);
+  const hideCart = hideStoreCart();
+  const canAdd = Boolean((user || hideCart) && showPrice && canBuyDealer);
+  const showLoginBuy = Boolean(!user && !hideCart && canBuyDealer);
   const priceLabel = showPrice ? displayFormatted : null;
   const loginHref = `/login?next=${encodeURIComponent(loc)}`;
 
@@ -116,8 +118,14 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             </span>
           )}
           {inStock ? (
-            canAdd ? (
-              <CardQtyStepper cartKey={cartKey} minQty={product.minOrderQty ?? 1} iconOnly />
+            canAdd || hideCart ? (
+              <CardQtyStepper
+                cartKey={cartKey}
+                minQty={product.minOrderQty ?? 1}
+                iconOnly
+                inStock
+                maxQty={catalogMaxQty(product)}
+              />
             ) : showLoginBuy ? (
               <Link
                 href={loginHref}
@@ -127,10 +135,18 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
                 <ShoppingBag className="h-4 w-4" strokeWidth={2} />
               </Link>
             ) : null
+          ) : hideCart ? (
+            <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+              {t("pdp_out_of_stock")}
+            </span>
           ) : (
             <NotifyMeButton productId={String(product.cloudId || product.id)} />
           )}
         </div>
+
+        <p className={cn("text-[10px] font-semibold uppercase tracking-wide", inStock ? "text-emerald-700" : "text-amber-700")}>
+          {inStock ? t("product_in_stock") : t("pdp_out_of_stock")}
+        </p>
 
         <ProductCardWriting href={productHref} title={title} />
       </div>

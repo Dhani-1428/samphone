@@ -60,6 +60,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { isClerkEnabled } from "@/lib/clerk-runtime";
 import ScreenshotGuard from "@/components/ScreenshotGuard";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import SiteLockGate from "@/components/SiteLockGate";
 
 const queryClient = new QueryClient();
 
@@ -343,7 +344,7 @@ function App() {
   ) : (
     <AppShell clerk={false} />
   );
-  return tree;
+  return <SiteLockGate>{tree}</SiteLockGate>;
 }
 
 export default App;

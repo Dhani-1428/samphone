@@ -8,6 +8,7 @@ import CartSider from "@/components/CartSider";
 import BrowseRouteTracker from "@/components/BrowseRouteTracker";
 import WholesaleStatusBanner from "@/components/WholesaleStatusBanner";
 import CookieConsent from "@/components/CookieConsent";
+import { hideStoreCart } from "@/lib/storefront-preview";
 
 export default function Layout({
   children,
@@ -43,14 +44,14 @@ export default function Layout({
       {variant === "store" ? <WholesaleStatusBanner /> : null}
       <div className="relative flex min-h-0 flex-1">
         <main className="min-w-0 flex-1">{children}</main>
-        {variant === "store" ? <CartSider /> : null}
+        {variant === "store" && !hideStoreCart() ? <CartSider /> : null}
       </div>
       {variant === "store" ? (
         <>
           <Footer />
           <WhatsAppButton />
           <BackToTopButton />
-          <AddedToCartPopup />
+          {hideStoreCart() ? null : <AddedToCartPopup />}
           <CookieConsent />
         </>
       ) : null}

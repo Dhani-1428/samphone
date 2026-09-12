@@ -26,6 +26,7 @@ import {
   patchNotificationPrefs,
 } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
+import { hideStoreCart } from "@/lib/storefront-preview";
 
 export default function Account() {
   const { t, lang } = useLang();
@@ -161,6 +162,7 @@ export default function Account() {
   };
 
   const placeFromCart = () => {
+    if (hideStoreCart()) return;
     setLocation("/cart");
   };
 
@@ -211,7 +213,7 @@ export default function Account() {
     for (const line of usable) {
       for (let i = 0; i < line.qty; i += 1) increment(line.cartKey);
     }
-    setLocation("/cart");
+    if (!hideStoreCart()) setLocation("/cart");
   };
 
   const cartItemCount = Object.values(items).filter((q) => q > 0).length;

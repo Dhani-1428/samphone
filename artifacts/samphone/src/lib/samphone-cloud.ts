@@ -336,6 +336,7 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     date_created: isoDate(p.created_at || p.createdAt || p.date_created),
     on_sale: Boolean(money(p.compareAtPrice)),
     stock_status: p.in_stock === false ? "outofstock" : "instock",
+    stock_quantity: typeof p.stock_quantity === "number" && Number.isFinite(p.stock_quantity) ? p.stock_quantity : undefined,
     specs: p.specs && typeof p.specs === "object" ? p.specs : undefined,
     colorVariants: colorNames(p.color_variants),
     colorSwatches: fillColorSwatchImages(parseColorSwatches(p.color_variants), imageList(p)),
