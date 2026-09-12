@@ -49,10 +49,9 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
-import AdminWholesale from "@/pages/admin/AdminWholesale";
 import AdminCatalog from "@/pages/admin/AdminCatalog";
+import AdminLane from "@/pages/admin/AdminLane";
 import AdminOverview from "@/pages/admin/AdminOverview";
-import AdminProducts from "@/pages/admin/AdminProducts";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import LegalPage from "@/pages/LegalPage";
 import NotFound from "@/pages/not-found";
@@ -249,12 +248,25 @@ function Router() {
         </Layout>
       </Route>
       <Route path="/admin/wholesale">
-        <Redirect to="/admin/customers" />
+        <Redirect to="/admin/b2b" />
       </Route>
       <Route path="/admin/customers">
+        <Redirect to="/admin/b2b" />
+      </Route>
+      <Route path="/admin/products">
+        <Redirect to="/admin/b2b" />
+      </Route>
+      <Route path="/admin/b2b">
         <Layout variant="admin">
           <AdminGate>
-            <AdminWholesale />
+            <AdminLane channel="b2b" />
+          </AdminGate>
+        </Layout>
+      </Route>
+      <Route path="/admin/b2c">
+        <Layout variant="admin">
+          <AdminGate>
+            <AdminLane channel="b2c" />
           </AdminGate>
         </Layout>
       </Route>
@@ -262,13 +274,6 @@ function Router() {
         <Layout variant="admin">
           <AdminGate>
             <AdminCatalog />
-          </AdminGate>
-        </Layout>
-      </Route>
-      <Route path="/admin/products">
-        <Layout variant="admin">
-          <AdminGate>
-            <AdminProducts />
           </AdminGate>
         </Layout>
       </Route>

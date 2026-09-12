@@ -11,6 +11,7 @@ import {
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
 import AdminShell from "@/components/admin/AdminShell";
+import { isB2bAccount } from "@/lib/admin-access";
 
 function money(n: number) {
   return n.toLocaleString("pt-PT", { style: "currency", currency: "EUR" });
@@ -93,7 +94,7 @@ export default function AdminOverview() {
     };
   }, [token]);
 
-  const pending = users.filter((u) => (u.wholesaleStatus || "").toLowerCase() === "pending");
+  const pending = users.filter((u) => isB2bAccount(u) && (u.wholesaleStatus || "").toLowerCase() === "pending");
   const processing = orders.filter((o) => {
     const s = String(o.status || "").toLowerCase();
     return s.includes("process") || s.includes("pending") || s === "on-hold";
@@ -131,7 +132,7 @@ export default function AdminOverview() {
           <p className="mt-1 text-sm text-neutral-500">Here’s what’s happening with your store today.</p>
         </div>
         <Link
-          href="/admin/products"
+          href="/admin/b2b?add=1"
           className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-sam px-4 text-sm font-bold text-white hover:bg-sam-dark"
         >
           <Plus className="h-4 w-4" />
@@ -189,7 +190,7 @@ export default function AdminOverview() {
           <ul className="space-y-2">
             {pending.slice(0, 2).map((u) => (
               <li key={u.id}>
-                <Link href="/admin/customers" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
+                <Link href="/admin/b2b" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                     <Users className="h-4 w-4" />
                   </span>
@@ -205,7 +206,7 @@ export default function AdminOverview() {
             ))}
             {(stats.low_stock || 0) > 0 ? (
               <li>
-                <Link href="/admin/products" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
+                <Link href="/admin/b2b" className="flex items-center gap-3 rounded-xl bg-[#F7F8FC] px-3 py-2.5 hover:bg-[#EEF1F8]">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-700">
                     <AlertTriangle className="h-4 w-4" />
                   </span>

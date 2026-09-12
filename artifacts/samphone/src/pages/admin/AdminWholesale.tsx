@@ -13,6 +13,7 @@ import {
   patchAdminWholesaleUser,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
+import { isB2bAccount } from "@/lib/admin-access";
 import type { PersonalPricingRule } from "@/lib/customer-price";
 
 type DraftRule = {
@@ -52,7 +53,13 @@ function formatJoined(iso?: string): string {
   });
 }
 
-export default function AdminWholesale() {
+export default function AdminWholesale({
+  lane = "b2b",
+  embedded = false,
+}: {
+  lane?: "b2b" | "b2c";
+  embedded?: boolean;
+}) {
   const { user } = useAuth();
   const [token, setToken] = useState(() => getStoredApiJwt() ?? user?.token ?? "");
   const [authed, setAuthed] = useState(Boolean(getStoredApiJwt() ?? user?.token));
@@ -213,71 +220,51 @@ export default function AdminWholesale() {
     }
   };
 
-  const pendingCount = users.filter((u) => (u.wholesaleStatus || "").toLowerCase() === "pending").length;
+  const pendingCount = users.filter(
+    (u) => isB2bAccount(u) && (u.wholesaleStatus || "").toLowerCase() === "pending",
+  ).length;
   const visible = useMemo(() => {
+    const inLane = users.filter((u) => (lane === "b2b" ? isB2bAccount(u) : !isB2bAccount(u)));
     const q = filter.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((row) =>
+    if (!q) return inLane;
+    return inLane.filter((row) =>
       [row.name, row.email, row.businessName, row.vatNumber]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
         .includes(q),
     );
-  }, [users, filter]);
+  }, [users, filter, lane]);
 
   if (!authed) {
-    return (
-      <AdminShell title="Customers">
-        <p className="text-sm text-neutral-500">Opening customers…</p>
-      </AdminShell>
-    );
+    const wait = <p className="text-sm text-neutral-500">Opening accounts…</p>;
+    return embedded ? wait : <AdminShell title={lane === "b2b" ? "B2B" : "B2C"}>{wait}</AdminShell>;
   }
 
   const selected = users.find((u) => u.id === selectedId) ?? null;
 
-  return (
-    <AdminShell title="Customers" pendingCustomers={pendingCount}>
-      <h1 className="font-display text-2xl font-bold text-navy">Customers</h1>
-      <p className="mt-1 text-sm text-neutral-500">
-        Approve B2B accounts and set discounts. Signed in as {user?.email || "admin"}.
-      </p>
+  const body = (
+    <>
+      {embedded ? null : (
+        <>
+          <h1 className="font-display text-2xl font-bold text-navy">
+            {lane === "b2b" ? "B2B accounts" : "B2C accounts"}
+          </h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            {lane === "b2b"
+              ? "Business registrations. Approve only these accounts for wholesale prices."
+              : "Personal accounts. These always see B2C prices."}{" "}
+            Signed in as {user?.email || "admin"}.
+          </p>
+        </>
+      )}
 
-      <main className="mt-6 space-y-8">
+      <div className={embedded ? "space-y-8" : "mt-6 space-y-8"}>
         {error ? <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
 
         <section className="rounded-xl border bg-card p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold">Product B2B / B2C prices</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <div>
-              <Label>Product id</Label>
-              <Input className="mt-1" value={productId} onChange={(e) => setProductId(e.target.value)} />
-            </div>
-            <div>
-              <Label>Public retail €</Label>
-              <Input className="mt-1" value={retail} onChange={(e) => setRetail(e.target.value)} />
-            </div>
-            <div>
-              <Label>Wholesale €</Label>
-              <Input className="mt-1" value={wholesale} onChange={(e) => setWholesale(e.target.value)} />
-            </div>
-            <div>
-              <Label>MOQ</Label>
-              <Input className="mt-1" value={moq} onChange={(e) => setMoq(e.target.value)} />
-            </div>
-            <label className="flex items-end gap-2 pb-2 text-sm">
-              <input type="checkbox" checked={dealerOnly} onChange={(e) => setDealerOnly(e.target.checked)} />
-              Dealer-only
-            </label>
-          </div>
-          <Button className="mt-4" type="button" onClick={() => void saveProduct()}>
-            Save product
-          </Button>
-        </section>
-
-        <section className="rounded-xl border bg-card p-6 shadow-sm">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">Accounts</h2>
+            <h2 className="text-lg font-semibold">{lane === "b2b" ? "B2B accounts" : "B2C accounts"}</h2>
             <div className="flex flex-wrap items-center gap-2">
               <Input
                 className="h-9 w-56 bg-white"
@@ -331,6 +318,8 @@ export default function AdminWholesale() {
                     </td>
                     <td className="py-3">
                       <div className="flex flex-wrap gap-1">
+                        {lane === "b2b" ? (
+                          <>
                         <Button size="sm" type="button" variant="outline" onClick={() => selectUser(row)}>
                           Discounts
                         </Button>
@@ -375,6 +364,10 @@ export default function AdminWholesale() {
                         >
                           Suspend
                         </Button>
+                          </>
+                        ) : (
+                          <span className="text-xs text-neutral-500">Personal · B2C</span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -383,13 +376,17 @@ export default function AdminWholesale() {
             </table>
             {visible.length === 0 && !busy ? (
               <p className="py-6 text-sm text-muted-foreground">
-                {users.length === 0 ? "No accounts loaded." : "No customers match that search."}
+                {users.length === 0
+                  ? "No accounts loaded."
+                  : lane === "b2b"
+                    ? "No business accounts match that search."
+                    : "No personal accounts match that search."}
               </p>
             ) : null}
           </div>
         </section>
 
-        {selected ? (
+        {lane === "b2b" && selected ? (
           <section className="rounded-xl border bg-card p-6 shadow-sm">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -502,7 +499,14 @@ export default function AdminWholesale() {
             </Button>
           </section>
         ) : null}
-      </main>
+      </div>
+    </>
+  );
+
+  if (embedded) return body;
+  return (
+    <AdminShell title={lane === "b2b" ? "B2B" : "B2C"} pendingCustomers={pendingCount}>
+      {body}
     </AdminShell>
   );
 }

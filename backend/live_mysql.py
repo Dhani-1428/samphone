@@ -190,14 +190,7 @@ def push_product_prices_to_live(
         conn.close()
 
 
-def push_via_woocommerce_rest(
-    wc_id: int,
-    *,
-    regular_price: float | None = None,
-    sale_price: float | None = None,
-    clear_sale: bool = False,
-) -> dict[str, Any]:
-    """Push prices through WooCommerce REST when consumer keys are configured."""
+def _wc_rest_config() -> tuple[str, str, str] | tuple[None, None, None]:
     store = (
         _env("WOOCOMMERCE_STORE_URL")
         or _env("SAMPHONE_STORE_URL")
@@ -207,6 +200,81 @@ def push_via_woocommerce_rest(
     ).rstrip("/")
     key = _env("WOOCOMMERCE_CONSUMER_KEY") or _env("WC_CONSUMER_KEY")
     secret = _env("WOOCOMMERCE_CONSUMER_SECRET") or _env("WC_CONSUMER_SECRET")
+    if not (store and key and secret):
+        return None, None, None
+    return store, key, secret
+
+
+def create_via_woocommerce_rest(
+    *,
+    name: str,
+    sku: str = "",
+    regular_price: float | None = None,
+    image_url: str = "",
+    description: str = "",
+    stock_quantity: int | None = None,
+) -> dict[str, Any]:
+    store, key, secret = _wc_rest_config()
+    if not (store and key and secret):
+        return {"ok": False, "skipped": True, "reason": "WooCommerce REST keys not configured"}
+    import requests
+
+    payload: dict[str, Any] = {
+        "name": name.strip(),
+        "type": "simple",
+        "status": "publish",
+        "sku": (sku or "").strip(),
+        "description": description or "",
+        "regular_price": f"{float(regular_price):.2f}" if regular_price is not None else "0.00",
+        "meta_data": [],
+    }
+    if regular_price is not None:
+        payload["meta_data"].append(
+            {"key": "wholesale_customer_wholesale_price", "value": f"{float(regular_price):.2f}"}
+        )
+    if stock_quantity is not None:
+        payload["manage_stock"] = True
+        payload["stock_quantity"] = int(stock_quantity)
+    if (image_url or "").strip():
+        payload["images"] = [{"src": image_url.strip()}]
+    url = f"{store}/wp-json/wc/v3/products"
+    params = {"consumer_key": key, "consumer_secret": secret}
+    try:
+        r = requests.post(url, params=params, json=payload, timeout=45)
+        if r.status_code >= 400:
+            return {"ok": False, "error": f"HTTP {r.status_code}: {r.text[:400]}"}
+        data = r.json()
+        return {"ok": True, "product": data, "wc_id": data.get("id")}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+def delete_via_woocommerce_rest(wc_id: int, *, force: bool = True) -> dict[str, Any]:
+    store, key, secret = _wc_rest_config()
+    if not (store and key and secret):
+        return {"ok": False, "skipped": True, "reason": "WooCommerce REST keys not configured"}
+    import requests
+
+    url = f"{store}/wp-json/wc/v3/products/{int(wc_id)}"
+    params = {"consumer_key": key, "consumer_secret": secret, "force": "true" if force else "false"}
+    try:
+        r = requests.delete(url, params=params, timeout=30)
+        if r.status_code >= 400:
+            return {"ok": False, "error": f"HTTP {r.status_code}: {r.text[:400]}", "wc_id": int(wc_id)}
+        return {"ok": True, "wc_id": int(wc_id)}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc), "wc_id": int(wc_id)}
+
+
+def push_via_woocommerce_rest(
+    wc_id: int,
+    *,
+    regular_price: float | None = None,
+    sale_price: float | None = None,
+    clear_sale: bool = False,
+) -> dict[str, Any]:
+    """Push prices through WooCommerce REST when consumer keys are configured."""
+    store, key, secret = _wc_rest_config()
     if not (store and key and secret):
         return {"ok": False, "skipped": True, "reason": "WooCommerce REST keys not configured"}
 

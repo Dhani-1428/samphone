@@ -12,7 +12,7 @@ import data_store
 import mfa
 from security_hardening import rate_limit, reject_honeypot
 from user_discounts import is_discount_active, validate_discount_payload
-from wholesale import user_public_wholesale
+from wholesale import is_business_account, user_public_wholesale
 
 logger = logging.getLogger(__name__)
 
@@ -290,6 +290,11 @@ def register_website_routes(
             raise HTTPException(status_code=404, detail="User not found")
         status = (body.wholesaleStatus or body.wholesale_status or "").strip().lower()
         if status == "approved":
+            if not is_business_account(user):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Personal accounts stay B2C. Only business registrations from the shop or app can be approved as B2B.",
+                )
             user = await data_store.approve_wholesale(user_id, admin.get("id"), mongo_db) or user
         elif status == "rejected":
             user = await data_store.reject_wholesale(

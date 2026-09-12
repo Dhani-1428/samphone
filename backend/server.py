@@ -436,6 +436,17 @@ class AdminProductEdit(BaseModel):
     clear_image: bool = False
 
 
+class AdminProductCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=400)
+    sku: Optional[str] = Field(default="", max_length=120)
+    description: Optional[str] = Field(default="", max_length=8000)
+    b2b_price: Optional[float] = Field(default=None, ge=0)
+    regular_price: Optional[float] = Field(default=None, ge=0)
+    b2c_price: Optional[float] = Field(default=None, ge=0)
+    image_url: Optional[str] = Field(default="", max_length=1024)
+    stock_quantity: Optional[int] = Field(default=None, ge=0)
+
+
 class VoiceParseBody(BaseModel):
     text: str = Field(min_length=1, max_length=2000)
     language: Optional[str] = None
@@ -2450,6 +2461,46 @@ async def admin_edit_product(
     return updated
 
 
+@api_router.post("/admin/products")
+async def admin_create_product(body: AdminProductCreate, _admin=Depends(get_current_admin)):
+    if not _woo_catalog_enabled():
+        raise HTTPException(status_code=501, detail="Catalog MySQL required to add products")
+    woo = get_woo_db()
+    if not hasattr(woo, "create_product_admin"):
+        raise HTTPException(status_code=501, detail="Product create is not available")
+    b2b = body.b2b_price if body.b2b_price is not None else body.regular_price
+    try:
+        created = await asyncio.to_thread(
+            woo.create_product_admin,
+            name=body.name,
+            sku=body.sku or "",
+            regular_price=b2b,
+            b2c_price=body.b2c_price,
+            image_url=body.image_url or "",
+            description=body.description or "",
+            stock_quantity=body.stock_quantity,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return created
+
+
+@api_router.delete("/admin/products/{product_id}")
+async def admin_delete_product(product_id: str, _admin=Depends(get_current_admin)):
+    if not _woo_catalog_enabled():
+        raise HTTPException(status_code=501, detail="Catalog MySQL required to delete products")
+    woo = get_woo_db()
+    if not hasattr(woo, "delete_product_admin"):
+        raise HTTPException(status_code=501, detail="Product delete is not available")
+    try:
+        ok = await asyncio.to_thread(woo.delete_product_admin, product_id)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    if not ok:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"ok": True}
+
+
 @api_router.post("/admin/products/{product_id}/image")
 async def admin_upload_product_image(
     product_id: str,
@@ -2863,8 +2914,14 @@ async def admin_approve_wholesale(
     admin=Depends(get_current_admin),
 ):
     if USE_MEMORY or _app_mysql_enabled():
-        from wholesale import normalize_dealer_tier
+        from wholesale import is_business_account, normalize_dealer_tier
 
+        existing = await data_store.find_user_by_id(user_id, db)
+        if existing and not is_business_account(existing):
+            raise HTTPException(
+                status_code=400,
+                detail="Personal accounts stay B2C. Only business registrations from the shop or app can be approved as B2B.",
+            )
         tier = normalize_dealer_tier(body.dealer_tier)
         row = await data_store.approve_wholesale(user_id, admin["id"], db, dealer_tier=tier)
         if not row:

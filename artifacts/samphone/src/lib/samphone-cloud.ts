@@ -1290,16 +1290,53 @@ export async function fetchAdminOrders(limit = 80): Promise<{
   return { items: [] };
 }
 
-export async function fetchAdminProductList(q = "", limit = 40): Promise<{
+export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Promise<{
   total?: number;
+  has_more?: boolean;
   items: Record<string, unknown>[];
 }> {
-  const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}&limit=${limit}` : `?limit=${limit}`;
-  const data = await cloudFetchJson<unknown>(`/admin/products${qs}`);
+  const params = new URLSearchParams();
+  if (q.trim()) params.set("q", q.trim());
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  const data = await cloudFetchJson<unknown>(`/admin/products?${params.toString()}`);
   if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
-    return data as { total?: number; items: Record<string, unknown>[] };
+    return data as { total?: number; has_more?: boolean; items: Record<string, unknown>[] };
   }
   return { items: [] };
+}
+
+export async function editAdminProduct(
+  productId: string,
+  body: Record<string, string | boolean | number | null>,
+): Promise<Record<string, unknown>> {
+  return cloudFetchJson(`/admin/products/${encodeURIComponent(productId)}/edit`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function createAdminProduct(body: {
+  name: string;
+  sku?: string;
+  b2b_price?: number | null;
+  b2c_price?: number | null;
+  image_url?: string;
+  stock_quantity?: number | null;
+  description?: string;
+}): Promise<Record<string, unknown>> {
+  return cloudFetchJson("/admin/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteAdminProduct(productId: string): Promise<void> {
+  await cloudFetchJson(`/admin/products/${encodeURIComponent(productId)}`, {
+    method: "DELETE",
+  });
 }
 
 export async function patchAdminProduct(

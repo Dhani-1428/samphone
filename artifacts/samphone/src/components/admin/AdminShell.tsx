@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
-  Users,
-  Package,
+  Building2,
+  UserRound,
   ShoppingCart,
   Percent,
   SlidersHorizontal,
@@ -13,8 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const WORKSPACE = [
   { href: "/admin", label: "Overview", Icon: LayoutDashboard, exact: true },
-  { href: "/admin/customers", label: "Customers", Icon: Users },
-  { href: "/admin/products", label: "Products", Icon: Package },
+  { href: "/admin/b2b", label: "B2B", Icon: Building2 },
+  { href: "/admin/b2c", label: "B2C", Icon: UserRound },
   { href: "/admin/orders", label: "Orders", Icon: ShoppingCart },
 ];
 
@@ -63,7 +63,7 @@ export default function AdminShell({
               {WORKSPACE.map((item) => {
                 const on = navActive(path, item.href, item.exact);
                 const badge =
-                  item.href === "/admin/customers"
+                  item.href === "/admin/b2b"
                     ? pendingCustomers
                     : item.href === "/admin/orders"
                       ? pendingOrders
@@ -126,7 +126,7 @@ export default function AdminShell({
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return;
                   const q = (e.target as HTMLInputElement).value.trim();
-                  if (q) setLocation(`/admin/customers?q=${encodeURIComponent(q)}`);
+                  if (q) setLocation(`/admin/b2b?q=${encodeURIComponent(q)}`);
                 }}
               />
             </label>

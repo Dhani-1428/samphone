@@ -1622,6 +1622,79 @@ class CatalogService:
             },
         )
 
+    def create_product_admin(
+        self,
+        *,
+        name: str,
+        sku: str = "",
+        regular_price: float | None = None,
+        b2c_price: float | None = None,
+        image_url: str = "",
+        description: str = "",
+        stock_quantity: int | None = None,
+    ) -> dict:
+        from live_mysql import create_via_woocommerce_rest
+
+        created = create_via_woocommerce_rest(
+            name=name,
+            sku=sku,
+            regular_price=regular_price,
+            image_url=image_url,
+            description=description,
+            stock_quantity=stock_quantity,
+        )
+        if not created.get("ok"):
+            raise RuntimeError(created.get("error") or created.get("reason") or "Could not create product")
+        wc_id = int(created.get("wc_id") or 0)
+        if wc_id and b2c_price is not None:
+            self.repo.upsert_b2c_price(wc_id, b2c_price=float(b2c_price))
+        if wc_id and (image_url or "").strip():
+            self.repo.set_image_url(wc_id, image_url.strip())
+        product = created.get("product") or {}
+        images = product.get("images") or []
+        src = ""
+        if isinstance(images, list) and images:
+            first = images[0]
+            if isinstance(first, dict):
+                src = str(first.get("src") or "")
+        local = self.get_product_by_uuid(str(wc_id), enrich=True, user={
+            "role": "admin",
+            "accountType": "b2b",
+            "isWholesale": True,
+            "wholesaleStatus": "approved",
+        }) if wc_id else None
+        if local:
+            return local
+        return {
+            "id": str(wc_id),
+            "wc_id": wc_id,
+            "title": product.get("name") or name,
+            "sku": product.get("sku") or sku,
+            "image": src or image_url,
+            "b2b_price": regular_price,
+            "wholesalePrice": regular_price,
+            "b2c_price": b2c_price,
+            "retailPrice": b2c_price,
+            "stock_quantity": stock_quantity,
+        }
+
+    def delete_product_admin(self, product_id: str) -> bool:
+        from live_mysql import delete_via_woocommerce_rest
+
+        doc = self.get_product_by_uuid(product_id, enrich=False)
+        wc_id = int((doc or {}).get("wc_id") or 0)
+        if not wc_id:
+            try:
+                wc_id = int(product_id)
+            except (TypeError, ValueError):
+                wc_id = 0
+        if not wc_id:
+            return False
+        result = delete_via_woocommerce_rest(wc_id, force=True)
+        if not result.get("ok"):
+            raise RuntimeError(result.get("error") or result.get("reason") or "Could not delete product")
+        return True
+
     def decrement_stock(self, lines: list[dict]) -> list[dict]:
         updated = []
         for line in lines:

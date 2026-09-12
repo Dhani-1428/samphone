@@ -271,6 +271,25 @@ _BLOCKED_WHOLESALE_STATUS = {
 }
 
 
+def is_business_account(user: Optional[dict]) -> bool:
+    """True for wholesale/business signups (shop, samphone.pt, samphone.eu, or app). Personal stays B2C."""
+    if not user:
+        return False
+    account = str(user.get("accountType") or user.get("account_type") or "").strip().lower()
+    if account == "b2c":
+        return bool(
+            str(user.get("businessName") or user.get("business_name") or "").strip()
+            or str(user.get("vatNumber") or user.get("vat_number") or "").strip()
+        )
+    if account == "b2b":
+        return True
+    return bool(
+        str(user.get("businessName") or user.get("business_name") or "").strip()
+        or str(user.get("vatNumber") or user.get("vat_number") or "").strip()
+        or str(user.get("wholesaleStatus") or user.get("wholesale_status") or "").strip()
+    )
+
+
 def is_wholesale_approved(user: Optional[dict]) -> bool:
     """requireWholesaleApproval middleware helper."""
     if not user:
@@ -287,7 +306,13 @@ def is_wholesale_approved(user: Optional[dict]) -> bool:
 
 
 def can_see_business_pricing(user: Optional[dict]) -> bool:
-    """Business prices only after admin approval. Guests, personal, and pending business see public prices."""
+    """B2B prices only for approved business accounts. Personal (B2C) always sees public prices."""
+    if not user:
+        return False
+    if user.get("role") == "admin":
+        return True
+    if not is_business_account(user):
+        return False
     return is_wholesale_approved(user)
 
 

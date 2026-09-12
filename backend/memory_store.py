@@ -856,10 +856,12 @@ def list_wholesale_requests(status: Optional[str] = None) -> list[dict]:
 
 
 def approve_wholesale(user_id: str, admin_id: str, dealer_tier: str = "bronze") -> Optional[dict]:
-    from wholesale import normalize_dealer_tier
+    from wholesale import is_business_account, normalize_dealer_tier
 
     user = _lookup_user(user_id)
     if not user or user.get("role") == "admin":
+        return None
+    if not is_business_account(user):
         return None
     now = datetime.now(timezone.utc).isoformat()
     user["isWholesale"] = True

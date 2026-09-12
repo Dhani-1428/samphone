@@ -1055,10 +1055,12 @@ class AppDB:
         return [wholesale_request_row(self._row_to_user(row)) for row in rows]
 
     def approve_wholesale(self, user_id: str, admin_id: str, dealer_tier: str = "bronze") -> Optional[dict]:
-        from wholesale import normalize_dealer_tier
+        from wholesale import is_business_account, normalize_dealer_tier
 
         user = self.find_user_by_id(user_id)
         if not user or user.get("role") == "admin":
+            return None
+        if not is_business_account(user):
             return None
         now = datetime.now(timezone.utc).isoformat()
         self.update_user(
