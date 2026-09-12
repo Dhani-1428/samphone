@@ -27,6 +27,10 @@ export default defineConfig(async ({ mode }) => {
     ...loadEnv(mode, appRoot, ""),
   };
   const wooCfg = wooConfigFromEnv(env);
+  const clerkPk = env.VITE_CLERK_PUBLISHABLE_KEY || env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
+  if (clerkPk) process.env.VITE_CLERK_PUBLISHABLE_KEY = clerkPk;
+  const clerkFrontend = env.VITE_CLERK_FRONTEND_API || env.CLERK_JWT_ISSUER || "";
+  if (clerkFrontend) process.env.VITE_CLERK_FRONTEND_API = clerkFrontend;
   const cloudApiProxy = {
     "/cloud-api": {
       target: env.VITE_SAMPHONE_CLOUD_ORIGIN ?? "https://samphone.cloud",
@@ -46,6 +50,7 @@ export default defineConfig(async ({ mode }) => {
    * WooCommerce REST keys are loaded above for the Vite `/api/woocommerce` plugin.
    */
   envDir: appRoot,
+  envPrefix: ["VITE_", "NEXT_PUBLIC_"],
   base: basePath,
   plugins: [
     wooDevPlugin(wooCfg),
