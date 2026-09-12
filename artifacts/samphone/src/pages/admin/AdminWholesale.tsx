@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStoredApiJwt } from "@/config/samphone";
+import { adminBearerToken } from "@/config/samphone";
 import {
   fetchAdminUsers,
   fetchAdminWebsiteCustomers,
@@ -137,7 +137,7 @@ export default function AdminWholesale({
   embedded?: boolean;
 }) {
   const { user } = useAuth();
-  const [token, setToken] = useState(() => getStoredApiJwt() ?? "");
+  const [token, setToken] = useState(() => adminBearerToken(user?.token));
   const [users, setUsers] = useState<AdminWholesaleUser[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -164,7 +164,7 @@ export default function AdminWholesale({
   }, [qFromUrl]);
 
   const load = useCallback(async () => {
-    const jwt = getStoredApiJwt() || token;
+    const jwt = adminBearerToken(user?.token) || token;
     if (!jwt) {
       setError("Sign in again to load accounts.");
       setUsers([]);
@@ -225,11 +225,11 @@ export default function AdminWholesale({
     } finally {
       setBusy(false);
     }
-  }, [token, selectedId, lane]);
+  }, [token, selectedId, lane, user?.token]);
 
   useEffect(() => {
     const sync = () => {
-      const jwt = getStoredApiJwt() ?? "";
+      const jwt = adminBearerToken(user?.token);
       if (jwt && jwt !== token) setToken(jwt);
     };
     sync();

@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getStoredApiJwt } from "@/config/samphone";
+import { adminBearerToken } from "@/config/samphone";
 import { fetchAdminProductList, patchAdminProduct } from "@/lib/samphone-cloud";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminShell from "@/components/admin/AdminShell";
 
 export default function AdminProducts() {
   const { user } = useAuth();
-  const token = getStoredApiJwt() ?? user?.token ?? "";
+  const token = adminBearerToken(user?.token);
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [busy, setBusy] = useState(false);
@@ -21,7 +21,7 @@ export default function AdminProducts() {
     setBusy(true);
     setErr(null);
     try {
-      const data = await fetchAdminProductList(query, 60);
+      const data = await fetchAdminProductList(query, 200);
       setItems(data.items);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not load products.");

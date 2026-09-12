@@ -84,11 +84,24 @@ export function getStoredApiJwt(): string | null {
     const t = sessionStorage.getItem(JWT_STORAGE_KEY) ?? localStorage.getItem(JWT_STORAGE_KEY);
     const token = t?.trim() ? t.trim() : null;
     if (!token) return null;
-    if (isClerkSessionJwt(token)) return null;
+    if (isClerkSessionJwt(token)) {
+      sessionStorage.removeItem(JWT_STORAGE_KEY);
+      localStorage.removeItem(JWT_STORAGE_KEY);
+      return null;
+    }
     return token;
   } catch {
     return null;
   }
+}
+
+/** FastAPI admin JWT only — never a Clerk session token. */
+export function adminBearerToken(userToken?: string | null): string {
+  const stored = getStoredApiJwt();
+  if (stored) return stored;
+  const t = (userToken || "").trim();
+  if (!t || isClerkSessionJwt(t)) return "";
+  return t;
 }
 
 export function setStoredApiJwt(token: string | null): void {

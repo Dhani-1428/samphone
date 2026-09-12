@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getStoredApiJwt, setStoredApiJwt } from "@/config/samphone";
+import { getStoredApiJwt, isClerkSessionJwt, setStoredApiJwt } from "@/config/samphone";
 import { fetchCloudMe, type CloudProfile } from "@/lib/samphone-cloud";
 import type { PersonalPricingRule } from "@/lib/customer-price";
 import { signOutClerkSession } from "@/lib/session-signout";
@@ -94,10 +94,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
 
   const login = useCallback((next: AuthUser) => {
+    const safeToken = next.token && !isClerkSessionJwt(next.token) ? next.token : undefined;
     const normalized: AuthUser = {
       email: next.email.trim(),
       name: next.name.trim() || next.email.split("@")[0],
-      token: next.token,
+      token: safeToken,
       ...profileFields(next),
     };
     setUser(normalized);

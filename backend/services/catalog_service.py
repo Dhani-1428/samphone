@@ -409,7 +409,7 @@ class CatalogService:
             "image_override": bool(override_img),
             "best_seller": _parse_int(row.get("total_sales")) >= 5,
             # Recent catalog items — used by home New Arrivals + filters.
-            "new_arrival": _is_new_arrival(row.get("updated_at") or row.get("created_at")),
+            "new_arrival": _is_new_arrival(row.get("created_at") or row.get("updated_at")),
             "created_at": _iso_dt(row.get("created_at") or row.get("updated_at")),
             "rating": round(_parse_float(row.get("wc_average_rating")), 1),
             "reviews": _parse_int(row.get("wc_review_count")),
@@ -1001,13 +1001,14 @@ class CatalogService:
         return self.filter_products(best_seller=True, limit=limit, offset=0, user=user, sort="sales_desc")
 
     def new_arrivals(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
-        """Newest published products by Woo ID — not a calendar/new_arrival flag."""
-        cap = max(1, int(limit or 50))
-        newest = self.filter_products(limit=cap, offset=0, user=user, sort="date_desc")
-        items = list(newest.get("items") or [])
+        """Newest published products by Woo post_date / ID — not a calendar flag."""
+        cap = max(50, min(int(limit or 50), 200))
+        newest = self.filter_products(limit=min(cap * 2, 200), offset=0, user=user, sort="date_desc")
+        items = list(newest.get("items") or [])[:cap]
         for p in items:
             p["new_arrival"] = True
         newest["items"] = items
+        newest["limit"] = cap
         return newest
 
     def home_rails(

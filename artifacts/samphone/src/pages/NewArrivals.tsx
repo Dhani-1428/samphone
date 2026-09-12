@@ -58,8 +58,16 @@ export default function NewArrivals() {
   const catalogNewest = useMemo(() => (woo ? sortNewest(products) : []), [woo, products]);
 
   const list = useMemo(() => {
-    if (cloudItems && cloudItems.length > 0) return cloudItems;
-    return catalogNewest.slice(0, 50);
+    const merged: WooProduct[] = [];
+    const seen = new Set<string>();
+    for (const p of [...(cloudItems ?? []), ...catalogNewest]) {
+      const key = String(p.cloudId || p.id);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      merged.push(p);
+      if (merged.length >= 50) break;
+    }
+    return merged;
   }, [cloudItems, catalogNewest]);
 
   const busy = (cloudLoading && list.length === 0) || (woo && loading && list.length === 0);

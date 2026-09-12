@@ -4,7 +4,7 @@ import AdminShell from "@/components/admin/AdminShell";
 import AdminWholesale from "@/pages/admin/AdminWholesale";
 import AdminProductBoard from "@/pages/admin/AdminProductBoard";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStoredApiJwt } from "@/config/samphone";
+import { adminBearerToken } from "@/config/samphone";
 import { fetchAdminUsers, fetchAdminWholesaleRequests } from "@/lib/samphone-cloud";
 import { isB2bAccount } from "@/lib/admin-access";
 
@@ -14,7 +14,7 @@ export default function AdminLane({ channel }: { channel: "b2b" | "b2c" }) {
   const openAdd = params.get("add") === "1";
   const title = channel === "b2b" ? "B2B" : "B2C";
   const { user } = useAuth();
-  const token = getStoredApiJwt() ?? user?.token ?? "";
+  const token = adminBearerToken(user?.token);
   const [pending, setPending] = useState(0);
 
   useEffect(() => {

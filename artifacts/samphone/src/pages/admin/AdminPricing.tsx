@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import AdminShell from "@/components/admin/AdminShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStoredApiJwt } from "@/config/samphone";
+import { adminBearerToken } from "@/config/samphone";
 import {
   createAdminUserDiscount,
   fetchAdminUserDiscounts,
@@ -63,7 +63,7 @@ function ruleValue(r: DiscountRow): string {
 
 export default function AdminPricing() {
   const { user } = useAuth();
-  const token = getStoredApiJwt() || user?.token || "";
+  const token = adminBearerToken(user?.token);
   const [tab, setTab] = useState<Tab>("product");
   const [customers, setCustomers] = useState<AdminWholesaleUser[]>([]);
   const [customerQ, setCustomerQ] = useState("");

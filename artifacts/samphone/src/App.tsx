@@ -97,6 +97,9 @@ function Router() {
       <Route path="/new">
         <Layout><NewArrivals /></Layout>
       </Route>
+      <Route path="/new-arrivals">
+        <Redirect to="/new" />
+      </Route>
       <Route path="/multi-brand">
         <Layout><MultiBrand /></Layout>
       </Route>
@@ -336,7 +339,13 @@ function App() {
         afterSignInUrl="/auth/continue"
         afterSignUpUrl="/auth/continue"
       >
-        <AppErrorBoundary fallback={null}>
+        <AppErrorBoundary
+          fallback={
+            <div className="flex min-h-screen items-center justify-center bg-white px-6 text-center text-sm text-neutral-700">
+              Something went wrong. Refresh the page. If this is the admin panel, sign out and log in again with email and password.
+            </div>
+          }
+        >
           <AppShell clerk />
         </AppErrorBoundary>
       </ClerkProvider>

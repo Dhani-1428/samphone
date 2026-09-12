@@ -407,9 +407,9 @@ export function filterOnSale(products: WooProduct[]): WooProduct[] {
 
 export function sortNewest(products: WooProduct[]): WooProduct[] {
   return [...products].sort((a, b) => {
-    const da = a.date_created ?? "";
-    const db = b.date_created ?? "";
-    if (da && db) return db.localeCompare(da);
+    const ta = Date.parse(a.date_created || "") || 0;
+    const tb = Date.parse(b.date_created || "") || 0;
+    if (tb !== ta) return tb - ta;
     return b.id - a.id;
   });
 }

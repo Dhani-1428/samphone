@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { mapPublicRetailPrice } from "@/lib/public-price-bands";
+import { adminBearerToken, normalizeCatalogImageUrl } from "@/config/samphone";
 import AdminRecordDialog from "@/components/admin/AdminRecordDialog";
 import {
   createAdminProduct,
@@ -14,7 +15,6 @@ import {
   fetchAdminUsers,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
-import { getStoredApiJwt } from "@/config/samphone";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminProductDiscount from "@/components/admin/AdminProductDiscount";
 
@@ -119,13 +119,13 @@ export default function AdminProductBoard({
   const [categoryHint, setCategoryHint] = useState("");
   const [customers, setCustomers] = useState<AdminWholesaleUser[]>([]);
   const { user } = useAuth();
-  const token = getStoredApiJwt() || user?.token || "";
+  const token = adminBearerToken(user?.token);
 
   const load = async (query: string, offset = 0, append = false) => {
     setBusy(true);
     setErr(null);
     try {
-      const data = await fetchAdminProductList(query, 80, offset);
+      const data = await fetchAdminProductList(query, 200, offset);
       setItems((prev) => (append ? [...prev, ...data.items] : data.items));
       setHasMore(Boolean(data.has_more) || (data.total != null && offset + data.items.length < data.total));
     } catch (e) {

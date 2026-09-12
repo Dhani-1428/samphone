@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { Plus, ShoppingBag, Users, Package, AlertTriangle, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getStoredApiJwt } from "@/config/samphone";
+import { adminBearerToken } from "@/config/samphone";
 import {
   fetchAdminOrders,
+  fetchAdminProductList,
   fetchAdminStats,
   fetchAdminUsers,
   fetchAdminWholesaleRequests,
@@ -62,29 +63,41 @@ function Chart({ points }: { points: number[] }) {
 
 export default function AdminOverview() {
   const { user } = useAuth();
-  const token = getStoredApiJwt() ?? user?.token ?? "";
+  const token = adminBearerToken(user?.token);
   const [stats, setStats] = useState<Awaited<ReturnType<typeof fetchAdminStats>>>({});
   const [users, setUsers] = useState<AdminWholesaleUser[]>([]);
   const [orders, setOrders] = useState<Record<string, unknown>[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
     let live = true;
     void (async () => {
       try {
+        const catalog = await fetchAdminProductList("", 200, 0).catch(() => ({ items: [] as Record<string, unknown>[] }));
+        if (!token) {
+          if (!live) return;
+          if (catalog.items.length) {
+            setStats((prev) => ({ ...prev, total_products: catalog.items.length }));
+          }
+          setErr("Sign in again with the store admin password so accounts and orders can load.");
+          return;
+        }
         const [s, reqs, all, ord] = await Promise.all([
-          fetchAdminStats().catch(() => ({})),
+          fetchAdminStats(token).catch(() => ({})),
           fetchAdminWholesaleRequests(token).catch(() => [] as AdminWholesaleUser[]),
           fetchAdminUsers(token).catch(() => [] as AdminWholesaleUser[]),
-          fetchAdminOrders(120).catch(() => ({ items: [] as Record<string, unknown>[] })),
+          fetchAdminOrders(120, token).catch(() => ({ items: [] as Record<string, unknown>[] })),
         ]);
         if (!live) return;
-        setStats(s);
+        setStats({
+          ...s,
+          total_products: s.total_products ?? catalog.items.length,
+        });
         const byId = new Map<string, AdminWholesaleUser>();
         for (const row of [...reqs, ...all]) byId.set(row.id || row.email, row);
         setUsers([...byId.values()]);
         setOrders(ord.items);
+        setErr(null);
       } catch (e) {
         if (live) setErr(e instanceof Error ? e.message : "Could not load overview.");
       }

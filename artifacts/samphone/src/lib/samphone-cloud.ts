@@ -449,14 +449,15 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
   return page.items;
 }
 
-export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
-  const cap = Math.max(8, Math.min(limit, 50));
-  // Newest published SKUs (Woo ID desc). Do not use /new-arrivals first: live
-  // that route still filters a stale new_arrival flag and hides just-added items.
-  const page = await fetchCloudProductList({ sort: "date_desc" }, cap);
-  if (page.items.length) return page.items;
+export async function fetchCloudNewArrivals(limit = 50): Promise<WooProduct[]> {
+  const want = Math.max(8, Math.min(limit, 80));
+  const fetchCap = Math.min(200, Math.max(want * 3, 80));
+  const page = await fetchCloudProductList({ sort: "date_desc" }, fetchCap);
+  if (page.items.length) return page.items.slice(0, want);
   try {
-    return mapItems(await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${cap}`));
+    return mapItems(
+      await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${fetchCap}`),
+    ).slice(0, want);
   } catch {
     return [];
   }
@@ -1394,7 +1395,7 @@ export async function deleteAdminUser(authToken: string, userId: string, email?:
   });
 }
 
-export async function fetchAdminStats(): Promise<{
+export async function fetchAdminStats(authToken?: string): Promise<{
   total_orders?: number;
   total_revenue?: number;
   total_customers?: number;
@@ -1402,14 +1403,19 @@ export async function fetchAdminStats(): Promise<{
   low_stock?: number;
   out_of_stock?: number;
 }> {
-  return cloudFetchJson("/admin/stats");
+  const headers = authToken ? { Authorization: `Bearer ${authToken}` } : undefined;
+  return cloudFetchJson("/admin/stats", headers ? { headers } : undefined);
 }
 
-export async function fetchAdminOrders(limit = 80): Promise<{
+export async function fetchAdminOrders(
+  limit = 80,
+  authToken?: string,
+): Promise<{
   items: Record<string, unknown>[];
   counts?: { all?: number; website?: number; app?: number };
 }> {
-  const data = await cloudFetchJson<unknown>(`/admin/orders?limit=${limit}`);
+  const headers = authToken ? { Authorization: `Bearer ${authToken}` } : undefined;
+  const data = await cloudFetchJson<unknown>(`/admin/orders?limit=${limit}`, headers ? { headers } : undefined);
   if (data && typeof data === "object" && Array.isArray((data as { items?: unknown }).items)) {
     return data as { items: Record<string, unknown>[]; counts?: { all?: number; website?: number; app?: number } };
   }
