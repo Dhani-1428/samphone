@@ -1295,6 +1295,18 @@ export async function fetchAdminUserDiscounts(authToken: string, userId: string)
   return { items: [] };
 }
 
+export async function createAdminUserDiscount(
+  authToken: string,
+  userId: string,
+  body: Record<string, unknown>,
+): Promise<void> {
+  await cloudFetchJson(`/admin/users/${encodeURIComponent(userId)}/discounts`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 export async function fetchAdminProductRecord(productId: string): Promise<Record<string, unknown> | null> {
   try {
     const data = await cloudFetchJson<Record<string, unknown>>(`/admin/products/${encodeURIComponent(productId)}`);

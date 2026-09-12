@@ -15,7 +15,9 @@ export interface ResolvedPriceApiResponse {
   grossCents: number;
 }
 
-const API_BASE = (import.meta.env.VITE_PRICING_API_URL ?? "/api").replace(/\/$/, "");
+import { SAMPHONE_API_BASE } from "@/config/samphone";
+
+const API_BASE = SAMPHONE_API_BASE.replace(/\/$/, "");
 
 export async function resolveCustomerPrice(params: {
   customerEmail: string;
