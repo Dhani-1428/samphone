@@ -104,9 +104,15 @@ _AUDIO_ACCESSORY_RE = re.compile(
     r"\bearphones?\b|\bheadset\b|\bearbuds\b|\btws\b|handsfree|neck earphone",
     re.I,
 )
+_HOUSING_RE = re.compile(
+    r"back\s*glass|rear\s*glass|\bhousing\b|\bchassis\b|middle\s*frame|"
+    r"back\s*cover\s*\+?\s*frame|back\s*cover.{0,48}(frame|magnet|wireless\s*flash|\bflash\b)|"
+    r"(frame|magnet).{0,24}back\s*cover",
+    re.I,
+)
 _CASE_RE = re.compile(
-    r"soft\s*jelly|magsafe|antishock|flip\s*cover|ring\s*cover|design\s*cover|"
-    r"\bcase\b|\bcapa\b|\bcapinha\b|back\s*cover|rear\s*cover|\bcovers?\b",
+    r"soft\s*jelly|magsafe\s*(cover|case)|antishock|flip\s*cover|ring\s*cover|design\s*cover|"
+    r"\bcase\b|\bcapa\b|\bcapinha\b|back\s*cover|rear\s*cover",
     re.I,
 )
 _GLASS_RE = re.compile(
@@ -127,7 +133,6 @@ _PORT_FLEX_RE = re.compile(
 )
 _SCREEN_RE = re.compile(r"\b(lcd|oled|incell|tft|digitizer|display|touch\s*\+|screen\s*assembly)\b", re.I)
 _BATTERY_RE = re.compile(r"\bbattery\b", re.I)
-_HOUSING_RE = re.compile(r"back\s*glass|rear\s*glass|\bhousing\b|\bchassis\b|middle\s*frame", re.I)
 _CAMERA_RE = re.compile(r"front\s*camera|rear\s*camera|back\s*camera|camera\s*module|\bcamera\s*lens\b", re.I)
 _SMALL_RE = re.compile(
     r"earpiece|ear[\s-]*speaker|loud[\s-]*speaker|\bspeaker\b|buzzer|ringer|"
@@ -186,7 +191,9 @@ def assign_taxonomy(
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.SCREEN_PROTECTORS, "screen-protector"
     elif _LENS_ADDON_RE.search(name):
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.SCREEN_PROTECTORS, "lens-addon"
-    elif _CASE_RE.search(name) and not _HOUSING_RE.search(name) and not _SCREEN_RE.search(name):
+    elif _HOUSING_RE.search(name):
+        top, sub, reason = TopCategory.PARTS, PartsSubcategory.HOUSING, "housing"
+    elif _CASE_RE.search(name) and not _SCREEN_RE.search(name):
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.CASES, "case-cover"
     elif _HOLDER_RE.search(name) and not _PORT_FLEX_RE.search(name):
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.HOLDERS, "holder"
@@ -207,8 +214,6 @@ def assign_taxonomy(
     elif _CHARGER_CABLE_RE.search(name) and _PORT_FLEX_RE.search(name):
         top, sub, reason = TopCategory.PARTS, PartsSubcategory.CHARGING_PORTS, "flex-over-cable"
         ambiguous = True
-    elif _HOUSING_RE.search(name):
-        top, sub, reason = TopCategory.PARTS, PartsSubcategory.HOUSING, "housing"
     elif _CAMERA_RE.search(name) and not _LENS_ADDON_RE.search(name):
         top, sub, reason = TopCategory.PARTS, PartsSubcategory.CAMERAS, "camera"
     elif _SMALL_RE.search(name) and not _AUDIO_ACCESSORY_RE.search(name):

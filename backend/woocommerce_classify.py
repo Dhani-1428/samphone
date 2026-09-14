@@ -176,6 +176,10 @@ def part_type(up: str, categories: list[str] | None = None) -> str:
         return "Main Flex"
     if "VIBRAT" in up or ("MOTOR" in up and "GLASS" not in up):
         return "Vibrator Motor"
+    if ("BACK COVER" in up or "REAR COVER" in up or "BATTERY COVER" in up) and any(
+        k in up for k in ["FRAME", "MAGNET", "WIRELESS FLASH", " FLASH"]
+    ):
+        return "Housing / Frame"
     if any(k in up for k in ["BACK COVER", "BACK GLASS", "BATTERY COVER", "REAR COVER"]):
         return "Back Glass / Cover"
     if "FRAME" in up or "MIDDLE" in up or "HOUSING" in up:

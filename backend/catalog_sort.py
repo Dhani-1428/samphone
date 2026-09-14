@@ -63,6 +63,7 @@ _REPAIR_TITLE_RE = re.compile(
     r"loud[\s-]*speaker|\bspeaker\b|buzzer|ringer|"
     r"flashlight|flash[\s-]*light|\bflex\b|"
     r"front\s*camera|rear\s*camera|back\s*glass|housing|middle\s*frame|"
+    r"back\s*cover.{0,48}(frame|magnet|wireless\s*flash|\bflash\b)|"
     r"microphone|\bmic\b|proximity"
     r")\b",
     re.I,

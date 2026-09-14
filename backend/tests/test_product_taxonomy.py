@@ -41,6 +41,23 @@ def test_validate_rejects_typos():
     validate_taxonomy("accessories", "cases")
 
 
+def test_oem_back_cover_housing_is_parts():
+    for title in (
+        "iPhone 16 Pro Max Back Cover + Frame Black Titanium",
+        "iPhone 16 Pro Max Back Cover With Magnet +wireless Flash Black Titanium",
+        "iPhone 16 Pro Max Back Cover With Magnet+wireless Flash White Titanium",
+        "iPhone 16 Pro Max Back Cover With Magnet +wireless Flash Natural Titanium",
+        "iPhone 16 Pro Max Back Cover+frame Natural Titanium",
+        "iPhone 16 Pro Max Back Cover+frame Desert Titanium",
+        "iPhone 15 Pro Back Cover + Frame Natural Titanium",
+    ):
+        asg = assign_taxonomy(title=title, category="Accessories")
+        assert asg["top"] == "parts", title
+        assert asg["sub"] == "housing", title
+    plain = assign_taxonomy(title="Back Cover iPhone 17 Pro Max Black")
+    assert plain["top"] == "accessories"
+
+
 def test_cable_vs_port():
     cable = assign_taxonomy(title="Lightning Cable iPhone")
     port = assign_taxonomy(title="Charging Port Flex iPhone 14")

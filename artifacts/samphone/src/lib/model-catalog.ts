@@ -80,7 +80,10 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
     kind: "part",
     match: (h) =>
       /\b(housing|chassis)\b/i.test(h) ||
-      (/\bframe\b/i.test(h) && !/\b(case|cover|jelly|silicone?|magsafe|bumper)\b/i.test(h)),
+      (/\b(back cover|rear cover)\b/i.test(h) &&
+        /\b(frame|magnet|flash)\b/i.test(h) &&
+        !/\b(jelly|silicon|silicone|antishock|flip|design cover|tpu|wallet)\b/i.test(h)) ||
+      (/\bframe\b/i.test(h) && !/\b(case|jelly|silicone?|bumper)\b/i.test(h)),
   },
   {
     id: "front-cam",
@@ -239,9 +242,10 @@ export const MODEL_ACCESSORY_TYPES: ModelTypeBucket[] = [
     label: "Back Cover",
     kind: "accessory",
     match: (h) =>
-      /\b(back cover|rear cover)\b/i.test(h) ||
-      (/\bcovers?\b/i.test(h) &&
-        !/\b(lcd|oled|back glass|jelly|magsafe|flip|antishock|silicon|silicone|case|tempered)\b/i.test(h)),
+      (/\b(back cover|rear cover)\b/i.test(h) ||
+        (/\bcovers?\b/i.test(h) &&
+          !/\b(lcd|oled|back glass|jelly|magsafe|flip|antishock|silicon|silicone|case|tempered)\b/i.test(h))) &&
+      !/\b(frame|magnet|wireless\s*flash|\bflash\b|housing|chassis)\b/i.test(h),
   },
   {
     id: "charger",
@@ -286,7 +290,7 @@ export const OTHER_ACCESSORIES_TYPE: ModelTypeBucket = {
 const ADD_ON =
   /\b(jelly|soft jelly|magsafe|silicon|silicone|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|lens 3|camera lens)\b/i;
 const REPAIR =
-  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|battery|front camera|back camera|rear camera|flex|charging (flex|port|board)|sim tray|frame|housing|buzzer|vibrat(?:or|er)|earpiece|ear[\s-]?speaker|loudspeaker|\bspeaker\b|motherboard|back cover with|back glass|flashlight|flash[\s-]?light)\b/i;
+  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|battery|front camera|back camera|rear camera|flex|charging (flex|port|board)|sim tray|frame|housing|buzzer|vibrat(?:or|er)|earpiece|ear[\s-]?speaker|loudspeaker|\bspeaker\b|motherboard|back cover with|back cover\s*\+?\s*frame|back glass|flashlight|flash[\s-]?light|wireless\s*flash)\b/i;
 
 export function isModelRepairPart(name: string): boolean {
   if (ADD_ON.test(name) && !/\b(touch\s*\+|lcd|oled|incell|flex|charging flex)\b/i.test(name)) return false;

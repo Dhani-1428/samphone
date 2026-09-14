@@ -67,6 +67,18 @@ describe("catalog taxonomy", () => {
     );
     assert.equal(classifyCatalogProduct({ name: "Bumper Frame Case iPhone 17 Pro Max" }).category, "accessories");
     assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max Housing", catalogGroup: "Phone Parts" }).category, "parts");
+    for (const title of [
+      "iPhone 16 Pro Max Back Cover + Frame Black Titanium",
+      "iPhone 16 Pro Max Back Cover With Magnet +wireless Flash Black Titanium",
+      "iPhone 16 Pro Max Back Cover With Magnet+wireless Flash White Titanium",
+      "iPhone 16 Pro Max Back Cover With Magnet +wireless Flash Natural Titanium",
+      "iPhone 16 Pro Max Back Cover+frame Natural Titanium",
+      "iPhone 16 Pro Max Back Cover+frame Desert Titanium",
+    ]) {
+      const housing = classifyCatalogProduct({ name: title, catalogGroup: "Accessories" });
+      assert.equal(housing.category, "parts", title);
+      assert.equal(housing.subcategory, "housing", title);
+    }
     assert.equal(classifyCatalogProduct({ name: "iPhone 14 Pro Max Ear Speaker" }).category, "parts");
     assert.equal(classifyCatalogProduct({ name: "iPhone 14 Pro Max Flash Light Flex" }).category, "parts");
     assert.equal(classifyCatalogProduct({ name: "iPhone 14 Pro Max Vibrater" }).category, "parts");

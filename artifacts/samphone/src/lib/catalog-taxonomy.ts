@@ -99,15 +99,29 @@ const ACCESSORY_GROUP_RE = /original accessor|\baccessories\b|\bhoco\b|charger|c
 const PART_GROUP_RE = /phone part|peças?|pecas?|spare part/i;
 const DEVICE_GROUP_RE = /\b(smartphones?|telem[oó]veis|mobile phones?|cell phones?)\b/i;
 
+const OEM_HOUSING_RE =
+  /\b(back\s*cover|rear\s*cover|battery\s*cover)\b[\s+]*((with\s+)?(magnet|wireless\s*flash|\bflash\b)|\+?\s*frame|\bframe\b)/i;
+
+function isOemHousingName(n: string): boolean {
+  if (/\b(jelly|silicone?|antishock|flip\s*cover|design\s*(cover|case)|tpu|wallet|soft jelly)\b/i.test(n)) return false;
+  if (/\bmagsafe\s*(cover|case)\b/i.test(n)) return false;
+  if (OEM_HOUSING_RE.test(n)) return true;
+  if (/\b(back\s*cover|rear\s*cover)\b/i.test(n) && /\b(frame|magnet|wireless\s*flash|\bflash\b|housing|chassis)\b/i.test(n)) {
+    return true;
+  }
+  return false;
+}
+
 function isPartName(n: string): boolean {
+  if (isOemHousingName(n)) return true;
   if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n) && !/\b(lcd|oled|flex|housing|battery)\b/i.test(n)) {
     return false;
   }
-  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing|flex)\b/i.test(n)) return false;
+  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing|flex|frame|magnet|flash)\b/i.test(n)) return false;
   if (/\bscreen\b/i.test(n) && /\bprotect/i.test(n)) return false;
   if (/\bpower bank\b/i.test(n)) return false;
   if (AUDIO_ACCESSORY_RE.test(n) && !/\b(ear[\s-]?speaker|earpiece|loud[\s-]?speaker)\b/i.test(n)) return false;
-  return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|cover|bumper)\b/i.test(n));
+  return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|bumper)\b/i.test(n));
 }
 
 /**
@@ -128,7 +142,8 @@ export function looksLikeFinishedDevice(name: string, extraHay = ""): boolean {
 }
 
 function isAccessoryName(n: string): boolean {
-  if (isPartName(n) && !/\b(jelly|silicone?|magsafe|tempered|protector|full glue|privacy glass|case|cover|capa|capinha|charger|earphones?)\b/i.test(n)) {
+  if (isOemHousingName(n)) return false;
+  if (isPartName(n) && !/\b(jelly|silicone?|magsafe|tempered|protector|full glue|privacy glass|case|capa|capinha|charger|earphones?)\b/i.test(n)) {
     return false;
   }
   if (!ACCESSORY_RE.test(n)) return false;
@@ -150,7 +165,7 @@ function accessorySub(h: string): AccessoriesSubcategory {
   if (/\b(jelly|silicone?\s*(soft)?|soft jelly|antishock|magsafe\s*(cover|case)|flip (cover|case)|wallet|design (cover|case)|phone case|tpu case)\b/i.test(h)) {
     return "case";
   }
-  if (/\b(back cover|rear cover|tampa|cover)\b/i.test(h) && !/\b(lcd|oled|back glass|flex)\b/i.test(h)) {
+  if (/\b(back cover|rear cover|tampa|cover)\b/i.test(h) && !/\b(lcd|oled|back glass|flex|frame|magnet|flash)\b/i.test(h)) {
     return "back-cover";
   }
   if (/\b(charger|carregador|adaptador|wall charg|gan charg|pd\s*\d{2,3}w)\b/i.test(h) && !/\bcharging\s*(port|flex|board)\b/i.test(h)) {
@@ -178,7 +193,7 @@ function partSub(h: string): PartsSubcategory {
     return "speaker";
   }
   if (/\b(flex|volume flex|power flex|main flex|side button)\b/i.test(h)) return "flex-cable";
-  if (/\b(housing|chassis)\b/i.test(h) || (/\bframe\b/i.test(h) && !/\b(case|cover|bumper)\b/i.test(h))) {
+  if (/\b(housing|chassis)\b/i.test(h) || isOemHousingName(h) || (/\bframe\b/i.test(h) && !/\b(case|bumper)\b/i.test(h))) {
     return "housing";
   }
   return "other-parts";
@@ -253,7 +268,7 @@ export function classifyCatalogProduct(p: TaxonomyProduct): CatalogClassificatio
 
   let category: CatalogTopCategory;
   if (accessoryNamed && partNamed) {
-    category = /\b(lcd|oled|incell|digitizer|charging (port|flex)|back glass|rear glass|housing)\b/i.test(n)
+    category = /\b(lcd|oled|incell|digitizer|charging (port|flex)|back glass|rear glass|housing|frame|magnet|flash)\b/i.test(n)
       ? "parts"
       : "accessories";
   } else if (partNamed && !finishedDevice) category = "parts";
