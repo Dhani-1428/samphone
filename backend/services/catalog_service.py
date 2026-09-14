@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 import uuid
 from typing import Any, Optional
@@ -263,7 +264,7 @@ class CatalogService:
         models = []
         model_ids: dict[int, dict] = {}
         for c in cats:
-            if c["parent"] and 1 <= c["count"] <= 500:
+            if c["parent"] and 1 <= c["count"] <= 20000:
                 brand = phone_brand(c["name"])
                 entry = {
                     "wc_id": c["wc_id"],
@@ -276,6 +277,78 @@ class CatalogService:
                 model_ids[c["wc_id"]] = entry
         self._models_cache = (now, models, model_ids)
         return models, model_ids
+
+    def _brand_aliases(self, brand: Optional[str]) -> set[str]:
+        b = (brand or "").strip().lower()
+        if not b:
+            return set()
+        aliases = {
+            "iphone": {"apple", "iphone"},
+            "apple": {"apple", "iphone"},
+            "google-pixel": {"google pixel", "google", "pixel"},
+            "google": {"google pixel", "google", "pixel"},
+            "pixel": {"google pixel", "google", "pixel"},
+        }.get(b, {b})
+        return {a.lower() for a in aliases}
+
+    def _find_catalog_model(
+        self,
+        *,
+        brand: Optional[str],
+        model: Optional[str],
+        model_wc_id: Optional[int],
+    ) -> Optional[dict]:
+        models, model_ids = self._load_models()
+        if model_wc_id is not None:
+            hit = model_ids.get(int(model_wc_id))
+            if hit:
+                return hit
+        want = (model or "").strip().lower()
+        if not want:
+            return None
+        slug = re.sub(r"[^a-z0-9]+", "-", want).strip("-")
+        brand_ok = self._brand_aliases(brand)
+
+        def matches(entry: dict) -> bool:
+            name = (entry.get("name") or "").strip().lower()
+            eslug = (entry.get("slug") or "").strip().lower()
+            return bool(name == want or eslug == want or eslug == slug)
+
+        found = [m for m in models if matches(m)]
+        if not found:
+            found = [
+                m
+                for m in models
+                if want in (m.get("name") or "").lower() or slug == (m.get("slug") or "").lower()
+            ]
+        if brand_ok:
+            branded = [m for m in found if (m.get("brand") or "").strip().lower() in brand_ok]
+            if branded:
+                found = branded
+        if not found:
+            return None
+        found.sort(key=lambda m: (0 if (m.get("slug") or "").lower() == slug else 1, -(m.get("count") or 0)))
+        return found[0]
+
+    def _search_all_rows(self, *, page_size: int = 500, max_rows: int = 8000, **kwargs: Any) -> list[dict]:
+        rows: list[dict] = []
+        offset = 0
+        while offset < max_rows:
+            _total, batch = self.repo.search_page(
+                limit=page_size,
+                offset=offset,
+                include_description=False,
+                **kwargs,
+            )
+            if not batch:
+                break
+            rows.extend(batch)
+            offset += len(batch)
+            if offset >= int(_total or 0):
+                break
+            if len(batch) < page_size:
+                break
+        return rows
 
     def brand_models(self, brand: str) -> list[dict]:
         models, _ = self._load_models()
@@ -553,60 +626,56 @@ class CatalogService:
         Full model catalog: every product in the WC model category, plus
         title-matched accessories/parts, then filter + parts-first sort.
         """
-        from model_match import filter_by_model, model_aliases, resolve_model_name
+        from model_match import filter_by_model, model_aliases
 
         _, model_ids = self._load_models()
+        rec = self._find_catalog_model(brand=brand, model=model, model_wc_id=model_wc_id)
+        if rec:
+            model_wc_id = int(rec["wc_id"])
+            model_name = rec.get("name") or (model or "")
+            match_brand = rec.get("brand") or brand
+            category_slug = rec.get("slug")
+        else:
+            model_name = (model or "").strip()
+            match_brand = brand
+            category_slug = None
+
         by_wc: dict[int, dict] = {}
 
-        category_slug = None
-        if model_wc_id is not None:
-            m = model_ids.get(int(model_wc_id))
-            if m and m.get("slug"):
-                category_slug = m["slug"]
-
-        model_name = resolve_model_name(brand, model, model_wc_id) or (model or "")
-
-        # 1) All products tagged with this model category
+        # 1) Every product in the Woo model category (paginate past 500).
         if category_slug:
-            _total, rows = self.repo.search_page(
+            rows = self._search_all_rows(
                 category_slug=category_slug,
                 in_stock=in_stock,
                 sort="date_desc",
-                limit=500,
-                offset=0,
-                include_description=False,
             )
             for doc in self._hydrate_docs(rows, model_ids):
-                # Prefer the requested model when a product sits in multiple model terms.
                 if model_wc_id is not None:
                     doc["model_wc_id"] = int(model_wc_id)
                     if model_name:
                         doc["model"] = model_name
                 by_wc[int(doc["wc_id"])] = doc
 
-        # 2) Title search with short aliases (catches accessories not in model term)
-        aliases = list(model_aliases(model_name, brand or "")) if model_name else []
-        # Prefer shorter distinctive aliases for LIKE (avoid "Apple iPhone 17 Pro Max" only)
+        # 2) Title search with aliases (accessories often omit the WC model term).
+        aliases = list(model_aliases(model_name, match_brand or "")) if model_name else []
         search_terms: list[str] = []
-        for alias in sorted(aliases, key=len):
+        if model_name.strip():
+            search_terms.append(model_name.strip())
+        for alias in sorted(aliases, key=len, reverse=True):
             a = alias.strip()
-            if len(a) < 4:
+            if len(a) < 5:
                 continue
             if a.lower() not in {t.lower() for t in search_terms}:
                 search_terms.append(a)
-            if len(search_terms) >= 3:
+            if len(search_terms) >= 5:
                 break
-        if model_name and model_name.strip() and model_name.strip().lower() not in {t.lower() for t in search_terms}:
-            search_terms.insert(0, model_name.strip())
 
-        for term in search_terms[:2]:
-            _total, rows = self.repo.search_page(
+        for term in search_terms[:4]:
+            rows = self._search_all_rows(
                 q=term,
                 in_stock=in_stock,
                 sort="date_desc",
-                limit=400,
-                offset=0,
-                include_description=False,
+                page_size=400,
             )
             for doc in self._hydrate_docs(rows, model_ids):
                 wc = int(doc["wc_id"])
@@ -614,15 +683,10 @@ class CatalogService:
                     by_wc[wc] = doc
 
         products = list(by_wc.values())
-        # Model match is authoritative — do not drop by brand equality
-        # (many titles omit "Apple"/"Samsung").
-        products = filter_by_model(products, brand, model, model_wc_id)
-        from product_variants import collapse_color_variant_products
-
-        products = collapse_color_variant_products(products)
+        products = filter_by_model(products, match_brand, model_name, model_wc_id)
         return sort_products(
             products,
-            model=model or model_name,
+            model=model_name,
             model_wc_id=model_wc_id,
         )
 

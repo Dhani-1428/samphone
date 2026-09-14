@@ -493,7 +493,7 @@ export default function BrandPage() {
     setModelLoading(true);
     setRemoteModel(null);
     const names = modelSearchNames(routeBrand, selectedModel.label);
-    void fetchCloudProductsForModel(names, routeBrand)
+    void fetchCloudProductsForModel(names, routeBrand, selectedModel.id)
       .then((list) => {
         if (!alive) return;
         const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n, routeBrand)));
@@ -536,8 +536,10 @@ export default function BrandPage() {
 
     if (selectedModel) {
       const names = modelSearchNames(routeBrand, selectedModel.label);
+      const remoteIds = new Set((remoteModel ?? []).map((p) => String(p.cloudId || p.id)));
       const byModel = list.filter(
         (p) =>
+          remoteIds.has(String(p.cloudId || p.id)) ||
           names.some((n) => productBelongsToModel(p, n, routeBrand)) ||
           productBelongsToModel(p, selectedModel.label, routeBrand),
       );
@@ -553,7 +555,7 @@ export default function BrandPage() {
       list = list.filter((p) => getPrice(p) <= (filters.maxPrice ?? Infinity));
 
     return list;
-  }, [brandProducts, activeFamily, selectedModel, filters, routeBrand]);
+  }, [brandProducts, activeFamily, selectedModel, filters, routeBrand, remoteModel]);
 
   const displayResetKey = [
     brandSlug,

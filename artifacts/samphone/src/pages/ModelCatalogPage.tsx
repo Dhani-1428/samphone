@@ -207,7 +207,7 @@ export default function ModelCatalogPage() {
     const names = modelSearchNames(brand, model);
     const belongs = (p: WooProduct) =>
       names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, parseModelName(model), brand);
-    void fetchCloudProductsForModel(names, brand)
+    void fetchCloudProductsForModel(names, brand, model)
       .then((list) => {
         if (!alive) return;
         const strict = list.filter(belongs);

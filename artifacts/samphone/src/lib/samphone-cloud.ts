@@ -808,6 +808,7 @@ export async function fetchCloudAllProducts(
   let offset = 0;
   const pageSize = CLOUD_PAGE_SIZE;
   let catalogTotal = 0;
+  let emptyAdds = 0;
   for (let i = 0; i < maxPages; i += 1) {
     const before = all.length;
     const { items, total, hasMore, rawCount } = await fetchCloudProductList(
@@ -823,10 +824,11 @@ export async function fetchCloudAllProducts(
     }
     onProgress?.(all, catalogTotal || all.length);
     if (rawCount === 0) break;
-    if (all.length === before) break;
+    emptyAdds = all.length === before ? emptyAdds + 1 : 0;
+    offset += pageSize;
     if (!hasMore) break;
-    if (catalogTotal > 0 && offset + rawCount >= catalogTotal) break;
-    offset += rawCount;
+    if (catalogTotal > 0 && offset >= catalogTotal) break;
+    if (emptyAdds >= 3) break;
   }
   return all;
 }
@@ -876,7 +878,55 @@ export async function fetchCloudProductsByGroup(group: string, limit = 48): Prom
   return fetchCloudAllProducts({ category_group: g });
 }
 
-export async function fetchCloudProductsForModel(names: string[], brand?: string): Promise<WooProduct[]> {
+const API_BRAND: Record<string, string> = {
+  iphone: "Apple",
+  apple: "Apple",
+  samsung: "Samsung",
+  xiaomi: "Xiaomi",
+  honor: "Honor",
+  motorola: "Motorola",
+  oneplus: "OnePlus",
+  oppo: "Oppo",
+  realme: "Realme",
+  vivo: "Vivo",
+  huawei: "Huawei",
+  alcatel: "Alcatel",
+  tcl: "TCL",
+  zte: "ZTE",
+  nokia: "Nokia",
+  lg: "LG",
+  "google-pixel": "Google Pixel",
+  google: "Google Pixel",
+};
+
+function catalogApiBrand(brand?: string): string {
+  const key = (brand || "").trim().toLowerCase();
+  if (!key) return "";
+  return API_BRAND[key] || brand!.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export async function fetchCloudProductsForModel(
+  names: string[],
+  brand?: string,
+  modelSlug?: string,
+): Promise<WooProduct[]> {
+  const labels = names.map((n) => n.trim()).filter((n) => n.length >= 3);
+  const modelName = [...labels].sort((a, b) => b.length - a.length)[0] || (modelSlug || "").replace(/-/g, " ");
+  const apiBrand = catalogApiBrand(brand);
+  const modelQuery: Record<string, string> = {};
+  if (modelSlug?.trim()) modelQuery.model = modelSlug.trim();
+  else if (modelName) modelQuery.model = modelName;
+  if (apiBrand) modelQuery.brand = apiBrand;
+
+  if (modelQuery.model) {
+    try {
+      const byModel = await fetchCloudAllProducts(modelQuery);
+      if (byModel.length > 0) return byModel;
+    } catch {
+      /* fall back to title search */
+    }
+  }
+
   const expanded = new Set<string>();
   for (const n of names) {
     const trimmed = n.trim();
@@ -885,12 +935,16 @@ export async function fetchCloudProductsForModel(names: string[], brand?: string
       if (alias.length >= 4 && alias.length <= 40) expanded.add(alias);
     }
   }
-  const unique = [...expanded];
-  if (unique.length === 0) return [];
-  const preferred = unique
-    .filter((n) => n.length >= 5 && n.length <= 36)
-    .sort((a, b) => a.length - b.length);
-  const queries = (preferred.length > 0 ? preferred : unique).slice(0, 3);
+  const unique: string[] = [];
+  const seen = new Set<string>();
+  for (const n of [...expanded].sort((a, b) => b.length - a.length)) {
+    const key = n.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (n.length >= 5 && n.length <= 48) unique.push(n);
+  }
+  const queries = unique.slice(0, 4);
+  if (queries.length === 0) return [];
   const bags = await Promise.all(
     queries.map(async (q) => {
       try {
