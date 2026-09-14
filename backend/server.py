@@ -3046,7 +3046,7 @@ async def admin_list_website_customers(
     WooCommerce / WordPress customers from the catalog MySQL clone (`wp_users`).
     Same DB as products — no extra env keys. Optional later: live sync if the clone lags.
     """
-    from wp_auth import list_website_customers
+    from wp_auth import list_um_approved_dealers, list_website_customers
 
     result = await asyncio.to_thread(
         list_website_customers,
@@ -3055,6 +3055,33 @@ async def admin_list_website_customers(
         offset=offset,
     )
     items = list(result.get("items") or [])
+    try:
+        dealers = await asyncio.to_thread(list_um_approved_dealers)
+    except Exception:
+        logger.warning("Could not merge UM-approved dealers into website customers", exc_info=True)
+        dealers = []
+    seen = {(row.get("email") or "").strip().lower() for row in items if row.get("email")}
+    needle = (q or "").strip().lower()
+    for dealer in dealers:
+        email = (dealer.get("email") or "").strip().lower()
+        if needle and needle not in " ".join(
+            str(dealer.get(k) or "") for k in ("email", "name", "businessName", "vatNumber")
+        ).lower():
+            continue
+        if email and email in seen:
+            for row in items:
+                if (row.get("email") or "").strip().lower() == email:
+                    row["accountType"] = "b2b"
+                    row["wholesaleStatus"] = row.get("wholesaleStatus") or "approved"
+                    row["isWholesale"] = True
+                    row["source"] = row.get("source") or "website"
+                    row["businessName"] = row.get("businessName") or dealer.get("businessName") or ""
+                    row["vatNumber"] = row.get("vatNumber") or dealer.get("vatNumber") or ""
+                    break
+            continue
+        if email:
+            seen.add(email)
+        items.append(dealer)
 
     # Annotate which website customers already have an app account (same email).
     app_emails: set[str] = set()

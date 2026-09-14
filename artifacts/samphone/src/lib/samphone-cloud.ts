@@ -12,7 +12,6 @@ import { modelAliases } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
-import { mapPublicRetailPrice } from "@/lib/public-price-bands";
 
 export { catalogImageReferrerPolicy };
 
@@ -1581,42 +1580,6 @@ export async function fetchAdminOrders(
   return { items: [] };
 }
 
-function productKey(p: Record<string, unknown>): string {
-  return String(p.id ?? p.wc_id ?? p.sku ?? "").trim().toLowerCase();
-}
-
-function overlayAdminPrices(row: Record<string, unknown>, extra?: Record<string, unknown>): Record<string, unknown> {
-  const src = extra && typeof extra === "object" ? extra : {};
-  const merged: Record<string, unknown> = { ...src, ...row };
-  for (const key of ["date_created", "created_at", "createdAt", "post_date"] as const) {
-    if (merged[key] == null || merged[key] === "") {
-      merged[key] = row[key] ?? src[key];
-    }
-  }
-  const biz = [merged.stored_business_price, merged.wholesalePrice, merged.b2b_price, merged.apiPrice]
-    .map((v) => Number(v))
-    .find((n) => Number.isFinite(n) && n > 0);
-  const override = Number(merged.stored_b2c_override);
-  const pubFromApi = [merged.retailPrice, merged.b2c_price, src.retailPrice]
-    .map((v) => Number(v))
-    .find((n) => Number.isFinite(n) && n > 0);
-  if (biz != null) {
-    merged.wholesalePrice = merged.wholesalePrice ?? biz;
-    merged.b2b_price = merged.b2b_price ?? biz;
-    merged.stored_business_price = merged.stored_business_price ?? biz;
-    merged.price = biz;
-  }
-  const pub =
-    (merged.b2c_override && Number.isFinite(override) && override > 0 ? override : 0) ||
-    (biz != null ? mapPublicRetailPrice(biz, merged) : 0) ||
-    pubFromApi;
-  if (pub != null && Number(pub) > 0) {
-    merged.retailPrice = pub;
-    merged.b2c_price = pub;
-  }
-  return merged;
-}
-
 export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Promise<{
   total?: number;
   has_more?: boolean;
@@ -1627,47 +1590,37 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   params.set("sort", "date_desc");
-  const withSort = new URLSearchParams(params);
-  const noSort = new URLSearchParams(params);
-  noSort.delete("sort");
-  const adminPaths = [`/admin/products?${withSort}`, `/admin/products?${noSort}`];
+  const qs = params.toString();
   let lastError: unknown = null;
-  const catalogPage = parseProductPage(
-    await cloudFetchJson<unknown>(`/products?${withSort}`).catch(() => ({ items: [] })),
-  );
-  let adminPage: { total?: number; has_more?: boolean; items: Record<string, unknown>[] } = { items: [] };
   const jwt = getStoredApiJwt();
   if (jwt) {
-    for (const path of adminPaths) {
-      try {
-        const page = parseProductPage(await cloudFetchJson<unknown>(path));
-        if (page.items.length) {
-          adminPage = page;
-          break;
-        }
-      } catch (err) {
-        lastError = err;
-      }
-    }
-  }
-  const catalogById = new Map<string, Record<string, unknown>>();
-  for (const row of catalogPage.items) {
-    const key = productKey(row);
-    if (key) catalogById.set(key, row);
-  }
-  const base = adminPage.items.length ? adminPage.items : catalogPage.items;
-  const items = base.map((row) => {
     try {
-      return overlayAdminPrices(row, catalogById.get(productKey(row)));
-    } catch {
-      return row;
+      const page = parseProductPage(await cloudFetchJson<unknown>(`/admin/products?${qs}`));
+      const more =
+        Boolean(page.has_more) ||
+        (page.total != null && offset + page.items.length < page.total) ||
+        (page.has_more == null && page.total == null && page.items.length >= limit);
+      return {
+        items: sortNewestFirst(page.items),
+        total: page.total,
+        has_more: more,
+      };
+    } catch (err) {
+      lastError = err;
     }
-  });
-  if (!items.length && lastError instanceof Error && !catalogPage.items.length) throw lastError;
+  }
+  const catalogPage = parseProductPage(
+    await cloudFetchJson<unknown>(`/products?${qs}`).catch(() => ({ items: [] })),
+  );
+  if (!catalogPage.items.length && lastError instanceof Error) throw lastError;
+  const more =
+    Boolean(catalogPage.has_more) ||
+    (catalogPage.total != null && offset + catalogPage.items.length < catalogPage.total) ||
+    (catalogPage.has_more == null && catalogPage.total == null && catalogPage.items.length >= limit);
   return {
-    items: sortNewestFirst(items),
-    total: adminPage.total ?? catalogPage.total,
-    has_more: adminPage.has_more ?? catalogPage.has_more,
+    items: sortNewestFirst(catalogPage.items),
+    total: catalogPage.total,
+    has_more: more,
   };
 }
 

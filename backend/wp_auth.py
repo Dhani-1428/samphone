@@ -132,10 +132,27 @@ def authenticate_wp_user(identifier: str, password: str) -> Optional[dict[str, A
     return profile
 
 
+def _um_status_to_wholesale(um_status: str) -> tuple[bool, str | None]:
+    status = (um_status or "").strip().lower()
+    if status == "approved":
+        return True, "approved"
+    if status in {"awaiting_admin_review", "awaiting_email_confirmation", "inactive"}:
+        return True, "pending"
+    if status == "rejected":
+        return True, "rejected"
+    return False, None
+
+
 def _wp_profile_public(profile: dict[str, Any]) -> dict[str, Any]:
     """Admin-safe website customer row (no password hash)."""
     caps = list(profile.get("capabilities") or [])
-    is_b2b = bool(profile.get("is_wholesale_role") or profile.get("businessName") or profile.get("vatNumber"))
+    um_b2b, um_wholesale = _um_status_to_wholesale(str(profile.get("account_status") or ""))
+    is_b2b = bool(
+        profile.get("is_wholesale_role")
+        or profile.get("businessName")
+        or profile.get("vatNumber")
+        or um_b2b
+    )
     created = profile.get("created_at")
     created_iso = created.isoformat() if hasattr(created, "isoformat") else str(created or "")
     wp_id = int(profile.get("wp_id") or 0)
@@ -153,6 +170,8 @@ def _wp_profile_public(profile: dict[str, Any]) -> dict[str, Any]:
         "businessName": profile.get("businessName") or "",
         "vatNumber": profile.get("vatNumber") or "",
         "isWholesaleRole": bool(profile.get("is_wholesale_role")),
+        "isWholesale": um_wholesale == "approved" or bool(profile.get("is_wholesale_role")),
+        "wholesaleStatus": um_wholesale,
         "roles": caps,
         "created_at": created_iso,
         "createdAt": created_iso,
@@ -230,7 +249,7 @@ def list_website_customers(
                       AND meta_key IN (
                         'first_name','last_name','billing_phone','billing_company',
                         'billing_address_1','billing_city','billing_postcode',
-                        'billing_vat','vat_number','wp_capabilities'
+                        'billing_vat','vat_number','wp_capabilities','account_status'
                       )
                     """,
                     tuple(ids),
@@ -277,6 +296,7 @@ def list_website_customers(
             "businessName": company,
             "vatNumber": (meta.get("billing_vat") or meta.get("vat_number") or "").strip(),
             "is_wholesale_role": is_wholesale_role,
+            "account_status": (meta.get("account_status") or "").strip(),
             "capabilities": sorted(caps),
             "created_at": row.get("user_registered"),
         }

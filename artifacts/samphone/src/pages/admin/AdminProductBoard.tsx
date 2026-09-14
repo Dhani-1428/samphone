@@ -120,6 +120,7 @@ export default function AdminProductBoard({
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(openAdd);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -138,25 +139,40 @@ export default function AdminProductBoard({
 
   const load = async (query: string) => {
     setBusy(true);
+    setLoadingMore(false);
     setErr(null);
     try {
       const pageSize = 200;
       let offset = 0;
       const all: Record<string, unknown>[] = [];
       for (let i = 0; i < 80; i += 1) {
-        const data = await fetchAdminProductList(query, pageSize, offset);
-        all.push(...data.items);
-        const got = data.items.length;
-        const more =
-          Boolean(data.has_more) || (data.total != null && offset + got < data.total);
-        if (!got || !more) break;
-        offset += got;
+        try {
+          const data = await fetchAdminProductList(query, pageSize, offset);
+          all.push(...data.items);
+          if (all.length) {
+            setItems(sortNewestFirst(all));
+            setBusy(false);
+            if (i === 0) setLoadingMore(true);
+          }
+          const got = data.items.length;
+          const more =
+            Boolean(data.has_more) || (data.total != null && offset + got < data.total);
+          if (!got || !more) break;
+          offset += got;
+        } catch (e) {
+          if (all.length) {
+            setErr("Could not load every product. Showing what loaded.");
+            break;
+          }
+          throw e;
+        }
       }
       setItems(sortNewestFirst(all));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not load products.");
     } finally {
       setBusy(false);
+      setLoadingMore(false);
     }
   };
 
@@ -332,6 +348,9 @@ export default function AdminProductBoard({
       </form>
 
       {err ? <p className="mt-3 text-sm text-red-600">{err}</p> : null}
+      {loadingMore ? (
+        <p className="mt-3 text-sm text-neutral-500">Loading the rest of the catalog…</p>
+      ) : null}
 
       {formOpen ? (
         <AdminRecordDialog
@@ -421,7 +440,7 @@ export default function AdminProductBoard({
         </AdminRecordDialog>
       ) : null}
 
-      {busy ? (
+      {busy && items.length === 0 ? (
         <CatalogLoading compact className="mt-5 rounded-xl border border-black/[0.05]" label="Loading products…" />
       ) : (
       <div className="mt-5 overflow-x-auto">

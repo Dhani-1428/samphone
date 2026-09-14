@@ -106,9 +106,25 @@ function pickText(...vals: (string | undefined)[]): string {
   return "";
 }
 
+function preferWholesaleStatus(a?: string, b?: string): string | undefined {
+  const rank: Record<string, number> = { approved: 4, pending: 3, suspended: 2, rejected: 1 };
+  const left = (a || "").trim().toLowerCase();
+  const right = (b || "").trim().toLowerCase();
+  if (!left) return b || a;
+  if (!right) return a || b;
+  return (rank[left] || 0) >= (rank[right] || 0) ? a : b;
+}
+
 function mergeAccount(prev: AdminWholesaleUser, row: AdminWholesaleUser): AdminWholesaleUser {
   const appId = (id: string) => id && !id.startsWith("user_") && !id.startsWith("wp-");
   const prevLooksLikeEmail = (prev.name || "").toLowerCase() === (prev.email || "").split("@")[0];
+  const websiteFirst =
+    prev.source === "website" ||
+    row.source === "website" ||
+    (prev.id || "").startsWith("wp-") ||
+    (row.id || "").startsWith("wp-")
+      ? "website"
+      : prev.source || row.source;
   return {
     ...row,
     ...prev,
@@ -121,11 +137,11 @@ function mergeAccount(prev: AdminWholesaleUser, row: AdminWholesaleUser): AdminW
     businessType: pickText(prev.businessType, row.businessType),
     companyAddress: pickText(prev.companyAddress, row.companyAddress),
     createdAt: recencyMs(row) > recencyMs(prev) ? row.createdAt || prev.createdAt : prev.createdAt || row.createdAt,
-    wholesaleStatus: prev.wholesaleStatus || row.wholesaleStatus,
+    wholesaleStatus: preferWholesaleStatus(prev.wholesaleStatus, row.wholesaleStatus),
     accountType: isB2bAccount(prev) || isB2bAccount(row) ? "b2b" : prev.accountType || row.accountType || "b2c",
     accountDiscountPercent: prev.accountDiscountPercent ?? row.accountDiscountPercent,
     personalPricing: prev.personalPricing?.length ? prev.personalPricing : row.personalPricing,
-    source: prev.source || row.source,
+    source: websiteFirst,
     isWholesale: Boolean(prev.isWholesale || row.isWholesale),
     isWholesaleRole: Boolean(prev.isWholesaleRole || row.isWholesaleRole),
     role: prev.role || row.role,
@@ -180,13 +196,13 @@ export default function AdminWholesale({
       const settled = await Promise.allSettled([
         fetchAdminWholesaleRequests(jwt),
         fetchAdminUsers(jwt),
-        lane === "b2b" ? fetchAdminWebsiteCustomers(jwt) : Promise.resolve([] as AdminWholesaleUser[]),
+        fetchAdminWebsiteCustomers(jwt),
       ]);
       const pick = (row: PromiseSettledResult<AdminWholesaleUser[]>): AdminWholesaleUser[] =>
         row.status === "fulfilled" ? row.value : [];
       const requests = pick(settled[0]);
       const all = pick(settled[1]);
-      const website = pick(settled[2]);
+      const website = pick(settled[2]).filter((u) => isB2bAccount(u));
       const failed = settled.filter((row) => row.status === "rejected") as PromiseRejectedResult[];
       if (all.length === 0 && requests.length === 0 && website.length === 0 && failed.length) {
         const first = failed[0].reason;

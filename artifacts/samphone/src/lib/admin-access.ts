@@ -38,7 +38,7 @@ export function isB2bAccount(user?: {
   const account = (user.accountType || "").trim().toLowerCase();
   const business = Boolean((user.businessName || "").trim() || (user.vatNumber || "").trim());
   const status = (user.wholesaleStatus || "").trim().toLowerCase();
-  if (user.isWholesaleRole) return true;
+  if (user.isWholesaleRole || user.isWholesale) return true;
   if (account === "b2b") return true;
   if (business) return true;
   if (status === "approved" || status === "rejected" || status === "suspended") return true;
