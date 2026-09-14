@@ -57,7 +57,7 @@ export default function AdminStockToggle({
 
   return (
     <div
-      className={cn("inline-flex rounded-lg bg-[#EEF1F8] p-0.5", className)}
+      className={cn("inline-flex w-fit max-w-full shrink-0 self-start rounded-lg bg-[#EEF1F8] p-0.5", className)}
       onClick={(e) => e.stopPropagation()}
       role="group"
       aria-label="Stock status"
@@ -67,7 +67,7 @@ export default function AdminStockToggle({
         disabled={busy}
         onClick={() => void choose(true)}
         className={cn(
-          "rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
+          "shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
           on ? "bg-white text-emerald-700 shadow-sm" : "text-neutral-500 hover:text-navy",
         )}
       >
@@ -78,7 +78,7 @@ export default function AdminStockToggle({
         disabled={busy}
         onClick={() => void choose(false)}
         className={cn(
-          "rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
+          "shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50",
           !on ? "bg-white text-amber-700 shadow-sm" : "text-neutral-500 hover:text-navy",
         )}
       >
