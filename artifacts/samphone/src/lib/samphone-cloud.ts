@@ -1483,6 +1483,7 @@ export async function fetchAdminWholesaleRequests(authToken: string): Promise<Ad
       .map(asAdminUser)
       .filter((u): u is AdminWholesaleUser => u != null && !isPlaceholderAdminUser(u)),
   );
+}
 
 export async function fetchAdminUserDiscounts(authToken: string, userId: string): Promise<{ items: unknown[] }> {
   try {
