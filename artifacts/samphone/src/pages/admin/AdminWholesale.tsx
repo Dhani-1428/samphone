@@ -457,125 +457,127 @@ export default function AdminWholesale({
             {busy && users.length === 0 ? (
               <CatalogLoading compact className="rounded-xl" label="Loading customers…" />
             ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-2">Customer</th>
-                  <th className="py-2">Joined</th>
-                  <th className="py-2">Status</th>
-                  <th className="py-2">Account discount</th>
-                  <th className="py-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visible.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`cursor-pointer border-b border-border/60 hover:bg-[#F7F8FC] ${selectedId === row.id ? "bg-brand/5" : ""}`}
-                    onClick={() => selectUser(row)}
-                  >
-                    <td className="py-3">
-                      <strong>{row.name}</strong>
-                      <div className="text-muted-foreground">{row.email}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {pickText(row.businessName, row.accountType, row.role) || "—"}
-                        {row.vatNumber ? ` · ${row.vatNumber}` : ""}
-                        {row.phone ? ` · ${formatPhone(row.phone)}` : ""} · {sourceLabel(row)}
-                      </div>
-                    </td>
-                    <td className="py-3 whitespace-nowrap text-muted-foreground">{formatJoined(row.createdAt)}</td>
-                    <td className="py-3 capitalize">{formatStatus(row)}</td>
-                    <td className="py-3 tabular-nums">
-                      {formatPercent(row.accountDiscountPercent)}
-                      {(row.personalPricing?.length ?? 0) > 0 ? (
-                        <div className="text-xs text-muted-foreground">
-                          {row.personalPricing!.length} product/category rule
-                          {row.personalPricing!.length === 1 ? "" : "s"}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="py-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-1">
-                        {lane === "b2b" && canManageAccount(row) && (row.wholesaleStatus || "").toLowerCase() === "pending" ? (
-                          <button
-                            type="button"
-                            className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
-                            aria-label="Approve account"
-                            title="Approve"
-                            onClick={() =>
-                              void updateUser(
-                                row.id,
-                                {
-                                  wholesaleStatus: "approved",
-                                  isWholesale: true,
-                                  wholesale_status: "approved",
-                                  email: row.email,
-                                },
-                                row.email,
-                              )
-                            }
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          className="rounded-lg p-2 text-brand hover:bg-brand/10"
-                          aria-label="Open account"
-                          title="Open"
-                          onClick={() => selectUser(row)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        {lane === "b2b" && canManageAccount(row) ? (
-                          <>
+              <>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="py-2">Customer</th>
+                      <th className="py-2">Joined</th>
+                      <th className="py-2">Status</th>
+                      <th className="py-2">Account discount</th>
+                      <th className="py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map((row) => (
+                      <tr
+                        key={row.id}
+                        className={`cursor-pointer border-b border-border/60 hover:bg-[#F7F8FC] ${selectedId === row.id ? "bg-brand/5" : ""}`}
+                        onClick={() => selectUser(row)}
+                      >
+                        <td className="py-3">
+                          <strong>{row.name}</strong>
+                          <div className="text-muted-foreground">{row.email}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {pickText(row.businessName, row.accountType, row.role) || "—"}
+                            {row.vatNumber ? ` · ${row.vatNumber}` : ""}
+                            {row.phone ? ` · ${formatPhone(row.phone)}` : ""} · {sourceLabel(row)}
+                          </div>
+                        </td>
+                        <td className="py-3 whitespace-nowrap text-muted-foreground">{formatJoined(row.createdAt)}</td>
+                        <td className="py-3 capitalize">{formatStatus(row)}</td>
+                        <td className="py-3 tabular-nums">
+                          {formatPercent(row.accountDiscountPercent)}
+                          {(row.personalPricing?.length ?? 0) > 0 ? (
+                            <div className="text-xs text-muted-foreground">
+                              {row.personalPricing!.length} product/category rule
+                              {row.personalPricing!.length === 1 ? "" : "s"}
+                            </div>
+                          ) : null}
+                        </td>
+                        <td className="py-3" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex justify-end gap-1">
+                            {lane === "b2b" && canManageAccount(row) && (row.wholesaleStatus || "").toLowerCase() === "pending" ? (
+                              <button
+                                type="button"
+                                className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                                aria-label="Approve account"
+                                title="Approve"
+                                onClick={() =>
+                                  void updateUser(
+                                    row.id,
+                                    {
+                                      wholesaleStatus: "approved",
+                                      isWholesale: true,
+                                      wholesale_status: "approved",
+                                      email: row.email,
+                                    },
+                                    row.email,
+                                  )
+                                }
+                              >
+                                <Check className="h-4 w-4" />
+                              </button>
+                            ) : null}
                             <button
                               type="button"
-                              className={`rounded-lg p-2 hover:bg-amber-50 ${
-                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                  ? "text-amber-700"
-                                  : "text-amber-600"
-                              }`}
-                              aria-label={
-                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                  ? "Unsuspend account"
-                                  : "Suspend account"
-                              }
-                              title={
-                                (row.wholesaleStatus || "").toLowerCase() === "suspended"
-                                  ? "Unsuspend"
-                                  : "Suspend"
-                              }
-                              onClick={() => void suspendUser(row)}
+                              className="rounded-lg p-2 text-brand hover:bg-brand/10"
+                              aria-label="Open account"
+                              title="Open"
+                              onClick={() => selectUser(row)}
                             >
-                              <Ban className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </button>
-                            <button
-                              type="button"
-                              className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                              aria-label="Delete account"
-                              title="Delete"
-                              onClick={() => void removeUser(row)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {visible.length === 0 && !busy ? (
-              <p className="py-6 text-sm text-muted-foreground">
-                {users.length === 0
-                  ? "No accounts loaded."
-                  : lane === "b2b"
-                    ? "No business accounts match that search."
-                    : "No personal Clerk accounts match. Unapproved B2B dealers are listed under B2B only."}
-              </p>
-            ) : null}
+                            {lane === "b2b" && canManageAccount(row) ? (
+                              <>
+                                <button
+                                  type="button"
+                                  className={`rounded-lg p-2 hover:bg-amber-50 ${
+                                    (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                      ? "text-amber-700"
+                                      : "text-amber-600"
+                                  }`}
+                                  aria-label={
+                                    (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                      ? "Unsuspend account"
+                                      : "Suspend account"
+                                  }
+                                  title={
+                                    (row.wholesaleStatus || "").toLowerCase() === "suspended"
+                                      ? "Unsuspend"
+                                      : "Suspend"
+                                  }
+                                  onClick={() => void suspendUser(row)}
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                                  aria-label="Delete account"
+                                  title="Delete"
+                                  onClick={() => void removeUser(row)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {visible.length === 0 && !busy ? (
+                  <p className="py-6 text-sm text-muted-foreground">
+                    {users.length === 0
+                      ? "No accounts loaded."
+                      : lane === "b2b"
+                        ? "No business accounts match that search."
+                        : "No personal Clerk accounts match. Unapproved B2B dealers are listed under B2B only."}
+                  </p>
+                ) : null}
+              </>
             )}
           </div>
         </section>
