@@ -2330,18 +2330,19 @@ async def featured_products(limit: int = 50, viewer=Depends(get_optional_user)):
 
 
 @api_router.get("/new-arrivals")
-async def new_arrivals(limit: int = 50, viewer=Depends(get_optional_user)):
+async def new_arrivals(limit: int = 100, viewer=Depends(get_optional_user)):
+    cap = max(1, min(int(limit or 100), 200))
     if _woo_catalog_enabled():
         woo = get_woo_db()
         if hasattr(woo, "new_arrivals"):
-            return await asyncio.to_thread(woo.new_arrivals, limit=max(limit, 50), user=viewer)
-        return await asyncio.to_thread(woo.filter_products, sort="date_desc", limit=max(limit, 50), offset=0, user=viewer)
+            return await asyncio.to_thread(woo.new_arrivals, limit=cap, user=viewer)
+        return await asyncio.to_thread(woo.filter_products, sort="date_desc", limit=cap, offset=0, user=viewer)
     if USE_MEMORY:
-        return memory_store.filter_products_page(limit=max(limit, 50), offset=0, user=viewer)
-    page = await _mongo_products_page({}, limit=max(limit, 50), offset=0, viewer=viewer)
+        return memory_store.filter_products_page(limit=cap, offset=0, user=viewer)
+    page = await _mongo_products_page({}, limit=cap, offset=0, viewer=viewer)
     if page and page.get("items"):
         return page
-    page = await _mongo_products_page({}, limit=limit, offset=0, viewer=viewer)
+    page = await _mongo_products_page({}, limit=cap, offset=0, viewer=viewer)
     if page:
         return page
     raise HTTPException(status_code=503, detail="Catalog MySQL not configured")

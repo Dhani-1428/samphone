@@ -6,6 +6,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
 import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
+import { sortNewest } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function HomeNewArrivals() {
@@ -18,7 +19,7 @@ export default function HomeNewArrivals() {
     let alive = true;
     void fetchCloudNewArrivals(18)
       .then((rows) => {
-        if (alive) setWooRows(rows);
+        if (alive) setWooRows(sortNewest(rows).slice(0, 18));
       })
       .catch(() => {
         if (alive) setWooRows([]);

@@ -751,7 +751,8 @@ class ProductRepository:
             in_stock=in_stock,
         )
         order = {
-            "date_desc": "p.post_date DESC, p.ID DESC",
+            "date_desc": "p.ID DESC, p.post_date DESC",
+            "id_desc": "p.ID DESC, p.post_date DESC",
             "date_asc": "p.post_date ASC, p.ID ASC",
             "title_asc": "p.post_title ASC",
             "title_desc": "p.post_title DESC",
@@ -814,7 +815,8 @@ class ProductRepository:
         )
         joins = self._join_filters(category_slug=category_slug, category_name=category_name, brand=brand)
         order = {
-            "date_desc": "p.post_date DESC, p.ID DESC",
+            "date_desc": "p.ID DESC, p.post_date DESC",
+            "id_desc": "p.ID DESC, p.post_date DESC",
             "date_asc": "p.post_date ASC, p.ID ASC",
             "title_asc": "p.post_title ASC",
             "title_desc": "p.post_title DESC",

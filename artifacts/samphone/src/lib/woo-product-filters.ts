@@ -407,10 +407,11 @@ export function filterOnSale(products: WooProduct[]): WooProduct[] {
 
 export function sortNewest(products: WooProduct[]): WooProduct[] {
   return [...products].sort((a, b) => {
+    const idDiff = (b.id || 0) - (a.id || 0);
+    if (idDiff !== 0) return idDiff;
     const ta = Date.parse(a.date_created || "") || 0;
     const tb = Date.parse(b.date_created || "") || 0;
-    if (tb !== ta) return tb - ta;
-    return b.id - a.id;
+    return tb - ta;
   });
 }
 

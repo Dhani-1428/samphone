@@ -12,6 +12,7 @@ import { modelAliases } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
+import { sortNewest } from "@/lib/woo-product-filters";
 
 export { catalogImageReferrerPolicy };
 
@@ -452,18 +453,18 @@ export async function fetchCloudProductsPage(offset: number, limit = 100): Promi
   return page.items;
 }
 
-export async function fetchCloudNewArrivals(limit = 50): Promise<WooProduct[]> {
-  const want = Math.max(8, Math.min(limit, 80));
-  const fetchCap = Math.min(200, Math.max(want * 3, 80));
-  const page = await fetchCloudProductList({ sort: "date_desc" }, fetchCap);
-  if (page.items.length) return page.items.slice(0, want);
+export async function fetchCloudNewArrivals(limit = 100): Promise<WooProduct[]> {
+  const want = Math.max(8, Math.min(Math.floor(limit) || 100, 100));
   try {
-    return mapItems(
-      await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${fetchCap}`),
-    ).slice(0, want);
+    const items = mapItems(
+      await cloudFetchJson<ListEnvelope<CloudProduct>>(`/new-arrivals?limit=${want}`),
+    );
+    if (items.length) return sortNewest(items).slice(0, want);
   } catch {
-    return [];
+    /* /products still has newest-first when this route is down */
   }
+  const page = await fetchCloudProductList({ sort: "date_desc" }, want);
+  return sortNewest(page.items).slice(0, want);
 }
 
 export async function fetchCloudFeatured(limit = 24): Promise<WooProduct[]> {
@@ -1329,14 +1330,21 @@ function asIsoDate(raw: unknown): string | undefined {
 export function recencyMs(row: Record<string, unknown> | AdminWholesaleUser | null | undefined): number {
   if (!row) return 0;
   const rec = row as Record<string, unknown>;
+  const catalogId = Number(rec.wc_id ?? rec.ID);
+  const looksLikeProduct = rec.sku != null || rec.title != null || rec.stock_quantity != null || rec.taxonomy_top != null;
+  if (looksLikeProduct && Number.isFinite(catalogId) && catalogId > 0) return catalogId;
   const candidates = [
     rec.createdAt,
     rec.created_at,
     rec.date_created,
     rec.dateCreated,
+    rec.date_modified,
+    rec.updated_at,
     rec.post_date,
+    rec.post_modified,
     rec.user_registered,
     rec.joinedAt,
+    rec.approvedAt,
     rec.created,
   ];
   for (const raw of candidates) {
@@ -1345,12 +1353,12 @@ export function recencyMs(row: Record<string, unknown> | AdminWholesaleUser | nu
       return raw > 1e12 ? raw : raw > 1e9 ? raw * 1000 : raw;
     }
     if (typeof raw === "string") {
-      const t = Date.parse(raw);
+      const t = Date.parse(raw.includes(" ") && !raw.includes("T") ? raw.replace(" ", "T") : raw);
       if (Number.isFinite(t) && t > 0) return t;
     }
   }
-  const wc = Number(rec.wc_id ?? rec.ID ?? rec.wp_id);
-  if (Number.isFinite(wc) && wc > 0) return wc;
+  const wp = Number(rec.wp_id ?? rec.ID);
+  if (Number.isFinite(wp) && wp > 0) return wp;
   const digits = Number(String(rec.id ?? "").replace(/\D/g, "").slice(-12));
   return Number.isFinite(digits) ? digits : 0;
 }
@@ -1596,15 +1604,17 @@ export async function fetchAdminProductList(q = "", limit = 80, offset = 0): Pro
   if (jwt) {
     try {
       const page = parseProductPage(await cloudFetchJson<unknown>(`/admin/products?${qs}`));
-      const more =
-        Boolean(page.has_more) ||
-        (page.total != null && offset + page.items.length < page.total) ||
-        (page.has_more == null && page.total == null && page.items.length >= limit);
-      return {
-        items: sortNewestFirst(page.items),
-        total: page.total,
-        has_more: more,
-      };
+      if (page.items.length) {
+        const more =
+          Boolean(page.has_more) ||
+          (page.total != null && offset + page.items.length < page.total) ||
+          (page.has_more == null && page.total == null && page.items.length >= limit);
+        return {
+          items: sortNewestFirst(page.items),
+          total: page.total,
+          has_more: more,
+        };
+      }
     } catch (err) {
       lastError = err;
     }

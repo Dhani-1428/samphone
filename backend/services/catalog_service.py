@@ -745,6 +745,7 @@ class CatalogService:
         max_price: Optional[float] = None,
         sort: str = "date_desc",
         preview: bool = False,
+        collapse_colors: bool = True,
         **_extra: Any,
     ) -> dict[str, Any]:
         started = time.perf_counter()
@@ -935,7 +936,8 @@ class CatalogService:
         from product_variants import collapse_color_variant_products
 
         before_collapse = len(products)
-        products = collapse_color_variant_products(products)
+        if collapse_colors:
+            products = collapse_color_variant_products(products)
         if len(products) != before_collapse and (needs_post or use_weighted):
             # Counts shrink when color SKUs merge into one parent card.
             if needs_post:
@@ -988,7 +990,7 @@ class CatalogService:
                 pass
             elif best_seller or new_arrival:
                 pass
-            elif sort in {"title_asc", "title_desc", "price_asc", "price_desc", "sales_desc", "date_asc", "date_desc"}:
+            elif sort in {"title_asc", "title_desc", "price_asc", "price_desc", "sales_desc", "date_asc", "date_desc", "id_desc"}:
                 # Explicit SQL sort (e.g. admin stock A→Z) — do not re-rank in Python.
                 if best_seller is not None:
                     products = [p for p in products if bool(p.get("best_seller")) == best_seller]
@@ -1121,15 +1123,23 @@ class CatalogService:
     def featured_products(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
         return self.filter_products(best_seller=True, limit=limit, offset=0, user=user, sort="sales_desc")
 
-    def new_arrivals(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
-        """Newest published products by Woo post_date / ID — not a calendar flag."""
-        cap = max(50, min(int(limit or 50), 200))
-        newest = self.filter_products(limit=min(cap * 2, 200), offset=0, user=user, sort="date_desc")
+    def new_arrivals(self, *, limit: int = 100, user: Optional[dict] = None) -> dict[str, Any]:
+        """Newest published products by Woo ID (newly added first)."""
+        cap = max(1, min(int(limit or 100), 200))
+        newest = self.filter_products(
+            limit=cap,
+            offset=0,
+            user=user,
+            sort="date_desc",
+            collapse_colors=False,
+        )
         items = list(newest.get("items") or [])[:cap]
         for p in items:
             p["new_arrival"] = True
         newest["items"] = items
         newest["limit"] = cap
+        newest["total"] = len(items)
+        newest["has_more"] = False
         return newest
 
     def home_rails(
@@ -1203,6 +1213,7 @@ class CatalogService:
             limit=limit,
             offset=offset,
             sort=sort or "date_desc",
+            collapse_colors=False,
             user={"role": "admin", "accountType": "b2b", "isWholesale": True, "wholesaleStatus": "approved"},
         )
         # Admin UI must show real DB quantities — never the shop-side 9999 unmanaged cap.
