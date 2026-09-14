@@ -157,6 +157,40 @@ class CatalogService:
         self.db = get_catalog_db()
         self._models_cache: tuple[float, list[dict], dict[int, dict]] | None = None
         self._markup_cache: tuple[float, float] | None = None
+        self._model_list_cache: dict[tuple, tuple[float, list[dict]]] = {}
+
+    _MODEL_LIST_TTL_SEC = 120
+    _MODEL_LIST_CACHE_MAX = 80
+
+    def _cached_model_products(
+        self,
+        *,
+        brand: Optional[str],
+        model: Optional[str],
+        model_wc_id: Optional[int],
+        in_stock: Optional[bool],
+    ) -> list[dict]:
+        rec = self._find_catalog_model(brand=brand, model=model, model_wc_id=model_wc_id)
+        key = (
+            int(rec["wc_id"]) if rec else 0,
+            (rec.get("slug") if rec else None) or (model or "").strip().lower(),
+            in_stock,
+        )
+        now = time.time()
+        hit = self._model_list_cache.get(key)
+        if hit and now - hit[0] < self._MODEL_LIST_TTL_SEC:
+            return hit[1]
+        products = self._collect_model_products(
+            brand=brand,
+            model=model,
+            model_wc_id=model_wc_id,
+            in_stock=in_stock,
+        )
+        self._model_list_cache[key] = (now, products)
+        if len(self._model_list_cache) > self._MODEL_LIST_CACHE_MAX:
+            oldest = min(self._model_list_cache.items(), key=lambda kv: kv[1][0])
+            self._model_list_cache.pop(oldest[0], None)
+        return products
 
     def _default_markup(self) -> float:
         now = time.time()
@@ -718,7 +752,7 @@ class CatalogService:
 
         # Model pages: collect full set, parts first then accessories, then paginate.
         if model_wc_id is not None or model:
-            products = self._collect_model_products(
+            products = self._cached_model_products(
                 brand=brand,
                 model=model,
                 model_wc_id=model_wc_id,

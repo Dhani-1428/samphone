@@ -23,7 +23,7 @@ import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink, CatalogSectionHeading, CatalogTypeChip } from "@/components/CatalogPageChrome";
 import CatalogLoading from "@/components/CatalogLoading";
 import type { WooProduct } from "@/lib/woocommerce";
-import { fetchCloudProductsForModel } from "@/lib/samphone-cloud";
+import { fetchCloudProductsForModel, peekModelCatalogMemory } from "@/lib/samphone-cloud";
 import {
   classifyModelProduct,
   displayBrandName,
@@ -202,12 +202,24 @@ export default function ModelCatalogPage() {
       return;
     }
     let alive = true;
-    setRemote(null);
-    setModelFetching(true);
     const names = modelSearchNames(brand, model);
     const belongs = (p: WooProduct) =>
       names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, parseModelName(model), brand);
-    void fetchCloudProductsForModel(names, brand, model)
+    const seed = peekModelCatalogMemory(brand, model, names);
+    if (seed.length > 0) {
+      const strict = seed.filter(belongs);
+      setRemote(strict.length > 0 ? strict : seed);
+      setModelFetching(false);
+    } else {
+      setRemote(null);
+      setModelFetching(true);
+    }
+    void fetchCloudProductsForModel(names, brand, model, (list) => {
+      if (!alive) return;
+      const strict = list.filter(belongs);
+      setRemote(strict.length > 0 ? strict : list);
+      setModelFetching(false);
+    })
       .then((list) => {
         if (!alive) return;
         const strict = list.filter(belongs);

@@ -19,7 +19,7 @@ import {
   textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
-import { fetchCloudProductsForModel, fetchCloudAllProducts } from "@/lib/samphone-cloud";
+import { fetchCloudProductsForModel, fetchCloudAllProducts, peekModelCatalogMemory } from "@/lib/samphone-cloud";
 import { modelSearchNames, productBelongsToModel, splitModelCatalog } from "@/lib/model-catalog";
 import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
 import {
@@ -490,13 +490,25 @@ export default function BrandPage() {
       return;
     }
     let alive = true;
-    setModelLoading(true);
-    setRemoteModel(null);
     const names = modelSearchNames(routeBrand, selectedModel.label);
-    void fetchCloudProductsForModel(names, routeBrand, selectedModel.id)
+    const belongs = (p: WooProduct) => names.some((n) => productBelongsToModel(p, n, routeBrand));
+    const seed = peekModelCatalogMemory(routeBrand, selectedModel.id, names);
+    if (seed.length > 0) {
+      setRemoteModel(seed.filter(belongs).length ? seed.filter(belongs) : seed);
+      setModelLoading(false);
+    } else {
+      setRemoteModel(null);
+      setModelLoading(true);
+    }
+    void fetchCloudProductsForModel(names, routeBrand, selectedModel.id, (list) => {
+      if (!alive) return;
+      const strict = list.filter(belongs);
+      setRemoteModel(strict.length ? strict : list);
+      setModelLoading(false);
+    })
       .then((list) => {
         if (!alive) return;
-        const strict = list.filter((p) => names.some((n) => productBelongsToModel(p, n, routeBrand)));
+        const strict = list.filter(belongs);
         setRemoteModel(strict.length ? strict : list);
       })
       .catch(() => {

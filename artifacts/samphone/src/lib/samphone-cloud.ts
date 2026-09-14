@@ -899,17 +899,33 @@ const API_BRAND: Record<string, string> = {
   google: "Google Pixel",
 };
 
+const modelCatalogMemory = new Map<string, WooProduct[]>();
+
 function catalogApiBrand(brand?: string): string {
   const key = (brand || "").trim().toLowerCase();
   if (!key) return "";
   return API_BRAND[key] || brand!.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+export function modelCatalogCacheKey(brand?: string, modelSlug?: string, names: string[] = []): string {
+  const slug = (modelSlug || names[0] || "").trim().toLowerCase();
+  return `${(brand || "").trim().toLowerCase()}::${slug}`;
+}
+
+export function peekModelCatalogMemory(brand?: string, modelSlug?: string, names: string[] = []): WooProduct[] {
+  return modelCatalogMemory.get(modelCatalogCacheKey(brand, modelSlug, names)) ?? [];
+}
+
 export async function fetchCloudProductsForModel(
   names: string[],
   brand?: string,
   modelSlug?: string,
+  onProgress?: (items: WooProduct[], total: number) => void,
 ): Promise<WooProduct[]> {
+  const cacheKey = modelCatalogCacheKey(brand, modelSlug, names);
+  const cached = modelCatalogMemory.get(cacheKey);
+  if (cached?.length) onProgress?.(cached, cached.length);
+
   const labels = names.map((n) => n.trim()).filter((n) => n.length >= 3);
   const modelName = [...labels].sort((a, b) => b.length - a.length)[0] || (modelSlug || "").replace(/-/g, " ");
   const apiBrand = catalogApiBrand(brand);
@@ -918,10 +934,18 @@ export async function fetchCloudProductsForModel(
   else if (modelName) modelQuery.model = modelName;
   if (apiBrand) modelQuery.brand = apiBrand;
 
+  const remember = (items: WooProduct[], total: number) => {
+    if (items.length) modelCatalogMemory.set(cacheKey, items);
+    onProgress?.(items, total);
+  };
+
   if (modelQuery.model) {
     try {
-      const byModel = await fetchCloudAllProducts(modelQuery);
-      if (byModel.length > 0) return byModel;
+      const byModel = await fetchCloudAllProducts(modelQuery, CLOUD_LIST_MAX_PAGES, remember);
+      if (byModel.length > 0) {
+        modelCatalogMemory.set(cacheKey, byModel);
+        return byModel;
+      }
     } catch {
       /* fall back to title search */
     }
@@ -944,7 +968,7 @@ export async function fetchCloudProductsForModel(
     if (n.length >= 5 && n.length <= 48) unique.push(n);
   }
   const queries = unique.slice(0, 4);
-  if (queries.length === 0) return [];
+  if (queries.length === 0) return cached ?? [];
   const bags = await Promise.all(
     queries.map(async (q) => {
       try {
@@ -954,7 +978,10 @@ export async function fetchCloudProductsForModel(
       }
     }),
   );
-  return mergeWooProducts(bags);
+  const merged = mergeWooProducts(bags);
+  if (merged.length) modelCatalogMemory.set(cacheKey, merged);
+  onProgress?.(merged, merged.length);
+  return merged;
 }
 
 export async function fetchCloudRelated(productId: string): Promise<WooProduct[]> {
