@@ -1294,6 +1294,25 @@ export type AdminWholesaleUser = {
   source?: string;
 };
 
+const PLACEHOLDER_EMAIL_RE =
+  /@(example\.(com|org|net)|test\.com|mailinator\.com|faker\.local)$/i;
+const PLACEHOLDER_NAME_RE = /^(example|test|demo|sample)(\s+user)?$/i;
+
+export function isPlaceholderAdminUser(
+  row: Partial<AdminWholesaleUser> | Record<string, unknown> | null | undefined,
+): boolean {
+  if (!row) return true;
+  const rec = row as Record<string, unknown>;
+  const email = String(rec.email || "").trim().toLowerCase();
+  const name = String(rec.name || rec.display_name || "").trim();
+  const login = String(rec.login || rec.user_login || "").trim().toLowerCase();
+  if (!email && !name && !login) return true;
+  if (PLACEHOLDER_EMAIL_RE.test(email)) return true;
+  if (PLACEHOLDER_NAME_RE.test(name) || PLACEHOLDER_NAME_RE.test(login)) return true;
+  if (login === "example" || login === "demo" || login === "testuser") return true;
+  return false;
+}
+
 function asIsoDate(raw: unknown): string | undefined {
   if (typeof raw === "string" && raw.trim()) {
     const d = new Date(raw);
@@ -1437,22 +1456,33 @@ export async function fetchAdminUsers(authToken: string): Promise<AdminWholesale
   const data = await cloudFetchJson<unknown>("/admin/users", {
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
+  return sortNewestFirst(
+    unwrapList(data)
+      .map(asAdminUser)
+      .filter((u): u is AdminWholesaleUser => u != null && !isPlaceholderAdminUser(u)),
+  );
 }
 
 export async function fetchAdminWebsiteCustomers(authToken?: string): Promise<AdminWholesaleUser[]> {
   const data = await cloudFetchJson<unknown>("/admin/users/website?limit=2000", {
     headers: authHeaders(authToken),
   });
-  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
+  return sortNewestFirst(
+    unwrapList(data)
+      .map(asAdminUser)
+      .filter((u): u is AdminWholesaleUser => u != null && !isPlaceholderAdminUser(u)),
+  );
 }
 
 export async function fetchAdminWholesaleRequests(authToken: string): Promise<AdminWholesaleUser[]> {
   const data = await cloudFetchJson<unknown>("/admin/wholesale-requests", {
     headers: { Authorization: `Bearer ${authToken}` },
   });
-  return sortNewestFirst(unwrapList(data).map(asAdminUser).filter((u): u is AdminWholesaleUser => u != null));
-}
+  return sortNewestFirst(
+    unwrapList(data)
+      .map(asAdminUser)
+      .filter((u): u is AdminWholesaleUser => u != null && !isPlaceholderAdminUser(u)),
+  );
 
 export async function fetchAdminUserDiscounts(authToken: string, userId: string): Promise<{ items: unknown[] }> {
   try {

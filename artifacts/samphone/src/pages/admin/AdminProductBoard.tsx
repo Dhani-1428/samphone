@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { mapPublicRetailPrice } from "@/lib/public-price-bands";
 import { adminBearerToken, normalizeCatalogImageUrl } from "@/config/samphone";
 import AdminRecordDialog from "@/components/admin/AdminRecordDialog";
+import CatalogLoading from "@/components/CatalogLoading";
 import {
   createAdminProduct,
   deleteAdminProduct,
@@ -118,7 +119,6 @@ export default function AdminProductBoard({
 }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
-  const [hasMore, setHasMore] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(openAdd);
@@ -136,13 +136,23 @@ export default function AdminProductBoard({
   const { user } = useAuth();
   const token = adminBearerToken(user?.token);
 
-  const load = async (query: string, offset = 0, append = false) => {
+  const load = async (query: string) => {
     setBusy(true);
     setErr(null);
     try {
-      const data = await fetchAdminProductList(query, 200, offset);
-      setItems((prev) => sortNewestFirst(append ? [...prev, ...data.items] : data.items));
-      setHasMore(Boolean(data.has_more) || (data.total != null && offset + data.items.length < data.total));
+      const pageSize = 200;
+      let offset = 0;
+      const all: Record<string, unknown>[] = [];
+      for (let i = 0; i < 80; i += 1) {
+        const data = await fetchAdminProductList(query, pageSize, offset);
+        all.push(...data.items);
+        const got = data.items.length;
+        const more =
+          Boolean(data.has_more) || (data.total != null && offset + got < data.total);
+        if (!got || !more) break;
+        offset += got;
+      }
+      setItems(sortNewestFirst(all));
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Could not load products.");
     } finally {
@@ -411,6 +421,9 @@ export default function AdminProductBoard({
         </AdminRecordDialog>
       ) : null}
 
+      {busy ? (
+        <CatalogLoading compact className="mt-5 rounded-xl border border-black/[0.05]" label="Loading products…" />
+      ) : (
       <div className="mt-5 overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -513,19 +526,9 @@ export default function AdminProductBoard({
             })}
           </tbody>
         </table>
-        {items.length === 0 && !busy ? <p className="px-2 py-8 text-sm text-neutral-500">No products found.</p> : null}
+        {items.length === 0 ? <p className="px-2 py-8 text-sm text-neutral-500">No products found.</p> : null}
       </div>
-      {hasMore ? (
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-4"
-          disabled={busy}
-          onClick={() => void load(q, items.length, true)}
-        >
-          Load more
-        </Button>
-      ) : null}
+      )}
     </section>
   );
 }

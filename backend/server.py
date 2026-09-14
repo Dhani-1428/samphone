@@ -722,6 +722,7 @@ def _merge_admin_users(app_users: list[dict], clerk_users: list[dict]) -> list[d
             merged.setdefault("source", "app")
             by_email[str(merged.get("id") or len(by_email))] = merged
     rows = list(by_email.values())
+    rows = [r for r in rows if not _is_placeholder_admin_user(r)]
     rows.sort(key=_admin_user_recency, reverse=True)
     return rows
 
@@ -759,6 +760,19 @@ def _admin_user_recency(row: dict) -> float:
         return float(int(row.get("wp_id") or 0))
     except Exception:
         return 0.0
+
+
+def _is_placeholder_admin_user(row: dict) -> bool:
+    email = str(row.get("email") or "").strip().lower()
+    name = str(row.get("name") or "").strip().lower()
+    login = str(row.get("login") or row.get("user_login") or "").strip().lower()
+    if email.endswith(("@example.com", "@example.org", "@example.net", "@test.com", "@mailinator.com")):
+        return True
+    if name in {"example", "example user", "test user", "demo user", "sample user", "test"}:
+        return True
+    if login in {"example", "demo", "testuser", "test"}:
+        return True
+    return False
 
 
 def _verify_clerk_session_token(token: str) -> dict:

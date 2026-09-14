@@ -9,6 +9,7 @@ import {
   fetchAdminStats,
   fetchAdminUsers,
   fetchAdminWholesaleRequests,
+  sortNewestFirst,
   type AdminWholesaleUser,
 } from "@/lib/samphone-cloud";
 import AdminShell from "@/components/admin/AdminShell";
@@ -95,7 +96,7 @@ export default function AdminOverview() {
         });
         const byId = new Map<string, AdminWholesaleUser>();
         for (const row of [...reqs, ...all]) byId.set(row.id || row.email, row);
-        setUsers([...byId.values()]);
+        setUsers(sortNewestFirst([...byId.values()]));
         setOrders(ord.items);
         setErr(null);
       } catch (e) {

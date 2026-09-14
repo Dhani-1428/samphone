@@ -22,6 +22,7 @@ import {
 import { isB2bAccount, isB2cAccount } from "@/lib/admin-access";
 import { parsePersonalPricing, type PersonalPricingRule } from "@/lib/customer-price";
 import AdminRecordDialog from "@/components/admin/AdminRecordDialog";
+import CatalogLoading from "@/components/CatalogLoading";
 
 type DraftRule = {
   scope: "product" | "category";
@@ -404,14 +405,16 @@ export default function AdminWholesale({
     const inLane = users.filter((u) => (lane === "b2b" ? isB2bAccount(u) : isB2cAccount(u)));
     const laneRows = inLane.length > 0 || users.length === 0 ? inLane : users;
     const q = filter.trim().toLowerCase();
-    if (!q) return laneRows;
-    return laneRows.filter((row) =>
-      [row.name, row.email, row.businessName, row.vatNumber]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    );
+    const filtered = !q
+      ? laneRows
+      : laneRows.filter((row) =>
+          [row.name, row.email, row.businessName, row.vatNumber]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(q),
+        );
+    return sortNewestFirst(filtered);
   }, [users, filter, lane]);
 
   const selected = users.find((u) => u.id === selectedId) ?? null;
@@ -451,6 +454,9 @@ export default function AdminWholesale({
             </div>
           </div>
           <div className="overflow-x-auto">
+            {busy && users.length === 0 ? (
+              <CatalogLoading compact className="rounded-xl" label="Loading customers…" />
+            ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
@@ -570,6 +576,7 @@ export default function AdminWholesale({
                     : "No personal Clerk accounts match. Unapproved B2B dealers are listed under B2B only."}
               </p>
             ) : null}
+            )}
           </div>
         </section>
 

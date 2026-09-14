@@ -252,11 +252,19 @@ def list_website_customers(
         last = (meta.get("last_name") or "").strip()
         display = (row.get("display_name") or "").strip() or f"{first} {last}".strip()
         email = _normalize_email(row.get("user_email") or "")
+        login = (row.get("user_login") or "").strip().lower()
+        if email.endswith(("@example.com", "@example.org", "@example.net", "@test.com", "@mailinator.com")):
+            continue
+        if login in {"example", "demo", "testuser", "test"}:
+            continue
         company = (meta.get("billing_company") or "").strip()
         is_wholesale_role = any(
             key in caps
-            for key in ("wholesale_customer", "wholesaler", "shop_manager", "administrator")
+            for key in ("wholesale_customer", "wholesaler")
         )
+        is_staff_only = any(key in caps for key in ("administrator", "shop_manager", "editor")) and not is_wholesale_role and "customer" not in caps
+        if is_staff_only:
+            continue
         profile = {
             "wp_id": wp_id,
             "email": email,
