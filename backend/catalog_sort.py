@@ -59,8 +59,11 @@ _REPAIR_TITLE_RE = re.compile(
     r"charging\s*port|charge\s*flex|usb\s*flex|dock\s*flex|"
     r"fingerprint\s*flex|finger\s*flex|power\s*flex|volume\s*flex|"
     r"side\s*button|main\s*flex|motherboard\s*flex|"
-    r"vibrator|antenna\s*flex|earpiece|buzzer|"
-    r"front\s*camera|rear\s*camera|back\s*glass|housing|middle\s*frame"
+    r"vibrat(?:or|er|ion)|antenna\s*flex|earpiece|ear[\s-]*speaker|"
+    r"loud[\s-]*speaker|\bspeaker\b|buzzer|ringer|"
+    r"flashlight|flash[\s-]*light|\bflex\b|"
+    r"front\s*camera|rear\s*camera|back\s*glass|housing|middle\s*frame|"
+    r"microphone|\bmic\b|proximity"
     r")\b",
     re.I,
 )
@@ -96,6 +99,21 @@ def is_glass_cover_product(product: dict) -> bool:
         return False
 
 
+_AUDIO_ACCESSORY_TITLE_RE = re.compile(
+    r"bluetooth\s*speaker|bt\s*speaker|portable\s*speaker|\bsoundbar\b|\bearphones?\b|\bheadset\b|\bearbuds\b|\btws\b",
+    re.I,
+)
+
+
+def _repair_title_hit(title: str) -> bool:
+    text = title or ""
+    if _AUDIO_ACCESSORY_TITLE_RE.search(text) and not re.search(
+        r"ear[\s-]*speaker|earpiece|loud[\s-]*speaker", text, re.I
+    ):
+        text = re.sub(r"\bspeaker\b", " ", text, flags=re.I)
+    return bool(text and _REPAIR_TITLE_RE.search(text))
+
+
 def is_phone_parts_product(product: dict) -> bool:
     """
     True for repair hardware (LCD, battery, SIM tray, flex, …).
@@ -109,7 +127,7 @@ def is_phone_parts_product(product: dict) -> bool:
         return True
 
     title = product.get("title") or ""
-    if title and _REPAIR_TITLE_RE.search(title):
+    if _repair_title_hit(title):
         return True
 
     if (product.get("category") or "").strip() == PHONE_PARTS_CATEGORY:

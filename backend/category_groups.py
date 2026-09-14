@@ -2321,6 +2321,14 @@ def is_repairing_tools_product(product: dict) -> bool:
 
 def product_matches_group(product: dict, group_title: str) -> bool:
     # Speakers must match by leaf/title even when WooCommerce mis-tags them as Phone Parts.
+    if group_title not in {"Repairing Tools"}:
+        try:
+            from catalog_sort import is_phone_parts_product
+
+            if is_phone_parts_product(product):
+                return False
+        except Exception:
+            pass
     if group_title == "Speakers":
         return is_speaker_product(product)
     if group_title == "Cards":
@@ -2371,6 +2379,13 @@ def product_matches_group(product: dict, group_title: str) -> bool:
 
 
 def is_accessory_product(product: dict) -> bool:
+    try:
+        from catalog_sort import is_phone_parts_product
+
+        if is_phone_parts_product(product):
+            return False
+    except Exception:
+        pass
     cat = (product.get("category") or "").strip()
     if cat == PHONE_PARTS_CATEGORY:
         return False

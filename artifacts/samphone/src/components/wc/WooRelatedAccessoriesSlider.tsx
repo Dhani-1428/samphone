@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
+import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 import type { WooProduct } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,9 @@ export default function WooRelatedAccessoriesSlider({
 
   const related = useMemo(() => {
     const catSet = new Set(categoryIds.filter((id) => Number.isFinite(id) && id > 0));
-    const others = products.filter((p) => p.id !== currentProductId);
+    const others = products.filter(
+      (p) => p.id !== currentProductId && classifyCatalogProduct(p).category !== "parts",
+    );
     if (catSet.size === 0) return others.slice(0, 24);
     const scored = others
       .map((p) => ({

@@ -104,15 +104,16 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
     id: "charging-flex",
     label: "Charging Port Flex",
     kind: "part",
-    match: (h) => /\b(charging (port|flex|board)|charge flex|usb flex)\b/i.test(h),
+    match: (h) =>
+      /\b(charging (port|flex|board)|charge flex|usb flex|flash[\s-]?light flex|flashlight flex)\b/i.test(h),
   },
   {
     id: "speaker",
     label: "Speaker / Earpiece",
     kind: "part",
     match: (h) =>
-      /\b(earpiece|loudspeaker|buzzer)\b/i.test(h) ||
-      (/\bspeaker\b/i.test(h) && !/\b(bluetooth|bt speaker|headset|earphone|tws)\b/i.test(h)),
+      /\b(earpiece|ear[\s-]?speaker|loud[\s-]?speaker|buzzer|ringer)\b/i.test(h) ||
+      (/\bspeaker\b/i.test(h) && !/\b(bluetooth|bt speaker|headset|earphone|tws|soundbar|portable)\b/i.test(h)),
   },
   {
     id: "fingerprint",
@@ -136,7 +137,7 @@ export const MODEL_PART_TYPES: ModelTypeBucket[] = [
     id: "vibrator",
     label: "Vibrator Motor",
     kind: "part",
-    match: (h) => /\b(vibrator|vibration motor|taptic)\b/i.test(h),
+    match: (h) => /\b(vibrator|vibrater|vibration motor|taptic)\b/i.test(h),
   },
   {
     id: "sim-tray",
@@ -285,7 +286,7 @@ export const OTHER_ACCESSORIES_TYPE: ModelTypeBucket = {
 const ADD_ON =
   /\b(jelly|soft jelly|magsafe|silicon|silicone|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|lens 3|camera lens)\b/i;
 const REPAIR =
-  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|battery|front camera|back camera|rear camera|flex|charging (flex|port|board)|sim tray|frame|housing|buzzer|vibrator|earpiece|loudspeaker|motherboard|back cover with|back glass)\b/i;
+  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|battery|front camera|back camera|rear camera|flex|charging (flex|port|board)|sim tray|frame|housing|buzzer|vibrat(?:or|er)|earpiece|ear[\s-]?speaker|loudspeaker|\bspeaker\b|motherboard|back cover with|back glass|flashlight|flash[\s-]?light)\b/i;
 
 export function isModelRepairPart(name: string): boolean {
   if (ADD_ON.test(name) && !/\b(touch\s*\+|lcd|oled|incell|flex|charging flex)\b/i.test(name)) return false;
@@ -374,18 +375,24 @@ const ACCESSORY_MATCH_ORDER = [
 
 export function classifyModelProduct(p: WooProduct): { kind: ModelTypeKind; typeId: string } {
   const h = p.name;
+  const cls = classifyCatalogProduct(p);
+  if (cls.category === "parts") {
+    for (const bucket of MODEL_PART_TYPES) {
+      if (bucket.match(h)) return { kind: "part", typeId: bucket.id };
+    }
+    const fromApi = bucketFromApiLabel(catalogTypeLabel(p));
+    if (fromApi?.kind === "part") return fromApi;
+    return { kind: "part", typeId: cls.typeId || "other-parts" };
+  }
   for (const id of ACCESSORY_MATCH_ORDER) {
+    if (id === "phone") continue;
     const bucket = MODEL_ACCESSORY_TYPES.find((t) => t.id === id);
     if (bucket?.match(h)) return { kind: "accessory", typeId: id };
   }
-  for (const bucket of MODEL_PART_TYPES) {
-    if (bucket.match(h)) return { kind: "part", typeId: bucket.id };
-  }
-  const cls = classifyCatalogProduct(p);
-  const kind: ModelTypeKind = cls.category === "parts" ? "part" : "accessory";
   const fromApi = bucketFromApiLabel(catalogTypeLabel(p));
-  if (fromApi?.kind === kind) return fromApi;
-  return { kind, typeId: cls.typeId || (kind === "part" ? "other-parts" : "other-accessories") };
+  if (fromApi?.kind === "accessory") return fromApi;
+  if (looksLikeFinishedDevice(h)) return { kind: "accessory", typeId: "phone" };
+  return { kind: "accessory", typeId: cls.typeId || "other-accessories" };
 }
 
 function typeIndex(typeId: string, buckets: ModelTypeBucket[]): number {

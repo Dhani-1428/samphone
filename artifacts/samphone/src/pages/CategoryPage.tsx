@@ -17,6 +17,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink } from "@/components/CatalogPageChrome";
+import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const cardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -38,7 +39,7 @@ function filterSyntheticProducts(products: WooProduct[], parsed: { kind: "access
   const baseBrand = parsed.brandSlug.replace(/-parts$/i, "").trim();
   const brandTokens = baseBrand.split("-").filter(Boolean);
   const kindPatterns: Record<string, RegExp> = {
-    accessories: /(accessor|case|cover|glass|protector|lens|housing|back cover|frame|wallet)/i,
+    accessories: /(accessor|case|cover|jelly|magsafe|protector|wallet|tempered|privacy glass|full glue)/i,
     chargers: /(charg|cable|usb|adapter|power|magsafe|pd\b|qc\b)/i,
     screens: /(screen|display|lcd|oled|digitizer|touch)/i,
   };
@@ -48,7 +49,10 @@ function filterSyntheticProducts(products: WooProduct[], parsed: { kind: "access
     const hay = `${p.name} ${p.categories?.map((c) => `${c.name} ${c.slug}`).join(" ") ?? ""}`.toLowerCase();
     const brandOk = brandTokens.every((t) => hay.includes(t.toLowerCase()));
     if (!brandOk) return false;
-    return kindRe.test(hay);
+    if (!kindRe.test(hay)) return false;
+    const cat = classifyCatalogProduct(p).category;
+    if (parsed.kind === "screens") return cat === "parts";
+    return cat !== "parts";
   });
 }
 

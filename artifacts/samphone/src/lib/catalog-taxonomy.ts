@@ -82,19 +82,27 @@ function hay(p: TaxonomyProduct): string {
 }
 
 const ACCESSORY_RE =
-  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphone|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|capinha|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover|pel[ií]cula)\b/i;
+  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphones?|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|capinha|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover|pel[ií]cula)\b/i;
 
+/** Internal repair hardware — never an accessory, even if the title starts with a phone model. */
 const PART_RE =
-  /\b(touch\s*\+|lcd|oled|incell|digitizer|service pack|display assembly|replacement screen|\bscreen\b|\bbattery\b|front camera|rear camera|back camera|charging (flex|port|board)|sim tray|housing|chassis|buzzer|vibrator|earpiece|loudspeaker|motherboard|back glass|rear glass|flex cable|volume flex|power flex|peças?)\b/i;
+  /\b(touch\s*\+|lcd|oled|incell|tft|digitizer|service pack|display assembly|replacement screen|\bscreen\b|\bbattery\b|front camera|rear camera|back camera|camera module|charging (flex|port|board)|charge flex|usb flex|dock flex|sim tray|sim reader|housing|chassis|middle frame|buzzer|ringer|vibrat(?:or|er|ion)|taptic|earpiece|ear[\s-]?speaker|loud[\s-]?speaker|\bspeaker\b|flashlight|flash[\s-]?light|flash (?:flex|lamp)|motherboard|logic board|mainboard|back glass|rear glass|(?:main|volume|power|antenna|fingerprint|finger)\s*flex|\bflex\b|proximity|\bmic\b|microphone|peças?)\b/i;
+
+const AUDIO_ACCESSORY_RE =
+  /\b(bluetooth\s*speaker|bt\s*speaker|portable\s*speaker|soundbar|earphones?|headset|earbuds|\btws\b|handsfree|neck earphone)\b/i;
 
 const ACCESSORY_GROUP_RE = /original accessor|\baccessories\b|\bhoco\b|charger|cables?|headphone|power ?bank|\bcards\b/i;
 const PART_GROUP_RE = /phone part|peças?|pecas?|spare part/i;
 const DEVICE_GROUP_RE = /\b(smartphones?|telem[oó]veis|mobile phones?|cell phones?)\b/i;
 
 function isPartName(n: string): boolean {
-  if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n)) return false;
-  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing)\b/i.test(n)) return false;
+  if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n) && !/\b(lcd|oled|flex|housing|battery)\b/i.test(n)) {
+    return false;
+  }
+  if (/\b(cover|case|capa|capinha)\b/i.test(n) && !/\b(back glass|rear glass|lcd|oled|housing|flex)\b/i.test(n)) return false;
   if (/\bscreen\b/i.test(n) && /\bprotect/i.test(n)) return false;
+  if (/\bpower bank\b/i.test(n)) return false;
+  if (AUDIO_ACCESSORY_RE.test(n) && !/\b(ear[\s-]?speaker|earpiece|loud[\s-]?speaker)\b/i.test(n)) return false;
   return PART_RE.test(n) || /\b(housing|chassis)\b/i.test(n) || (/\bframe\b/i.test(n) && !/\b(case|cover|bumper)\b/i.test(n));
 }
 
@@ -103,24 +111,30 @@ function isPartName(n: string): boolean {
  */
 export function looksLikeFinishedDevice(name: string, extraHay = ""): boolean {
   const h = `${name} ${extraHay}`.toLowerCase();
-  if (isPartName(h)) return false;
+  if (isPartName(h) || PART_RE.test(h)) return false;
   if (/\b(cover|case|jelly|capa|capinha|funda|tempered|protector|full glue|privacy glass|charger|carregador|cable|cabo|earphone|headset|earbuds|tws|power bank)\b/i.test(h)) {
     return false;
   }
   if (/\b(sd|microsd|micro-sd|memory card|tf card|pendrive)\b/i.test(h)) return false;
-  if (DEVICE_GROUP_RE.test(h) && !PART_GROUP_RE.test(h)) return true;
-  return /\b(iphone|ipad|apple watch|iwatch|galaxy|pixel|redmi|poco|xiaomi|oppo|realme|huawei|honor|motorola|oneplus|nokia|vivo|alcatel|smartphone|telem[oó]vel|mobile phone|tablet)\b/i.test(
-    h,
-  );
+  if (DEVICE_GROUP_RE.test(h) && !PART_GROUP_RE.test(h) && !PART_RE.test(h)) return true;
+  if (!/\b(iphone|ipad|apple watch|iwatch|galaxy|pixel|redmi|poco|xiaomi|oppo|realme|huawei|honor|motorola|oneplus|nokia|vivo|alcatel|smartphone|telem[oó]vel|mobile phone|tablet)\b/i.test(h)) {
+    return false;
+  }
+  return !PART_RE.test(h);
 }
 
 function isAccessoryName(n: string): boolean {
+  if (isPartName(n) && !/\b(jelly|silicone?|magsafe|tempered|protector|full glue|privacy glass|case|cover|capa|capinha|charger|earphones?)\b/i.test(n)) {
+    return false;
+  }
   if (!ACCESSORY_RE.test(n)) return false;
   if (/\b(tempered|protector|full glue|privacy|pel[ií]cula|jelly|silicone?|magsafe|case|cover|capa|capinha)\b/i.test(n)) {
-    if (/\b(lcd|oled|incell|digitizer|service pack)\b/i.test(n)) return false;
+    if (/\b(lcd|oled|incell|digitizer|service pack|flex|ear[\s-]?speaker)\b/i.test(n)) return false;
     return true;
   }
-  if (/\b(charging (port|flex|board)|housing|chassis|back glass|rear glass)\b/i.test(n)) return false;
+  if (/\b(charging (port|flex|board)|housing|chassis|back glass|rear glass|\bflex\b|ear[\s-]?speaker|vibrat)\b/i.test(n)) {
+    return false;
+  }
   return true;
 }
 
@@ -156,7 +170,7 @@ function partSub(h: string): PartsSubcategory {
   if (/\b(front camera|rear camera|back camera|camera lens)\b/i.test(h) && !/\b(3[\s-]*in[\s-]*1|complete|protect)\b/i.test(h)) {
     return "camera";
   }
-  if (/\b(earpiece|loudspeaker|buzzer|speaker)\b/i.test(h) && !/\b(bluetooth speaker|bt speaker|headset)\b/i.test(h)) {
+  if (/\b(earpiece|ear[\s-]?speaker|loud[\s-]?speaker|buzzer|ringer|vibrat(?:or|er)|taptic|\bspeaker\b)\b/i.test(h) && !AUDIO_ACCESSORY_RE.test(h)) {
     return "speaker";
   }
   if (/\b(flex|volume flex|power flex|main flex|side button)\b/i.test(h)) return "flex-cable";
