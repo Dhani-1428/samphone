@@ -45,6 +45,8 @@ export interface WooProduct {
   rating?: number;
   reviewCount?: number;
   catalogGroup?: string;
+  taxonomyTop?: string;
+  taxonomySub?: string;
   subcategory?: string;
   modelLabel?: string;
   retailPrice?: string;

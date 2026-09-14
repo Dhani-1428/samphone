@@ -1,4 +1,6 @@
 /** Minimal product shape used by taxonomy + search tests (WooProduct is compatible). */
+import type { AccessoriesSubcategory as BrowseAcc, PartsSubcategory as BrowsePart, TopCategory } from "./product-taxonomy.ts";
+
 export type TaxonomyProduct = {
   name: string;
   partType?: string;
@@ -36,6 +38,8 @@ export type CatalogSubcategory = PartsSubcategory | AccessoriesSubcategory;
 export type CatalogClassification = {
   category: CatalogTopCategory;
   subcategory: CatalogSubcategory;
+  browseTop: TopCategory;
+  browseSub: BrowsePart | BrowseAcc;
   /** Existing model-page chip id. */
   typeId: string;
   issues: string[];
@@ -180,6 +184,24 @@ function partSub(h: string): PartsSubcategory {
   return "other-parts";
 }
 
+function browseSubFor(category: CatalogTopCategory, subcategory: CatalogSubcategory, h: string): BrowsePart | BrowseAcc {
+  if (category === "parts") {
+    if (subcategory === "screen") return "screens";
+    if (subcategory === "battery") return "batteries";
+    if (subcategory === "charging-port") return "charging-ports";
+    if (subcategory === "camera") return "cameras";
+    if (subcategory === "housing") return "housing";
+    return "small-components";
+  }
+  if (subcategory === "screen-protector") return "screen-protectors";
+  if (subcategory === "case" || subcategory === "back-cover") return "cases";
+  if (subcategory === "charger" || subcategory === "cable") return "chargers-cables";
+  if (subcategory === "earphones") return "audio";
+  if (/\bpower bank\b/i.test(h)) return "power-banks";
+  if (/\b(holder|mount|car support)\b/i.test(h)) return "holders";
+  return "holders";
+}
+
 function typeIdFor(category: CatalogTopCategory, subcategory: CatalogSubcategory, h: string): string {
   if (category === "accessories") {
     if (subcategory === "screen-protector") {
@@ -262,6 +284,8 @@ export function classifyCatalogProduct(p: TaxonomyProduct): CatalogClassificatio
   return {
     category,
     subcategory,
+    browseTop: category,
+    browseSub: browseSubFor(category, subcategory, h),
     typeId: typeIdFor(category, subcategory, h),
     issues,
   };
@@ -275,7 +299,12 @@ export function auditCatalogProduct(p: TaxonomyProduct): CatalogClassification {
   return classifyCatalogProduct(p);
 }
 
-export function suggestedTaxonomyFields(p: TaxonomyProduct): { category: CatalogTopCategory; subcategory: CatalogSubcategory } {
+export function suggestedTaxonomyFields(p: TaxonomyProduct): {
+  category: CatalogTopCategory;
+  subcategory: CatalogSubcategory;
+  browseTop: TopCategory;
+  browseSub: BrowsePart | BrowseAcc;
+} {
   const cls = classifyCatalogProduct(p);
-  return { category: cls.category, subcategory: cls.subcategory };
+  return { category: cls.category, subcategory: cls.subcategory, browseTop: cls.browseTop, browseSub: cls.browseSub };
 }

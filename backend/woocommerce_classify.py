@@ -230,6 +230,30 @@ def model_of(name: str, categories: list[str], brand: str) -> str:
 
 
 def classify(name: str, categories: list[str]) -> dict[str, Any]:
+    out = _classify_raw(name, categories)
+    return _stamp_taxonomy(out, name, categories)
+
+
+def _stamp_taxonomy(out: dict[str, Any], name: str, categories: list[str]) -> dict[str, Any]:
+    from product_taxonomy import TopCategory, api_category_for_top, assign_taxonomy
+
+    asg = assign_taxonomy(
+        title=name,
+        leaf=str(out.get("leaf_category") or ""),
+        part_type=str(out.get("part_type") or ""),
+        category=str(out.get("category") or ""),
+        wc_categories=categories,
+    )
+    out["taxonomy_top"] = asg["top"]
+    out["taxonomy_sub"] = asg["sub"]
+    protected = {"Smartphones", "Cards", "Hoco", "Repair Tools", "Smartwatches"}
+    if out.get("category") not in protected and asg["top"] == TopCategory.ACCESSORIES.value:
+        if out.get("category") == "Phone Parts":
+            out["category"] = api_category_for_top(asg["top"])
+    return out
+
+
+def _classify_raw(name: str, categories: list[str]) -> dict[str, Any]:
     name = name.strip()
     up = f" {name.upper()} "
     catup = " | ".join(categories).upper()

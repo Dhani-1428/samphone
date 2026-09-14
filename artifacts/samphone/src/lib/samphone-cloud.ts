@@ -54,6 +54,8 @@ type CloudProduct = {
   brand?: string;
   part_type?: string;
   leaf_category?: string;
+  taxonomy_top?: string;
+  taxonomy_sub?: string;
   color_variants?: unknown[];
   variants?: unknown[];
   in_stock?: boolean;
@@ -345,6 +347,8 @@ export function mapCloudProduct(p: CloudProduct): WooProduct | null {
     rating: typeof p.rating === "number" ? p.rating : undefined,
     reviewCount: typeof p.reviews === "number" ? p.reviews : undefined,
     catalogGroup: typeof p.category === "string" ? p.category : undefined,
+    taxonomyTop: typeof p.taxonomy_top === "string" ? p.taxonomy_top : undefined,
+    taxonomySub: typeof p.taxonomy_sub === "string" ? p.taxonomy_sub : undefined,
     subcategory: typeof p.subcategory === "string" ? p.subcategory : undefined,
     modelLabel: typeof p.model === "string" && p.model.trim() ? p.model.trim() : undefined,
   });
@@ -1574,6 +1578,8 @@ export async function createAdminProduct(body: {
   image_url?: string;
   stock_quantity?: number | null;
   description?: string;
+  taxonomy_top?: string;
+  taxonomy_sub?: string;
 }): Promise<Record<string, unknown>> {
   return cloudFetchJson("/admin/products", {
     method: "POST",

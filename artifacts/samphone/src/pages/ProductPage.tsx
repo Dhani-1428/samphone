@@ -19,6 +19,7 @@ import PeopleAlsoBought from "@/components/PeopleAlsoBought";
 import ProductDetailLayout from "@/components/product/ProductDetailLayout";
 import type { ProductCrumb } from "@/components/product/ProductDetailLayout";
 import Product360Viewer from "@/components/product/Product360Viewer";
+import { isTopCategory, SUBCATEGORY_LABELS, TOP_CATEGORY_LABELS, type TopCategory } from "@/lib/product-taxonomy";
 
 function parseProductCartKey(pathname: string): string | null {
   const segs = pathname.split("/").filter(Boolean);
@@ -41,12 +42,15 @@ function formatEuro(value: string | number | null | undefined): string | null {
   return new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(n);
 }
 
-function groupHref(group?: string | null): string | undefined {
+function groupHref(group?: string | null, taxonomyTop?: string | null): string | undefined {
+  if (taxonomyTop === "parts") return undefined;
+  if (taxonomyTop === "accessories") return "/accessories";
   const g = (group ?? "").toLowerCase();
   if (!g) return undefined;
   if (g.includes("accessor")) return "/accessories";
   if (g.includes("repair") || g.includes("tool") || g.includes("ferrament")) return "/tools";
-  if (g.includes("phone part") || g.includes("smartphone")) return "/smartphones";
+  if (g.includes("phone part")) return undefined;
+  if (g.includes("smartphone")) return "/smartphone";
   if (g.includes("card")) return "/cards";
   if (g.includes("hoco")) return "/group/Hoco";
   return undefined;
@@ -300,9 +304,21 @@ function WooProductView({
   }
 
   const group = wooProduct.catalogGroup;
+  const top = isTopCategory(wooProduct.taxonomyTop) ? wooProduct.taxonomyTop : undefined;
   const crumbs: ProductCrumb[] = [{ label: t("breadcrumb_home"), href: "/" }];
-  if (group) crumbs.push({ label: group, href: groupHref(group) });
-  if (wooProduct.subcategory && wooProduct.subcategory !== group) {
+  if (top) {
+    crumbs.push({
+      label: TOP_CATEGORY_LABELS[top as TopCategory],
+      href: groupHref(group, top),
+    });
+    const sub = wooProduct.taxonomySub;
+    if (sub && sub in SUBCATEGORY_LABELS) {
+      crumbs.push({ label: SUBCATEGORY_LABELS[sub as keyof typeof SUBCATEGORY_LABELS] });
+    }
+  } else if (group) {
+    crumbs.push({ label: group, href: groupHref(group) });
+  }
+  if (wooProduct.subcategory && wooProduct.subcategory !== group && !top) {
     crumbs.push({ label: wooProduct.subcategory });
   }
   if (wooProduct.partType && wooProduct.partType !== wooProduct.subcategory && wooProduct.partType !== group) {

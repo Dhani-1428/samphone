@@ -441,6 +441,8 @@ class AdminProductEdit(BaseModel):
     compare_at_price: Optional[float] = Field(default=None, ge=0)
     image_url: Optional[str] = Field(default=None, max_length=1024)
     clear_image: bool = False
+    taxonomy_top: Optional[str] = Field(default=None, max_length=32)
+    taxonomy_sub: Optional[str] = Field(default=None, max_length=64)
 
 
 class AdminProductCreate(BaseModel):
@@ -452,6 +454,8 @@ class AdminProductCreate(BaseModel):
     b2c_price: Optional[float] = Field(default=None, ge=0)
     image_url: Optional[str] = Field(default="", max_length=1024)
     stock_quantity: Optional[int] = Field(default=None, ge=0)
+    taxonomy_top: Optional[str] = Field(default=None, max_length=32)
+    taxonomy_sub: Optional[str] = Field(default=None, max_length=64)
 
 
 class VoiceParseBody(BaseModel):
@@ -2756,6 +2760,8 @@ async def admin_edit_product(
             compare_at_price=body.compare_at_price,
             image_url=body.image_url,
             clear_image=body.clear_image,
+            taxonomy_top=body.taxonomy_top,
+            taxonomy_sub=body.taxonomy_sub,
         )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -2784,7 +2790,11 @@ async def admin_create_product(body: AdminProductCreate, _admin=Depends(get_curr
             image_url=body.image_url or "",
             description=body.description or "",
             stock_quantity=body.stock_quantity,
+            taxonomy_top=body.taxonomy_top,
+            taxonomy_sub=body.taxonomy_sub,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     return created

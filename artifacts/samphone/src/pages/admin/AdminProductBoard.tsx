@@ -20,6 +20,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminProductDiscount from "@/components/admin/AdminProductDiscount";
 import AdminStockToggle from "@/components/AdminStockToggle";
 import { cn } from "@/lib/utils";
+import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
+import {
+  isBrowseSubcategory,
+  isTopCategory,
+  SUBCATEGORY_LABELS,
+  subsForTop,
+  TOP_CATEGORIES,
+  TOP_CATEGORY_LABELS,
+  type TopCategory,
+} from "@/lib/product-taxonomy";
 
 type Channel = "b2b" | "b2c";
 
@@ -120,6 +130,8 @@ export default function AdminProductBoard({
   const [b2b, setB2b] = useState("");
   const [b2c, setB2c] = useState("");
   const [categoryHint, setCategoryHint] = useState("");
+  const [taxonomyTop, setTaxonomyTop] = useState<TopCategory>("parts");
+  const [taxonomySub, setTaxonomySub] = useState<string>("screens");
   const [customers, setCustomers] = useState<AdminWholesaleUser[]>([]);
   const { user } = useAuth();
   const token = adminBearerToken(user?.token);
@@ -163,6 +175,8 @@ export default function AdminProductBoard({
     setB2b("");
     setB2c("");
     setCategoryHint("");
+    setTaxonomyTop("parts");
+    setTaxonomySub("screens");
   };
 
   const startEdit = (p: Record<string, unknown>) => {
@@ -178,6 +192,16 @@ export default function AdminProductBoard({
     setCategoryHint(
       String(p.leaf_category || p.catalogGroup || p.category || p.part_type || "").trim(),
     );
+    const topRaw = String(p.taxonomy_top || "");
+    const subRaw = String(p.taxonomy_sub || "");
+    if (isTopCategory(topRaw) && isBrowseSubcategory(topRaw, subRaw)) {
+      setTaxonomyTop(topRaw);
+      setTaxonomySub(subRaw);
+    } else {
+      const cls = classifyCatalogProduct({ name: filled.name || String(p.title || p.name || "") });
+      setTaxonomyTop(cls.browseTop);
+      setTaxonomySub(cls.browseSub);
+    }
     setFormOpen(true);
     if (!id) return;
     void (async () => {
@@ -211,10 +235,18 @@ export default function AdminProductBoard({
         stock_quantity: stock ? Number(stock) : null,
       };
       if (editingId) {
-        await editAdminProduct(editingId, body);
+        await editAdminProduct(editingId, {
+          ...body,
+          taxonomy_top: taxonomyTop,
+          taxonomy_sub: taxonomySub,
+        });
       } else {
         if (!name.trim()) {
           setErr("Product name is required.");
+          return;
+        }
+        if (!isTopCategory(taxonomyTop) || !isBrowseSubcategory(taxonomyTop, taxonomySub)) {
+          setErr("Choose Parts or Accessories and a subcategory.");
           return;
         }
         await createAdminProduct({
@@ -224,6 +256,8 @@ export default function AdminProductBoard({
           b2c_price: b2c ? Number(b2c) : null,
           image_url: imageUrl.trim(),
           stock_quantity: stock ? Number(stock) : null,
+          taxonomy_top: taxonomyTop,
+          taxonomy_sub: taxonomySub,
         });
       }
       resetForm();
@@ -318,6 +352,38 @@ export default function AdminProductBoard({
               <Input className="mt-1 bg-white" value={sku} onChange={(e) => setSku(e.target.value)} disabled={Boolean(editingId)} />
             </div>
             <div>
+              <Label>Category</Label>
+              <select
+                className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm"
+                value={taxonomyTop}
+                onChange={(e) => {
+                  const next = e.target.value as TopCategory;
+                  setTaxonomyTop(next);
+                  setTaxonomySub(subsForTop(next)[0]);
+                }}
+              >
+                {TOP_CATEGORIES.map((top) => (
+                  <option key={top} value={top}>
+                    {TOP_CATEGORY_LABELS[top]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label>Subcategory</Label>
+              <select
+                className="mt-1 h-10 w-full rounded-md border border-input bg-white px-3 text-sm"
+                value={taxonomySub}
+                onChange={(e) => setTaxonomySub(e.target.value)}
+              >
+                {subsForTop(taxonomyTop).map((sub) => (
+                  <option key={sub} value={sub}>
+                    {SUBCATEGORY_LABELS[sub]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <Label>Stock</Label>
               <Input className="mt-1 bg-white" value={stock} onChange={(e) => setStock(e.target.value)} inputMode="numeric" />
             </div>
@@ -351,6 +417,7 @@ export default function AdminProductBoard({
             <tr className="border-b text-left text-neutral-500">
               <th className="px-2 py-3">Product</th>
               <th className="px-2 py-3">SKU</th>
+              <th className="px-2 py-3">Category</th>
               <th className="px-2 py-3">{priceLabel}</th>
               <th className="px-2 py-3">Stock</th>
               <th className="px-2 py-3 text-right"> </th>
@@ -389,6 +456,16 @@ export default function AdminProductBoard({
                     </div>
                   </td>
                   <td className="px-2 py-3 text-neutral-500">{String(p.sku || "—")}</td>
+                  <td className="px-2 py-3 text-neutral-600">
+                    {(() => {
+                      const top = String(p.taxonomy_top || "");
+                      const sub = String(p.taxonomy_sub || "");
+                      if (isTopCategory(top) && isBrowseSubcategory(top, sub)) {
+                        return `${TOP_CATEGORY_LABELS[top]} · ${SUBCATEGORY_LABELS[sub]}`;
+                      }
+                      return String(p.category || "—");
+                    })()}
+                  </td>
                   <td className="py-3 font-semibold tabular-nums text-navy">{shown}</td>
                   <td className="px-2 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-1">

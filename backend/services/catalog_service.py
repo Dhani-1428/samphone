@@ -363,6 +363,27 @@ class CatalogService:
         variant_labels = [v["label"] for v in color_variants]
 
         title = nice(title_raw)
+        from product_taxonomy import TOP_VALUES, assign_taxonomy, validate_taxonomy
+
+        stored_top = str(row.get("samphone_top") or "").strip()
+        stored_sub = str(row.get("samphone_sub") or "").strip()
+        if stored_top in TOP_VALUES:
+            try:
+                validate_taxonomy(stored_top, stored_sub)
+                meta_cls["taxonomy_top"] = stored_top
+                meta_cls["taxonomy_sub"] = stored_sub
+            except ValueError:
+                pass
+        else:
+            asg = assign_taxonomy(
+                title=title_raw,
+                leaf=str(meta_cls.get("leaf_category") or ""),
+                part_type=str(meta_cls.get("part_type") or ""),
+                category=str(meta_cls.get("category") or ""),
+                wc_categories=cat_names,
+            )
+            meta_cls["taxonomy_top"] = asg["top"]
+            meta_cls["taxonomy_sub"] = asg["sub"]
         description = ""
         if include_description:
             content = row.get("description") or row.get("short_description") or ""
@@ -384,6 +405,8 @@ class CatalogService:
             "slug": row.get("slug") or "",
             "title": title,
             "category": meta_cls.get("category", "Multi-Brand"),
+            "taxonomy_top": meta_cls.get("taxonomy_top"),
+            "taxonomy_sub": meta_cls.get("taxonomy_sub"),
             "brand": brand,
             "subcategory": meta_cls.get("subcategory", brand),
             "model": model_name or meta_cls.get("model", ""),
@@ -1533,6 +1556,8 @@ class CatalogService:
         compare_at_price: float | None = None,
         image_url: str | None = None,
         clear_image: bool = False,
+        taxonomy_top: str | None = None,
+        taxonomy_sub: str | None = None,
     ) -> Optional[dict]:
         """Admin edits: stock, WC prices, public override/sale, image override."""
         doc = self.get_product_by_uuid(product_id, enrich=False)
@@ -1605,6 +1630,9 @@ class CatalogService:
             url = str(image_url).strip()
             self.repo.set_image_url(wc_id, url or None)
 
+        if taxonomy_top and taxonomy_sub:
+            self.repo.set_taxonomy(wc_id, taxonomy_top, taxonomy_sub)
+
         doc = self.get_product_by_uuid(
             product_id,
             enrich=True,
@@ -1627,8 +1655,17 @@ class CatalogService:
         image_url: str = "",
         description: str = "",
         stock_quantity: int | None = None,
+        taxonomy_top: str | None = None,
+        taxonomy_sub: str | None = None,
     ) -> dict:
         from live_mysql import create_via_woocommerce_rest
+        from product_taxonomy import assign_taxonomy, validate_taxonomy
+
+        if taxonomy_top and taxonomy_sub:
+            validate_taxonomy(taxonomy_top, taxonomy_sub)
+        else:
+            asg = assign_taxonomy(title=name)
+            taxonomy_top, taxonomy_sub = asg["top"], asg["sub"]
 
         created = create_via_woocommerce_rest(
             name=name,
@@ -1650,6 +1687,8 @@ class CatalogService:
             )
         if wc_id and (image_url or "").strip():
             self.repo.set_image_url(wc_id, image_url.strip())
+        if wc_id and taxonomy_top and taxonomy_sub:
+            self.repo.set_taxonomy(wc_id, taxonomy_top, taxonomy_sub)
         product = created.get("product") or {}
         images = product.get("images") or []
         src = ""

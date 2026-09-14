@@ -68,4 +68,5 @@ backend/uploads/
 backend/storage/
 backend/products_seed.json
 backend/**/__pycache__/
+backend/reports/
 

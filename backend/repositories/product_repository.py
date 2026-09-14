@@ -25,6 +25,8 @@ META_KEYS = (
     "total_sales",
     "wholesale_customer_wholesale_price",
     "wholesale_customer_have_wholesale_price",
+    "_samphone_top",
+    "_samphone_sub",
 )
 
 
@@ -436,6 +438,16 @@ class ProductRepository:
                 f"INSERT INTO `{t}` (post_id, meta_key, meta_value) VALUES (%s,%s,%s)",
                 (int(post_id), meta_key, meta_value),
             )
+
+    def set_taxonomy(self, product_id: int, top: str, sub: str) -> None:
+        from product_taxonomy import META_SUB, META_TOP, validate_taxonomy
+
+        validate_taxonomy(top, sub)
+        with self.db.connect() as conn:
+            with conn.cursor() as cur:
+                self._set_postmeta(cur, int(product_id), META_TOP, top)
+                self._set_postmeta(cur, int(product_id), META_SUB, sub)
+            conn.commit()
 
     def update_wc_prices(
         self,
