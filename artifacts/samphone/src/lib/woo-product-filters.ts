@@ -546,25 +546,59 @@ export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean
 }
 
 export function pickHomeRailItems(products: WooProduct[], key: HomeRailKey, limit = 14): WooProduct[] {
-  const out: WooProduct[] = [];
+  const matched: WooProduct[] = [];
   const seen = new Set<number>();
   for (const p of products) {
-    if (out.length >= limit) break;
     if (seen.has(p.id)) continue;
     if (!productMatchesHomeRail(p, key)) continue;
     seen.add(p.id);
-    out.push(p);
+    matched.push(p);
   }
-  if (out.length >= Math.min(4, products.length) || products.length === 0) return out;
-  for (const p of products) {
-    if (out.length >= limit) break;
-    if (seen.has(p.id)) continue;
-    const hay = productSearchHaystack(p);
-    if (LCD_DISPLAY_PART.test(hay) && (key === "screen-protectors" || key === "cables" || key === "chargers")) continue;
-    seen.add(p.id);
-    out.push(p);
+  if (matched.length < Math.min(4, products.length)) {
+    for (const p of products) {
+      if (seen.has(p.id)) continue;
+      const hay = productSearchHaystack(p);
+      if (LCD_DISPLAY_PART.test(hay) && (key === "screen-protectors" || key === "cables" || key === "chargers")) continue;
+      seen.add(p.id);
+      matched.push(p);
+    }
   }
-  return out;
+  const sliced = matched.slice(0, limit);
+  return mixOutOfStockIntoRow(sliced, matched, 2);
+}
+
+/** True when the card should show the out-of-stock treatment. */
+export function isCatalogOutOfStock(p: Pick<WooProduct, "stock_status" | "stock_quantity">): boolean {
+  if (p.stock_status === "outofstock") return true;
+  const q = p.stock_quantity;
+  return typeof q === "number" && Number.isFinite(q) && q <= 0 && q < 9999;
+}
+
+/**
+ * Home rails: if the pool has out-of-stock items, put at least `minOos` of them
+ * at the start of the row (visible in the first 2-up / 6-up viewport).
+ */
+export function mixOutOfStockIntoRow(
+  items: WooProduct[],
+  pool: WooProduct[] = items,
+  minOos = 2,
+): WooProduct[] {
+  if (!items.length) return items;
+  const isOos = isCatalogOutOfStock;
+  const itemIds = new Set(items.map((p) => p.id));
+  const oosFromItems = items.filter(isOos);
+  const extraOos = pool.filter((p) => isOos(p) && !itemIds.has(p.id));
+  const oos = [...oosFromItems, ...extraOos];
+  if (oos.length === 0) return items;
+  const take = oos.slice(0, Math.min(minOos, oos.length));
+  const takeIds = new Set(take.map((p) => p.id));
+  const instock = items.filter((p) => !takeIds.has(p.id) && !isOos(p));
+  const leftoverOos = items.filter((p) => !takeIds.has(p.id) && isOos(p));
+  return [...take, ...instock, ...leftoverOos].slice(0, Math.max(items.length, take.length));
+}
+
+export function inStockProducts(products: WooProduct[]): WooProduct[] {
+  return products.filter((p) => !isCatalogOutOfStock(p));
 }
 
 /** Keep only products that match a homepage rail title (Chargers, Hoco, …). */

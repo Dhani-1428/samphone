@@ -14,8 +14,8 @@ import { normalizeCatalogImageUrl } from "@/config/samphone";
 import { catalogCompareAtPrice, pricingAudience, seesWholesalePrices } from "@/lib/customer-price";
 import { buildProductCopy } from "@/lib/product-copy";
 import ColorSwatches from "@/components/wc/ColorSwatches";
-import WooRelatedAccessoriesSlider from "@/components/wc/WooRelatedAccessoriesSlider";
 import PeopleAlsoBought from "@/components/PeopleAlsoBought";
+import ProductMoreSections from "@/components/product/ProductMoreSections";
 import ProductDetailLayout from "@/components/product/ProductDetailLayout";
 import type { ProductCrumb } from "@/components/product/ProductDetailLayout";
 import Product360Viewer from "@/components/product/Product360Viewer";
@@ -114,7 +114,7 @@ export default function ProductPage() {
         const id = p?.cloudId || cached?.cloudId;
         if (id) {
           void fetchRelatedProducts(id).then((rows) => {
-            if (alive) setRelated(rows);
+            if (alive) setRelated(rows.filter((p) => p.stock_status !== "outofstock"));
           });
         }
       })
@@ -370,12 +370,7 @@ function WooProductView({
       }
       descriptionHtml={copy.html}
       below={
-        <WooRelatedAccessoriesSlider
-          currentProductId={wooProduct.id}
-          categoryIds={(wooProduct.categories ?? []).map((c) => c.id)}
-          products={related.length > 0 ? related : catalog}
-          priceUnavailableLabel={t("woo_price_na")}
-        />
+        <ProductMoreSections current={wooProduct} related={related} catalog={catalog} />
       }
     />
   );

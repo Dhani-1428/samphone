@@ -5,8 +5,8 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
-import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
-import { sortNewest } from "@/lib/woo-product-filters";
+import { fetchCloudNewArrivals, fetchCloudProductList } from "@/lib/samphone-cloud";
+import { isCatalogOutOfStock, mixOutOfStockIntoRow, sortNewest } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function HomeNewArrivals() {
@@ -17,13 +17,23 @@ export default function HomeNewArrivals() {
 
   useEffect(() => {
     let alive = true;
-    void fetchCloudNewArrivals(18)
-      .then((rows) => {
-        if (alive) setWooRows(sortNewest(rows).slice(0, 18));
-      })
-      .catch(() => {
+    void (async () => {
+      try {
+        const rows = await fetchCloudNewArrivals(18);
+        let mixed = mixOutOfStockIntoRow(sortNewest(rows).slice(0, 18), rows, 2);
+        if (mixed.filter(isCatalogOutOfStock).length < 2) {
+          try {
+            const extra = await fetchCloudProductList({ in_stock: "false", sort: "date_desc" }, 12);
+            mixed = mixOutOfStockIntoRow(mixed, extra.items, 2);
+          } catch {
+            /* keep mixed */
+          }
+        }
+        if (alive) setWooRows(mixed);
+      } catch {
         if (alive) setWooRows([]);
-      });
+      }
+    })();
     return () => {
       alive = false;
     };

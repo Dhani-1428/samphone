@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
 import { shopGroupFetchQueries } from "@/data/accessory-pages";
 import { fetchCloudHomeRails, fetchCloudProductList, type CloudHomeRails } from "@/lib/samphone-cloud";
-import { pickHomeRailItems, type HomeRailKey } from "@/lib/woo-product-filters";
+import { isCatalogOutOfStock, mixOutOfStockIntoRow, pickHomeRailItems, type HomeRailKey } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 const HOME_CATEGORY_RAILS: {
@@ -69,7 +69,7 @@ function mergeRailProducts(bags: WooProduct[][]): WooProduct[] {
 async function loadRailProducts(g: (typeof HOME_CATEGORY_RAILS)[number]): Promise<WooProduct[]> {
   const headphoneRail = g.key === "wireless-headsets";
   const queries = headphoneRail ? shopGroupFetchQueries(g.group) : [g.query];
-  const pageSize = headphoneRail ? 48 : 24;
+  const pageSize = headphoneRail ? 48 : 40;
   const bags = await Promise.all(
     queries.map((query) =>
       fetchCloudProductList(query, pageSize)
@@ -133,7 +133,18 @@ export default function HomeCloudRails() {
         const r = await fetchCloudHomeRails(18, "all");
         if (!alive) return;
         seededBest = r.best;
-        if (r.best.length) setBest(r.best);
+        if (r.best.length) {
+          let bestItems = mixOutOfStockIntoRow(r.best, r.best, 2);
+          if (bestItems.filter(isCatalogOutOfStock).length < 2) {
+            try {
+              const extra = await fetchCloudProductList({ in_stock: "false", sort: "date_desc" }, 12);
+              bestItems = mixOutOfStockIntoRow(bestItems, extra.items, 2);
+            } catch {
+              /* keep bestItems */
+            }
+          }
+          setBest(bestItems);
+        }
         for (const g of HOME_CATEGORY_RAILS) {
           const section = r.sections.find((s) => sectionMatchesRail(s, g));
           const pool = section?.items ?? [];
@@ -147,7 +158,7 @@ export default function HomeCloudRails() {
       if (seededBest.length === 0) {
         try {
           const page = await fetchCloudProductList({ best_seller: "true" }, 18);
-          if (alive && page.items.length) setBest(page.items);
+          if (alive && page.items.length) setBest(mixOutOfStockIntoRow(page.items, page.items, 2));
         } catch {
           /* keep empty */
         }

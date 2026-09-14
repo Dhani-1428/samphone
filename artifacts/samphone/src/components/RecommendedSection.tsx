@@ -5,7 +5,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import WooProductCard from "@/components/wc/WooProductCard";
-import { filterAccessoryCatalog, sortNewest } from "@/lib/woo-product-filters";
+import { filterAccessoryCatalog, mixOutOfStockIntoRow, sortNewest } from "@/lib/woo-product-filters";
 
 export default function RecommendedSection() {
   const { t } = useLang();
@@ -21,7 +21,7 @@ export default function RecommendedSection() {
         : products.filter((p) => p.on_sale).length > 0
           ? products.filter((p) => p.on_sale)
           : products;
-    return sortNewest(pool).slice(0, 18);
+    return mixOutOfStockIntoRow(sortNewest(pool).slice(0, 18), pool, 2);
   }, [woo, products]);
 
   if (woo && loading && wooSlice.length === 0) {
