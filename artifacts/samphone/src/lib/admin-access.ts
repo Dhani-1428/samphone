@@ -55,12 +55,6 @@ export function isB2cAccount(user?: Parameters<typeof isB2bAccount>[0]): boolean
   return account !== "b2b";
 }
 
-/** Screenshots / print / save-image: only the store admin inbox. */
-export function canCaptureSite(user?: { email?: string; role?: string } | null): boolean {
-  const email = (user?.email || "").trim().toLowerCase();
-  return email === "samphone.pt@gmail.com" && isAdminRole(user?.role);
-}
-
 /** After a normal store login, admins land on the admin panel. */
 export function postLoginPath(role: string | undefined, next: string): string {
   const dest = safeRedirectPath(next, "/");
