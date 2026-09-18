@@ -30,8 +30,8 @@ import {
   Building2,
   Wrench,
 } from "lucide-react";
-import { FaCcAmex, FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
 import { SiFacebook, SiInstagram, SiWhatsapp } from "react-icons/si";
+import FooterPaymentMarks from "@/components/FooterPaymentMarks";
 import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { subscribeNewsletter } from "@/lib/samphone-cloud";
@@ -314,13 +314,7 @@ export default function Footer() {
           <p className="text-center text-[12px] font-semibold text-white/65 md:text-left">
             © {new Date().getFullYear()} SAMPHONE. Rua da Palma N.221-223, Lisboa.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-white">
-            <FaCcVisa className="h-7 w-10" title="Visa" />
-            <FaCcMastercard className="h-7 w-10" title="Mastercard" />
-            <FaCcAmex className="h-7 w-10" title="American Express" />
-            <FaCcPaypal className="h-7 w-10" title="PayPal" />
-            <FaCcApplePay className="h-7 w-10" title="Apple Pay" />
-          </div>
+          <FooterPaymentMarks label={t("footer_we_also_accept")} />
         </div>
       </div>
 
