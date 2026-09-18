@@ -181,7 +181,9 @@ def test_public_and_business_account_emails(monkeypatch):
     captured.clear()
     send_login_email({"email": "public@example.com", "name": "Ana", "accountType": "b2c"})
     assert "welcome back" in captured[0]["html"].lower()
-    assert "#FDB136" in captured[0]["html"]
+    assert "MOBILE PARTS" in captured[0]["html"]
+    assert "#F5A21A" in captured[0]["html"]
+    assert "SAMPHONE" in captured[0]["html"]
 
     captured.clear()
     send_login_email(
@@ -194,7 +196,9 @@ def test_public_and_business_account_emails(monkeypatch):
     )
     assert "Dear Carlos" in captured[0]["html"]
     assert "confirmation of sign-in" in captured[0]["subject"].lower()
-    assert "Official correspondence" in captured[0]["html"]
+    assert "Official correspondence" not in captured[0]["html"]
+    assert "MOBILE PARTS" in captured[0]["html"]
+    assert "SAMPHONE" in captured[0]["html"]
 
 
 def test_order_confirmation_is_single_template_per_account(monkeypatch):

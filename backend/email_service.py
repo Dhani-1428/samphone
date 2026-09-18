@@ -57,6 +57,7 @@ def send_email(to: str, subject: str, html_body: str, text_body: str = "") -> bo
         logger.warning("SMTP not configured — skipped email to %s (%s)", recipient, subject)
         return False
 
+    html_body = _ensure_storefront_html(html_body, title=subject)
     plain = text_body.strip() or _html_to_plain(html_body)
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
@@ -114,88 +115,126 @@ def _is_business_account(user: dict | None) -> bool:
     )
 
 
-def _cta(url: str, label: str, *, colorful: bool) -> str:
-    if colorful:
-        style = (
-            "display:inline-block;background:#FDB136;color:#1a1a2e;text-decoration:none;"
-            "font-weight:800;padding:14px 28px;border-radius:999px;font-size:15px;"
-        )
-    else:
-        style = (
-            "display:inline-block;background:#1B365D;color:#ffffff;text-decoration:none;"
-            "font-weight:600;padding:12px 22px;border-radius:2px;font-size:14px;"
-            "letter-spacing:0.04em;text-transform:uppercase;"
-        )
+def _cta(url: str, label: str, *, colorful: bool = True) -> str:
+    style = (
+        f"display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;"
+        "font-weight:800;padding:14px 32px;border-radius:10px;font-size:16px;"
+    )
     return (
         f'<a href="{html.escape(url)}" style="{style}">{html.escape(label)}</a>'
     )
 
 
-def _layout(title: str, body_html: str) -> str:
-    """Default transactional layout (orders, alerts)."""
-    return _layout_public(title, body_html)
-
-
-def _layout_public(title: str, body_html: str) -> str:
-    """Customer emails: full-width navy header (Gmail-safe, no CSS gradient)."""
+def _storefront_order_chrome(*, inner: str, motto: str, title: str = "Samphone") -> str:
+    phone = html.escape(STORE_PHONE)
+    mail = html.escape(STORE_PUBLIC_EMAIL)
+    web = html.escape(STORE_WEB)
+    fb = html.escape(os.environ.get("STORE_FACEBOOK", "https://www.facebook.com/").strip() or "https://www.facebook.com/")
+    ig = html.escape(os.environ.get("STORE_INSTAGRAM", "https://www.instagram.com/samphone.pt").strip() or "https://www.instagram.com/samphone.pt")
+    li = html.escape(os.environ.get("STORE_LINKEDIN", "https://www.linkedin.com/").strip() or "https://www.linkedin.com/")
+    year = datetime.now(timezone.utc).year
     return f"""<!DOCTYPE html>
-<html><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title>
 </head>
 <body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#ffffff;">
-    <tr><td align="center" style="padding:0;">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background:#ffffff;">
         <tr>
-          <td style="background:{NAVY};padding:28px 24px 18px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:.08em;line-height:1.2;">SAMPHONE</p>
-            <p style="margin:8px 0 0;color:{ORANGE};font-size:12px;font-weight:800;letter-spacing:.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
+          <td style="background:{NAVY};padding:28px 28px 18px;text-align:center;">
+            <p style="margin:0;color:#ffffff;font-size:34px;font-weight:800;letter-spacing:0.04em;">SAMPHONE</p>
+            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
           </td>
         </tr>
         <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:28px 24px;color:#1a1a2e;font-size:15px;line-height:1.65;">
-          {body_html}
-        </td></tr>
-        <tr><td style="padding:18px 24px;background:{NAVY};color:#e8eefc;font-size:12px;">
-          Need a hand? Write to
-          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:{ORANGE};font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>
-        </td></tr>
+        <tr><td style="padding:0;">{inner}</td></tr>
+        <tr>
+          <td style="background:{NAVY};padding:26px 24px 12px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:0 8px 16px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:34%;">
+                  <strong style="letter-spacing:0.04em;">SAMPHONE</strong><br/>
+                  <span style="color:#c9d7ee;font-size:12px;">{html.escape(motto)}</span>
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  ☎<br/>{phone}
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  ✉<br/><a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;">{mail}</a>
+                </td>
+                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
+                  🌐<br/><a href="https://{web}" style="color:#ffffff;text-decoration:none;">{web}</a>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid rgba(255,255,255,0.18);">
+              <tr>
+                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
+                  <div style="font-size:16px;margin-bottom:6px;">🛡</div>
+                  <strong>Quality Products</strong><br/><span style="color:#c9d7ee;">You can trust</span>
+                </td>
+                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
+                  <div style="font-size:16px;margin-bottom:6px;">🏷</div>
+                  <strong>Competitive Prices</strong><br/><span style="color:#c9d7ee;">Every day</span>
+                </td>
+                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
+                  <div style="font-size:16px;margin-bottom:6px;">📦</div>
+                  <strong>Fast Shipping</strong><br/><span style="color:#c9d7ee;">Across Portugal</span>
+                </td>
+                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
+                  <div style="font-size:16px;margin-bottom:6px;">🎧</div>
+                  <strong>Dedicated Support</strong><br/><span style="color:#c9d7ee;">We’re here to help</span>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:8px 0;text-align:center;">
+              <a href="{fb}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">f</a>
+              <a href="{ig}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">ig</a>
+              <a href="{li}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">in</a>
+            </p>
+            <p style="margin:8px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
+          </td>
+        </tr>
       </table>
     </td></tr>
   </table>
 </body></html>"""
+
+
+def _layout(title: str, body_html: str, *, motto: str = "Welcome to Samphone’s online store.") -> str:
+    """Every transactional email uses the same navy storefront chrome."""
+    return _layout_public(title, body_html, motto=motto)
+
+
+def _layout_public(title: str, body_html: str, *, motto: str = "Welcome to Samphone’s online store.") -> str:
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px;color:#1a1a2e;font-size:15px;line-height:1.65;">
+            {body_html}
+          </td>
+        </tr>
+      </table>
+    """
+    return _storefront_order_chrome(inner=inner, motto=motto, title=title)
 
 
 def _layout_business(title: str, body_html: str) -> str:
-    """Formal business / wholesale correspondence."""
-    return f"""<!DOCTYPE html>
-<html><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{html.escape(title)}</title>
-</head>
-<body style="margin:0;padding:0;background:#eef1f4;font-family:Georgia,'Times New Roman',Times,serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#eef1f4;padding:28px 0;">
-    <tr><td align="center" style="padding:0 12px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #c5cdd6;">
-        <tr><td style="background:#1B365D;padding:22px 28px;">
-          <p style="margin:0;color:#c5d4e8;font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Official correspondence</p>
-          <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:400;font-family:Georgia,'Times New Roman',serif;">{html.escape(SITE_NAME)}</h1>
-        </td></tr>
-        <tr><td style="border-bottom:2px solid #1B365D;font-size:0;line-height:0;height:2px;">&nbsp;</td></tr>
-        <tr><td style="padding:32px 28px;color:#243447;font-size:15px;line-height:1.7;">
-          {body_html}
-        </td></tr>
-        <tr><td style="padding:16px 28px;background:#f4f6f8;color:#5b6775;font-size:11px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #d5dce3;">
-          This message is intended for the registered business contact. For assistance, contact
-          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#1B365D;">{html.escape(SUPPORT_EMAIL)}</a>.
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>"""
+    return _layout_public(
+        title,
+        body_html,
+        motto="We’re proud to be your partner in mobile parts & accessories.",
+    )
+
+
+def _ensure_storefront_html(html_body: str, *, title: str) -> str:
+    """Wrap raw fragments (MFA codes, leads, digests) in the storefront template."""
+    snippet = (html_body or "").strip()
+    if "<html" in snippet.lower():
+        return snippet
+    return _layout_public(title, snippet)
 
 
 def _detail_row(label: str, value: str) -> str:
@@ -243,33 +282,11 @@ def send_welcome_email(user: dict) -> bool:
 
 
 def _b2c_welcome_html(*, account_url: str, shop_url: str, year: int) -> str:
-    """B2C welcome email — navy header, orange CTA, store footer (email-safe tables)."""
+    """B2C welcome — same navy chrome as every other Samphone email."""
     a_url = html.escape(account_url)
     s_url = html.escape(shop_url)
-    phone = html.escape(STORE_PHONE)
-    mail = html.escape(STORE_PUBLIC_EMAIL)
-    web = html.escape(STORE_WEB)
-    # Tiny PNG-free icons as Unicode in styled circles (works in Gmail / Outlook web).
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Welcome to Samphone!</title>
-</head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#ffffff;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background:#ffffff;">
-
-        <tr>
-          <td style="background:{NAVY};padding:28px 28px 18px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:34px;font-weight:800;letter-spacing:0.04em;line-height:1;">SAMPHONE</p>
-            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
-          </td>
-        </tr>
-        <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding:36px 28px 8px;text-align:center;background:#ffffff;">
             <p style="margin:0 0 6px;font-size:13px;letter-spacing:0.28em;color:{NAVY};">
@@ -289,7 +306,6 @@ def _b2c_welcome_html(*, account_url: str, shop_url: str, year: int) -> str:
             </p>
           </td>
         </tr>
-
         <tr>
           <td style="padding:22px 28px 8px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:14px;">
@@ -307,7 +323,6 @@ def _b2c_welcome_html(*, account_url: str, shop_url: str, year: int) -> str:
             </table>
           </td>
         </tr>
-
         <tr>
           <td style="padding:22px 28px 8px;text-align:center;">
             <a href="{a_url}" style="display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:10px;">
@@ -318,15 +333,6 @@ def _b2c_welcome_html(*, account_url: str, shop_url: str, year: int) -> str:
             </p>
           </td>
         </tr>
-
-        <tr>
-          <td style="padding:24px 48px 8px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr><td style="border-top:1px solid #E5E7EB;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr>
-            </table>
-          </td>
-        </tr>
-
         <tr>
           <td style="padding:8px 28px 36px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -345,58 +351,13 @@ def _b2c_welcome_html(*, account_url: str, shop_url: str, year: int) -> str:
             </table>
           </td>
         </tr>
-
-        <tr>
-          <td style="background:{NAVY};padding:26px 24px 10px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:0 8px 18px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:28%;">
-                  <strong style="font-size:14px;letter-spacing:0.04em;">SAMPHONE</strong><br/>
-                  <span style="color:#c9d7ee;font-size:12px;">Welcome to Samphone’s online store</span>
-                </td>
-                <td style="padding:0 8px 18px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:24%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">☎</span><br/>
-                  <span style="display:inline-block;padding-top:8px;">{phone}</span>
-                </td>
-                <td style="padding:0 8px 18px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:24%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">✉</span><br/>
-                  <a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;display:inline-block;padding-top:8px;">{mail}</a>
-                </td>
-                <td style="padding:0 8px 18px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:24%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">🌐</span><br/>
-                  <a href="https://{web}" style="color:#ffffff;text-decoration:none;display:inline-block;padding-top:8px;">{web}</a>
-                </td>
-              </tr>
-            </table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid rgba(255,255,255,0.18);">
-              <tr>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🛡</div>
-                  <strong>Quality Products</strong><br/><span style="color:#c9d7ee;">You can trust</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🏷</div>
-                  <strong>Competitive Prices</strong><br/><span style="color:#c9d7ee;">Every day</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">📦</div>
-                  <strong>Fast Shipping</strong><br/><span style="color:#c9d7ee;">Across Portugal</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🎧</div>
-                  <strong>Dedicated Support</strong><br/><span style="color:#c9d7ee;">We’re here to help</span>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:10px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
-          </td>
-        </tr>
-
       </table>
-    </td></tr>
-  </table>
-</body>
-</html>"""
+    """
+    return _storefront_order_chrome(
+        inner=inner,
+        motto="Welcome to Samphone’s online store.",
+        title="Welcome to Samphone!",
+    )
 
 
 def send_wholesale_pending_email(user: dict) -> bool:
@@ -426,38 +387,14 @@ def send_wholesale_pending_email(user: dict) -> bool:
 
 def _b2b_welcome_html(*, account_url: str, year: int) -> str:
     a_url = html.escape(account_url)
-    phone = html.escape(STORE_PHONE)
-    mail = html.escape(STORE_PUBLIC_EMAIL)
-    web = html.escape(STORE_WEB)
     cream = "#F6EDE0"
     panel = "#EEF3F8"
-    fb = html.escape(os.environ.get("STORE_FACEBOOK", "https://www.facebook.com/").strip() or "https://www.facebook.com/")
-    ig = html.escape(os.environ.get("STORE_INSTAGRAM", "https://www.instagram.com/samphone.pt").strip() or "https://www.instagram.com/samphone.pt")
-    li = html.escape(os.environ.get("STORE_LINKEDIN", "https://www.linkedin.com/").strip() or "https://www.linkedin.com/")
     icon_circle = (
         "width:52px;height:52px;border-radius:50%;background:{navy};color:#ffffff;"
         "text-align:center;line-height:52px;font-size:22px;"
     ).format(navy=NAVY)
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Welcome to Samphone Business!</title>
-</head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#ffffff;">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background:#ffffff;">
-
-        <tr>
-          <td style="padding:28px 28px 12px;text-align:center;background:#ffffff;">
-            <p style="margin:0;color:{NAVY};font-size:34px;font-weight:800;letter-spacing:0.04em;line-height:1;">SAMPHONE</p>
-            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
-          </td>
-        </tr>
-        <tr><td style="height:4px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="padding:28px 24px 8px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -483,7 +420,6 @@ def _b2b_welcome_html(*, account_url: str, year: int) -> str:
             </table>
           </td>
         </tr>
-
         <tr>
           <td style="padding:18px 24px 8px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{panel};border-radius:16px;">
@@ -519,7 +455,6 @@ def _b2b_welcome_html(*, account_url: str, year: int) -> str:
             </table>
           </td>
         </tr>
-
         <tr>
           <td style="padding:16px 24px 10px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{cream};border-radius:14px;">
@@ -534,9 +469,8 @@ def _b2b_welcome_html(*, account_url: str, year: int) -> str:
             </table>
           </td>
         </tr>
-
         <tr>
-          <td style="padding:8px 24px 6px;text-align:center;">
+          <td style="padding:8px 24px 28px;text-align:center;">
             <a href="{a_url}" style="display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 28px;border-radius:10px;">
               🏢&nbsp; Go to Business Account
             </a>
@@ -545,71 +479,14 @@ def _b2b_welcome_html(*, account_url: str, year: int) -> str:
             </p>
           </td>
         </tr>
-
-        <tr>
-          <td style="padding:22px 16px 10px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:6px 4px;color:{NAVY};font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:4px;">🛡</div>
-                  <strong>Quality Products</strong><br/><span style="color:{GREY};">You can trust</span>
-                </td>
-                <td style="padding:6px 4px;color:{NAVY};font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:4px;">🏷</div>
-                  <strong>Competitive Prices</strong><br/><span style="color:{GREY};">Every day</span>
-                </td>
-                <td style="padding:6px 4px;color:{NAVY};font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:4px;">📦</div>
-                  <strong>Fast Shipping</strong><br/><span style="color:{GREY};">Across Portugal</span>
-                </td>
-                <td style="padding:6px 4px;color:{NAVY};font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:4px;">🎧</div>
-                  <strong>Dedicated Support</strong><br/><span style="color:{GREY};">We’re here to help</span>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="background:{NAVY};padding:26px 24px 12px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:0 8px 16px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:34%;">
-                  <strong style="font-size:15px;letter-spacing:0.04em;">SAMPHONE</strong><br/>
-                  <span style="color:#c9d7ee;font-size:12px;">Welcome to Samphone’s online store for businesses.</span>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">☎</span><br/>
-                  <span style="display:inline-block;padding-top:8px;">{phone}</span>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">✉</span><br/>
-                  <a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;display:inline-block;padding-top:8px;">{mail}</a>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  <span style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;line-height:28px;">🌐</span><br/>
-                  <a href="https://{web}" style="color:#ffffff;text-decoration:none;display:inline-block;padding-top:8px;">{web}</a>
-                </td>
-              </tr>
-            </table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr><td style="border-top:2px solid {ORANGE};font-size:0;line-height:0;height:2px;">&nbsp;</td></tr>
-            </table>
-            <p style="margin:14px 0 8px;text-align:center;">
-              <a href="{fb}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;font-size:13px;margin:0 4px;">f</a>
-              <a href="{ig}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;font-size:13px;margin:0 4px;">ig</a>
-              <a href="{li}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;font-size:13px;margin:0 4px;">in</a>
-            </p>
-            <p style="margin:8px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
-          </td>
-        </tr>
-
       </table>
-    </td></tr>
-  </table>
-</body>
-</html>"""
+    """
+    return _storefront_order_chrome(
+        inner=inner,
+        motto="Welcome to Samphone’s online store for businesses.",
+        title="Welcome to Samphone Business!",
+    )
+
 
 def send_admin_business_application_email(user: dict) -> bool:
     """
@@ -659,7 +536,7 @@ def send_admin_business_application_email(user: dict) -> bool:
       </p>
       {details_table}
       <p style="margin:20px 0 0;">
-        <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
+        <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:{ORANGE};color:#ffffff;
           text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
           Open Samphone
         </a>
@@ -753,7 +630,7 @@ def send_wholesale_decision_email(user: dict, *, approved: bool, reason: str = "
           </p>
           {details}
           <p style="margin:24px 0 0;">
-            <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:#FDB136;color:#1a1a2e;
+            <a href="{html.escape(SHOP_URL)}" style="display:inline-block;background:{ORANGE};color:#ffffff;
               text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
               Open Samphone &amp; view business prices
             </a>
@@ -787,7 +664,7 @@ def send_wholesale_decision_email(user: dict, *, approved: bool, reason: str = "
             You can still shop with us at retail prices in the Samphone app.
             If you believe this decision was made in error, or if you would like to provide
             additional information, please contact us at
-            <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;">{html.escape(SUPPORT_EMAIL)}</a>.
+            <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:{NAVY};">{html.escape(SUPPORT_EMAIL)}</a>.
           </p>
           <p style="margin:28px 0 0;color:#111827;font-weight:700;">
             Kind regards,<br/>
@@ -813,11 +690,10 @@ def send_login_email(user: dict) -> bool:
           <p style="margin:0 0 14px;color:#243447;">
             This is to confirm that a sign-in to the {html.escape(SITE_NAME)} business account{for_biz} was completed.
           </p>
-          <table width="100%" cellpadding="0" cellspacing="0"
-            style="background:#f4f6f8;margin:20px 0;border:1px solid #d5dce3;">
-            {_detail_row("Registered email", email_addr)}
-            {_detail_row("Date and time (UTC)", when)}
-          </table>
+          {_detail_table(
+              _detail_row("Registered email", email_addr),
+              _detail_row("Date and time (UTC)", when),
+          )}
           <p style="margin:16px 0 0;color:#243447;">
             If you authorised this access, no further action is required. If you did not, please reset the account password immediately and notify {html.escape(SUPPORT_EMAIL)}.
           </p>
@@ -831,19 +707,18 @@ def send_login_email(user: dict) -> bool:
         return send_email(email_addr, subject, _layout_business(subject, body))
 
     body = f"""
-      <p style="margin:0 0 10px;color:#FDB136;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">You're back</p>
-      <h2 style="margin:0 0 12px;color:#3F61AA;font-size:26px;">Hey {html.escape(name)}, welcome back!</h2>
-      <p style="margin:0 0 8px;color:#374151;">
+      <p style="margin:0 0 10px;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">You're back</p>
+      <h2 style="margin:0 0 12px;color:{NAVY};font-size:26px;">Hey {html.escape(name)}, welcome back!</h2>
+      <p style="margin:0 0 8px;color:{GREY};">
         You just signed in to your {html.escape(SITE_NAME)} account. Nice to see you again.
       </p>
-      <table width="100%" cellpadding="0" cellspacing="0"
-        style="background:#fff6e8;border-radius:14px;margin:20px 0;border:1px solid #ffe0a3;">
-        {_detail_row("Email", email_addr)}
-        {_detail_row("Signed in at", when)}
-      </table>
-      <p style="margin:16px 0 0;color:#374151;">
+      {_detail_table(
+          _detail_row("Email", email_addr),
+          _detail_row("Signed in at", when),
+      )}
+      <p style="margin:16px 0 0;color:{GREY};">
         If this was you, you're all set. If it wasn't, change your password and tell us at
-        <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#3F61AA;font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>.
+        <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:{NAVY};font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>.
       </p>
       <p style="margin:28px 0 0;">{_cta(SHOP_URL, f"Open {SITE_NAME}", colorful=True)}</p>
     """
@@ -892,11 +767,11 @@ def send_cart_abandonment_email(user: dict, cart: dict) -> bool:
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
         {lines_html}
         <tr><td style="padding:16px 0 0;font-weight:800;font-size:16px;color:#111827;">Subtotal</td>
-        <td style="padding:16px 0 0;text-align:right;font-weight:800;font-size:16px;color:#3F61AA;">{subtotal}</td></tr>
+        <td style="padding:16px 0 0;text-align:right;font-weight:800;font-size:16px;color:{ORANGE};">{subtotal}</td></tr>
       </table>
       <p style="margin:28px 0 0;">
-        <a href="{html.escape(cart_url)}" style="display:inline-block;background:#3F61AA;color:#ffffff;
-          text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
+        <a href="{html.escape(cart_url)}" style="display:inline-block;background:{ORANGE};color:#ffffff;
+          text-decoration:none;font-weight:800;padding:14px 32px;border-radius:10px;">
           Complete my order
         </a>
       </p>
@@ -1023,7 +898,7 @@ def _order_items_table(order: dict, lang: str = "en", *, total_label: str | None
         {items_html}
         <tr>
           <td colspan="2" style="padding:16px 0 0;font-weight:800;font-size:16px;color:#111827;">{html.escape(total_label)}</td>
-          <td style="padding:16px 0 0;text-align:right;font-weight:800;font-size:16px;color:#3F61AA;">{total}</td>
+          <td style="padding:16px 0 0;text-align:right;font-weight:800;font-size:16px;color:{ORANGE};">{total}</td>
         </tr>
       </table>
     """
@@ -1187,63 +1062,6 @@ def _order_summary_box(order: dict, lang: str, *, business: bool) -> str:
     """
 
 
-def _storefront_order_chrome(*, inner: str, motto: str) -> str:
-    phone = html.escape(STORE_PHONE)
-    mail = html.escape(STORE_PUBLIC_EMAIL)
-    web = html.escape(STORE_WEB)
-    fb = html.escape(os.environ.get("STORE_FACEBOOK", "https://www.facebook.com/").strip() or "https://www.facebook.com/")
-    ig = html.escape(os.environ.get("STORE_INSTAGRAM", "https://www.instagram.com/samphone.pt").strip() or "https://www.instagram.com/samphone.pt")
-    li = html.escape(os.environ.get("STORE_LINKEDIN", "https://www.linkedin.com/").strip() or "https://www.linkedin.com/")
-    year = datetime.now(timezone.utc).year
-    return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thank you for your order!</title>
-</head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background:#ffffff;">
-        <tr>
-          <td style="background:{NAVY};padding:28px 28px 18px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:34px;font-weight:800;letter-spacing:0.04em;">SAMPHONE</p>
-            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
-          </td>
-        </tr>
-        <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:0;">{inner}</td></tr>
-        <tr>
-          <td style="background:{NAVY};padding:26px 24px 12px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:0 8px 16px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:34%;">
-                  <strong style="letter-spacing:0.04em;">SAMPHONE</strong><br/>
-                  <span style="color:#c9d7ee;font-size:12px;">{html.escape(motto)}</span>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  ☎<br/>{phone}
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  ✉<br/><a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;">{mail}</a>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  🌐<br/><a href="https://{web}" style="color:#ffffff;text-decoration:none;">{web}</a>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:8px 0;text-align:center;">
-              <a href="{fb}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">f</a>
-              <a href="{ig}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">ig</a>
-              <a href="{li}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">in</a>
-            </p>
-            <p style="margin:8px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>"""
-
 
 def send_order_confirmation_email(order: dict) -> bool:
     """Send a single customer confirmation: B2C or B2B template, never both."""
@@ -1363,7 +1181,7 @@ def _b2b_order_confirmation_html(order: dict) -> str:
         </tr>
         <tr>
           <td style="padding:18px 28px 8px;text-align:center;">
-            <a href="{html.escape(order_url)}" style="display:inline-block;background:{NAVY};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:8px;">View My Order</a>
+            <a href="{html.escape(order_url)}" style="display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:10px;">View My Order</a>
             <p style="margin:12px 0 0;"><a href="{html.escape(order_url)}" style="color:{NAVY};font-size:12px;">login to your business account</a></p>
           </td>
         </tr>
@@ -1585,7 +1403,7 @@ def send_alert_email(
       <p style="margin:0 0 16px;color:#374151;">Hi {html.escape(name)},</p>
       <p style="margin:0 0 20px;color:#374151;white-space:pre-wrap;">{html.escape(message)}</p>
       <p style="margin:0;">
-        <a href="{html.escape(link)}" style="display:inline-block;background:#3F61AA;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">
+        <a href="{html.escape(link)}" style="display:inline-block;background:{ORANGE};color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:800;">
           {html.escape(cta_label)}
         </a>
       </p>
@@ -1604,7 +1422,7 @@ def send_restock_subscribed_email(email: str, product: dict | None = None) -> bo
         We'll send an email as soon as it's available again.
       </p>
       <p style="margin:0;">
-        <a href="{html.escape(url)}" style="color:#3F61AA;font-weight:700;">View product</a>
+        <a href="{html.escape(url)}" style="color:{NAVY};font-weight:700;">View product</a>
       </p>
     """
     plain = f"We'll email you when {title} is back in stock.\n{url}\n"
@@ -1620,7 +1438,7 @@ def send_back_in_stock_email(email: str, product: dict | None = None) -> bool:
         <strong>{html.escape(str(title))}</strong> is available again on {html.escape(SITE_NAME)}.
       </p>
       <p style="margin:0;">
-        <a href="{html.escape(url)}" style="display:inline-block;background:#3F61AA;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:700;">
+        <a href="{html.escape(url)}" style="display:inline-block;background:{ORANGE};color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-weight:800;">
           Shop now
         </a>
       </p>
