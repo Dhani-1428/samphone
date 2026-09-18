@@ -137,28 +137,30 @@ def _layout(title: str, body_html: str) -> str:
 
 
 def _layout_public(title: str, body_html: str) -> str:
-    """Colourful consumer / personal-account emails."""
+    """Customer emails: full-width navy header (Gmail-safe, no CSS gradient)."""
     return f"""<!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}</title>
 </head>
-<body style="margin:0;padding:0;background:#fff6e8;font-family:Segoe UI,Arial,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#fff6e8;padding:24px 0;">
-    <tr><td align="center" style="padding:0 12px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(253,177,54,.22);">
-        <tr><td style="background:linear-gradient(135deg,#3F61AA 0%,#6C8EE8 48%,#FDB136 100%);padding:32px 24px;">
-          <p style="margin:0 0 8px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Samphone</p>
-          <h1 style="margin:0;color:#fff;font-size:28px;font-weight:800;line-height:1.2;">{html.escape(SITE_NAME)}</h1>
-        </td></tr>
-        <tr><td style="height:8px;background:#FDB136;font-size:0;line-height:0;">&nbsp;</td></tr>
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#ffffff;">
+    <tr><td align="center" style="padding:0;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#ffffff;">
+        <tr>
+          <td style="background:{NAVY};padding:28px 24px 18px;text-align:center;">
+            <p style="margin:0;color:#ffffff;font-size:28px;font-weight:800;letter-spacing:.08em;line-height:1.2;">SAMPHONE</p>
+            <p style="margin:8px 0 0;color:{ORANGE};font-size:12px;font-weight:800;letter-spacing:.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
+          </td>
+        </tr>
+        <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr><td style="padding:28px 24px;color:#1a1a2e;font-size:15px;line-height:1.65;">
           {body_html}
         </td></tr>
-        <tr><td style="padding:18px 24px;background:#3F61AA;color:#e8eefc;font-size:12px;">
+        <tr><td style="padding:18px 24px;background:{NAVY};color:#e8eefc;font-size:12px;">
           Need a hand? Write to
-          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:#FDB136;font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>
+          <a href="mailto:{html.escape(SUPPORT_EMAIL)}" style="color:{ORANGE};font-weight:700;">{html.escape(SUPPORT_EMAIL)}</a>
         </td></tr>
       </table>
     </td></tr>
@@ -202,6 +204,18 @@ def _detail_row(label: str, value: str) -> str:
     return (
         f'<tr><td style="padding:8px 12px;color:#6b7280;width:140px;vertical-align:top;">{html.escape(label)}</td>'
         f'<td style="padding:8px 12px;color:#111827;font-weight:600;">{html.escape(value.strip())}</td></tr>'
+    )
+
+
+def _detail_table(*rows: str) -> str:
+    """Wrap _detail_row fragments in a real table so Gmail does not collapse the layout."""
+    inner = "".join(r for r in rows if r)
+    if not inner:
+        return ""
+    return (
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" '
+        'style="width:100%;border-collapse:collapse;">'
+        f"{inner}</table>"
     )
 
 
@@ -987,7 +1001,7 @@ def _order_items_html_plain(order: dict, lang: str = "en") -> tuple[str, list[st
         <tr>
           <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;vertical-align:top;width:76px;">{img_html}</td>
           <td style="padding:12px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top;">
-            <div style="margin:0 0 4px;">{title_html}</div>
+            <div style="margin:0 0 4px;font-weight:700;color:#111827;">{title_html}</div>
             <div style="color:#6b7280;font-size:13px;">{html.escape(tr(lang, "order.items.qty_each", qty=qty, price=price))}</div>
           </td>
           <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;text-align:right;vertical-align:top;
@@ -1389,18 +1403,34 @@ def send_admin_new_order_email(order: dict) -> bool:
     items_table = _order_items_table(order, lang)
     addr_html, addr_plain = _order_address_block(order)
 
-    body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(tr(lang, "order.new.title"))}</h2>
-      <p style="margin:0 0 20px;color:#374151;">A customer just placed an order on {html.escape(SITE_NAME)}.</p>
-      {_detail_row(tr(lang, "order.field.number"), order_number)}
-      {_detail_row(tr(lang, "order.field.customer"), f"{customer_name} <{customer}>")}
-      {_detail_row(tr(lang, "order.field.total"), total)}
-      {_detail_row(tr(lang, "order.field.payment"), payment)}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.items"))}</p>
-      {items_table}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
-      <p style="margin:0;color:#374151;line-height:1.5;">{addr_html}</p>
+    details = _detail_table(
+        _detail_row(tr(lang, "order.field.number"), order_number),
+        _detail_row(tr(lang, "order.field.customer"), f"{customer_name} <{customer}>"),
+        _detail_row(tr(lang, "order.field.total"), total),
+        _detail_row(tr(lang, "order.field.payment"), payment),
+    )
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px 12px;text-align:center;">
+            <h1 style="margin:0 0 10px;color:{NAVY};font-size:26px;font-weight:800;">{html.escape(tr(lang, "order.new.title"))}</h1>
+            <p style="margin:0 auto;max-width:460px;color:{GREY};font-size:14px;line-height:1.55;">
+              A customer just placed an order on {html.escape(SITE_NAME)}.
+            </p>
+          </td>
+        </tr>
+        <tr><td style="padding:8px 24px;">{details}</td></tr>
+        <tr>
+          <td style="padding:18px 28px 8px;">
+            <p style="margin:0 0 10px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.items"))}</p>
+            {items_table}
+            <p style="margin:20px 0 8px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
+            <p style="margin:0;color:{GREY};font-size:14px;line-height:1.5;">{addr_html}</p>
+          </td>
+        </tr>
+      </table>
     """
+    html_body = _storefront_order_chrome(inner=inner, motto="Welcome to Samphone’s online store.")
     plain = (
         f"New order {order_number}\n\nCustomer: {customer_name} <{customer}>\n"
         f"Total: {total}\nPayment: {payment}\n\nItems:\n"
@@ -1408,7 +1438,7 @@ def send_admin_new_order_email(order: dict) -> bool:
         + f"\nSubtotal: {total}\n\nDelivery address:\n{addr_plain}\n"
     )
     subject = tr(lang, "email.order.new.subject", order_number=order_number, total=total)
-    return send_email(admin, subject, _layout(subject, body), plain)
+    return send_email(admin, subject, html_body, plain)
 
 
 def send_order_cancelled_email(order: dict) -> bool:
@@ -1426,28 +1456,44 @@ def send_order_cancelled_email(order: dict) -> bool:
     addr_html, addr_plain = _order_address_block(order)
     orders_url = f"{SHOP_URL}/account/orders"
 
-    body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(tr(lang, "order.cancelled.title"))}</h2>
-      <p style="margin:0 0 20px;color:#374151;">
-        Hi {html.escape(name)}, your order <strong>{html.escape(order_number)}</strong> has been cancelled.
-      </p>
-      {_detail_row(tr(lang, "order.field.number"), order_number)}
-      {_detail_row(tr(lang, "order.field.total"), total)}
-      {_detail_row(tr(lang, "order.field.payment"), payment)}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.items"))}</p>
-      {items_table}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
-      <p style="margin:0 0 20px;color:#374151;line-height:1.5;">{addr_html}</p>
-      <p style="margin:0 0 20px;color:#374151;">
-        If you didn’t request this or need help, reply to this email or contact {html.escape(SUPPORT_EMAIL)}.
-      </p>
-      <p style="margin:28px 0 0;">
-        <a href="{html.escape(orders_url)}" style="display:inline-block;background:#3F61AA;color:#ffffff;
-          text-decoration:none;font-weight:800;padding:14px 28px;border-radius:8px;">
-          {html.escape(tr(lang, "order.action.view_all"))}
-        </a>
-      </p>
+    details = _detail_table(
+        _detail_row(tr(lang, "order.field.number"), order_number),
+        _detail_row(tr(lang, "order.field.total"), total),
+        _detail_row(tr(lang, "order.field.payment"), payment),
+    )
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px 12px;text-align:center;">
+            <h1 style="margin:0 0 10px;color:{NAVY};font-size:26px;font-weight:800;">{html.escape(tr(lang, "order.cancelled.title"))}</h1>
+            <p style="margin:0;color:{NAVY};font-size:16px;font-weight:700;">Hi {html.escape(name)},</p>
+            <p style="margin:8px auto 0;max-width:460px;color:{GREY};font-size:14px;line-height:1.55;">
+              Your order <strong>{html.escape(order_number)}</strong> has been cancelled.
+            </p>
+          </td>
+        </tr>
+        <tr><td style="padding:8px 24px;">{details}</td></tr>
+        <tr>
+          <td style="padding:18px 28px 8px;">
+            <p style="margin:0 0 10px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.items"))}</p>
+            {items_table}
+            <p style="margin:20px 0 8px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
+            <p style="margin:0 0 20px;color:{GREY};font-size:14px;line-height:1.5;">{addr_html}</p>
+            <p style="margin:0 0 20px;color:{GREY};font-size:14px;">
+              If you didn’t request this or need help, reply to this email or contact {html.escape(SUPPORT_EMAIL)}.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 28px 28px;text-align:center;">
+            <a href="{html.escape(orders_url)}" style="display:inline-block;background:{ORANGE};color:#ffffff;text-decoration:none;font-weight:800;font-size:16px;padding:14px 32px;border-radius:10px;">
+              {html.escape(tr(lang, "order.action.view_all"))}
+            </a>
+          </td>
+        </tr>
+      </table>
     """
+    html_body = _storefront_order_chrome(inner=inner, motto="Welcome to Samphone’s online store.")
     plain = (
         f"Hi {name},\n\nYour order {order_number} has been cancelled.\n"
         f"Total: {total}\nPayment: {payment}\n\nItems:\n"
@@ -1456,7 +1502,7 @@ def send_order_cancelled_email(order: dict) -> bool:
         f"View orders: {orders_url}\n"
     )
     subject = tr(lang, "email.order.cancelled.subject", order_number=order_number)
-    return send_email(email_addr, subject, _layout(subject, body), plain)
+    return send_email(email_addr, subject, html_body, plain)
 
 
 def send_admin_order_cancelled_email(order: dict) -> bool:
@@ -1475,18 +1521,34 @@ def send_admin_order_cancelled_email(order: dict) -> bool:
     items_table = _order_items_table(order, lang)
     addr_html, addr_plain = _order_address_block(order)
 
-    body = f"""
-      <h2 style="margin:0 0 12px;color:#111827;font-size:22px;">{html.escape(tr(lang, "order.cancelled.title"))}</h2>
-      <p style="margin:0 0 20px;color:#374151;">An order was cancelled on {html.escape(SITE_NAME)}.</p>
-      {_detail_row(tr(lang, "order.field.number"), order_number)}
-      {_detail_row(tr(lang, "order.field.customer"), f"{customer_name} <{customer}>")}
-      {_detail_row(tr(lang, "order.field.total"), total)}
-      {_detail_row(tr(lang, "order.field.payment"), payment)}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.items"))}</p>
-      {items_table}
-      <p style="margin:20px 0 8px;color:#6b7280;font-size:13px;font-weight:700;text-transform:uppercase;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
-      <p style="margin:0;color:#374151;line-height:1.5;">{addr_html}</p>
+    details = _detail_table(
+        _detail_row(tr(lang, "order.field.number"), order_number),
+        _detail_row(tr(lang, "order.field.customer"), f"{customer_name} <{customer}>"),
+        _detail_row(tr(lang, "order.field.total"), total),
+        _detail_row(tr(lang, "order.field.payment"), payment),
+    )
+    inner = f"""
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:32px 28px 12px;text-align:center;">
+            <h1 style="margin:0 0 10px;color:{NAVY};font-size:26px;font-weight:800;">{html.escape(tr(lang, "order.cancelled.title"))}</h1>
+            <p style="margin:0 auto;max-width:460px;color:{GREY};font-size:14px;line-height:1.55;">
+              An order was cancelled on {html.escape(SITE_NAME)}.
+            </p>
+          </td>
+        </tr>
+        <tr><td style="padding:8px 24px;">{details}</td></tr>
+        <tr>
+          <td style="padding:18px 28px 28px;">
+            <p style="margin:0 0 10px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.items"))}</p>
+            {items_table}
+            <p style="margin:20px 0 8px;color:{NAVY};font-size:13px;font-weight:800;letter-spacing:.08em;">{html.escape(tr(lang, "order.field.delivery_address"))}</p>
+            <p style="margin:0;color:{GREY};font-size:14px;line-height:1.5;">{addr_html}</p>
+          </td>
+        </tr>
+      </table>
     """
+    html_body = _storefront_order_chrome(inner=inner, motto="Welcome to Samphone’s online store.")
     plain = (
         f"Order cancelled — {order_number}\n"
         f"Customer: {customer_name} <{customer}>\nTotal: {total}\nPayment: {payment}\n\nItems:\n"
@@ -1494,7 +1556,7 @@ def send_admin_order_cancelled_email(order: dict) -> bool:
         + f"\nSubtotal: {total}\n\nDelivery address:\n{addr_plain}\n"
     )
     subject = tr(lang, "email.order.cancelled.subject", order_number=order_number)
-    return send_email(admin, subject, _layout(subject, body), plain)
+    return send_email(admin, subject, html_body, plain)
 
 
 def _product_url(product: dict | None = None, product_id: str = "") -> str:
