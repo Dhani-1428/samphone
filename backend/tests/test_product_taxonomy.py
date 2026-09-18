@@ -56,6 +56,8 @@ def test_oem_back_cover_housing_is_parts():
         assert asg["sub"] == "housing", title
     plain = assign_taxonomy(title="Back Cover iPhone 17 Pro Max Black")
     assert plain["top"] == "accessories"
+    battery_cover = assign_taxonomy(title="iPhone 17 Pro Max Battery Cover Black")
+    assert battery_cover["top"] == "accessories"
 
 
 def test_cable_vs_port():

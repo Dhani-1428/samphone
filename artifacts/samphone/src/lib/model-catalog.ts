@@ -1,4 +1,9 @@
-import { classifyCatalogProduct, looksLikeFinishedDevice } from "@/lib/catalog-taxonomy";
+import {
+  classifyCatalogProduct,
+  isCustomerAccessoryProduct,
+  isRepairPartProduct,
+  looksLikeFinishedDevice,
+} from "@/lib/catalog-taxonomy";
 import { hayMatchesModel, modelSearchNames } from "@/lib/model-aliases";
 import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
@@ -448,8 +453,8 @@ export function splitModelCatalog(products: WooProduct[]): { parts: WooProduct[]
   const parts: WooProduct[] = [];
   const accessories: WooProduct[] = [];
   for (const p of products) {
-    if (classifyModelProduct(p).kind === "part") parts.push(p);
-    else accessories.push(p);
+    if (isRepairPartProduct(p)) parts.push(p);
+    else if (isCustomerAccessoryProduct(p)) accessories.push(p);
   }
   return {
     parts: sortByTypeThenPrice(parts, "part"),

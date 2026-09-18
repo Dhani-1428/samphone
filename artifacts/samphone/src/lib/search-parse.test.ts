@@ -84,7 +84,10 @@ describe("catalog taxonomy", () => {
     assert.equal(classifyCatalogProduct({ name: "iPhone 14 Pro Max Vibrater" }).category, "parts");
     assert.equal(classifyCatalogProduct({ name: "iPhone 14 Pro Max Vibrator" }).category, "parts");
     assert.equal(classifyCatalogProduct({ name: "Hoco Bluetooth Speaker" }).category, "accessories");
-    assert.equal(classifyCatalogProduct({ name: "Silicon Soft Jelly Cover iPhone 14 Pro Max" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "iPhone 17 Pro Max Battery Cover Black" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "Camera Lens 3 in 1 iPhone 17 Pro Max" }).category, "accessories");
+    assert.equal(classifyCatalogProduct({ name: "Sim Tray iPhone 17 Pro Max" }).category, "parts");
+    assert.equal(classifyCatalogProduct({ name: "Hoco USB-C Charger 20W" }).category, "accessories");
   });
 
   it("puts complete phones in Accessories, not Parts", () => {

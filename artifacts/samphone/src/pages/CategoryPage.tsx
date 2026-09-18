@@ -17,7 +17,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink } from "@/components/CatalogPageChrome";
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
+import { isCustomerAccessoryProduct, isRepairPartProduct } from "@/lib/catalog-taxonomy";
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const cardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -50,9 +50,8 @@ function filterSyntheticProducts(products: WooProduct[], parsed: { kind: "access
     const brandOk = brandTokens.every((t) => hay.includes(t.toLowerCase()));
     if (!brandOk) return false;
     if (!kindRe.test(hay)) return false;
-    const cat = classifyCatalogProduct(p).category;
-    if (parsed.kind === "screens") return cat === "parts";
-    return cat !== "parts";
+    if (parsed.kind === "screens") return isRepairPartProduct(p);
+    return isCustomerAccessoryProduct(p);
   });
 }
 
@@ -115,7 +114,14 @@ export default function CategoryPage() {
     };
   }, [configured, catalogLoading, slug, fromCatalog.length, synthetic]);
 
-  const wooList: WooProduct[] = fromCatalog.length > 0 ? fromCatalog : remote.items ?? [];
+  const wooList: WooProduct[] = (fromCatalog.length > 0 ? fromCatalog : remote.items ?? []).filter((p) => {
+    if (synthetic?.kind === "screens") return isRepairPartProduct(p);
+    if (synthetic) return isCustomerAccessoryProduct(p);
+    if (/(lcd|oled|battery|flex|housing|digitizer|phone-parts|pecas|peças|spare)/i.test(slug)) {
+      return isRepairPartProduct(p);
+    }
+    return isCustomerAccessoryProduct(p);
+  });
 
   const wooLoading =
     configured &&

@@ -86,11 +86,11 @@ function hay(p: TaxonomyProduct): string {
 }
 
 const ACCESSORY_RE =
-  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphones?|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|capinha|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover|pel[ií]cula)\b/i;
+  /\b(jelly|silicone?|magsafe|tempered|full glue|privacy glass|screen protect|protector|wallet|flip cover|antishock|popsocket|holder|earphones?|headset|earbuds|tws|charger|carregador|adaptador|wall charg|power bank|usb-c cable|lightning cable|data cable|capa|capas|capinha|funda|tampas?|covers?|cases?|design cover|soft jelly|back cover|rear cover|battery cover|pel[ií]cula|3[\s-]*in[\s-]*1|lens complete)\b/i;
 
 /** Internal repair hardware — never an accessory, even if the title starts with a phone model. */
 const PART_RE =
-  /\b(touch\s*\+|lcd|oled|incell|tft|digitizer|service pack|display assembly|replacement screen|\bscreen\b|\bbattery\b|front camera|rear camera|back camera|camera module|charging (flex|port|board)|charge flex|usb flex|dock flex|sim tray|sim reader|housing|chassis|middle frame|buzzer|ringer|vibrat(?:or|er|ion)|taptic|earpiece|ear[\s-]?speaker|loud[\s-]?speaker|\bspeaker\b|flashlight|flash[\s-]?light|flash (?:flex|lamp)|motherboard|logic board|mainboard|back glass|rear glass|(?:main|volume|power|antenna|fingerprint|finger)\s*flex|\bflex\b|proximity|\bmic\b|microphone|peças?)\b/i;
+  /\b(touch\s*\+|lcd|oled|incell|tft|digitizer|service pack|display assembly|replacement screen|\bscreen\b|battery(?!\s*cover)|front camera|rear camera|back camera|camera module|charging (flex|port|board)|charge flex|usb flex|dock flex|sim tray|sim reader|housing|chassis|middle frame|buzzer|ringer|vibrat(?:or|er|ion)|taptic|earpiece|ear[\s-]?speaker|loud[\s-]?speaker|\bspeaker\b|flashlight|flash[\s-]?light|flash (?:flex|lamp)|motherboard|logic board|mainboard|back glass|rear glass|(?:main|volume|power|antenna|fingerprint|finger)\s*flex|\bflex\b|proximity|\bmic\b|microphone|peças?)\b/i;
 
 const AUDIO_ACCESSORY_RE =
   /\b(bluetooth\s*speaker|bt\s*speaker|portable\s*speaker|soundbar|earphones?|headset|earbuds|\btws\b|handsfree|neck earphone)\b/i;
@@ -114,6 +114,8 @@ function isOemHousingName(n: string): boolean {
 
 function isPartName(n: string): boolean {
   if (isOemHousingName(n)) return true;
+  if (/\b(3[\s-]*in[\s-]*1|lens\s*complete|camera\s*lens\s*complete)\b/i.test(n)) return false;
+  if (/\b(battery\s*cover|back\s*cover|rear\s*cover)\b/i.test(n) && !isOemHousingName(n)) return false;
   if (/\b(tempered|protector|full glue|privacy glass|pel[ií]cula|jelly|silicone?|magsafe)\b/i.test(n) && !/\b(lcd|oled|flex|housing|battery)\b/i.test(n)) {
     return false;
   }
@@ -304,6 +306,16 @@ export function classifyCatalogProduct(p: TaxonomyProduct): CatalogClassificatio
     typeId: typeIdFor(category, subcategory, h),
     issues,
   };
+}
+
+export function isRepairPartProduct(p: TaxonomyProduct): boolean {
+  return classifyCatalogProduct(p).category === "parts";
+}
+
+/** Customer-use add-ons (cases, glass, chargers). Not spare parts and not complete phones. */
+export function isCustomerAccessoryProduct(p: TaxonomyProduct): boolean {
+  const cls = classifyCatalogProduct(p);
+  return cls.category === "accessories" && cls.subcategory !== "device";
 }
 
 export function productMatchesSubcategory(p: TaxonomyProduct, subcategory: CatalogSubcategory): boolean {

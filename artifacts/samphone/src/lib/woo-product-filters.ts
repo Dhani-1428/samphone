@@ -1,6 +1,7 @@
 import { accessoriesColumns, cardsColumns, smartphonesColumns } from "@/data/categories";
 import type { WooProduct } from "@/lib/woocommerce";
 import { catalogUnitPrice, type PriceUser } from "@/lib/customer-price";
+import { isCustomerAccessoryProduct, isRepairPartProduct } from "@/lib/catalog-taxonomy";
 
 const TABLETS_SLUG = "tablets";
 const SMARTPHONE_CATEGORY_SLUGS = new Set(smartphonesColumns.flatMap((c) => c.items.map((i) => i.slug)));
@@ -379,7 +380,7 @@ function filterSectionBrand(
 }
 
 export function filterAccessoryCatalog(products: WooProduct[]): WooProduct[] {
-  return products.filter((p) => matchesSlugSet(p, ACCESSORY_CATEGORY_SLUGS));
+  return products.filter((p) => isCustomerAccessoryProduct(p));
 }
 
 export function filterCardsCatalog(products: WooProduct[]): WooProduct[] {
@@ -482,6 +483,7 @@ const TITLE_TO_RAIL: Record<string, HomeRailKey> = {
 
 /** True when a product belongs on a homepage accessory rail (never LCD/display parts in glass). */
 export function productMatchesHomeRail(p: WooProduct, key: HomeRailKey): boolean {
+  if (isRepairPartProduct(p)) return false;
   const hay = productSearchHaystack(p);
   switch (key) {
     case "screen-protectors":

@@ -16,7 +16,7 @@ import {
   productMatchesSubtype,
   shopGroupFetchQueries,
 } from "@/data/accessory-pages";
-import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
+import { isCustomerAccessoryProduct } from "@/lib/catalog-taxonomy";
 import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
 import { sortByPrice } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
@@ -86,7 +86,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
     const scoped =
       shopGroup === "Repairing Tools"
         ? list
-        : list.filter((p) => classifyCatalogProduct(p).category !== "parts");
+        : list.filter((p) => isCustomerAccessoryProduct(p));
     const filtered = subtype ? scoped.filter((p) => productMatchesSubtype(p, subtype)) : scoped;
     return sortByPrice(filtered, "asc", user);
   }, [items, subtype, user, page?.group, group]);

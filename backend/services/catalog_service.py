@@ -470,27 +470,19 @@ class CatalogService:
         variant_labels = [v["label"] for v in color_variants]
 
         title = nice(title_raw)
-        from product_taxonomy import TOP_VALUES, assign_taxonomy, validate_taxonomy
+        from product_taxonomy import public_taxonomy
 
-        stored_top = str(row.get("samphone_top") or "").strip()
-        stored_sub = str(row.get("samphone_sub") or "").strip()
-        if stored_top in TOP_VALUES:
-            try:
-                validate_taxonomy(stored_top, stored_sub)
-                meta_cls["taxonomy_top"] = stored_top
-                meta_cls["taxonomy_sub"] = stored_sub
-            except ValueError:
-                pass
-        else:
-            asg = assign_taxonomy(
-                title=title_raw,
-                leaf=str(meta_cls.get("leaf_category") or ""),
-                part_type=str(meta_cls.get("part_type") or ""),
-                category=str(meta_cls.get("category") or ""),
-                wc_categories=cat_names,
-            )
-            meta_cls["taxonomy_top"] = asg["top"]
-            meta_cls["taxonomy_sub"] = asg["sub"]
+        asg = public_taxonomy(
+            title=title_raw,
+            leaf=str(meta_cls.get("leaf_category") or ""),
+            part_type=str(meta_cls.get("part_type") or ""),
+            category=str(meta_cls.get("category") or ""),
+            wc_categories=cat_names,
+            stored_top=str(row.get("samphone_top") or "").strip(),
+            stored_sub=str(row.get("samphone_sub") or "").strip(),
+        )
+        meta_cls["taxonomy_top"] = asg["top"]
+        meta_cls["taxonomy_sub"] = asg["sub"]
         description = ""
         if include_description:
             content = row.get("description") or row.get("short_description") or ""

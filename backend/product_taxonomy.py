@@ -193,7 +193,9 @@ def assign_taxonomy(
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.SCREEN_PROTECTORS, "lens-addon"
     elif _HOUSING_RE.search(name):
         top, sub, reason = TopCategory.PARTS, PartsSubcategory.HOUSING, "housing"
-    elif _CASE_RE.search(name) and not _SCREEN_RE.search(name):
+    elif re.search(r"(battery|back|rear)\s*cover", name, re.I) and not _HOUSING_RE.search(name):
+        top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.CASES, "snap-on-cover"
+    elif _CASE_RE.search(name) and not _SCREEN_RE.search(name) and not _HOUSING_RE.search(name):
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.CASES, "case-cover"
     elif _HOLDER_RE.search(name) and not _PORT_FLEX_RE.search(name):
         top, sub, reason = TopCategory.ACCESSORIES, AccessoriesSubcategory.HOLDERS, "holder"
@@ -240,6 +242,41 @@ def assign_taxonomy(
         "title": name,
         "hay": hay[:200],
     }
+
+
+def public_taxonomy(
+    *,
+    title: str = "",
+    leaf: str = "",
+    part_type: str = "",
+    category: str = "",
+    wc_categories: list[str] | None = None,
+    stored_top: str = "",
+    stored_sub: str = "",
+) -> dict[str, Any]:
+    """
+    Shop listing taxonomy: the product title wins when it clearly says
+    Parts (technician repair) or Accessories (customer-use).
+    Stored Woo/admin tags are used only when the title is ambiguous.
+    """
+    asg = assign_taxonomy(
+        title=title,
+        leaf=leaf,
+        part_type=part_type,
+        category=category,
+        wc_categories=wc_categories,
+    )
+    st = (stored_top or "").strip()
+    ss = (stored_sub or "").strip()
+    if st in TOP_VALUES and asg.get("ambiguous"):
+        try:
+            validate_taxonomy(st, ss or asg["sub"])
+            asg["top"] = st
+            asg["sub"] = ss or asg["sub"]
+            asg["reason"] = "stored-when-ambiguous"
+        except ValueError:
+            pass
+    return asg
 
 
 def api_category_for_top(top: str) -> str:
