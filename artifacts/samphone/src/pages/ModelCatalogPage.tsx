@@ -207,8 +207,7 @@ export default function ModelCatalogPage() {
       names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, parseModelName(model), brand);
     const seed = peekModelCatalogMemory(brand, model, names);
     if (seed.length > 0) {
-      const strict = seed.filter(belongs);
-      setRemote(strict.length > 0 ? strict : seed);
+      setRemote(seed.filter(belongs));
       setModelFetching(false);
     } else {
       setRemote(null);
@@ -216,14 +215,12 @@ export default function ModelCatalogPage() {
     }
     void fetchCloudProductsForModel(names, brand, model, (list) => {
       if (!alive) return;
-      const strict = list.filter(belongs);
-      setRemote(strict.length > 0 ? strict : list);
+      setRemote(list.filter(belongs));
       setModelFetching(false);
     })
       .then((list) => {
         if (!alive) return;
-        const strict = list.filter(belongs);
-        setRemote(strict.length > 0 ? strict : list);
+        setRemote(list.filter(belongs));
       })
       .catch(() => {
         if (alive) setRemote([]);
@@ -246,14 +243,13 @@ export default function ModelCatalogPage() {
         const belongs = (p: WooProduct) =>
           names.some((n) => productBelongsToModel(p, n, brand)) || productBelongsToModel(p, label, brand);
         const remoteList = remote ?? [];
-        const remoteKeys = new Set(remoteList.map((p) => String(p.cloudId || p.id)));
         const seen = new Set<string>();
         const out: WooProduct[] = [];
-        for (const p of [...remoteList, ...products.filter(belongs)]) {
+        for (const p of [...remoteList.filter(belongs), ...products.filter(belongs)]) {
           const key = String(p.cloudId || p.id);
           if (seen.has(key)) continue;
           seen.add(key);
-          if (remoteKeys.has(key) || belongs(p)) out.push(p);
+          out.push(p);
         }
         return out;
       }

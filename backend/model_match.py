@@ -7,7 +7,76 @@ from typing import Optional
 
 from seed_data import MODELS
 
-# Longer forms of the same base model (Pro vs base, Ultra vs base, etc.).
+_FAMILIES = (
+    frozenset({"apple", "iphone"}),
+    frozenset({"xiaomi", "redmi", "poco"}),
+    frozenset({"samsung", "galaxy"}),
+    frozenset({"honor"}),
+    frozenset({"huawei"}),
+    frozenset({"oppo"}),
+    frozenset({"realme"}),
+    frozenset({"vivo"}),
+    frozenset({"motorola", "moto"}),
+    frozenset({"oneplus", "one plus"}),
+    frozenset({"nokia"}),
+    frozenset({"google", "google pixel", "pixel"}),
+    frozenset({"alcatel"}),
+    frozenset({"tcl"}),
+    frozenset({"zte"}),
+    frozenset({"lg"}),
+    frozenset({"lenovo"}),
+    frozenset({"nothing"}),
+    frozenset({"sony", "xperia"}),
+)
+
+_FAMILY_WORDS = tuple(sorted({w for fam in _FAMILIES for w in fam}, key=len, reverse=True))
+_BARE_GENERATION_RE = re.compile(
+    r"^\d{1,2}(?:\s+(?:pro(?:\s+max)?|plus|ultra|max|mini|air|lite|fe))*$",
+    re.I,
+)
+
+
+def _family_for(brand: str) -> frozenset[str]:
+    b = (brand or "").strip().lower()
+    if not b:
+        return frozenset()
+    for fam in _FAMILIES:
+        if b in fam:
+            return fam
+    return frozenset({b})
+
+
+def brands_compatible(a: Optional[str], b: Optional[str]) -> bool:
+    left = (a or "").strip()
+    right = (b or "").strip()
+    if not left or not right:
+        return True
+    if left.lower() == right.lower():
+        return True
+    return bool(_family_for(left) & _family_for(right))
+
+
+def title_conflicts_with_brand(title: str, brand: str) -> bool:
+    family = _family_for(brand)
+    if not family:
+        return False
+    t = f" {(title or '').lower()} "
+    for word in _FAMILY_WORDS:
+        if word in family:
+            continue
+        if len(word) < 2:
+            continue
+        if f" {word} " in t or t.startswith(f"{word} ") or t.endswith(f" {word} "):
+            return True
+        if " " in word and word in t:
+            return True
+    return False
+
+
+def is_bare_generation_alias(alias: str) -> bool:
+    return bool(_BARE_GENERATION_RE.match((alias or "").strip()))
+
+
 _MODEL_EXTENDERS = (
     "pro max",
     "pro plus",
@@ -119,6 +188,8 @@ def resolve_model_name(brand: Optional[str], model: Optional[str], model_wc_id: 
 def title_matches_model(title: str, model_name: str, brand: str) -> bool:
     if not title or not model_name:
         return False
+    if brand and title_conflicts_with_brand(title, brand):
+        return False
     t = title.lower()
     matched = [alias for alias in model_aliases(model_name, brand) if alias.lower() in t]
     if not matched:
@@ -158,6 +229,16 @@ def product_matches_model(
     model_name: Optional[str],
     model_wc_id: Optional[int] = None,
 ) -> bool:
+    title = product.get("title") or product.get("name") or ""
+    if brand and title_conflicts_with_brand(title, brand):
+        return False
+    prod_brand = product.get("brand") or ""
+    if brand and prod_brand and not brands_compatible(brand, prod_brand):
+        family = _family_for(brand)
+        padded = f" {(title or '').lower()} "
+        if not any(f" {w} " in padded for w in family):
+            return False
+
     prod_wc = product.get("model_wc_id")
     try:
         prod_wc_int = int(prod_wc) if prod_wc is not None and prod_wc != "" else None

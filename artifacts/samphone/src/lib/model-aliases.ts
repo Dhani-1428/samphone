@@ -28,6 +28,72 @@ const BRAND_PREFIXES = [
 
 const EXTENDERS = ["pro max", "pro plus", "plus", "ultra", "mini", "air", "lite", "fe", "pro", "max"];
 
+/** Tokens that identify a phone brand in a title. Shared generations (17 Pro Max) must not cross these. */
+const BRAND_FAMILIES: Record<string, string[]> = {
+  iphone: ["iphone", "apple"],
+  apple: ["iphone", "apple"],
+  xiaomi: ["xiaomi", "redmi", "poco"],
+  samsung: ["samsung", "galaxy"],
+  honor: ["honor"],
+  huawei: ["huawei"],
+  oppo: ["oppo"],
+  realme: ["realme"],
+  vivo: ["vivo"],
+  motorola: ["motorola", "moto"],
+  oneplus: ["oneplus", "one plus"],
+  nokia: ["nokia"],
+  google: ["google", "pixel"],
+  "google-pixel": ["google", "pixel"],
+  pixel: ["google", "pixel"],
+  alcatel: ["alcatel"],
+  tcl: ["tcl"],
+  zte: ["zte"],
+  lg: ["lg"],
+  lenovo: ["lenovo"],
+  nothing: ["nothing"],
+  sony: ["sony", "xperia"],
+};
+
+function brandFamilyTokens(brand: string): Set<string> {
+  const key = (brand || "").toLowerCase().replace(/-parts$/i, "").trim();
+  const toks = BRAND_FAMILIES[key];
+  if (toks) return new Set(toks);
+  for (const [fam, words] of Object.entries(BRAND_FAMILIES)) {
+    if (words.includes(key)) return new Set(BRAND_FAMILIES[fam]);
+  }
+  return key ? new Set([key]) : new Set();
+}
+
+export function brandsCompatible(a: string, b: string): boolean {
+  const left = (a || "").trim();
+  const right = (b || "").trim();
+  if (!left || !right) return true;
+  if (left.toLowerCase() === right.toLowerCase()) return true;
+  const fa = brandFamilyTokens(left);
+  const fb = brandFamilyTokens(right);
+  for (const t of fa) if (fb.has(t)) return true;
+  return false;
+}
+
+/** True when the title names a different phone brand than the page (Xiaomi on iPhone, etc.). */
+export function titleConflictsWithBrand(hayRaw: string, brand: string): boolean {
+  const family = brandFamilyTokens(brand);
+  if (!family.size) return false;
+  const hay = spacedModel(hayRaw);
+  if (!hay) return false;
+  for (const words of Object.values(BRAND_FAMILIES)) {
+    if (words.some((w) => family.has(w))) continue;
+    for (const word of words) {
+      if (word.length < 2) continue;
+      const re = word.includes(" ")
+        ? new RegExp(word.replace(/\s+/g, "\\s+"), "i")
+        : new RegExp(`\\b${word}\\b`, "i");
+      if (re.test(hay)) return true;
+    }
+  }
+  return false;
+}
+
 export function compactModel(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
@@ -185,6 +251,7 @@ function missingRequiredExtender(hayRaw: string, modelName: string): boolean {
 
 /** True when a product title/fields belong to this model (short Galaxy/Redmi titles included). */
 export function hayMatchesModel(hayRaw: string, brand: string, modelName: string): boolean {
+  if (brand && titleConflictsWithBrand(hayRaw, brand)) return false;
   if (missingRequiredExtender(hayRaw, modelName)) return false;
   const hay = spacedModel(hayRaw);
   const hc = compactModel(hayRaw);

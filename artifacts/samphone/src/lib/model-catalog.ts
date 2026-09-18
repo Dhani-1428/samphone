@@ -1,10 +1,9 @@
 import {
   classifyCatalogProduct,
-  isCustomerAccessoryProduct,
   isRepairPartProduct,
   looksLikeFinishedDevice,
 } from "@/lib/catalog-taxonomy";
-import { hayMatchesModel, modelSearchNames } from "@/lib/model-aliases";
+import { brandsCompatible, hayMatchesModel, modelSearchNames, titleConflictsWithBrand } from "@/lib/model-aliases";
 import { getPrimaryImageUrl, type WooProduct } from "@/lib/woocommerce";
 import { sortByPrice } from "@/lib/woo-product-filters";
 
@@ -36,11 +35,14 @@ export function displayBrandName(slug: string): string {
 }
 
 function productHaystack(p: WooProduct): string {
-  return `${p.name} ${p.modelLabel ?? ""} ${p.sku ?? ""} ${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${p.specs?.Model ?? ""} ${(p.categories ?? []).map((c) => c.name).join(" ")}`;
+  return `${p.name} ${p.brand ?? ""} ${p.modelLabel ?? ""} ${p.sku ?? ""} ${p.catalogGroup ?? ""} ${p.subcategory ?? ""} ${p.specs?.Model ?? ""} ${(p.categories ?? []).map((c) => c.name).join(" ")}`;
 }
 
 /** Keep iPhone 15 from matching iPhone 15 Pro / Plus / Pro Max. Short Galaxy/Redmi titles still match. */
 export function productBelongsToModel(p: WooProduct, modelLabel: string, brand = ""): boolean {
+  if (brand && p.brand && !brandsCompatible(brand, p.brand) && titleConflictsWithBrand(`${p.name} ${p.brand}`, brand)) {
+    return false;
+  }
   const hay = productHaystack(p);
   if (hayMatchesModel(hay, brand, modelLabel)) return true;
   const names = modelSearchNames(brand, modelLabel);
@@ -454,7 +456,7 @@ export function splitModelCatalog(products: WooProduct[]): { parts: WooProduct[]
   const accessories: WooProduct[] = [];
   for (const p of products) {
     if (isRepairPartProduct(p)) parts.push(p);
-    else if (isCustomerAccessoryProduct(p)) accessories.push(p);
+    else accessories.push(p);
   }
   return {
     parts: sortByTypeThenPrice(parts, "part"),

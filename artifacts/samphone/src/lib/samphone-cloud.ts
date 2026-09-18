@@ -8,7 +8,7 @@ import {
   preferOriginalUpload,
   setStoredApiJwt,
 } from "@/config/samphone";
-import { modelAliases } from "@/lib/model-aliases";
+import { hayMatchesModel, modelAliases, titleConflictsWithBrand } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
 import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
@@ -907,6 +907,25 @@ function catalogApiBrand(brand?: string): string {
   return API_BRAND[key] || brand!.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function isBareGenerationAlias(alias: string): boolean {
+  return /^\d{1,2}(?:\s+(?:pro(?:\s+max)?|plus|ultra|max|mini|air|lite|fe))*$/i.test(alias.trim());
+}
+
+function scopeModelProducts(
+  items: WooProduct[],
+  brand: string | undefined,
+  modelName: string,
+  names: string[],
+): WooProduct[] {
+  const labels = [...names, modelName].map((n) => n.trim()).filter((n) => n.length >= 3);
+  return items.filter((p) => {
+    const hay = `${p.name} ${p.brand ?? ""}`;
+    if (brand && titleConflictsWithBrand(hay, brand)) return false;
+    if (labels.some((n) => hayMatchesModel(hay, brand ?? "", n))) return true;
+    return false;
+  });
+}
+
 export function modelCatalogCacheKey(brand?: string, modelSlug?: string, names: string[] = []): string {
   const slug = (modelSlug || names[0] || "").trim().toLowerCase();
   return `${(brand || "").trim().toLowerCase()}::${slug}`;
@@ -935,16 +954,19 @@ export async function fetchCloudProductsForModel(
   if (apiBrand) modelQuery.brand = apiBrand;
 
   const remember = (items: WooProduct[], total: number) => {
-    if (items.length) modelCatalogMemory.set(cacheKey, items);
-    onProgress?.(items, total);
+    const scoped = scopeModelProducts(items, brand, modelName, labels);
+    if (scoped.length) modelCatalogMemory.set(cacheKey, scoped);
+    onProgress?.(scoped, scoped.length || total);
   };
 
   if (modelQuery.model) {
     try {
       const byModel = await fetchCloudAllProducts(modelQuery, CLOUD_LIST_MAX_PAGES, remember);
-      if (byModel.length > 0) {
-        modelCatalogMemory.set(cacheKey, byModel);
-        return byModel;
+      const scoped = scopeModelProducts(byModel, brand, modelName, names);
+      if (scoped.length > 0) {
+        modelCatalogMemory.set(cacheKey, scoped);
+        remember(scoped, scoped.length);
+        return scoped;
       }
     } catch {
       /* fall back to title search */
@@ -954,9 +976,9 @@ export async function fetchCloudProductsForModel(
   const expanded = new Set<string>();
   for (const n of names) {
     const trimmed = n.trim();
-    if (trimmed.length >= 3) expanded.add(trimmed);
+    if (trimmed.length >= 3 && !isBareGenerationAlias(trimmed)) expanded.add(trimmed);
     for (const alias of modelAliases(brand ?? "", n)) {
-      if (alias.length >= 4 && alias.length <= 40) expanded.add(alias);
+      if (alias.length >= 4 && alias.length <= 40 && !isBareGenerationAlias(alias)) expanded.add(alias);
     }
   }
   const unique: string[] = [];
@@ -978,7 +1000,7 @@ export async function fetchCloudProductsForModel(
       }
     }),
   );
-  const merged = mergeWooProducts(bags);
+  const merged = scopeModelProducts(mergeWooProducts(bags), brand, modelName, names);
   if (merged.length) modelCatalogMemory.set(cacheKey, merged);
   onProgress?.(merged, merged.length);
   return merged;

@@ -12,8 +12,11 @@ describe("model aliases for non-Apple titles", () => {
     assert.ok(!hayMatchesModel("LCD Samsung Galaxy S24 Ultra", "samsung", "Samsung Galaxy S24"));
   });
 
-  it("matches Redmi accessories that omit Xiaomi", () => {
-    assert.ok(hayMatchesModel("Back Cover Redmi Note 13", "xiaomi", "Xiaomi Redmi Note 13"));
-    assert.ok(hayMatchesModel("LCD Redmi Note 13", "xiaomi", "Redmi Note 13"));
+  it("keeps Xiaomi 17 Pro Max off iPhone 17 Pro Max pages", () => {
+    assert.ok(hayMatchesModel("Back Cover iPhone 17 Pro Max Black", "iphone", "iPhone 17 Pro Max"));
+    assert.ok(!hayMatchesModel("Xiaomi 17 Pro Max Back Cover Green", "iphone", "iPhone 17 Pro Max"));
+    assert.ok(!hayMatchesModel("Xiaomi 17 Pro Max Back Cover Purple", "apple", "iPhone 17 Pro Max"));
+    assert.ok(hayMatchesModel("Xiaomi 17 Pro Max Back Cover Green", "xiaomi", "Xiaomi 17 Pro Max"));
+    assert.ok(!hayMatchesModel("iPhone 17 Pro Max Back Cover Black", "xiaomi", "Xiaomi 17 Pro Max"));
   });
 });

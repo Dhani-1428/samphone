@@ -652,7 +652,7 @@ class CatalogService:
         Full model catalog: every product in the WC model category, plus
         title-matched accessories/parts, then filter + parts-first sort.
         """
-        from model_match import filter_by_model, model_aliases
+        from model_match import filter_by_model, is_bare_generation_alias, model_aliases
 
         _, model_ids = self._load_models()
         rec = self._find_catalog_model(brand=brand, model=model, model_wc_id=model_wc_id)
@@ -690,6 +690,8 @@ class CatalogService:
         for alias in sorted(aliases, key=len, reverse=True):
             a = alias.strip()
             if len(a) < 5:
+                continue
+            if is_bare_generation_alias(a):
                 continue
             if a.lower() not in {t.lower() for t in search_terms}:
                 search_terms.append(a)

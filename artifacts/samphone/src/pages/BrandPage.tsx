@@ -494,7 +494,7 @@ export default function BrandPage() {
     const belongs = (p: WooProduct) => names.some((n) => productBelongsToModel(p, n, routeBrand));
     const seed = peekModelCatalogMemory(routeBrand, selectedModel.id, names);
     if (seed.length > 0) {
-      setRemoteModel(seed.filter(belongs).length ? seed.filter(belongs) : seed);
+      setRemoteModel(seed.filter(belongs));
       setModelLoading(false);
     } else {
       setRemoteModel(null);
@@ -502,14 +502,12 @@ export default function BrandPage() {
     }
     void fetchCloudProductsForModel(names, routeBrand, selectedModel.id, (list) => {
       if (!alive) return;
-      const strict = list.filter(belongs);
-      setRemoteModel(strict.length ? strict : list);
+      setRemoteModel(list.filter(belongs));
       setModelLoading(false);
     })
       .then((list) => {
         if (!alive) return;
-        const strict = list.filter(belongs);
-        setRemoteModel(strict.length ? strict : list);
+        setRemoteModel(list.filter(belongs));
       })
       .catch(() => {
         if (alive) setRemoteModel([]);
@@ -548,14 +546,12 @@ export default function BrandPage() {
 
     if (selectedModel) {
       const names = modelSearchNames(routeBrand, selectedModel.label);
-      const remoteIds = new Set((remoteModel ?? []).map((p) => String(p.cloudId || p.id)));
       const byModel = list.filter(
         (p) =>
-          remoteIds.has(String(p.cloudId || p.id)) ||
           names.some((n) => productBelongsToModel(p, n, routeBrand)) ||
           productBelongsToModel(p, selectedModel.label, routeBrand),
       );
-      if (byModel.length > 0) list = byModel;
+      list = byModel;
     } else if (activeFamily) {
       list = list.filter((p) => activeFamily.test(productSearchHaystack(p)));
     }
