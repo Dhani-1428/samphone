@@ -6,8 +6,10 @@ import logging
 import os
 import smtplib
 from datetime import datetime, timezone
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from typing import Any
 from localization import normalize_language, tr
 
@@ -17,9 +19,8 @@ SITE_NAME = "Samphone"
 # Customer-facing shop links in emails (buttons, account, cart, products).
 SHOP_URL = os.environ.get("SHOP_URL", "https://samphone.eu").rstrip("/")
 SITE_URL = os.environ.get("SITE_URL", SHOP_URL).rstrip("/")
-SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@samphone.pt")
+CUSTOMER_EMAIL = "geral@samphone.pt"
 STORE_PHONE = os.environ.get("STORE_PHONE", "+351 937 119 295").strip() or "+351 937 119 295"
-STORE_PUBLIC_EMAIL = os.environ.get("STORE_PUBLIC_EMAIL", "geral@samphone.pt").strip() or "geral@samphone.pt"
 STORE_WEB = (
     os.environ.get("STORE_WEB_DISPLAY") or os.environ.get("STORE_WEB") or "www.samphone.eu"
 ).strip() or "www.samphone.eu"
@@ -27,8 +28,25 @@ NAVY = "#1E4A8C"
 ORANGE = "#F5A21A"
 LIGHT_BLUE = "#E8F0FB"
 GREY = "#5B6470"
+LOGO_URL = (
+    os.environ.get("EMAIL_LOGO_URL", "").strip()
+    or "https://www.samphone.eu/samphone-logo.png"
+)
 # Default admin inbox for business applications / signup alerts.
 DEFAULT_ADMIN_NOTIFY_EMAIL = "samphone.pt@gmail.com"
+
+
+def _public_email() -> str:
+    """Address shown to customers. Never surface the Gmail SMTP mailbox."""
+    for key in ("STORE_PUBLIC_EMAIL", "SUPPORT_EMAIL"):
+        val = (os.environ.get(key) or "").strip()
+        if val and "gmail.com" not in val.lower() and "samphone.pt@" not in val.lower():
+            return val
+    return CUSTOMER_EMAIL
+
+
+SUPPORT_EMAIL = _public_email()
+STORE_PUBLIC_EMAIL = _public_email()
 
 
 def admin_notify_email() -> str:
@@ -36,7 +54,6 @@ def admin_notify_email() -> str:
     return (
         os.environ.get("ADMIN_NOTIFY_EMAIL", "").strip()
         or DEFAULT_ADMIN_NOTIFY_EMAIL
-        or os.environ.get("SUPPORT_EMAIL", "").strip()
         or os.environ.get("SMTP_USER", "").strip()
     )
 
@@ -46,7 +63,26 @@ def _smtp_configured() -> bool:
 
 
 def _from_address() -> str:
-    return os.environ.get("EMAIL_FROM", os.environ.get("SMTP_USER", "noreply@samphone.pt")).strip()
+    """Customer-visible From. Envelope sender stays the authenticated SMTP user."""
+    raw = (os.environ.get("EMAIL_FROM") or "").strip()
+    if raw and "gmail.com" not in raw.lower() and "samphone.pt@" not in raw.lower():
+        return raw
+    return f"Samphone <{CUSTOMER_EMAIL}>"
+
+
+def _logo_bytes() -> bytes | None:
+    here = Path(__file__).resolve().parent
+    for path in (
+        here / "static" / "samphone-logo.png",
+        here / "samphone-logo.png",
+        Path("/var/www/myapi/static/samphone-logo.png"),
+    ):
+        try:
+            if path.is_file():
+                return path.read_bytes()
+        except OSError:
+            continue
+    return None
 
 
 def send_email(to: str, subject: str, html_body: str, text_body: str = "") -> bool:
@@ -58,13 +94,28 @@ def send_email(to: str, subject: str, html_body: str, text_body: str = "") -> bo
         return False
 
     html_body = _ensure_storefront_html(html_body, title=subject)
+    logo = _logo_bytes()
+    if logo:
+        html_body = html_body.replace("{{LOGO_SRC}}", "cid:samphone-logo")
+    else:
+        html_body = html_body.replace("{{LOGO_SRC}}", html.escape(LOGO_URL, quote=True))
     plain = text_body.strip() or _html_to_plain(html_body)
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = _from_address()
+    msg["Reply-To"] = CUSTOMER_EMAIL
     msg["To"] = recipient
     msg.attach(MIMEText(plain, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    if logo:
+        related = MIMEMultipart("related")
+        related.attach(MIMEText(html_body, "html", "utf-8"))
+        image = MIMEImage(logo, _subtype="png")
+        image.add_header("Content-ID", "<samphone-logo>")
+        image.add_header("Content-Disposition", "inline", filename="samphone-logo.png")
+        related.attach(image)
+        msg.attach(related)
+    else:
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     host = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
     port = int(os.environ.get("SMTP_PORT", "587"))
@@ -127,74 +178,79 @@ def _cta(url: str, label: str, *, colorful: bool = True) -> str:
 
 def _storefront_order_chrome(*, inner: str, motto: str, title: str = "Samphone") -> str:
     phone = html.escape(STORE_PHONE)
-    mail = html.escape(STORE_PUBLIC_EMAIL)
+    mail = html.escape(_public_email())
     web = html.escape(STORE_WEB)
     fb = html.escape(os.environ.get("STORE_FACEBOOK", "https://www.facebook.com/").strip() or "https://www.facebook.com/")
     ig = html.escape(os.environ.get("STORE_INSTAGRAM", "https://www.instagram.com/samphone.pt").strip() or "https://www.instagram.com/samphone.pt")
     li = html.escape(os.environ.get("STORE_LINKEDIN", "https://www.linkedin.com/").strip() or "https://www.linkedin.com/")
     year = datetime.now(timezone.utc).year
     return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
+<meta name="x-apple-disable-message-reformatting">
 <title>{html.escape(title)}</title>
+<style type="text/css">
+  :root {{ color-scheme: light only; supported-color-schemes: light; }}
+  html, body {{ background:#ffffff !important; }}
+  @media only screen and (max-width: 620px) {{
+    .email-shell {{ width:100% !important; max-width:100% !important; }}
+    .email-pad {{ padding:18px 14px !important; }}
+    .email-logo {{ width:180px !important; height:auto !important; }}
+    .email-stack, .email-stack td {{ display:block !important; width:100% !important; max-width:100% !important; text-align:center !important; }}
+  }}
+</style>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr><td align="center">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background:#ffffff;">
+<body style="margin:0;padding:0;background-color:#ffffff !important;background:#ffffff;color:#1a1a2e;font-family:Arial,Helvetica,sans-serif;width:100% !important;-webkit-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;color:#ffffff;">{html.escape(title)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;background-color:#ffffff !important;">
+    <tr><td align="center" bgcolor="#ffffff" style="padding:0;background-color:#ffffff !important;">
+      <table role="presentation" class="email-shell" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background-color:#ffffff !important;">
         <tr>
-          <td style="background:{NAVY};padding:28px 28px 18px;text-align:center;">
-            <p style="margin:0;color:#ffffff;font-size:34px;font-weight:800;letter-spacing:0.04em;">SAMPHONE</p>
-            <p style="margin:8px 0 0;color:{ORANGE};font-size:13px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
+          <td class="email-pad" bgcolor="#ffffff" align="center" style="background-color:#ffffff !important;padding:22px 16px 12px;text-align:center;">
+            <a href="{html.escape(SHOP_URL)}" style="text-decoration:none;">
+              <img class="email-logo" src="{{{{LOGO_SRC}}}}" width="220" alt="Samphone" style="display:block;margin:0 auto;width:220px;max-width:78%;height:auto;border:0;outline:none;text-decoration:none;">
+            </a>
+            <p style="margin:10px 0 0;color:{NAVY} !important;font-size:11px;font-weight:800;letter-spacing:0.12em;">MOBILE PARTS &amp; ACCESSORIES</p>
           </td>
         </tr>
-        <tr><td style="height:5px;background:{ORANGE};font-size:0;line-height:0;">&nbsp;</td></tr>
-        <tr><td style="padding:0;">{inner}</td></tr>
+        <tr><td bgcolor="{ORANGE}" style="height:5px;background-color:{ORANGE} !important;font-size:0;line-height:0;">&nbsp;</td></tr>
         <tr>
-          <td style="background:{NAVY};padding:26px 24px 12px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <td bgcolor="#ffffff" style="padding:0;background-color:#ffffff !important;color:#1a1a2e !important;">
+            {inner}
+          </td>
+        </tr>
+        <tr>
+          <td class="email-pad" bgcolor="#F4F7FB" style="background-color:#F4F7FB !important;padding:20px 16px 16px;text-align:center;">
+            <p style="margin:0 0 6px;color:{NAVY} !important;font-size:15px;font-weight:800;letter-spacing:0.04em;">SAMPHONE</p>
+            <p style="margin:0 0 16px;color:{GREY} !important;font-size:13px;line-height:1.45;">{html.escape(motto)}</p>
+            <table role="presentation" class="email-stack" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="padding:0 8px 16px;color:#ffffff;font-size:13px;line-height:1.45;vertical-align:top;width:34%;">
-                  <strong style="letter-spacing:0.04em;">SAMPHONE</strong><br/>
-                  <span style="color:#c9d7ee;font-size:12px;">{html.escape(motto)}</span>
+                <td class="email-stack" style="padding:6px 4px;color:{NAVY} !important;font-size:13px;text-align:center;">☎ {phone}</td>
+              </tr>
+              <tr>
+                <td class="email-stack" style="padding:6px 4px;color:{NAVY} !important;font-size:13px;text-align:center;">
+                  ✉ <a href="mailto:{mail}" style="color:{NAVY} !important;text-decoration:none;font-weight:700;">{mail}</a>
                 </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  ☎<br/>{phone}
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  ✉<br/><a href="mailto:{mail}" style="color:#ffffff;text-decoration:none;">{mail}</a>
-                </td>
-                <td style="padding:0 6px 16px;color:#ffffff;font-size:12px;text-align:center;vertical-align:top;width:22%;">
-                  🌐<br/><a href="https://{web}" style="color:#ffffff;text-decoration:none;">{web}</a>
+              </tr>
+              <tr>
+                <td class="email-stack" style="padding:6px 4px;color:{NAVY} !important;font-size:13px;text-align:center;">
+                  🌐 <a href="https://{web}" style="color:{NAVY} !important;text-decoration:none;font-weight:700;">{web}</a>
                 </td>
               </tr>
             </table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid rgba(255,255,255,0.18);">
-              <tr>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🛡</div>
-                  <strong>Quality Products</strong><br/><span style="color:#c9d7ee;">You can trust</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🏷</div>
-                  <strong>Competitive Prices</strong><br/><span style="color:#c9d7ee;">Every day</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">📦</div>
-                  <strong>Fast Shipping</strong><br/><span style="color:#c9d7ee;">Across Portugal</span>
-                </td>
-                <td style="padding:16px 4px 8px;color:#ffffff;font-size:11px;text-align:center;width:25%;vertical-align:top;">
-                  <div style="font-size:16px;margin-bottom:6px;">🎧</div>
-                  <strong>Dedicated Support</strong><br/><span style="color:#c9d7ee;">We’re here to help</span>
-                </td>
-              </tr>
-            </table>
-            <p style="margin:8px 0;text-align:center;">
-              <a href="{fb}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">f</a>
-              <a href="{ig}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">ig</a>
-              <a href="{li}" style="display:inline-block;width:28px;height:28px;border:1px solid #ffffff;border-radius:50%;color:#ffffff;text-decoration:none;line-height:28px;margin:0 4px;">in</a>
+            <p style="margin:16px 0 8px;color:{GREY} !important;font-size:12px;">
+              Quality products · Competitive prices · Fast shipping · Dedicated support
             </p>
-            <p style="margin:8px 0 0;text-align:center;color:#9eb0cc;font-size:11px;">© {year} Samphone. All rights reserved.</p>
+            <p style="margin:8px 0;">
+              <a href="{fb}" style="display:inline-block;padding:6px 8px;color:{NAVY} !important;text-decoration:none;font-weight:700;">Facebook</a>
+              <a href="{ig}" style="display:inline-block;padding:6px 8px;color:{NAVY} !important;text-decoration:none;font-weight:700;">Instagram</a>
+              <a href="{li}" style="display:inline-block;padding:6px 8px;color:{NAVY} !important;text-decoration:none;font-weight:700;">LinkedIn</a>
+            </p>
+            <p style="margin:8px 0 0;text-align:center;color:{GREY} !important;font-size:11px;">© {year} Samphone. All rights reserved.</p>
           </td>
         </tr>
       </table>
@@ -210,9 +266,9 @@ def _layout(title: str, body_html: str, *, motto: str = "Welcome to Samphone’s
 
 def _layout_public(title: str, body_html: str, *, motto: str = "Welcome to Samphone’s online store.") -> str:
     inner = f"""
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff !important;">
         <tr>
-          <td style="padding:32px 28px;color:#1a1a2e;font-size:15px;line-height:1.65;">
+          <td class="email-pad" bgcolor="#ffffff" style="padding:24px 16px;color:#1a1a2e !important;font-size:15px;line-height:1.65;background-color:#ffffff !important;">
             {body_html}
           </td>
         </tr>
@@ -241,8 +297,10 @@ def _detail_row(label: str, value: str) -> str:
     if not (value or "").strip():
         return ""
     return (
-        f'<tr><td style="padding:8px 12px;color:#6b7280;width:140px;vertical-align:top;">{html.escape(label)}</td>'
-        f'<td style="padding:8px 12px;color:#111827;font-weight:600;">{html.escape(value.strip())}</td></tr>'
+        f'<tr><td style="padding:10px 0;border-bottom:1px solid #E8EEF5;background-color:#ffffff !important;">'
+        f'<div style="color:{GREY} !important;font-size:12px;line-height:1.4;">{html.escape(label)}</div>'
+        f'<div style="color:#111827 !important;font-weight:700;font-size:15px;line-height:1.4;">{html.escape(value.strip())}</div>'
+        f"</td></tr>"
     )
 
 
@@ -1131,12 +1189,14 @@ def _b2c_order_confirmation_html(order: dict) -> str:
         </tr>
         <tr>
           <td style="padding:8px 16px 24px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:12px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E8F0FB" style="background-color:{LIGHT_BLUE} !important;">
               <tr>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🔒<br/><strong>Secure Payments</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🛡<br/><strong>Quality Products</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">📦<br/><strong>Fast Shipping</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">↩<br/><strong>Easy Returns</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">🔒<br/><strong>Secure Payments</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">🛡<br/><strong>Quality Products</strong></td>
+              </tr>
+              <tr>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">📦<br/><strong>Fast Shipping</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">↩<br/><strong>Easy Returns</strong></td>
               </tr>
             </table>
           </td>
@@ -1187,12 +1247,14 @@ def _b2b_order_confirmation_html(order: dict) -> str:
         </tr>
         <tr>
           <td style="padding:8px 16px 24px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{LIGHT_BLUE};border-radius:12px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E8F0FB" style="background-color:{LIGHT_BLUE} !important;">
               <tr>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🏷<br/><strong>Business Pricing</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🎧<br/><strong>Priority Support</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">🚚<br/><strong>Fast &amp; Reliable Shipping</strong></td>
-                <td style="padding:14px 6px;text-align:center;width:25%;color:{NAVY};font-size:11px;">👤<br/><strong>Dedicated Account Manager</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">🏷<br/><strong>Business Pricing</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">🎧<br/><strong>Priority Support</strong></td>
+              </tr>
+              <tr>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">🚚<br/><strong>Fast &amp; Reliable Shipping</strong></td>
+                <td class="email-stack" style="padding:12px 6px;text-align:center;width:50%;color:{NAVY} !important;font-size:12px;">👤<br/><strong>Dedicated Account Manager</strong></td>
               </tr>
             </table>
           </td>

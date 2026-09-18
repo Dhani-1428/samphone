@@ -148,6 +148,8 @@ def test_public_and_business_account_emails(monkeypatch):
     assert "Ready to start shopping?" in html_body
     assert "MOBILE PARTS" in html_body
     assert "geral@samphone.pt" in html_body
+    assert "samphone.pt@gmail.com" not in html_body
+    assert "{{LOGO_SRC}}" in html_body or "samphone-logo" in html_body
     assert "+351 937 119 295" in html_body
     assert "/account" in html_body
     assert "https://samphone.eu/account" in html_body
@@ -174,6 +176,7 @@ def test_public_and_business_account_emails(monkeypatch):
     assert "https://samphone.eu/account" in biz_html
     assert "Your Business Account Gives You More" in biz_html
     assert "geral@samphone.pt" in biz_html
+    assert "samphone.pt@gmail.com" not in biz_html
     assert "online store for businesses" in biz_html
     assert "Official correspondence" not in biz_html
     assert "Dear Carlos" not in biz_html
