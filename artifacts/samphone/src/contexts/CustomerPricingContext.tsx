@@ -5,15 +5,11 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  resolveCustomerPrice,
-  type ResolvedPriceApiResponse,
-} from "@/lib/pricing-api";
+import type { ResolvedPriceApiResponse } from "@/lib/pricing-api";
 import type { WooProduct } from "@/lib/woocommerce";
 import { eurosToCents } from "@/lib/pricing-api";
-import { catalogUnitPrice } from "@/lib/customer-price";
+import { catalogUnitPrice, formatEuroAmount } from "@/lib/customer-price";
 
 interface CustomerPricingContextValue {
   enabled: boolean;
@@ -27,33 +23,43 @@ interface CustomerPricingContextValue {
 
 const CustomerPricingContext = createContext<CustomerPricingContextValue | null>(null);
 
+function localResolvedPrice(
+  product: WooProduct,
+  email: string | undefined,
+  user: ReturnType<typeof useAuth>["user"],
+): ResolvedPriceApiResponse {
+  const euros = catalogUnitPrice(product, user) ?? 0;
+  const cents = eurosToCents(euros);
+  const hasCustom = Boolean(user?.personalPricing?.length || user?.accountDiscountPercent);
+  return {
+    customerId: email ?? "",
+    resolved: {
+      unitPriceCents: cents,
+      basePriceCents: cents,
+      source: hasCustom ? "personal_discount" : "catalog",
+      vatRate: 0.23,
+      vatMode: "inclusive",
+    },
+    displayPriceCents: cents,
+    displayFormatted: formatEuroAmount(euros),
+    netCents: cents,
+    grossCents: cents,
+  };
+}
+
 export function CustomerPricingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const qc = useQueryClient();
-
   const enabled = Boolean(user?.email);
 
   const resolveForProduct = useCallback(
-    async (product: WooProduct, quantity = 1) => {
+    async (product: WooProduct, _quantity = 1) => {
       if (!user?.email) return null;
-      const display = catalogUnitPrice(product, user);
-      const basePriceCents = eurosToCents(display);
-      const categoryIds = product.categories?.map((c) => c.slug) ?? [];
-
-      return resolveCustomerPrice({
-        customerEmail: user.email,
-        wooProductId: product.id,
-        basePriceCents,
-        categoryIds,
-        quantity,
-      });
+      return localResolvedPrice(product, user.email, user);
     },
     [user],
   );
 
-  const invalidate = useCallback(() => {
-    void qc.invalidateQueries({ queryKey: ["customer-pricing"] });
-  }, [qc]);
+  const invalidate = useCallback(() => {}, []);
 
   const value = useMemo(
     () => ({
@@ -78,44 +84,28 @@ export function useCustomerPricing() {
   return ctx;
 }
 
-/** Cached personalized price for a Woo product (storefront cards, PDP, cart). */
-export function useCustomerProductPrice(product: WooProduct | null, quantity = 1) {
+/** Personalized price for a Woo product. Uses catalog + session discounts — no per-card API call. */
+export function useCustomerProductPrice(product: WooProduct | null, _quantity = 1) {
   const { user } = useAuth();
-  const { resolveForProduct, enabled } = useCustomerPricing();
 
   const catalogCents = useMemo(() => {
     if (!product) return 0;
     return eurosToCents(catalogUnitPrice(product, user));
   }, [product, user]);
 
-  const query = useQuery({
-    queryKey: ["customer-pricing", user?.email, user?.isWholesale, user?.wholesaleStatus, product?.id, catalogCents, quantity],
-    enabled: enabled && product != null && catalogCents > 0,
-    staleTime: 60_000,
-    queryFn: async () => {
-      if (!product) return null;
-      return resolveForProduct(product, quantity);
-    },
-  });
-
-  const personalized = query.data;
-  const displayCents = personalized?.displayPriceCents ?? catalogCents;
-  const hasCustomPrice =
-    personalized != null && personalized.resolved.source !== "catalog";
+  const hasCustomPrice = Boolean(
+    product && (user?.personalPricing?.length || user?.accountDiscountPercent),
+  );
 
   return {
-    loading: query.isLoading,
-    displayCents,
+    loading: false,
+    displayCents: catalogCents,
     displayFormatted:
-      catalogCents <= 0 && !personalized
+      catalogCents <= 0
         ? ""
-        : personalized?.displayFormatted ??
-          new Intl.NumberFormat(user?.email?.endsWith(".pt") ? "pt-PT" : "pt-PT", {
-            style: "currency",
-            currency: "EUR",
-          }).format(displayCents / 100),
+        : formatEuroAmount(catalogCents / 100),
     hasCustomPrice,
-    source: personalized?.resolved.source ?? "catalog",
+    source: hasCustomPrice ? "personal_discount" : "catalog",
     catalogCents,
   };
 }

@@ -468,6 +468,16 @@ class TranslateBody(BaseModel):
     target: str = "pt"
 
 
+class PricingResolveBody(BaseModel):
+    customerEmail: Optional[str] = None
+    customerId: Optional[str] = None
+    wooProductId: Optional[int] = None
+    productId: Optional[str] = None
+    basePriceCents: int = 0
+    categoryIds: Optional[List[str]] = None
+    quantity: Optional[int] = 1
+
+
 class SavedCartItem(BaseModel):
     product_id: str
     title: str = ""
@@ -4137,6 +4147,54 @@ async def upsert_cart(body: SavedCartUpsert, current=Depends(get_current_user)):
 async def delete_cart(current=Depends(get_current_user)):
     await data_store.clear_saved_cart(current["id"], db)
     return {"ok": True}
+
+
+@api_router.post("/pricing/resolve")
+async def pricing_resolve(body: PricingResolveBody, viewer=Depends(get_optional_user)):
+    """Personalized unit price for the signed-in viewer. Guests get the catalog amount."""
+    from user_discounts import best_discounted_price
+
+    cents = max(0, int(body.basePriceCents or 0))
+    euros = cents / 100.0
+    source = "catalog"
+    user = viewer
+    if user and not user.get("_active_discounts"):
+        user = await _attach_active_discounts(user)
+    discounts = (user or {}).get("_active_discounts") or []
+    product = {
+        "id": body.productId or "",
+        "wc_id": body.wooProductId,
+        "category": None,
+        "leaf_category": None,
+        "part_type": None,
+        "subcategory": None,
+        "category_group": None,
+    }
+    if body.categoryIds:
+        first = str(body.categoryIds[0])
+        product["category"] = first
+        product["leaf_category"] = first
+        product["subcategory"] = first
+        product["category_group"] = first
+        product["part_type"] = first
+    final = best_discounted_price(euros, discounts, product) if discounts else euros
+    if final < euros - 0.001:
+        source = "personal_discount"
+    out_cents = max(0, int(round(final * 100)))
+    return {
+        "customerId": str((user or {}).get("id") or ""),
+        "resolved": {
+            "unitPriceCents": out_cents,
+            "basePriceCents": cents,
+            "source": source,
+            "vatRate": 0.23,
+            "vatMode": "inclusive",
+        },
+        "displayPriceCents": out_cents,
+        "displayFormatted": f"€{out_cents / 100:.2f}",
+        "netCents": out_cents,
+        "grossCents": out_cents,
+    }
 
 
 @api_router.post("/translate")
