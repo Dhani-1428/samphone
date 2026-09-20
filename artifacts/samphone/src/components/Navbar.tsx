@@ -10,7 +10,7 @@ import {
   APPLE_WATCH_MODELS,
   APPLE_IPAD_MODELS,
 } from "@/data/nav-apple";
-import { NAV_OTHER_BRANDS } from "@/data/nav-others";
+import { NAV_OTHER_BRANDS, type NavOtherBrand } from "@/data/nav-others";
 import {
   SAMSUNG_A_SERIES_MODELS,
   SAMSUNG_S_SERIES_MODELS,
@@ -437,31 +437,53 @@ function BrandMegaPanel({
 }
 
 function OthersMegaPanel({ onClose }: { onClose: () => void }) {
+  const bySlug = new Map(NAV_OTHER_BRANDS.map((brand) => [brand.slug, brand]));
+  const columns: NavOtherBrand[][] = [
+    ["alcatel", "google-pixel", "repair-tools"],
+    ["lg", "nokia"],
+    ["tcl"],
+    ["zte"],
+    ["vivo"],
+  ]
+    .map((slugs) => slugs.map((slug) => bySlug.get(slug)).filter((brand): brand is NavOtherBrand => Boolean(brand)))
+    .filter((col) => col.length > 0);
+
+  const placed = new Set(columns.flat().map((brand) => brand.slug));
+  for (const brand of NAV_OTHER_BRANDS) {
+    if (!placed.has(brand.slug)) columns[columns.length - 1]?.push(brand);
+  }
+
   return (
     <div className={`${navShell} dropdown-type bg-white py-4 dark:bg-[#12192A]`}>
-      <div className="grid grid-cols-2 bg-white sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 dark:bg-[#12192A]">
-        {NAV_OTHER_BRANDS.map((brand, idx) => (
+      <div className="grid grid-cols-5 items-start bg-white dark:bg-[#12192A]">
+        {columns.map((column, colIdx) => (
           <div
-            key={brand.slug}
-            className={`px-5 py-3 ${idx % 5 !== 4 ? "xl:border-r xl:border-black/15" : ""}`}
+            key={column.map((brand) => brand.slug).join("-")}
+            className={`min-w-0 px-5 py-1 ${
+              colIdx < columns.length - 1 ? "border-r border-black/15 dark:border-white/15" : ""
+            }`}
           >
-            <p className={megaHeadingClass}>{brand.name.toUpperCase()}</p>
-            <ul className="space-y-1.5">
-              {brand.models.map((model) => {
-                const slug = slugifyModelLabel(model.label);
-                return (
-                  <li key={`${brand.slug}-${slug}`}>
-                    <Link
-                                href={model.href ?? `/model/${brand.slug}/models/${slug}`}
-                                onClick={onClose}
-                                className={megaLinkClass}
-                              >
-                      {model.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            {column.map((brand) => (
+              <div key={brand.slug} className="py-3">
+                <p className={megaHeadingClass}>{brand.name.toUpperCase()}</p>
+                <ul className="space-y-1.5">
+                  {brand.models.map((model) => {
+                    const slug = slugifyModelLabel(model.label);
+                    return (
+                      <li key={`${brand.slug}-${slug}`}>
+                        <Link
+                          href={model.href ?? `/model/${brand.slug}/models/${slug}`}
+                          onClick={onClose}
+                          className={megaLinkClass}
+                        >
+                          {model.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         ))}
       </div>
