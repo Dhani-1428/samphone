@@ -8,7 +8,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { REPAIR_SERVICES, estimateRepairTotal, type RepairServiceId } from "@/lib/repair-pricing";
+import { REPAIR_SERVICES, type RepairServiceId } from "@/lib/repair-pricing";
+import {
+  OTHER_MODEL,
+  REPAIR_BRANDS,
+  brandNameForSlug,
+  guessBrandAndModel,
+  modelsForRepairBrand,
+  type RepairBrandSlug,
+} from "@/lib/repair-devices";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { submitRepairLead } from "@/lib/samphone-cloud";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +30,9 @@ function parseServices(raw: string | null): RepairServiceId[] {
     .filter((x): x is RepairServiceId => allowed.has(x as RepairServiceId));
 }
 
+const selectClass =
+  "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+
 export default function BookRepair() {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -29,31 +40,56 @@ export default function BookRepair() {
   const search = useSearch();
   const [selected, setSelected] = useState<RepairServiceId[]>([]);
   const [urgency, setUrgency] = useState<"standard" | "same_day">("standard");
-  const [device, setDevice] = useState("");
+  const [brand, setBrand] = useState<RepairBrandSlug | "">("");
+  const [model, setModel] = useState("");
+  const [otherDevice, setOtherDevice] = useState("");
   const [name, setName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const modelOptions = useMemo(() => (brand ? modelsForRepairBrand(brand) : []), [brand]);
+  const needsOtherDevice = brand === "other" || model === OTHER_MODEL || (Boolean(brand) && modelOptions.length === 0);
+
   useEffect(() => {
     const q = new URLSearchParams(search);
     const d = q.get("device");
-    if (d) setDevice(d);
+    if (d) {
+      const guessed = guessBrandAndModel(d);
+      setBrand(guessed.brand);
+      setModel(guessed.model);
+      if (guessed.model === OTHER_MODEL) setOtherDevice(d);
+    }
     const services = parseServices(q.get("services"));
     if (services.length) setSelected(services);
     const n = q.get("notes");
     if (n) setNotes(n);
   }, [search]);
 
-  const total = useMemo(() => estimateRepairTotal(selected, urgency), [selected, urgency]);
+  const deviceLabel = useMemo(() => {
+    if (needsOtherDevice) return otherDevice.trim();
+    if (!brand || !model) return "";
+    const brandName = brandNameForSlug(brand);
+    return `${brandName} ${model}`.trim();
+  }, [brand, model, needsOtherDevice, otherDevice]);
 
   const toggle = (id: RepairServiceId) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  const onBrandChange = (next: RepairBrandSlug | "") => {
+    setBrand(next);
+    setOtherDevice("");
+    if (next && next !== "other" && modelsForRepairBrand(next).length === 0) {
+      setModel(OTHER_MODEL);
+    } else {
+      setModel("");
+    }
+  };
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !phone.trim() || !device.trim() || selected.length === 0) {
+    if (!name.trim() || !phone.trim() || !deviceLabel || selected.length === 0) {
       setError(t("book_need_fields"));
       return;
     }
@@ -67,10 +103,10 @@ export default function BookRepair() {
       "SAMPHONE — repair booking",
       `${t("checkout_full_name")}: ${name.trim()}`,
       `${t("checkout_phone")}: ${phone.trim()}`,
-      `${t("book_device_hint")}: ${device.trim()}`,
+      `${t("book_brand")}: ${brand ? brandNameForSlug(brand) : "—"}`,
+      `${t("book_model")}: ${needsOtherDevice ? otherDevice.trim() : model}`,
       `${t("book_services_label")}: ${labels.join(", ")}`,
       urgencyLabel,
-      `${t("book_total")}: €${total.toFixed(2)}`,
       notes.trim() ? `${t("book_notes")}: ${notes.trim()}` : "",
     ]
       .filter(Boolean)
@@ -79,11 +115,12 @@ export default function BookRepair() {
     void submitRepairLead({
       name: name.trim(),
       phone: phone.trim(),
-      device: device.trim(),
+      device: deviceLabel,
+      brand: brand ? brandNameForSlug(brand) : "",
+      model: needsOtherDevice ? otherDevice.trim() : model,
       services: selected,
       urgency,
       notes: notes.trim(),
-      total,
     }).catch(() => {
       /* WhatsApp is the primary booking path */
     });
@@ -112,16 +149,71 @@ export default function BookRepair() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="device">{t("book_device_hint")}</Label>
-              <Input
-                id="device"
-                value={device}
-                onChange={(e) => setDevice(e.target.value)}
-                placeholder="e.g. iPhone 15 Pro"
-                required
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="book-brand">{t("book_brand")}</Label>
+                <select
+                  id="book-brand"
+                  className={selectClass}
+                  value={brand}
+                  required
+                  onChange={(e) => onBrandChange(e.target.value as RepairBrandSlug | "")}
+                >
+                  <option value="">{t("book_brand_placeholder")}</option>
+                  {REPAIR_BRANDS.map((item) => (
+                    <option key={item.slug} value={item.slug}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="book-model">{t("book_model")}</Label>
+                {brand && brand !== "other" && modelOptions.length > 0 ? (
+                  <select
+                    id="book-model"
+                    className={selectClass}
+                    value={model}
+                    required
+                    disabled={!brand}
+                    onChange={(e) => setModel(e.target.value)}
+                  >
+                    <option value="">{t("book_model_placeholder")}</option>
+                    {modelOptions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                    <option value={OTHER_MODEL}>{t("book_other")}</option>
+                  </select>
+                ) : (
+                  <Input
+                    id="book-model"
+                    value={otherDevice}
+                    onChange={(e) => {
+                      setModel(OTHER_MODEL);
+                      setOtherDevice(e.target.value);
+                    }}
+                    placeholder={t("book_model_placeholder")}
+                    required={Boolean(brand)}
+                    disabled={!brand}
+                  />
+                )}
+              </div>
             </div>
+
+            {brand && brand !== "other" && model === OTHER_MODEL ? (
+              <div className="space-y-2">
+                <Label htmlFor="book-other-model">{t("book_other_device")}</Label>
+                <Input
+                  id="book-other-model"
+                  value={otherDevice}
+                  onChange={(e) => setOtherDevice(e.target.value)}
+                  placeholder={t("book_model_placeholder")}
+                  required
+                />
+              </div>
+            ) : null}
 
             <div className="space-y-3">
               <Label>{t("book_services_label")}</Label>
@@ -132,9 +224,8 @@ export default function BookRepair() {
                     className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/40"
                   >
                     <Checkbox checked={selected.includes(s.id)} onCheckedChange={() => toggle(s.id)} />
-                    <span className="text-sm">
-                      <span className="font-medium text-foreground block">{lang === "pt" ? s.labelPt : s.labelEn}</span>
-                      <span className="text-muted-foreground">€{s.baseEuro.toFixed(2)}</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {lang === "pt" ? s.labelPt : s.labelEn}
                     </span>
                   </label>
                 ))}
@@ -167,11 +258,6 @@ export default function BookRepair() {
                 />
                 {t("book_urgency_same_day")}
               </label>
-            </div>
-
-            <div className="rounded-lg bg-primary/10 border border-primary/20 px-4 py-3 flex justify-between items-center">
-              <span className="font-medium">{t("book_total")}</span>
-              <span className="font-display text-xl font-bold text-foreground">€{total.toFixed(2)}</span>
             </div>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}

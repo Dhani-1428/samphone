@@ -278,7 +278,7 @@ def register_website_routes(
         services = ", ".join(body.services or [])
         text = (
             f"{body.name} / {body.phone}\n{body.device}\n{services}\n"
-            f"{body.urgency}\n€{body.total}\n{body.notes}"
+            f"{body.urgency}\n{body.notes}"
         )
         background_tasks.add_task(_send_lead, "Repair booking", f"<pre>{text}</pre>", text)
         return {"ok": True}
