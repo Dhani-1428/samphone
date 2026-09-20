@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   Sun,
   User,
+  Wrench,
   X,
 } from "lucide-react";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -291,6 +292,19 @@ export default function MobileNavDrawer({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+        <Link
+          href="/book-repair"
+          onClick={onClose}
+          className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-brand px-4 py-3.5 text-white shadow-sm"
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sam">
+              <Wrench className="h-5 w-5" strokeWidth={2.2} />
+            </span>
+            <span className="text-[15px] font-extrabold">{t("nav_book_repair")}</span>
+          </span>
+          <ChevronRight className="h-5 w-5 text-white/80" />
+        </Link>
         <div className="mb-3">
           <SmartSearch
             variant="header"
@@ -322,7 +336,6 @@ export default function MobileNavDrawer({
                 { href: "/phones", label: t("nav_smartphones") },
                 { href: "/cards", label: "Cards" },
                 { href: "/tools", label: "Tools" },
-                { href: "/book-repair", label: t("nav_book_repair") },
               ] as const
             ).map((item) => (
               <li key={item.href} className="border-b border-black/[0.06] last:border-b-0 dark:border-white/10">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Heart, Phone, ChevronDown, Gift, Globe, ShoppingBag, User, Shield } from "lucide-react";
+import { Menu, X, Heart, Phone, ChevronDown, Gift, Globe, ShoppingBag, User, Shield, Wrench } from "lucide-react";
 import MobileNavDrawer from "@/components/MobileNavDrawer";
 import { motion, AnimatePresence } from "framer-motion";
 import AccessoryPageButtons from "@/components/AccessoryPageButtons";
@@ -994,6 +994,14 @@ export default function Navbar() {
           </div>
 
           <div className="ml-auto flex items-center lg:ml-0">
+            <Link
+              href="/book-repair"
+              className="mr-1 inline-flex items-center gap-1.5 rounded-lg bg-sam px-3 py-2 text-[13px] font-extrabold text-white shadow-sm hover:bg-sam-dark sm:px-3.5"
+              onClick={closeMenu}
+            >
+              <Wrench className="h-4 w-4" strokeWidth={2.2} />
+              <span className="hidden sm:inline">{t("nav_book_repair")}</span>
+            </Link>
             <Link
               href="/wishlist"
               className="hidden items-center gap-2.5 px-4 lg:flex"
