@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import CatalogLoading from "@/components/CatalogLoading";
+import { ProductRailSkeletons } from "@/components/ProductCardSkeleton";
 import HomeProductRail from "@/components/HomeProductRail";
 import { useLang } from "@/contexts/LanguageContext";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
@@ -31,7 +31,7 @@ export default function RecommendedSection() {
         subtitle={t("favorite_section_sub")}
         seeAllHref="/accessories"
       >
-        <CatalogLoading compact />
+        <ProductRailSkeletons />
       </HomeProductRail>
     );
   }

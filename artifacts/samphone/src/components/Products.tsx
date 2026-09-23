@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CatalogLoading from "@/components/CatalogLoading";
+import { ProductRailSkeletons } from "@/components/ProductCardSkeleton";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
@@ -32,7 +32,7 @@ export default function Products() {
     return (
       <div id="products">
         <HomeProductRail title={t("featured_section_title")} seeAllHref="/accessories">
-          <CatalogLoading compact />
+          <ProductRailSkeletons />
         </HomeProductRail>
       </div>
     );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CatalogLoading from "@/components/CatalogLoading";
+import { ProductRailSkeletons } from "@/components/ProductCardSkeleton";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
@@ -46,7 +46,7 @@ export default function HomeNewArrivals() {
         subtitle={t("newArrivals_section_sub")}
         seeAllHref="/new"
       >
-        <CatalogLoading compact />
+        <ProductRailSkeletons />
       </HomeProductRail>
     );
   }

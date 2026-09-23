@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CatalogLoading from "@/components/CatalogLoading";
+import { ProductRailSkeletons } from "@/components/ProductCardSkeleton";
 import HomeProductRail from "@/components/HomeProductRail";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
@@ -217,13 +217,13 @@ export default function HomeCloudRails() {
         </HomeProductRail>
       ) : bestPending ? (
         <HomeProductRail title={t("home_best_sellers")} seeAllHref="/store">
-          <CatalogLoading compact />
+          <ProductRailSkeletons />
         </HomeProductRail>
       ) : null}
       {rows.map((s) =>
         s.items.length > 0 || pendingKeys.has(s.key) ? (
           <HomeProductRail key={s.key} title={s.title} seeAllHref={`/group/${encodeURIComponent(s.group)}`}>
-            {s.items.length > 0 ? cards(s.items) : <CatalogLoading compact />}
+            {s.items.length > 0 ? cards(s.items) : <ProductRailSkeletons />}
           </HomeProductRail>
         ) : null,
       )}
