@@ -11,7 +11,6 @@ export default function CatalogImage({ src, className, ...rest }: ImgHTMLAttribu
       referrerPolicy={policy}
       className={cn("catalog-photo", className)}
       {...rest}
-      data-allow-save=""
     />
   );
 }
