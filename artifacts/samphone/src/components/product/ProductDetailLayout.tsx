@@ -108,9 +108,7 @@ export default function ProductDetailLayout({
               </div>
             ) : (
               <div className="relative">
-                <div className={cn(!stockOn && "[&_img]:blur-[3px]")}>
-                  <ProductImageGallery images={gallery} productName={displayTitle} preferredSrc={preferredSrc} />
-                </div>
+                <ProductImageGallery images={gallery} productName={displayTitle} preferredSrc={preferredSrc} />
                 {!stockOn ? (
                   <div className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center rounded-lg bg-black/20">
                     <span className="px-3 text-center text-sm font-extrabold uppercase tracking-wide text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">

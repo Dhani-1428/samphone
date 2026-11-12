@@ -89,7 +89,7 @@ export default function WooProductCard({ product, priceUnavailableLabel, compact
             key={imageUrl || "placeholder"}
             src={imgOk && imageUrl ? imageUrl : PLACEHOLDER}
             alt={product.images?.[0]?.alt || product.name}
-            className={cn("h-full w-full object-contain object-center", !inStock && "blur-[3px]")}
+            className="h-full w-full object-contain object-center"
             loading="eager"
             decoding="async"
             onError={() => setImgOk(false)}
