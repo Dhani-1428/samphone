@@ -1612,15 +1612,17 @@ class ProductRepository:
             with self.db.connect() as c:
                 thumbs, galleries = _run(c)
 
+        from catalog_images import is_placeholder_image
+
         for r in rows:
             urls: list[str] = []
             tid = r.get("thumbnail_id")
             if tid and str(tid).isdigit():
                 u = thumbs.get(int(tid))
-                if u:
+                if u and not is_placeholder_image(u):
                     urls.append(u)
             for u in galleries.get(int(r["wc_id"]), []):
-                if u and u not in urls:
+                if u and u not in urls and not is_placeholder_image(u):
                     urls.append(u)
             r["image_urls"] = urls
 

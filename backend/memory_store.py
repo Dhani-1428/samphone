@@ -126,8 +126,12 @@ def filter_products(
                     required_tokens=required,
                 )
             ]
+    from catalog_images import product_has_real_image
     from catalog_sort import sort_products
     from wholesale import sanitize_products
+
+    if not (user and str(user.get("role") or "").lower() == "admin"):
+        out = [p for p in out if product_has_real_image(p)]
 
     out = sort_products(
         out,
@@ -305,9 +309,11 @@ def related_products(product_id: str, *, limit: int = 12, user: Optional[dict] =
         if score:
             scored.append((score, p))
     scored.sort(key=lambda x: -x[0])
+    from catalog_images import product_has_real_image
     from wholesale import sanitize_products
 
-    return sanitize_products([p for _, p in scored[: max(1, min(limit, 24))]], user)
+    picked = [p for _, p in scored if product_has_real_image(p)][: max(1, min(limit, 24))]
+    return sanitize_products(picked, user)
 
 
 def home_rails(*, part: str = "all", limit: int = 8, user: Optional[dict] = None) -> dict:

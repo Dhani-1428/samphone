@@ -20,6 +20,7 @@ from urllib3.util.retry import Retry
 from stock import apply_stock_quantity, validate_purchase_lines
 from wc_pricing import extract_wc_prices
 from woocommerce_classify import classify, clean_description, is_model_category, nice, phone_brand
+from catalog_images import is_placeholder_image, product_has_real_image, real_image_urls
 from product_variants import extract_color_variants
 
 logger = logging.getLogger(__name__)
@@ -98,28 +99,14 @@ def _normalize_image_url(url: str) -> str:
 
 
 def _is_placeholder_image(url: str) -> bool:
-    u = (url or "").lower()
-    if not u:
-        return True
-    return any(
-        marker in u
-        for marker in (
-            "display-banner-samphone",
-            "woocommerce-placeholder",
-            "placeholder.jpg",
-            "placeholder.png",
-            "placeholder.webp",
-        )
-    )
+    return is_placeholder_image(url)
 
 
 def _extract_image_urls(row: dict) -> list[str]:
     urls: list[str] = []
     for img in row.get("images") or []:
         src = img.get("src") if isinstance(img, dict) else None
-        if not src:
-            continue
-        if any(marker.lower() in src.lower() for marker in BAD_IMAGE_MARKERS):
+        if not src or is_placeholder_image(src):
             continue
         urls.append(_normalize_image_url(src))
     # de-dupe preserve order
@@ -608,8 +595,6 @@ class WooCommerceAPI:
             price = 0.0
 
         images = _extract_image_urls(row)
-        if not images:
-            images = [_normalize_image_url(_default_product_image())]
 
         color_variants = extract_color_variants(row, row.get("variations") or None)
         variant_labels = [v["label"] for v in color_variants]
@@ -645,7 +630,7 @@ class WooCommerceAPI:
             "on_sale": bool(pricing.get("on_sale")),
             "price_on_request": price_on_request,
             **({"wholesalePrice": pricing["wholesalePrice"]} if pricing.get("wholesalePrice") else {}),
-            "image": images[0],
+            "image": images[0] if images else "",
             "images": images,
             "best_seller": False,
             "new_arrival": False,
@@ -691,67 +676,12 @@ class WooCommerceAPI:
         return self.filter_products(limit=lim, offset=0, user=user, sort="date_desc")
 
     def _enrich_missing_images(self, products: list[dict]) -> None:
-        """Fill products that have no WooCommerce image using similar catalog items."""
-        by_model_leaf: dict[tuple[Any, str], str] = {}
-        by_model_part: dict[tuple[Any, str], str] = {}
-        by_model: dict[Any, str] = {}
-        by_title_key: dict[str, str] = {}
-        by_brand_leaf: dict[tuple[str, str], str] = {}
-
-        def remember(bucket: dict, key: Any, url: str) -> None:
-            if key is None or key == ("",) or key == "":
-                return
-            if isinstance(key, tuple) and not any(key):
-                return
-            bucket.setdefault(key, url)
-
+        """Keep each SKU's own photos. Never copy another product's picture onto a blank one."""
         for p in products:
-            img = _normalize_image_url(p.get("image") or "")
-            if not img or _is_placeholder_image(img):
-                continue
-            p["image"] = img
-            imgs = [_normalize_image_url(u) for u in (p.get("images") or [img]) if u]
-            p["images"] = imgs or [img]
-            model_key = p.get("model_wc_id") or (p.get("model") or "").strip().lower()
-            leaf = (p.get("leaf_category") or "").strip().lower()
-            part = (p.get("part_type") or "").strip().lower()
-            brand = (p.get("brand") or "").strip().lower()
-            remember(by_model_leaf, (model_key, leaf), img)
-            remember(by_model_part, (model_key, part), img)
-            remember(by_model, model_key, img)
-            remember(by_brand_leaf, (brand, leaf), img)
-            tk = _title_image_key(p.get("title") or "")
-            if tk:
-                remember(by_title_key, tk, img)
-
-        filled = 0
-        for p in products:
-            img = p.get("image") or ""
-            if img and not _is_placeholder_image(img):
-                p["image"] = _normalize_image_url(img)
-                p["images"] = [_normalize_image_url(u) for u in (p.get("images") or [img]) if u] or [p["image"]]
-                continue
-            model_key = p.get("model_wc_id") or (p.get("model") or "").strip().lower()
-            leaf = (p.get("leaf_category") or "").strip().lower()
-            part = (p.get("part_type") or "").strip().lower()
-            brand = (p.get("brand") or "").strip().lower()
-            candidate = (
-                by_model_leaf.get((model_key, leaf))
-                or by_model_part.get((model_key, part))
-                or by_title_key.get(_title_image_key(p.get("title") or ""))
-                or by_model.get(model_key)
-                or by_brand_leaf.get((brand, leaf))
-            )
-            if candidate:
-                p["image"] = candidate
-                p["images"] = [candidate]
-                filled += 1
-            else:
-                fallback = _normalize_image_url(_default_product_image())
-                p["image"] = fallback
-                p["images"] = [fallback]
-        if filled:
-            logger.info("Enriched images for %s products from similar catalog items", filled)
+            urls = real_image_urls([p.get("image"), *(p.get("images") or [])])
+            urls = [_normalize_image_url(u) for u in urls if u]
+            p["images"] = urls
+            p["image"] = urls[0] if urls else ""
 
     def _apply_catalog_images(self, products: list[dict]) -> None:
         """When catalog is warm, replace placeholders using the enriched snapshot."""
@@ -943,6 +873,7 @@ class WooCommerceAPI:
         category_group: Optional[str] = None,
         in_stock: Optional[bool] = None,
         skip_q: bool = False,
+        require_image: bool = True,
     ) -> list[dict]:
         from category_groups import (
             filter_by_group,
@@ -975,6 +906,8 @@ class WooCommerceAPI:
             out = filter_by_group(out, normalize_group_title(category_group) or category_group)
         if in_stock is not None:
             out = [p for p in out if bool(p.get("in_stock")) == in_stock]
+        if require_image:
+            out = [p for p in out if product_has_real_image(p)]
         if q and not skip_q:
             group_title = resolve_group_title(q)
             if group_title:
@@ -1930,9 +1863,8 @@ class WooCommerceAPI:
             doc["image"] = _normalize_image_url(doc.get("image") or "")
             doc["images"] = [_normalize_image_url(u) for u in (doc.get("images") or [doc["image"]]) if u] or [doc["image"]]
         else:
-            fallback = _normalize_image_url(_default_product_image())
-            doc["image"] = fallback
-            doc["images"] = [fallback]
+            doc["image"] = ""
+            doc["images"] = []
         qty, in_stock = self._product_stock(row)
         doc["stock_quantity"] = qty
         doc["in_stock"] = in_stock

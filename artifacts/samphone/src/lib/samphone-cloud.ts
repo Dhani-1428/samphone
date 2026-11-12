@@ -10,7 +10,7 @@ import {
 } from "@/config/samphone";
 import { hayMatchesModel, modelAliases, titleConflictsWithBrand } from "@/lib/model-aliases";
 import type { WooCategory, WooProduct } from "@/lib/woocommerce";
-import { WooCommerceFetchError, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
+import { WooCommerceFetchError, catalogHasRealImage, normalizeProductGallery, fillColorSwatchImages } from "@/lib/woocommerce";
 import { parseAccountDiscountPercent, parsePersonalPricing } from "@/lib/customer-price";
 import { sortNewest } from "@/lib/woo-product-filters";
 
@@ -439,7 +439,7 @@ function mapItems(raw: unknown): WooProduct[] {
   const seen = new Set<string>();
   for (const row of items) {
     const p = mapCloudProduct(row as CloudProduct);
-    if (!p) continue;
+    if (!p || !catalogHasRealImage(p)) continue;
     const key = p.cloudId || `wc:${p.id}:${p.slug || p.name}`;
     if (seen.has(key)) continue;
     seen.add(key);

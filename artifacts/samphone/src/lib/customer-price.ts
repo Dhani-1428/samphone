@@ -1,4 +1,4 @@
-import type { WooProduct } from "@/lib/woocommerce";
+import { catalogHasRealImage, type WooProduct } from "@/lib/woocommerce";
 
 export type PersonalPricingRule = {
   productId?: string;
@@ -235,7 +235,7 @@ export function isDealerOnlyHidden(product: WooProduct, user: PriceUser): boolea
 }
 
 export function filterCatalogForCustomer(products: WooProduct[], user: PriceUser): WooProduct[] {
-  return products.filter((p) => !isDealerOnlyHidden(p, user));
+  return products.filter((p) => !isDealerOnlyHidden(p, user) && catalogHasRealImage(p));
 }
 
 export function minOrderQty(product: WooProduct | null | undefined): number {

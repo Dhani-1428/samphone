@@ -117,7 +117,7 @@ function gallerySrcs(images: WooProduct["images"] | undefined): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   for (const img of images ?? []) {
-    const src = normalizeCatalogImageUrl(img.src) || img.src;
+    const src = normalizeCatalogImageUrl(img.src);
     if (!src || seen.has(src)) continue;
     seen.add(src);
     out.push(src);
@@ -462,6 +462,10 @@ export function getPrimaryImageUrl(product: WooProduct): string | null {
     if (src) return src;
   }
   return null;
+}
+
+export function catalogHasRealImage(product: WooProduct): boolean {
+  return Boolean(getPrimaryImageUrl(product));
 }
 
 /** In-app product detail route — never use Woo `permalink` (opens the legacy WordPress store). */

@@ -119,7 +119,7 @@ export function setStoredApiJwt(token: string | null): void {
 }
 
 export function isPlaceholderImage(src: string): boolean {
-  return /woocommerce-placeholder|display-banner-samphone/i.test(src);
+  return /woocommerce-placeholder|display-banner-samphone|placeholder\.(?:jpg|jpeg|png|webp)/i.test(src);
 }
 
 export function preferOriginalUpload(src: string): string {

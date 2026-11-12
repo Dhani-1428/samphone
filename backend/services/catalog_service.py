@@ -19,6 +19,7 @@ from wholesale import (
     map_public_retail_price,
     sanitize_products,
 )
+from catalog_images import is_placeholder_image, product_has_real_image, real_image_urls
 from woocommerce_classify import classify, clean_description, nice, phone_brand
 
 logger = logging.getLogger(__name__)
@@ -451,11 +452,9 @@ class CatalogService:
             qty = UNMANAGED_IN_STOCK_QTY if stock_status == "instock" else 0
             in_stock = stock_status == "instock"
 
-        images = [u for u in (row.get("image_urls") or []) if u]
-        if not images:
-            images = [f"{self.repo.site_url()}/wp-content/uploads/woocommerce-placeholder.png"]
+        images = real_image_urls(row.get("image_urls") or [])
         override_img = str(row.get("override_image_url") or "").strip()
-        if override_img:
+        if override_img and not is_placeholder_image(override_img):
             images = [override_img] + [u for u in images if u != override_img]
 
         from product_variants import extract_color_variants
@@ -526,7 +525,7 @@ class CatalogService:
             "stored_public_price": round(stored_pub, 2) if stored_pub > 0 else None,
             "stored_b2c_override": round(stored_override, 2) if stored_override > 0 else None,
             "compareAtPrice": compare_at,
-            "image": images[0],
+            "image": images[0] if images else "",
             "images": images,
             "image_override": bool(override_img),
             "best_seller": _parse_int(row.get("total_sales")) >= 5,
@@ -740,6 +739,7 @@ class CatalogService:
         sort: str = "date_desc",
         preview: bool = False,
         collapse_colors: bool = True,
+        require_image: bool = True,
         **_extra: Any,
     ) -> dict[str, Any]:
         started = time.perf_counter()
@@ -753,6 +753,8 @@ class CatalogService:
                 model_wc_id=model_wc_id,
                 in_stock=in_stock,
             )
+            if require_image:
+                products = [p for p in products if product_has_real_image(p)]
             if best_seller is not None:
                 products = [p for p in products if bool(p.get("best_seller")) == best_seller]
             total = len(products)
@@ -908,6 +910,12 @@ class CatalogService:
             )
         _, model_ids = self._load_models()
         products = self._hydrate_docs(rows, model_ids)
+        if require_image:
+            before_images = len(products)
+            products = [p for p in products if product_has_real_image(p)]
+            dropped = before_images - len(products)
+            if dropped and not needs_post:
+                total = max(int(total) - dropped, len(products))
 
         # Hard filter: query generation (e.g. iPhone 16) must appear in the title.
         if use_weighted and search_q:
@@ -1111,7 +1119,7 @@ class CatalogService:
         _, model_ids = self._load_models()
         rows = self.repo.get_products_by_ids(ids)
         products = [self._row_to_product(r, model_ids) for r in rows]
-        products = [p for p in products if p]
+        products = [p for p in products if p and product_has_real_image(p)]
         return self._prepare(products, user)
 
     def featured_products(self, *, limit: int = 50, user: Optional[dict] = None) -> dict[str, Any]:
@@ -1208,6 +1216,7 @@ class CatalogService:
             offset=offset,
             sort=sort or "date_desc",
             collapse_colors=False,
+            require_image=False,
             user={"role": "admin", "accountType": "b2b", "isWholesale": True, "wholesaleStatus": "approved"},
         )
         # Admin UI must show real DB quantities — never the shop-side 9999 unmanaged cap.
