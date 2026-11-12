@@ -4,7 +4,7 @@ import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { useRecentlyViewed } from "@/contexts/RecentlyViewedContext";
 import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
-import { inStockProducts } from "@/lib/woo-product-filters";
+import { inStockProducts, sortStorefrontCatalog } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 const RAIL_LIMIT = 18;
@@ -24,7 +24,7 @@ function takeUnique(currentId: number, bags: WooProduct[][], limit = RAIL_LIMIT)
 }
 
 function cards(items: WooProduct[], priceLabel: string) {
-  return items.map((p) => (
+  return sortStorefrontCatalog(items).map((p) => (
     <WooProductCard key={p.cloudId || p.id} product={p} priceUnavailableLabel={priceLabel} compact />
   ));
 }

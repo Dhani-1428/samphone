@@ -6,6 +6,7 @@ import { useLang } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { pricingAudience } from "@/lib/customer-price";
 import { fetchCloudFeatured } from "@/lib/samphone-cloud";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 export default function Products() {
@@ -18,7 +19,7 @@ export default function Products() {
     let alive = true;
     void fetchCloudFeatured(18)
       .then((rows) => {
-        if (alive) setFeatured(rows);
+        if (alive) setFeatured(sortStorefrontCatalog(rows));
       })
       .catch(() => {
         if (alive) setFeatured([]);

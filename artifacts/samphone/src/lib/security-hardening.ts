@@ -7,11 +7,14 @@
 export function initClientHardening(): void {
   if (import.meta.env.DEV) return;
 
-  const block = (event: Event) => {
+  document.addEventListener("contextmenu", (event) => {
+    const node = event.target;
+    const onMedia = node instanceof Element && node.closest("img, picture, video, [data-allow-save]");
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    // Phones need the native long-press Save Image menu. Desktop still cannot Inspect.
+    if (onMedia && coarsePointer) return;
     event.preventDefault();
-  };
-
-  document.addEventListener("contextmenu", block);
+  });
 
   document.addEventListener(
     "keydown",

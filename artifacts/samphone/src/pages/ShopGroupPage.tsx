@@ -18,7 +18,7 @@ import {
 } from "@/data/accessory-pages";
 import { isCustomerAccessoryProduct } from "@/lib/catalog-taxonomy";
 import { fetchCloudMergedProducts } from "@/lib/samphone-cloud";
-import { sortByPrice } from "@/lib/woo-product-filters";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 
 function shopHref(forcedGroup: string | undefined, group: string, subtype?: string): string {
@@ -88,7 +88,7 @@ export default function ShopGroupPage({ forcedGroup }: { forcedGroup?: string } 
         ? list
         : list.filter((p) => isCustomerAccessoryProduct(p));
     const filtered = subtype ? scoped.filter((p) => productMatchesSubtype(p, subtype)) : scoped;
-    return sortByPrice(filtered, "asc", user);
+    return sortStorefrontCatalog(filtered, user);
   }, [items, subtype, user, page?.group, group]);
 
   const title = page?.label ?? group ?? t("home_accessories_title");

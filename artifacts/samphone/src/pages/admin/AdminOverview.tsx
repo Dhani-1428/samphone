@@ -84,7 +84,7 @@ export default function AdminOverview() {
           return;
         }
         const [s, reqs, all, ord] = await Promise.all([
-          fetchAdminStats(token).catch(() => ({})),
+          fetchAdminStats(token).catch(() => ({ total_products: catalog.items.length })),
           fetchAdminWholesaleRequests(token).catch(() => [] as AdminWholesaleUser[]),
           fetchAdminUsers(token).catch(() => [] as AdminWholesaleUser[]),
           fetchAdminOrders(120, token).catch(() => ({ items: [] as Record<string, unknown>[] })),

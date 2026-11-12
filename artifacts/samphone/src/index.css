@@ -315,6 +315,14 @@
   object-position: center;
 }
 
+img.catalog-photo,
+[data-allow-save] {
+  -webkit-touch-callout: default !important;
+  -webkit-user-select: auto;
+  user-select: auto;
+  pointer-events: auto;
+}
+
 .catalog-product-grid {
   display: grid;
   list-style: none;

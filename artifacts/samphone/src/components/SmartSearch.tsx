@@ -15,7 +15,7 @@ import CatalogImage from "@/components/CatalogImage";
 import { normalizeCatalogImageUrl } from "@/config/samphone";
 import { logSearchAnalytics, parseSearchQuery } from "@/lib/model-search";
 import { fetchCloudNewArrivals } from "@/lib/samphone-cloud";
-import { sortNewest } from "@/lib/woo-product-filters";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 
 type Props = {
   className?: string;
@@ -59,7 +59,7 @@ function mergeHits(list: SearchHit[]): SearchHit[] {
 }
 
 function productsToHits(list: WooProduct[], user: ReturnType<typeof useAuth>["user"]): SearchHit[] {
-  return mergeHits(sortNewest(list).map((p) => toHit(p, user)));
+  return mergeHits(sortStorefrontCatalog(list, user).map((p) => toHit(p, user)));
 }
 
 function SearchHitRow({ hit, onOpen }: { hit: SearchHit; onOpen: (href: string) => void }) {

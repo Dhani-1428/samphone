@@ -258,9 +258,12 @@ function WooProductView({
     .filter((src): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && !colorPhotos.includes(src));
   const gallery = (
     swatches.length > 0
-      ? [preferredSrc, ...colorPhotos.filter((src) => src !== preferredSrc), ...extraShots]
+      ? [...(preferredSrc ? [preferredSrc] : []), ...colorPhotos.filter((src) => src !== preferredSrc), ...extraShots]
       : (wooProduct.images ?? []).map((img) => normalizeCatalogImageUrl(img.src) || img.src)
-  ).filter((src, i, all): src is string => Boolean(src) && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i);
+  ).filter(
+    (src, i, all): src is string =>
+      typeof src === "string" && src.length > 0 && !/woocommerce-placeholder/i.test(src) && all.indexOf(src) === i,
+  );
   const catalogPrice = displayFormatted;
   const compareAt = catalogCompareAtPrice(wooProduct, user);
   const inStock = catalogInStock(wooProduct);

@@ -416,6 +416,28 @@ export function sortNewest(products: WooProduct[]): WooProduct[] {
   });
 }
 
+export function sortByPrice(products: WooProduct[], order: "asc" | "desc", user?: PriceUser): WooProduct[] {
+  return [...products].sort((a, b) => {
+    const pa = catalogUnitPrice(a, user);
+    const pb = catalogUnitPrice(b, user);
+    const na = pa ?? Infinity;
+    const nb = pb ?? Infinity;
+    if (na !== nb) return order === "asc" ? na - nb : nb - na;
+    return (a.name || "").localeCompare(b.name || "");
+  });
+}
+
+/** Parts expensive→cheap, then accessories cheap→expensive. Stable by name. */
+export function sortStorefrontCatalog(products: WooProduct[], user?: PriceUser): WooProduct[] {
+  const parts: WooProduct[] = [];
+  const accessories: WooProduct[] = [];
+  for (const p of products) {
+    if (isRepairPartProduct(p)) parts.push(p);
+    else accessories.push(p);
+  }
+  return [...sortByPrice(parts, "desc", user), ...sortByPrice(accessories, "asc", user)];
+}
+
 export function pickHomeFeatured(
   products: WooProduct[],
   limit: number,
@@ -565,8 +587,9 @@ export function pickHomeRailItems(products: WooProduct[], key: HomeRailKey, limi
       matched.push(p);
     }
   }
-  const sliced = matched.slice(0, limit);
-  return mixOutOfStockIntoRow(sliced, matched, 2);
+  const sorted = sortStorefrontCatalog(matched);
+  const sliced = sorted.slice(0, limit);
+  return mixOutOfStockIntoRow(sliced, sorted, 2);
 }
 
 /** True when the card should show the out-of-stock treatment. */
@@ -644,15 +667,5 @@ export function filterMultiBrandCatalog(products: WooProduct[], brand: string | 
     const hay = `${p.name} ${p.categories?.map((c) => c.name).join(" ") ?? ""}`.toLowerCase();
     return needles.some((n) => hay.includes(n));
   });
-  return out.slice(0, limit);
-}
-
-export function sortByPrice(products: WooProduct[], order: "asc" | "desc", user?: PriceUser): WooProduct[] {
-  return [...products].sort((a, b) => {
-    const pa = catalogUnitPrice(a, user);
-    const pb = catalogUnitPrice(b, user);
-    const na = pa ?? Infinity;
-    const nb = pb ?? Infinity;
-    return order === "asc" ? na - nb : nb - na;
-  });
+  return sortStorefrontCatalog(out).slice(0, limit);
 }

@@ -14,10 +14,12 @@ import {
   type WooProduct,
 } from "@/lib/woocommerce";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import ModelHeroBanner from "@/components/ModelHeroBanner";
 import { CatalogBackLink } from "@/components/CatalogPageChrome";
 import { isCustomerAccessoryProduct, isRepairPartProduct } from "@/lib/catalog-taxonomy";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 const cardVariants = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -59,6 +61,7 @@ export default function CategoryPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug ?? "";
   const { t } = useLang();
+  const { user } = useAuth();
   const configured = hasWooCommerceConfig();
   const { products, categories, loading: catalogLoading, error: catalogError, refreshNow } = useProductCatalog();
   const synthetic = parseSyntheticBrandCategory(slug);
@@ -114,14 +117,17 @@ export default function CategoryPage() {
     };
   }, [configured, catalogLoading, slug, fromCatalog.length, synthetic]);
 
-  const wooList: WooProduct[] = (fromCatalog.length > 0 ? fromCatalog : remote.items ?? []).filter((p) => {
-    if (synthetic?.kind === "screens") return isRepairPartProduct(p);
-    if (synthetic) return isCustomerAccessoryProduct(p);
-    if (/(lcd|oled|battery|flex|housing|digitizer|phone-parts|pecas|peças|spare)/i.test(slug)) {
-      return isRepairPartProduct(p);
-    }
-    return isCustomerAccessoryProduct(p);
-  });
+  const wooList: WooProduct[] = useMemo(() => {
+    const raw = (fromCatalog.length > 0 ? fromCatalog : remote.items ?? []).filter((p) => {
+      if (synthetic?.kind === "screens") return isRepairPartProduct(p);
+      if (synthetic) return isCustomerAccessoryProduct(p);
+      if (/(lcd|oled|battery|flex|housing|digitizer|phone-parts|pecas|peças|spare)/i.test(slug)) {
+        return isRepairPartProduct(p);
+      }
+      return isCustomerAccessoryProduct(p);
+    });
+    return sortStorefrontCatalog(raw, user);
+  }, [fromCatalog, remote.items, slug, synthetic, user]);
 
   const wooLoading =
     configured &&

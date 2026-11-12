@@ -36,6 +36,8 @@ type CloudProduct = {
   salePrice?: number | string | null;
   retailPrice?: number | string | null;
   wholesalePrice?: number | string | null;
+  b2c_price?: number | string | null;
+  b2b_price?: number | string | null;
   compareAtPrice?: number | string | null;
   dealerOnly?: boolean | string | number | null;
   dealer_only?: boolean | string | number | null;

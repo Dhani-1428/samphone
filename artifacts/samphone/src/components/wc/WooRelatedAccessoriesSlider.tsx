@@ -11,6 +11,7 @@ import {
 import WooProductCard from "@/components/wc/WooProductCard";
 import { useLang } from "@/contexts/LanguageContext";
 import { classifyCatalogProduct } from "@/lib/catalog-taxonomy";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +39,7 @@ export default function WooRelatedAccessoriesSlider({
     const others = products.filter(
       (p) => p.id !== currentProductId && classifyCatalogProduct(p).category !== "parts",
     );
-    if (catSet.size === 0) return others.slice(0, 24);
+    if (catSet.size === 0) return sortStorefrontCatalog(others).slice(0, 24);
     const scored = others
       .map((p) => ({
         p,
@@ -47,8 +48,8 @@ export default function WooRelatedAccessoriesSlider({
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score || a.p.name.localeCompare(b.p.name))
       .map((x) => x.p);
-    if (scored.length > 0) return scored.slice(0, 30);
-    return others.slice(0, 24);
+    if (scored.length > 0) return sortStorefrontCatalog(scored).slice(0, 30);
+    return sortStorefrontCatalog(others).slice(0, 24);
   }, [products, currentProductId, categoryIds]);
 
   useEffect(() => {

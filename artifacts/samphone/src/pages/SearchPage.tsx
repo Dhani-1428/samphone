@@ -7,7 +7,7 @@ import { useProductCatalog } from "@/contexts/ProductCatalogContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { filterCatalogForCustomer } from "@/lib/customer-price";
 import { searchProductsRemote, type WooProduct } from "@/lib/woocommerce";
-import { sortNewest } from "@/lib/woo-product-filters";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 
 function mergeProducts(...lists: WooProduct[][]): WooProduct[] {
   const seen = new Set<string>();
@@ -59,7 +59,7 @@ export default function SearchPage() {
     if (!q) return [];
     const local = searchProducts(q, 8000);
     const merged = filterCatalogForCustomer(mergeProducts(remote, local), user);
-    return sortNewest(merged);
+    return sortStorefrontCatalog(merged, user);
   }, [q, searchProducts, remote, user, products]);
 
   const busy = loading || remoteLoading;

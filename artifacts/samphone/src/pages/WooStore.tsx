@@ -1,16 +1,21 @@
+import { useMemo } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import WooProductCard from "@/components/wc/WooProductCard";
 import CatalogLoading from "@/components/CatalogLoading";
 import PageVideoHero from "@/components/PageVideoHero";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { hasWooCommerceConfig } from "@/config/woocommerce";
 import { useProductCatalog } from "@/contexts/ProductCatalogContext";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 
 export default function WooStore() {
   const { t } = useLang();
+  const { user } = useAuth();
   const { products, loading, error, refreshNow, lastUpdated, hasCache, syncingMore } = useProductCatalog();
   const configured = hasWooCommerceConfig();
+  const listed = useMemo(() => sortStorefrontCatalog(products, user), [products, user]);
   const showBlockingLoader = loading && !hasCache;
 
   return (
@@ -73,14 +78,14 @@ export default function WooStore() {
           </div>
         )}
 
-        {!showBlockingLoader && !error && products.length === 0 && !loading && (
+        {!showBlockingLoader && !error && listed.length === 0 && !loading && (
           <p className="py-16 text-center text-sm text-muted-foreground">{t("woo_empty")}</p>
         )}
 
-        {!showBlockingLoader && !error && products.length > 0 && (
+        {!showBlockingLoader && !error && listed.length > 0 && (
           <>
             <ul className="catalog-product-grid">
-              {products.map((p) => (
+              {listed.map((p) => (
                 <li key={p.id}>
                   <WooProductCard product={p} priceUnavailableLabel={t("woo_price_na")} compact />
                 </li>

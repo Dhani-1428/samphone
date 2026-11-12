@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import WooProductCard from "@/components/wc/WooProductCard";
 import { searchCloudProducts } from "@/lib/samphone-cloud";
+import { sortStorefrontCatalog } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 import type { RepairServiceId } from "@/lib/repair-pricing";
 
@@ -85,7 +86,7 @@ export default function DeviceDiagnostics() {
     }
     setBusy(true);
     try {
-      setParts(await searchCloudProducts(query, 8));
+      setParts(sortStorefrontCatalog(await searchCloudProducts(query, 8)));
     } catch {
       setParts([]);
     } finally {

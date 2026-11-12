@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type InputHTMLAttributes } from "react";
+import { useEffect, useMemo, useState, type InputHTMLAttributes } from "react";
 import { useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Search, Sparkles, Wrench } from "lucide-react";
@@ -15,13 +15,14 @@ import {
   brandKeywordNeedles,
   filterProductsByBrandKeyword,
   productSearchHaystack,
-  sortNewest,
+  sortByPrice,
+  sortStorefrontCatalog,
   textMatchesSearchQuery,
 } from "@/lib/woo-product-filters";
 import type { WooProduct } from "@/lib/woocommerce";
 import { fetchCloudProductsForModel, fetchCloudAllProducts, peekModelCatalogMemory } from "@/lib/samphone-cloud";
 import { modelSearchNames, productBelongsToModel, splitModelCatalog } from "@/lib/model-catalog";
-import { filterCatalogForCustomer, pricingAudience } from "@/lib/customer-price";
+import { filterCatalogForCustomer, pricingAudience, type PriceUser } from "@/lib/customer-price";
 import {
   familiesForBrandSlug,
   familySearchQuery,
@@ -66,61 +67,17 @@ function mergeProducts(...lists: WooProduct[][]): WooProduct[] {
 
 type SortKey = "newest" | "price-asc" | "price-desc" | "name-asc";
 
-function sortProducts(list: WooProduct[], sort: SortKey): WooProduct[] {
+function sortProducts(list: WooProduct[], sort: SortKey, user?: PriceUser): WooProduct[] {
   switch (sort) {
     case "price-asc":
-      return [...list].sort((a, b) => getPrice(a) - getPrice(b));
+      return sortByPrice(list, "asc", user);
     case "price-desc":
-      return [...list].sort((a, b) => getPrice(b) - getPrice(a));
+      return sortByPrice(list, "desc", user);
     case "name-asc":
-      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      return [...list].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     default:
-      return sortNewest(list);
+      return sortStorefrontCatalog(list, user);
   }
-}
-
-/** Keep already-rendered cards in place; only add newly loaded products at the end. */
-function useAppendOnlyProducts(incoming: WooProduct[], sort: SortKey, resetKey: string): WooProduct[] {
-  const [ordered, setOrdered] = useState<WooProduct[]>(incoming);
-  const seenRef = useRef<Set<string>>(new Set());
-  const resetRef = useRef(resetKey);
-  const sortRef = useRef(sort);
-  const bootRef = useRef(true);
-
-  useEffect(() => {
-    const reset = bootRef.current || resetRef.current !== resetKey || sortRef.current !== sort;
-    bootRef.current = false;
-    if (reset) {
-      resetRef.current = resetKey;
-      sortRef.current = sort;
-      const next = sortProducts(incoming, sort);
-      seenRef.current = new Set(next.map(productKey));
-      setOrdered(next);
-      return;
-    }
-
-    const incomingKeys = new Set(incoming.map(productKey));
-    const additions: WooProduct[] = [];
-    for (const p of incoming) {
-      const key = productKey(p);
-      if (seenRef.current.has(key)) continue;
-      seenRef.current.add(key);
-      additions.push(p);
-    }
-    let dropped = false;
-    for (const key of [...seenRef.current]) {
-      if (incomingKeys.has(key)) continue;
-      seenRef.current.delete(key);
-      dropped = true;
-    }
-    if (!dropped && additions.length === 0) return;
-    setOrdered((prev) => {
-      const kept = dropped ? prev.filter((p) => incomingKeys.has(productKey(p))) : prev;
-      return additions.length ? [...kept, ...additions] : kept;
-    });
-  }, [incoming, sort, resetKey]);
-
-  return ordered;
 }
 
 function catalogBrandRoute(slug: string): string {
@@ -375,7 +332,7 @@ function SortBar({
           onChange={(e) => onSort(e.target.value as SortKey)}
           className="rounded-md border border-black/[0.12] bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-sam"
         >
-          <Opt value="newest" text="Newest" />
+          <Opt value="newest" text="Recommended" />
           <Opt value="price-asc" text="Price: low → high" />
           <Opt value="price-desc" text="Price: high → low" />
           <Opt value="name-asc" text="Name A–Z" />
@@ -565,16 +522,10 @@ export default function BrandPage() {
     return list;
   }, [brandProducts, activeFamily, selectedModel, filters, routeBrand, remoteModel]);
 
-  const displayResetKey = [
-    brandSlug,
-    filters.family ?? "",
-    filters.model ?? "",
-    String(filters.inStock),
-    String(filters.onSale),
-    String(filters.minPrice ?? ""),
-    String(filters.maxPrice ?? ""),
-  ].join("|");
-  const displayProducts = useAppendOnlyProducts(filteredProducts, sort, displayResetKey);
+  const displayProducts = useMemo(
+    () => sortProducts(filteredProducts, sort, user),
+    [filteredProducts, sort, user],
+  );
 
   const { parts: modelParts, accessories: modelAccessories } = useMemo(
     () => (selectedModel ? splitModelCatalog(displayProducts) : { parts: [], accessories: [] }),
