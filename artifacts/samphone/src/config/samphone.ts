@@ -32,6 +32,11 @@ export const CLERK_PUBLISHABLE_KEY =
 export const CLERK_FRONTEND_API =
   import.meta.env.VITE_CLERK_FRONTEND_API ?? "https://clerk.samphone.eu";
 
+/** Official Clerk JS host — do not load clerk.browser.js from the custom FAPI domain. */
+export const CLERK_JS_URL =
+  import.meta.env.VITE_CLERK_JS_URL ??
+  "https://js.clerk.com/npm/@clerk/clerk-js@5/dist/clerk.browser.js";
+
 export const STRIPE_PUBLISHABLE_KEY =
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ??
   "pk_live_51TsRh0IFNHslwSxObrZX8Fx7eneUwyjSeSj0QmbJJKB39lmLDrwNzGOjfk646Y4hacs0jyT9bJSPpGuk4hlojYTy00Ir71HQaq";

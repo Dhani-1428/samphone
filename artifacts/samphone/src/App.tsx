@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -44,9 +43,8 @@ import WooStore from "@/pages/WooStore";
 import ModelCatalogPage from "@/pages/ModelCatalogPage";
 import ShopGroupPage from "@/pages/ShopGroupPage";
 import AdminGate from "@/components/AdminGate";
-import { ClerkProvider } from "@clerk/clerk-react";
-import { CLERK_PUBLISHABLE_KEY } from "@/config/samphone";
 import ClerkCloudBridge from "@/components/ClerkCloudBridge";
+import ClerkGate from "@/components/ClerkGate";
 import ProfileLanguageSync from "@/components/ProfileLanguageSync";
 import AdminLane from "@/pages/admin/AdminLane";
 import AdminOverview from "@/pages/admin/AdminOverview";
@@ -57,8 +55,6 @@ import Layout from "@/components/Layout";
 import WholesalePage from "@/pages/WholesalePage";
 import FaqPage from "@/pages/FaqPage";
 import ScrollToTop from "@/components/ScrollToTop";
-import { isClerkEnabled } from "@/lib/clerk-runtime";
-import AppErrorBoundary from "@/components/AppErrorBoundary";
 import SiteLockGate from "@/components/SiteLockGate";
 
 const queryClient = new QueryClient();
@@ -327,30 +323,11 @@ function AppShell({ clerk }: { clerk: boolean }) {
 }
 
 function App() {
-  const clerk = isClerkEnabled();
-  const tree = clerk ? (
-    <Suspense fallback={null}>
-      <ClerkProvider
-        publishableKey={CLERK_PUBLISHABLE_KEY}
-        afterSignOutUrl="/"
-        afterSignInUrl="/auth/continue"
-        afterSignUpUrl="/auth/continue"
-      >
-        <AppErrorBoundary
-          fallback={
-            <div className="flex min-h-screen items-center justify-center bg-white px-6 text-center text-sm text-neutral-700">
-              Something went wrong. Refresh the page. If this is the admin panel, sign out and log in again with email and password.
-            </div>
-          }
-        >
-          <AppShell clerk />
-        </AppErrorBoundary>
-      </ClerkProvider>
-    </Suspense>
-  ) : (
-    <AppShell clerk={false} />
+  return (
+    <SiteLockGate>
+      <ClerkGate withClerk={<AppShell clerk />} withoutClerk={<AppShell clerk={false} />} />
+    </SiteLockGate>
   );
-  return <SiteLockGate>{tree}</SiteLockGate>;
 }
 
 export default App;

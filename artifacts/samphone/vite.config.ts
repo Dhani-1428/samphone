@@ -2,7 +2,6 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { wooConfigFromEnv, wooDevPlugin } from "./server/woo-dev-plugin";
 
 /** Dev/preview listen port. Never throw — Vercel and pasted API .env files often set PORT to "" or a socket path. */
@@ -56,7 +55,6 @@ export default defineConfig(async ({ mode }) => {
     wooDevPlugin(wooCfg),
     react(),
     tailwindcss(),
-    ...(process.env.VERCEL ? [] : [runtimeErrorOverlay()]),
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -112,6 +110,7 @@ export default defineConfig(async ({ mode }) => {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    hmr: { overlay: false },
     fs: {
       strict: true,
       deny: ["**/.*"],
